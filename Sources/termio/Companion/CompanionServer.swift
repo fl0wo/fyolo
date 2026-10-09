@@ -380,13 +380,15 @@ final class CompanionServer {
 
     private func receive(on connection: NWConnection) {
         connection.receiveMessage { [weak self] content, context, _, error in
+            // A `let` copy, so Swift 6.2 lets every task below share it.
+            let server = self
             if error != nil {
-                Task { @MainActor in self?.drop(ObjectIdentifier(connection)) }
+                Task { @MainActor in server?.drop(ObjectIdentifier(connection)) }
                 return
             }
             let heardAt = ProcessInfo.processInfo.systemUptime
             Task { @MainActor in
-                self?.liveness.heard(ObjectIdentifier(connection), at: heardAt)
+                server?.liveness.heard(ObjectIdentifier(connection), at: heardAt)
             }
             let meta = context?.protocolMetadata(definition: NWProtocolWebSocket.definition)
                 as? NWProtocolWebSocket.Metadata
@@ -399,13 +401,13 @@ final class CompanionServer {
                     // Keystrokes from the phone into the session's PTY.
                     // Typing from the phone is active use — the size follows it.
                     Task { @MainActor in
-                        guard let bridge = self?.bridges[ObjectIdentifier(connection)] else { return }
+                        guard let bridge = server?.bridges[ObjectIdentifier(connection)] else { return }
                         bridge.write(content)
                     }
                 case .text:
                     if let text = String(data: content, encoding: .utf8),
                        let control = CompanionControl.decode(text) {
-                        Task { @MainActor in self?.handle(control, on: connection) }
+                        Task { @MainActor in server?.handle(control, on: connection) }
                     }
                 default:
                     break
@@ -413,7 +415,7 @@ final class CompanionServer {
             }
             // Re-arm on the main actor like every other branch above: the callback
             // itself runs on the network queue, and `receive` reads main-actor state.
-            Task { @MainActor in self?.receive(on: connection) }
+            Task { @MainActor in server?.receive(on: connection) }
         }
     }
 
@@ -587,9 +589,7 @@ final class CompanionServer {
         }
         Task.detached(priority: .userInitiated) { [weak self] in
             let entries = Self.listEntries(in: dir, listedPath: path, projectRoot: root)
-            await MainActor.run {
-                self?.sendControl(.fileList(path: path, entries: entries), to: connection)
-            }
+            await self?.sendControl(.fileList(path: path, entries: entries), to: connection)
         }
     }
 
@@ -600,12 +600,10 @@ final class CompanionServer {
         }
         Task.detached(priority: .userInitiated) { [weak self] in
             let (paths, truncated) = Self.searchFilenames(root: root, query: query)
-            await MainActor.run {
-                self?.sendControl(
-                    .searchResults(query: query, paths: paths, truncated: truncated),
-                    to: connection
-                )
-            }
+            await self?.sendControl(
+                .searchResults(query: query, paths: paths, truncated: truncated),
+                to: connection
+            )
         }
     }
 
@@ -692,7 +690,7 @@ final class CompanionServer {
             } else {
                 reply = .error(message: "could not read \(path)")
             }
-            await MainActor.run { self?.sendControl(reply, to: connection) }
+            await self?.sendControl(reply, to: connection)
         }
     }
 
@@ -707,7 +705,7 @@ final class CompanionServer {
         }
         Task.detached(priority: .userInitiated) { [weak self] in
             let reply = Self.performWrite(at: url, path: path, base64: base64, baseMtime: baseMtime)
-            await MainActor.run { self?.sendControl(reply, to: connection) }
+            await self?.sendControl(reply, to: connection)
         }
     }
 
@@ -745,7 +743,7 @@ final class CompanionServer {
             } else {
                 reply = .error(message: "bad upload payload")
             }
-            await MainActor.run { self?.sendControl(reply, to: connection) }
+            await self?.sendControl(reply, to: connection)
         }
     }
 
@@ -862,7 +860,7 @@ final class CompanionServer {
                     isBinary: $0.isBinary, isStaged: $0.isStaged
                 )
             }
-            await MainActor.run { self?.sendControl(.changes(files: files), to: connection) }
+            await self?.sendControl(.changes(files: files), to: connection)
         }
     }
 
@@ -895,7 +893,7 @@ final class CompanionServer {
             let reply = CompanionControl.diff(
                 WireDiff(path: path, text: binary ? "" : text, binary: binary)
             )
-            await MainActor.run { self?.sendControl(reply, to: connection) }
+            await self?.sendControl(reply, to: connection)
         }
     }
 

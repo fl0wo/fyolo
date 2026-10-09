@@ -106,8 +106,12 @@ fi
 
 # Regenerate the compiled .lproj resources from the String Catalog so a shipped
 # build can never carry strings that lag an edited Localizable.xcstrings.
-echo "==> Compiling localized strings"
-"$repo_root/scripts/compile-strings.sh"
+if xcrun --find xcstringstool >/dev/null 2>&1; then
+    echo "==> Compiling localized strings"
+    "$repo_root/scripts/compile-strings.sh"
+else
+    echo "==> xcstringstool not found (no full Xcode) — using the checked-in compiled strings"
+fi
 
 # Build one slice per Mac architecture, then lipo them together, so the shipped app
 # runs on Apple silicon and Intel from one bundle. SwiftPM's own multi-arch mode
