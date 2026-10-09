@@ -7,13 +7,13 @@
 > metric instrumentation and a read of a reference project, Muxy) so the agent
 > does NOT re-run the dead ends — the biggest one being "chase the resize path."
 > Goal: confirm the spawn-timing root cause and fix it **on the `jiweiyuan/libghostty-swift`
-> fork and/or in Termio — WITHOUT rolling the dependency back to Lakr233/libghostty-spm.**
+> fork and/or in Fyolo — WITHOUT rolling the dependency back to Lakr233/libghostty-spm.**
 
 ---
 
 ## The symptom
 
-Termio is a native macOS terminal for AI agents (Swift + AppKit/SwiftUI, libghostty
+Fyolo is a native macOS terminal for AI agents (Swift + AppKit/SwiftUI, libghostty
 core via the `GhosttyTerminal` product). When a Claude Code session opens — or when
 the window is wide — the agent's TUI (the welcome box: the pig art, "Welcome back
 Jiwei!", the model line, and the "Meet Fable 5…" banner) renders **boxed into a
@@ -55,9 +55,9 @@ them; re-deriving them is the trap that already burned one session.
 **Frozen scrollback from spawning the shell/agent at a guessed width before the
 terminal view has its real size.**
 
-- Termio owns the PTY (host-managed `.inMemory` backend via `PTYProcess`, *not*
+- Fyolo owns the PTY (host-managed `.inMemory` backend via `PTYProcess`, *not*
   `.exec` — `docs/CLAUDE.md` is stale on this). It creates the `PTYProcess` **eagerly**
-  in `TermioStore.surface(for:in:)` at `cols: lastHostGridColumns, rows: lastHostGridRows`
+  in `FyoloStore.surface(for:in:)` at `cols: lastHostGridColumns, rows: lastHostGridRows`
   — a value **persisted in UserDefaults from a previous run**, i.e. a guess.
 - At window-open the sidebar (and inspector) squeeze the terminal pane small — the
   instrumentation measured the pane as low as **12 cols**. So the guess is very often
@@ -74,7 +74,7 @@ arrives, the hypothesis holds.
 
 ## Reference project — Muxy (this is how to fix it)
 
-`github.com/muxy-app/muxy` — MIT, SwiftUI + libghostty, **same architecture as Termio**
+`github.com/muxy-app/muxy` — MIT, SwiftUI + libghostty, **same architecture as Fyolo**
 (it even vendors its own `GhosttyKit.xcframework`). Clone it and read
 `Muxy/Views/Terminal/GhosttyTerminalNSView.swift`.
 
@@ -92,23 +92,23 @@ override func setFrameSize(_ newSize: NSSize) {
 `createSurface()` calls `ghostty_surface_set_size(surface, backingSize…)` at the
 view's actual backing size, and `materializeHeadless()` uses a 1×1 frame only for
 genuinely offscreen panes. So Muxy's agent always boots at the true pane width and
-never leaves a frozen-narrow banner. Termio boots eagerly at a stale guess — that is
+never leaves a frozen-narrow banner. Fyolo boots eagerly at a stale guess — that is
 the whole gap.
 
 ## The fix to design (leave room to find the cleanest split)
 
 Make the agent's **first** winsize equal the real pane width. The PTY winsize is set
-by Termio's `PTYProcess`, and the real size is known only once the package fires its
+by Fyolo's `PTYProcess`, and the real size is known only once the package fires its
 first resize callback — so the fix likely spans both sides. Evaluate:
 
-- **Termio side:** defer `PTYProcess` creation (or at least its first `TIOCSWINSZ`)
-  in `TermioStore.surface(for:in:)` until the InMemory `resize` closure fires with the
+- **Fyolo side:** defer `PTYProcess` creation (or at least its first `TIOCSWINSZ`)
+  in `FyoloStore.surface(for:in:)` until the InMemory `resize` closure fires with the
   first real grid, then spawn/size at that. Keep `lastHostGridColumns` only as the
   metal layer's initial visual guess, not as the shell's birth size. Guard the
   pre-spawn window (the drop-path and `send()` already retry).
 - **fork/package side (`GhosttyTerminal`):** if useful, add a clean signal for
   "surface laid out at a real, non-placeholder size for the first time," and/or make
-  the `.inMemory` backend defer its initial viewport until then, so Termio's
+  the `.inMemory` backend defer its initial viewport until then, so Fyolo's
   coordination is simple and not racy. Mirror Muxy's `pendingSurfaceCreation` gate.
 
 Pick whichever split is cleanest and least invasive; the acceptance test (below) is
@@ -116,25 +116,25 @@ what matters.
 
 ### Hard constraints
 - **Do NOT roll back to `Lakr233/libghostty-spm`.** Stay on `jiweiyuan/libghostty-swift`
-  (Termio's `Package.swift` is currently pinned to it at `1.0.5`).
+  (Fyolo's `Package.swift` is currently pinned to it at `1.0.5`).
 - **No zig / no building Ghostty from source.** The xcframework is a prebuilt binary
   target. Only the Swift wrapper (`Sources/GhosttyTerminal`) is editable; it compiles
   against the downloaded xcframework via `swift build` / `swift build --target GhosttyTerminal`.
   To ship a wrapper change: commit on the fork, push a new semver tag (next after
   `1.0.5`); the binary target keeps pointing at the `storage.1.0.4` xcframework, so no
-  rebuild is needed. Then bump Termio's `Package.swift` pin.
-- Work on a branch / git worktree; do not touch Termio `main` until verified.
+  rebuild is needed. Then bump Fyolo's `Package.swift` pin.
+- Work on a branch / git worktree; do not touch Fyolo `main` until verified.
 
 ## Key files
 
-**Termio** (`~/Documents/GitHub/termio`):
-- `Sources/termio/TermioStore/TermioStore+TerminalSurface.swift` — `surface(for:in:)`
+**Fyolo** (`~/Documents/GitHub/fyolo`):
+- `Sources/fyolo/FyoloStore/FyoloStore+TerminalSurface.swift` — `surface(for:in:)`
   creates the `PTYProcess` eagerly and wires the InMemory `resize` closure. **Primary
   edit site.**
-- `Sources/termio/PTYProcess.swift` — PTY init sets the initial winsize; `resizeFromHost`,
+- `Sources/fyolo/PTYProcess.swift` — PTY init sets the initial winsize; `resizeFromHost`,
   `sizeOwner`, `applyWindowSizeAndUnlock`.
-- `Sources/termio/TermioStore/TermioStore.swift` — `lastHostGridColumns` / `rememberHostGrid`.
-- `Sources/termio/TerminalPane.swift` — the SwiftUI embedding (all sessions mounted in a
+- `Sources/fyolo/FyoloStore/FyoloStore.swift` — `lastHostGridColumns` / `rememberHostGrid`.
+- `Sources/fyolo/TerminalPane.swift` — the SwiftUI embedding (all sessions mounted in a
   `ZStack`, opacity-toggled).
 - `Package.swift` — dependency is `jiweiyuan/libghostty-swift` from `1.0.5`.
 
@@ -152,15 +152,15 @@ what matters.
 
 A temporary diagnostic already exists in the working tree on branch
 `macos-libghostty-swift-fork` (**remove it when done**): in
-`App.swift`’s `applicationDidFinishLaunching`, gated on env `TERMIO_METRICS_LOG`, it
-sets `GhosttyTerminal.TerminalDebugLog.sink` to append to `/tmp/termio-metrics.log`,
+`App.swift`’s `applicationDidFinishLaunching`, gated on env `FYOLO_METRICS_LOG`, it
+sets `GhosttyTerminal.TerminalDebugLog.sink` to append to `/tmp/fyolo-metrics.log`,
 calls `TerminalDebugLog.enable(.metrics)`, then drives `window.setContentSize(…)`
 narrow→wide on a delay and walks `contentView` for a subview whose class name contains
 `"Terminal"`, logging its `frame` vs `superview.bounds`.
 
 - Launch the dev bundle's inner binary directly so `Bundle.main` stays the `.dev` app:
-  `TERMIO_METRICS_LOG=1 ./termio-dev.app/Contents/MacOS/termio` (build the dev bundle
-  with `TERMIO_CHANNEL=dev ./scripts/build-app.sh`, or use the `macos-rebuild-dev` skill).
+  `FYOLO_METRICS_LOG=1 ./fyolo-dev.app/Contents/MacOS/fyolo` (build the dev bundle
+  with `FYOLO_CHANNEL=dev ./scripts/build-app.sh`, or use the `macos-rebuild-dev` skill).
 - `osascript`/System Events **cannot** set window bounds here (`Can't set bounds…`) —
   resize from inside the app instead, as above.
 - `.metrics` log lines to read: `sync view=<pt>x<pt>`, `surface setSize <px>x<px>`,
@@ -177,9 +177,9 @@ must still reflow the live grid (regression check). Verify with the metrics log 
 window screenshot of the running dev app.
 
 ## History pointers (context, not tasks)
-- Memory `project_termio_prompt_eol_mark`: prior fix = spawn at `lastHostGrid` + coalesce
+- Memory `project_fyolo_prompt_eol_mark`: prior fix = spawn at `lastHostGrid` + coalesce
   SIGWINCH; it explicitly deferred the real fix — *"defer the pty spawn until the first
   real layout size instead of guessing lastHostGrid."* **That deferred fix is this task.**
 - Commits: `57e0ea3` (first-prompt-at-real-width), `e5d9084` (coalesce host resizes),
   `0bd4559` (moved macOS to Lakr233 — reasoning now known to be about live resize, which
-  works either way). Termio was later repointed to the fork at `1.0.5`.
+  works either way). Fyolo was later repointed to the fork at `1.0.5`.

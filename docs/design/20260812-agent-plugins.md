@@ -12,12 +12,12 @@ related:
 # Agent Plugins
 
 > Adopt the Agent Plugins spec so a user can install one folder and have every
-> agent termio manages pick up its skills — starting with skills only, because
+> agent fyolo manages pick up its skills — starting with skills only, because
 > the MCP half is where config-clobbering lives.
 
 ## 1. Why a standard instead of our own scheme
 
-termio already fans out per-agent configuration: hooks are written into
+fyolo already fans out per-agent configuration: hooks are written into
 `~/.claude/settings.json`, `~/.codex/hooks.json`, Cursor's flat dialect, and
 plugin drop-in directories for OpenCode and Pi — all modelled by
 `AgentHookSpec` + `HookDialect` in `AgentDefinition.swift`. Skills are the same
@@ -69,20 +69,20 @@ always from a path or a git URL.
 
 Consequences worth stating plainly:
 
-- termio's **hooks stay outside the spec**. `AgentHookSpec` continues to be
-  termio's own concern; a plugin cannot ship hooks in v1.
-- A plugin cannot ship a **CLI command**. So `termio browser` is not, and will
+- fyolo's **hooks stay outside the spec**. `AgentHookSpec` continues to be
+  fyolo's own concern; a plugin cannot ship hooks in v1.
+- A plugin cannot ship a **CLI command**. So `fyolo browser` is not, and will
   not become, a plugin artifact.
 
 ## 3. Where plugins live
 
 ```
-~/.termio/plugins/<name>/          # the plugin directory, spec layout verbatim
-~/.termio/plugins/.state.json      # enabled flags, source, installed hashes
+~/.fyolo/plugins/<name>/          # the plugin directory, spec layout verbatim
+~/.fyolo/plugins/.state.json      # enabled flags, source, installed hashes
 ```
 
 The plugin directory is stored **unmodified** — a byte-identical copy of what
-was fetched. Anything termio needs to remember about it goes in `.state.json`,
+was fetched. Anything fyolo needs to remember about it goes in `.state.json`,
 never inside the plugin, so a `git pull` on a plugin installed from source is
 never in conflict with our bookkeeping.
 
@@ -99,7 +99,7 @@ so adding is never the same act as granting.
 
 **Remove** — disable, then delete the directory.
 
-Fan-out is idempotent and re-runs on launch, so upgrading a plugin (or termio)
+Fan-out is idempotent and re-runs on launch, so upgrading a plugin (or fyolo)
 converges without user action — the same property `BundledSkillInstaller`-style
 symlinking has in prior art.
 
@@ -108,7 +108,7 @@ symlinking has in prior art.
 For each `skills/<name>/` in an enabled plugin, symlink into both:
 
 ```
-~/.claude/skills/<name>   →  ~/.termio/plugins/<plugin>/skills/<name>
+~/.claude/skills/<name>   →  ~/.fyolo/plugins/<plugin>/skills/<name>
 ~/.agents/skills/<name>   →  (same)
 ```
 
@@ -134,7 +134,7 @@ where that agent's MCP config lives and which dialect it speaks — rather than
 inventing a second fan-out mechanism.
 
 Merging into a config file the user also edits is the operation that has already
-bitten this project once: Superset wiped termio's hooks, and the fix was
+bitten this project once: Superset wiped fyolo's hooks, and the fix was
 strip-conflicts + re-assert on refocus + a version stamp. Any MCP writer must
 carry that lesson from the start.
 
@@ -161,7 +161,7 @@ fixed filename and source shape; the manifest cannot inject code."* Extend it.
 
 A `plugin.json` is **data**. It may not name an executable, a script path, a
 postinstall step, or an arbitrary destination. Everything a plugin ships lands
-in locations termio chooses, derived from the component type — never from a
+in locations fyolo chooses, derived from the component type — never from a
 string in the manifest.
 
 The counter-example is in our own history: the browser repo's site-command
@@ -191,10 +191,10 @@ inventing one.
 The spec reserves a reverse-domain namespace for client-specific data:
 
 ```json
-"extensions": { "sh.termio": { } }
+"extensions": { "sh.fyolo": { } }
 ```
 
-Anything termio-specific goes there and conformance is preserved. Use it
+Anything fyolo-specific goes there and conformance is preserved. Use it
 sparingly — every key added is a thing that only works here, which is the
 opposite of why the standard was adopted.
 
@@ -205,9 +205,9 @@ another repo, and it currently ships through a bespoke `skill install` in the
 browser CLI. Repackaging it as a conforming plugin dogfoods the loader against
 a real case instead of a toy.
 
-Note what does *not* move: `termio browser cdp`, the Settings gate, and the
+Note what does *not* move: `fyolo browser cdp`, the Settings gate, and the
 Chrome extension stay native, because v1 has no component type for any of them.
-The plugin carries the skill; termio carries the capability.
+The plugin carries the skill; fyolo carries the capability.
 
 ## 12. Open questions
 
@@ -217,7 +217,7 @@ The plugin carries the skill; termio carries the capability.
 2. **Updating a git-sourced plugin**: a *Check for updates* action, or refresh
    on launch? Refreshing silently changes agent behaviour without the user
    asking, which argues for explicit.
-3. **Project-local plugins** — a `.termio/plugins/` in a repo, so a project can
+3. **Project-local plugins** — a `.fyolo/plugins/` in a repo, so a project can
    carry its own. Defer; nothing asks for it yet.
 4. **MCP dialect coverage** — cut 2 needs the real per-agent config shapes
    surveyed the way the hook dialects were.

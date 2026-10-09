@@ -16,15 +16,15 @@ import { downloadUrl } from "@/lib/site";
 const appJsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "Termio",
+  name: "Fyolo",
   operatingSystem: "macOS",
   applicationCategory: "DeveloperApplication",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-  url: "https://www.termio.sh",
+  url: "https://www.fyolo.sh",
   downloadUrl,
-  image: "https://www.termio.sh/og.webp",
+  image: "https://www.fyolo.sh/og.webp",
   description:
-    "Termio is the Terminal-first Agentic Development Environment — a native Mac app for your AI coding agents: Claude Code, Codex, OpenCode, Pi Agent and more. Run them side by side, each in a real terminal, and nothing ever leaves your machine.",
+    "Fyolo is the Terminal-first Agentic Development Environment — a native Mac app for your AI coding agents: Claude Code, Codex, OpenCode, Pi Agent and more. Run them side by side, each in a real terminal, and nothing ever leaves your machine.",
 };
 
 export default function Home() {

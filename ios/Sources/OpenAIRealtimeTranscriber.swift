@@ -27,7 +27,7 @@ final class OpenAIRealtimeTranscriber: NSObject {
     /// adding perceptible latency to the completed transcript.
     private static let chunkByteCount = 4_800
 
-    private let stateQueue = DispatchQueue(label: "sh.termio.openai-realtime")
+    private let stateQueue = DispatchQueue(label: "sh.fyolo.openai-realtime")
     private let apiKey: String
     private var task: URLSessionWebSocketTask?
     private var session: URLSession?
@@ -97,7 +97,7 @@ final class OpenAIRealtimeTranscriber: NSObject {
         request.timeoutInterval = 10
 
         let delegateQueue = OperationQueue()
-        delegateQueue.name = "sh.termio.openai-realtime.delegate"
+        delegateQueue.name = "sh.fyolo.openai-realtime.delegate"
         delegateQueue.maxConcurrentOperationCount = 1
         let session = URLSession(
             configuration: .ephemeral, delegate: self, delegateQueue: delegateQueue

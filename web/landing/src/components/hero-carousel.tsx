@@ -68,7 +68,7 @@ export function HeroCarousel({ slides }: { slides: readonly HeroSlide[] }) {
       ref={viewRef}
       role="region"
       aria-roledescription="carousel"
-      aria-label="Termio screenshots"
+      aria-label="Fyolo screenshots"
       className="group @container relative w-full"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}

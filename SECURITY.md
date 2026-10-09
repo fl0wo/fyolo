@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes target the latest released version of Termio and the `main`
+Security fixes target the latest released version of Fyolo and the `main`
 branch. Older releases may not receive a backport, so please confirm an issue
 against the latest release when practical.
 
@@ -14,7 +14,7 @@ discussion, or pull request before a fix is available.
 Use GitHub's **Report a vulnerability** form in the repository's Security tab
 when it is available. Otherwise, email the maintainer at
 [ji-weiyuan@outlook.com](mailto:ji-weiyuan@outlook.com) with the subject
-`termio security report`. If the report contains especially sensitive material,
+`fyolo security report`. If the report contains especially sensitive material,
 send only a summary first and ask for a secure channel.
 
 Include as much of the following as possible:
@@ -38,12 +38,12 @@ period before publishing details.
 
 ## Scope
 
-Reports are in scope when they affect the Termio macOS app, iOS companion,
+Reports are in scope when they affect the Fyolo macOS app, iOS companion,
 shared packages, landing site, release/update mechanism, or first-party
-infrastructure used to distribute Termio.
+infrastructure used to distribute Fyolo.
 
 Reports about an upstream dependency should normally go to that dependency's
-maintainer unless Termio uses it in a way that creates a termio-specific
+maintainer unless Fyolo uses it in a way that creates a fyolo-specific
 vulnerability. Social engineering, physical attacks, and availability-only
 traffic floods are out of scope. Automated scanner output without a
 demonstrated security impact is not sufficient on its own.

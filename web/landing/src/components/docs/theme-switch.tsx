@@ -9,7 +9,7 @@ export type DocsTheme = "system" | "light" | "dark";
 // Where the choice is kept, and the attribute the stylesheet keys on. The inline
 // script in the docs layout reads the same two names before first paint — keep
 // them in step (see DocsThemeScript).
-export const DOCS_THEME_KEY = "termio-docs-theme";
+export const DOCS_THEME_KEY = "fyolo-docs-theme";
 
 function apply(theme: DocsTheme) {
   const root = document.documentElement;

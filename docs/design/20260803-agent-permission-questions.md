@@ -52,7 +52,7 @@ render alike), answered with arrow keys rather than digits.
 
 ## 3. The route taken: ask the agent
 
-Termio is not an emulator. It installs hooks, reads agent manifests, and owns
+Fyolo is not an emulator. It installs hooks, reads agent manifests, and owns
 the session lifecycle — so it does not have to guess what the agent is asking.
 It can be told.
 
@@ -79,7 +79,7 @@ off documentation. **Re-verify on major Claude Code upgrades.**
 ### Shape
 
 ```
-PreToolUse hook ──▶ `termio agent ask` (blocking, 90s)
+PreToolUse hook ──▶ `fyolo agent ask` (blocking, 90s)
                         │  raw hook payload over the control socket
                         ▼
                    PermissionBroker (holds the question, 45s)
@@ -116,7 +116,7 @@ A scripted stand-in for the phone, attached over the companion protocol:
 
 ```
 QUESTION: {"title":"Run a shell command","id":"q1",
-           "detail":"mkdir -p /tmp/termio-probe-x",
+           "detail":"mkdir -p /tmp/fyolo-probe-x",
            "options":[{"id":"allow","label":"Allow"},{"id":"deny","label":"Deny"}]}
 -> tapped Allow
 CLOSED: q1

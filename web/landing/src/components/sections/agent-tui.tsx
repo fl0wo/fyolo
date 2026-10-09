@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 // Each supported agent's terminal UI, drawn in DOM instead of screenshotted.
 //
 // Every layout here was taken from a real capture of that CLI running inside
-// Termio (the files these replaced, public/agent/*.png): the banner blocks, the
+// Fyolo (the files these replaced, public/agent/*.png): the banner blocks, the
 // key/value headers, the hint rows and the status lines are what each agent
 // actually prints on launch — the same reason the orchestration demo draws the
 // app's chrome rather than photographing it.
@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 // half a desktop card, and a screenshot's one virtue — scaling as one piece —
 // had to survive the port.
 
-const PATH = "~/Documents/GitHub/termio";
+const PATH = "~/Documents/GitHub/fyolo";
 
 // OpenCode's launch wordmark, transcribed character for character from the
 // running CLI. The lone `▄` on the first row is the `d`'s ascender.
@@ -31,7 +31,7 @@ const OPENCODE_MARK = [
 
 /* ---------------------------------------------------------------- shell --- */
 
-// Termio's own window around the agent, matching the captures: traffic lights,
+// Fyolo's own window around the agent, matching the captures: traffic lights,
 // the sidebar toggle, the folder-over-branch title block, the inspector toggle.
 function AgentWindow({
   children,
@@ -57,7 +57,7 @@ function AgentWindow({
         <PaneGlyph className="ml-[0.4em] w-[1.5em] text-white/45" />
         <div className="ml-[0.6em] min-w-0 leading-tight">
           <p className="truncate text-[0.95em] font-semibold text-white">
-            termio
+            fyolo
           </p>
           <p className="truncate text-[0.8em] text-white/45">main</p>
         </div>
@@ -199,13 +199,13 @@ function ClaudeTui() {
 
         <p className="mt-[1em] truncate">
           <span className="text-white/45">❯ </span>
-          <span className="text-white/85">/termio list the sibling sessions</span>
+          <span className="text-white/85">/fyolo list the sibling sessions</span>
         </p>
         <p className="mt-[0.7em] truncate text-white/70">
           <span className="text-[#c37b62]">⏺</span> Running 1 shell command…
         </p>
         <p className="truncate pl-[1.2em] text-white/40">
-          ⎿ $ termio sessions list --json
+          ⎿ $ fyolo sessions list --json
         </p>
         <p className="mt-[0.6em] text-white/55">Idle (3)</p>
         {[
@@ -492,7 +492,7 @@ function KimiTui() {
           <BoxedInput char=">" />
           <p className="mt-[0.5em] flex gap-[0.7em] truncate text-[0.9em] text-white/35">
             <span className="shrink-0 text-white/55">K2.7 Coding</span>
-            <span className="truncate">…/GitHub/termio main [+1060 -401]</span>
+            <span className="truncate">…/GitHub/fyolo main [+1060 -401]</span>
           </p>
           <p className="truncate text-right text-[0.9em] text-white/30">
             context: 0.0% (0/262.1k)

@@ -26,7 +26,7 @@ Cursor 本机未安装、Kimi 未登录（headless 报 No model configured），
 
 **落盘**：`~/.pi/agent/sessions/<encoded-cwd>/<ISO时间戳>_<UUID>.jsonl`，
 一个 session 一个 append-only JSONL（Claude 同构）。encoded-cwd 形如
-`--Users-yuanjiwei-Documents-GitHub-termio--`（`/`→`-`，前后加 `--`）。
+`--Users-yuanjiwei-Documents-GitHub-fyolo--`（`/`→`-`，前后加 `--`）。
 实测：注入后消息逐行追加到既有文件尾部。
 
 **记录粒度 → 六变体**（实测样本）：
@@ -45,10 +45,10 @@ Cursor 本机未安装、Kimi 未登录（headless 报 No model configured），
 
 **Tail**：append-only 完整行 → 现有 `TranscriptTailer` 直接复用，零新机制。
 
-**发现**：**Termio 已经 pin 了**——`AgentDefinition.swift:130-134` 启动即传
+**发现**：**Fyolo 已经 pin 了**——`AgentDefinition.swift:130-134` 启动即传
 `--session-id <resumeID>`（创建即用我们的 id，resume 同一开关）。adapter 的
 `transcriptURL` = encoded-cwd 目录里 glob `*_<resumeID>.jsonl`（文件名带时间戳
-前缀，所以是一次 glob 而非拼路径）。实测注入产生的文件名 UUID 正是 Termio 的 id。
+前缀，所以是一次 glob 而非拼路径）。实测注入产生的文件名 UUID 正是 Fyolo 的 id。
 
 **结论：可做。** ClaudeAdapter 的孪生：一个 `PiAdapter`（transcriptURL glob +
 mapper ~200 行），无新 tailer、无发现逻辑。预估半天内含真机验证。resume 能力
@@ -136,7 +136,7 @@ create-with-id → 不能 pin，走 launch-time 匹配。
 No model configured），`context.append_message` 的块形状与 edit-diff 有无未实测。
 登录后跑一条真实会话即可开工；mapper 预估 ~250 行 + 半天。
 （旁注：kimi 有原生 `kimi acp` ACP-server 模式——它是唯一原生说 ACP 的候选，但
-Termio 架构是 PTY+旁路 transcript，TUI 与 acp server 不共存，仍走 wire.jsonl。）
+Fyolo 架构是 PTY+旁路 transcript，TUI 与 acp server 不共存，仍走 wire.jsonl。）
 
 ---
 
@@ -156,13 +156,13 @@ Termio 架构是 PTY+旁路 transcript，TUI 与 acp server 不共存，仍走 w
 **六变体**：export JSON 里 user/agent 文本可映射；tool/usage 块形状未深究——
 因为信号源本身不成立，粒度评估无意义。
 
-**发现（讽刺地容易）**：Termio 持有 PTY 的 tty 名 → `session.json.lastThreadByTerminal`
+**发现（讽刺地容易）**：Fyolo 持有 PTY 的 tty 名 → `session.json.lastThreadByTerminal`
 精确给出 threadId；或 logs/threads/ 新文件 mtime 匹配。发现能做，内容拿不到。
 
 **结论：暂缓。** 缺的是本地内容面。两条未来路线：
 1. dormant 回放场景用 `amp threads export` 一次性拉取（历史可看，直播缺失）；
-2. Termio 已给 Amp 装 hook 插件（`~/.config/amp/plugins/*.ts`）——若插件 API 能
-   订阅 thread 事件，可让插件把事件推给 Termio，绕开落盘。需另行调研插件 API 面。
+2. Fyolo 已给 Amp 装 hook 插件（`~/.config/amp/plugins/*.ts`）——若插件 API 能
+   订阅 thread 事件，可让插件把事件推给 Fyolo，绕开落盘。需另行调研插件 API 面。
 
 ---
 

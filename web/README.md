@@ -1,9 +1,9 @@
-# termio web
+# fyolo web
 
-The marketing site for **termio** — a native macOS (Apple Silicon) terminal for
-AI coding agents. termio is **free to use**: no account, no license keys, no
+The marketing site for **fyolo** — a native macOS (Apple Silicon) terminal for
+AI coding agents. fyolo is **free to use**: no account, no license keys, no
 payment backend. This folder is just the public site; the desktop app itself
-lives in the repository root (`Sources/termio`).
+lives in the repository root (`Sources/fyolo`).
 
 ## Sub-projects
 
@@ -14,7 +14,7 @@ lives in the repository root (`Sources/termio`).
 ## Distribution
 
 The app is downloaded directly as a notarized `.dmg` (the stable Cloudflare R2
-URL behind `downloads.termio.sh`, served via `landing/src/lib/site.ts`) and keeps
+URL behind `downloads.fyolo.sh`, served via `landing/src/lib/site.ts`) and keeps
 itself current through built-in **Sparkle** auto-updates. There is no checkout,
 no licensing service, and no server to run.
 

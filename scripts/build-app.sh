@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Assemble termio.app — a real macOS application bundle with a Dock icon and the
+# Assemble fyolo.app — a real macOS application bundle with a Dock icon and the
 # embedded Sparkle.framework that powers in-app auto-update.
 #
-# termio is a plain SwiftPM executable; `swift run` produces a bare binary with
+# fyolo is a plain SwiftPM executable; `swift run` produces a bare binary with
 # no bundle, so macOS shows a generic Dock icon. This script builds the release
 # binary and wraps it in a `.app` bundle whose Info.plist + AppIcon.icns give it
 # a proper name and Dock icon, then embeds Sparkle (which SwiftPM links but does
-# NOT bundle on its own) under Contents/Frameworks. It also builds the `termiod`
+# NOT bundle on its own) under Contents/Frameworks. It also builds the `fyolod`
 # session daemon (Rust + a Zig-built VT engine) into Contents/Resources, so a
 # shipped app carries the session host it starts. The release bundle is universal
 # (arm64 + x86_64) so one DMG runs on Apple silicon and Intel Macs alike.
@@ -15,18 +15,18 @@
 # release build fails without them; a dev build says so and ships without one.
 #
 # Usage:
-#   ./scripts/build-app.sh            # ad-hoc-signed release build into ./termio.app
-#   open ./termio.app                 # launch it
+#   ./scripts/build-app.sh            # ad-hoc-signed release build into ./fyolo.app
+#   open ./fyolo.app                 # launch it
 #
 # Environment overrides (used by the release workflow; all optional):
-#   TERMIO_CHANNEL   which identity to build; only two values exist. Unset (or
-#                    "release") builds ./termio.app. "dev" builds a side-by-side
-#                    termio-dev.app (bundle id ….dev, its own ~/.termio-dev state +
+#   FYOLO_CHANNEL   which identity to build; only two values exist. Unset (or
+#                    "release") builds ./fyolo.app. "dev" builds a side-by-side
+#                    fyolo-dev.app (bundle id ….dev, its own ~/.fyolo-dev state +
 #                    companion port 8788, Sparkle's update feed removed) so it runs
 #                    beside an installed release build. Any other value is rejected —
 #                    see the channel check below for why.
-#   TERMIO_VERSION   CFBundleShortVersionString to stamp (default: keep Info.plist's)
-#   TERMIO_BUILD     CFBundleVersion to stamp; must increase across shipped builds
+#   FYOLO_VERSION   CFBundleShortVersionString to stamp (default: keep Info.plist's)
+#   FYOLO_BUILD     CFBundleVersion to stamp; must increase across shipped builds
 #                    because Sparkle compares it (default: keep Info.plist's)
 #   SIGN_IDENTITY    codesign identity, e.g. "Developer ID Application: …" for a
 #                    notarizable build (default: "-", ad-hoc, for local use)
@@ -39,40 +39,40 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 configuration="release"
-# The SPM product / CFBundleExecutable name is always "termio"; only the bundle
+# The SPM product / CFBundleExecutable name is always "fyolo"; only the bundle
 # wrapper and identity change per channel.
-product_name="termio"
-# TERMIO_CHANNEL=dev builds a side-by-side dev app (termio-dev.app, id ….dev, its
+product_name="fyolo"
+# FYOLO_CHANNEL=dev builds a side-by-side dev app (fyolo-dev.app, id ….dev, its
 # own state dir + port, no Sparkle update feed) so it can run beside an installed release.
 # Unset or "release" builds the shipped identity. Lower-cased the way AppChannel
 # lower-cases it at runtime, so the two agree on what a channel name is.
-channel="$(printf '%s' "${TERMIO_CHANNEL:-release}" | tr '[:upper:]' '[:lower:]')"
+channel="$(printf '%s' "${FYOLO_CHANNEL:-release}" | tr '[:upper:]' '[:lower:]')"
 # Anything else must NOT fall through to the release branch below. Arbitrary
 # channel names are a *runtime* feature — AppChannel.suffix turns any plain name
 # into its own state dir, socket and companion port — but no bundle identity has
 # ever been built for a third channel, so a typo (or session control's advice to
 # take a channel of your own, read as build advice) used to hand back a bundle
-# stamped sh.termio.app with a CLI stamped
-# SUPPORT_DIR_NAME="termio": a build that silently drives the app you use daily,
+# stamped sh.fyolo.app with a CLI stamped
+# SUPPORT_DIR_NAME="fyolo": a build that silently drives the app you use daily,
 # down to `sessions send` typing into a live session. Refuse instead.
 if [[ "$channel" != "release" && "$channel" != "dev" ]]; then
     cat >&2 <<EOF
-error: TERMIO_CHANNEL="${TERMIO_CHANNEL:-}" is not a channel this script can build.
+error: FYOLO_CHANNEL="${FYOLO_CHANNEL:-}" is not a channel this script can build.
        Supported values:
-         unset (or "release")  ->  ./termio.app      (sh.termio.app,     CLI "termio")
-         dev                   ->  ./termio-dev.app  (sh.termio.app.dev, CLI "termio-dev")
-       A name of your own works when *running* termio (it picks a state directory,
+         unset (or "release")  ->  ./fyolo.app      (sh.fyolo.app,     CLI "fyolo")
+         dev                   ->  ./fyolo-dev.app  (sh.fyolo.app.dev, CLI "fyolo-dev")
+       A name of your own works when *running* fyolo (it picks a state directory,
        control socket and companion port), but there is no bundle to build for it —
        so this build would have taken the RELEASE identity and driven your daily app.
-       Re-run with TERMIO_CHANNEL=dev, or leave TERMIO_CHANNEL unset for a release build.
+       Re-run with FYOLO_CHANNEL=dev, or leave FYOLO_CHANNEL unset for a release build.
 EOF
     exit 1
 fi
 if [[ "$channel" == "dev" ]]; then
-    app_name="termio-dev"
+    app_name="fyolo-dev"
     source_icon="$repo_root/packaging/AppIcon-dev.png"
 else
-    app_name="termio"
+    app_name="fyolo"
     source_icon="$repo_root/packaging/AppIcon.png"
 fi
 app_dir="$repo_root/${app_name}.app"
@@ -95,8 +95,10 @@ elif [[ "$channel" == "dev" ]]; then
     # profile or usernoted answers "Notifications are not allowed", so it is only
     # a last resort.
     ids="$(security find-identity -v -p codesigning 2>/dev/null)"
-    sign_identity="$(printf '%s\n' "$ids" | grep -oE '"Developer ID Application:[^"]*"' | head -1 | tr -d '"')"
-    [[ -z "$sign_identity" ]] && sign_identity="$(printf '%s\n' "$ids" | grep -oE '"Apple Development:[^"]*"' | head -1 | tr -d '"')"
+    # `|| true`: with no match, grep exits 1 and pipefail would end the script
+    # before the ad-hoc fallback below.
+    sign_identity="$(printf '%s\n' "$ids" | grep -oE '"Developer ID Application:[^"]*"' | head -1 | tr -d '"' || true)"
+    [[ -z "$sign_identity" ]] && sign_identity="$(printf '%s\n' "$ids" | grep -oE '"Apple Development:[^"]*"' | head -1 | tr -d '"' || true)"
     sign_identity="${sign_identity:--}"
     [[ "$sign_identity" == "-" ]] \
         && echo "==> No signing identity found — ad-hoc (notifications will not work in this dev build)"
@@ -174,7 +176,7 @@ echo "==> Bundled binary architectures: $bundled_archs"
 # bakes that accessor with only the .app ROOT + a hardcoded build-machine path, so
 # it never looks in Contents/Resources and a CI-built release crashes (the v0.2.4
 # Highlightr editor crash; Highlightr is vendored now for exactly this reason).
-# termio's own lookups go through `Bundle.termioResources`, which resolves here.
+# fyolo's own lookups go through `Bundle.fyoloResources`, which resolves here.
 echo "==> Bundling SwiftPM resource bundles"
 shopt -s nullglob
 for resource_bundle in "$bin_path"/*.bundle; do
@@ -184,43 +186,43 @@ shopt -u nullglob
 
 # Ship the command-line tool inside the bundle. The app installs it onto the user's
 # PATH by symlinking to this copy, so it version-updates with the app. A dev build
-# ships it as `termio-dev`: the Rust client reads its channel off its own program
-# name, so one binary drives the dev app without clobbering the release `termio`.
+# ships it as `fyolo-dev`: the Rust client reads its channel off its own program
+# name, so one binary drives the dev app without clobbering the release `fyolo`.
 # Bundled after the daemon build below, from the same cargo slices — `cargo build`
 # compiles every bin in the crate, so the client costs no second build. A dev
 # build without the Rust toolchain falls back to the shell client, rebound by sed
 # the way every build used to be.
-cli_name="termio"
-[[ "$channel" == "dev" ]] && cli_name="termio-dev"
+cli_name="fyolo"
+[[ "$channel" == "dev" ]] && cli_name="fyolo-dev"
 
 bundle_shell_client() {
     echo "==> Bundling $cli_name command-line tool (shell fallback)"
-    cp "$repo_root/scripts/termio" "$resources_dir/$cli_name"
+    cp "$repo_root/scripts/fyolo" "$resources_dir/$cli_name"
     if [[ "$channel" == "dev" ]]; then
         /usr/bin/sed -i '' \
-            -e 's/^SUPPORT_DIR_NAME="termio"/SUPPORT_DIR_NAME="termio-dev"/' \
-            -e 's/^BUNDLE_ID="sh.termio.app"/BUNDLE_ID="sh.termio.app.dev"/' \
+            -e 's/^SUPPORT_DIR_NAME="fyolo"/SUPPORT_DIR_NAME="fyolo-dev"/' \
+            -e 's/^BUNDLE_ID="sh.fyolo.app"/BUNDLE_ID="sh.fyolo.app.dev"/' \
             "$resources_dir/$cli_name"
     fi
-    if [[ -n "${TERMIO_VERSION:-}" ]]; then
-        /usr/bin/sed -i '' -e "s/^VERSION=\"dev\"/VERSION=\"$TERMIO_VERSION\"/" \
+    if [[ -n "${FYOLO_VERSION:-}" ]]; then
+        /usr/bin/sed -i '' -e "s/^VERSION=\"dev\"/VERSION=\"$FYOLO_VERSION\"/" \
             "$resources_dir/$cli_name"
     fi
     chmod +x "$resources_dir/$cli_name"
 }
 
-# Ship the session daemon inside the bundle, beside the CLI. `termiod` owns the
+# Ship the session daemon inside the bundle, beside the CLI. `fyolod` owns the
 # PTY for every session the app opens through it, and the app resolves it out of
-# Contents/Resources (`Termiod.daemonBinaryPath`). Nothing shipped it before:
+# Contents/Resources (`Fyolod.daemonBinaryPath`). Nothing shipped it before:
 # a released build looked for a debug artifact relative to its working directory,
 # which for a Finder launch is "/", so it could never start a daemon at all.
 #
 # Built one slice per architecture and lipo'd exactly like the app binary — the
 # release DMG is universal, and an arm64-only daemon inside it is a daemon an
-# Intel Mac cannot execute. It keeps the name `termiod` on both channels: unlike
+# Intel Mac cannot execute. It keeps the name `fyolod` on both channels: unlike
 # the CLI it is never symlinked onto PATH, only executed by absolute path out of
 # the bundle that ships it.
-daemon_name="termiod"
+daemon_name="fyolod"
 daemon_dest="$resources_dir/$daemon_name"
 
 # The VT engine is built by Zig from our libghostty fork, and `libghostty-vt-sys`
@@ -245,16 +247,16 @@ if [[ -n "$daemon_toolchain_missing" ]]; then
     # open no session — so a contributor with no Rust/Zig toolchain can work on
     # the Swift side without the build hard-failing on them.
     if [[ "$channel" != "dev" ]]; then
-        echo "error: cannot build termiod — $daemon_toolchain_missing not found." >&2
-        echo "       Rust: https://rustup.rs — Zig: brew install zig (termiod/README.md)." >&2
+        echo "error: cannot build fyolod — $daemon_toolchain_missing not found." >&2
+        echo "       Rust: https://rustup.rs — Zig: brew install zig (fyolod/README.md)." >&2
         exit 1
     fi
-    echo "==> Skipping termiod: $daemon_toolchain_missing not found — this dev build cannot start a daemon"
+    echo "==> Skipping fyolod: $daemon_toolchain_missing not found — this dev build cannot start a daemon"
     bundle_shell_client
 else
     # Xcode 26's libSystem.tbd advertises arm64e only and Zig cannot link against
     # it (the build dies in a wall of "undefined symbol: _malloc"); the Command
-    # Line Tools SDK is the fix, same as .github/workflows/termiod.yml. Scoped to
+    # Line Tools SDK is the fix, same as .github/workflows/fyolod.yml. Scoped to
     # the cargo build alone — the Swift build above needs full Xcode, whose
     # xcstringstool compiles the String Catalog.
     daemon_developer_dir="${DEVELOPER_DIR:-}"
@@ -269,7 +271,7 @@ else
         [[ "$arch" == "arm64" ]] && rust_target="aarch64-apple-darwin"
         echo "==> Building $daemon_name ($rust_target)"
         (
-            cd "$repo_root/termiod"
+            cd "$repo_root/fyolod"
             export PATH="$zig_bin:$PATH"
             [[ -n "$daemon_developer_dir" ]] && export DEVELOPER_DIR="$daemon_developer_dir"
             # The cross slice's std is not installed by default on a fresh
@@ -277,7 +279,7 @@ else
             rustup target add "$rust_target" >/dev/null 2>&1 || true
             cargo build --release --target "$rust_target"
         )
-        daemon_slices+=("$repo_root/termiod/target/$rust_target/release/$daemon_name")
+        daemon_slices+=("$repo_root/fyolod/target/$rust_target/release/$daemon_name")
     done
 
     lipo -create "${daemon_slices[@]}" -output "$daemon_dest"
@@ -291,7 +293,7 @@ else
     done
     echo "==> Bundled $daemon_name architectures: $daemon_archs"
 
-    # The Rust termio client, from the slices the daemon build just produced.
+    # The Rust fyolo client, from the slices the daemon build just produced.
     # Its name is load-bearing twice: the support copy and PATH symlink keep
     # the exact per-channel paths installed hooks already reference, and
     # argv[0] is what binds the binary to this bundle id, support directory,
@@ -301,7 +303,7 @@ else
     for arch in "${architectures[@]}"; do
         rust_target="$arch-apple-darwin"
         [[ "$arch" == "arm64" ]] && rust_target="aarch64-apple-darwin"
-        cli_slices+=("$repo_root/termiod/target/$rust_target/release/termio")
+        cli_slices+=("$repo_root/fyolod/target/$rust_target/release/fyolo")
     done
     lipo -create "${cli_slices[@]}" -output "$resources_dir/$cli_name"
     chmod +x "$resources_dir/$cli_name"
@@ -314,7 +316,7 @@ else
     done
     echo "==> Bundled $cli_name architectures: $cli_archs"
 
-    # The daemons that ship *to* a Linux box. `termiod remote deploy` used to
+    # The daemons that ship *to* a Linux box. `fyolod remote deploy` used to
     # cross-compile one on demand, which needs cargo, the musl target, and this
     # crate's source at the path baked into the binary — so remote sessions
     # worked for contributors and for nobody who installed the DMG. Shipping
@@ -322,19 +324,19 @@ else
     # ~/.local/bin, chmod, done. No root, no package manager, no toolchain.
     #
     # Statically linked musl, cross-linked by the bundled rust-lld (see
-    # termiod/.cargo/config.toml) — the same build .github/workflows/termiod.yml
-    # already proves on every termiod change, so this adds no new toolchain.
+    # fyolod/.cargo/config.toml) — the same build .github/workflows/fyolod.yml
+    # already proves on every fyolod change, so this adds no new toolchain.
     #
     # Dev builds skip it unless asked: each target rebuilds the Zig VT engine
     # from scratch, which is minutes and gigabytes per slice, and a contributor
     # deploying from a checkout still has `cross_compile` to fall back on.
-    if [[ "$channel" == "dev" && "${TERMIO_REMOTE_SLICES:-}" != "1" ]]; then
-        echo "==> Skipping the Linux $daemon_name slices (dev build; TERMIO_REMOTE_SLICES=1 to build them)"
+    if [[ "$channel" == "dev" && "${FYOLO_REMOTE_SLICES:-}" != "1" ]]; then
+        echo "==> Skipping the Linux $daemon_name slices (dev build; FYOLO_REMOTE_SLICES=1 to build them)"
     else
         for linux_target in x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
             echo "==> Building $daemon_name ($linux_target)"
             (
-                cd "$repo_root/termiod"
+                cd "$repo_root/fyolod"
                 export PATH="$zig_bin:$PATH"
                 [[ -n "$daemon_developer_dir" ]] && export DEVELOPER_DIR="$daemon_developer_dir"
                 rustup target add "$linux_target" >/dev/null 2>&1 || true
@@ -343,8 +345,8 @@ else
             # The client deploys to boxes in the same pass as the daemon
             # (issue #628); the cargo build above already produced both, so
             # shipping it is only a copy.
-            for built_name in "$daemon_name" termio; do
-                built="$repo_root/termiod/target/$linux_target/release/$built_name"
+            for built_name in "$daemon_name" fyolo; do
+                built="$repo_root/fyolod/target/$linux_target/release/$built_name"
                 # A binary that links is not a binary that runs on the VPS. Asserted
                 # here as well as in CI, because this is the copy users receive.
                 if ! file "$built" | grep -q "ELF 64-bit"; then
@@ -355,7 +357,7 @@ else
                 chmod +x "$resources_dir/$built_name-$linux_target"
             done
         done
-        echo "==> Bundled Linux $daemon_name + termio slices: x86_64 + aarch64"
+        echo "==> Bundled Linux $daemon_name + fyolo slices: x86_64 + aarch64"
     fi
 fi
 
@@ -363,13 +365,13 @@ fi
 # binary's rpath already resolves @rpath/Sparkle.framework via @executable_path
 # below, so embedding is purely a copy + one rpath entry.
 plist="$contents_dir/Info.plist"
-if [[ -n "${TERMIO_VERSION:-}" ]]; then
-    echo "==> Stamping CFBundleShortVersionString=$TERMIO_VERSION"
-    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $TERMIO_VERSION" "$plist"
+if [[ -n "${FYOLO_VERSION:-}" ]]; then
+    echo "==> Stamping CFBundleShortVersionString=$FYOLO_VERSION"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $FYOLO_VERSION" "$plist"
 fi
-if [[ -n "${TERMIO_BUILD:-}" ]]; then
-    echo "==> Stamping CFBundleVersion=$TERMIO_BUILD"
-    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $TERMIO_BUILD" "$plist"
+if [[ -n "${FYOLO_BUILD:-}" ]]; then
+    echo "==> Stamping CFBundleVersion=$FYOLO_BUILD"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FYOLO_BUILD" "$plist"
 fi
 
 # Dev channel: suffix the bundle id (so LaunchServices, UserDefaults, and
@@ -381,9 +383,9 @@ if [[ "$channel" == "dev" ]]; then
     base_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$plist")"
     echo "==> Dev channel: bundle id ${base_id}.dev, Sparkle update feed removed"
     /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier ${base_id}.dev" "$plist"
-    /usr/libexec/PlistBuddy -c "Set :CFBundleName termio dev" "$plist"
-    /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName termio dev" "$plist"
-    /usr/libexec/PlistBuddy -c "Set :CFBundleURLTypes:0:CFBundleURLSchemes:0 termio-dev" "$plist"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleName fyolo dev" "$plist"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName fyolo dev" "$plist"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleURLTypes:0:CFBundleURLSchemes:0 fyolo-dev" "$plist"
     /usr/libexec/PlistBuddy -c "Delete :SUFeedURL" "$plist" 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :SUEnableAutomaticChecks false" "$plist" 2>/dev/null || true
 fi

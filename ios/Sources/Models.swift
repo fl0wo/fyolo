@@ -1,5 +1,5 @@
 import SwiftUI
-import TermioShared
+import FyoloShared
 import UIKit
 
 struct MockSession: Identifiable {
@@ -27,15 +27,15 @@ struct MockSession: Identifiable {
     var worktreeBranch: String?
 
     static let samples: [MockSession] = [
-        .init(title: "fix-sidebar", project: "termio", agent: .sampleClaude,
+        .init(title: "fix-sidebar", project: "fyolo", agent: .sampleClaude,
               status: .needsAttention, subtitle: "Allow running npm install?", time: "2m"),
-        .init(title: "landing-hero", project: "termio", agent: .sampleClaude,
+        .init(title: "landing-hero", project: "fyolo", agent: .sampleClaude,
               status: .working, subtitle: "Editing hero.tsx…", time: "5m"),
-        .init(title: "info-pane", project: "termio", agent: .sampleCodex,
+        .init(title: "info-pane", project: "fyolo", agent: .sampleCodex,
               status: .done, subtitle: "Done · 3 files changed", time: "1h"),
         .init(title: "kanban-drag", project: "vibewizard", agent: .sampleClaude,
               status: .working, subtitle: "Running swift build…", time: "12m"),
-        .init(title: "release-notes", project: "termio", agent: .sampleOpenCode,
+        .init(title: "release-notes", project: "fyolo", agent: .sampleOpenCode,
               status: .idle, subtitle: "Waiting for input", time: "3h"),
     ]
 }
@@ -148,7 +148,7 @@ extension IconRef {
 extension SessionStatus {
     /// Map a wire status string to a status. Both spellings are here because
     /// both are on a wire this app speaks: the companion roster says
-    /// `needsAttention`, and termiod's §4 workstream vocabulary says
+    /// `needsAttention`, and fyolod's §4 workstream vocabulary says
     /// `needs_you` for the same state.
     init(wire: String) {
         switch wire {
@@ -221,14 +221,14 @@ final class FileNode {
 
     static let sampleRoot: [FileNode] = [
         FileNode("Sources", children: [
-            FileNode("termio", children: [
+            FileNode("fyolo", children: [
                 FileNode("App.swift", changed: true),
                 FileNode("Models.swift"),
                 FileNode("SessionInfoView.swift", changed: true),
-                FileNode("TermioStore", children: [
-                    FileNode("TermioStore.swift"),
-                    FileNode("TermioStore+TerminalSurface.swift", changed: true),
-                    FileNode("TermioStore+AgentStatus.swift"),
+                FileNode("FyoloStore", children: [
+                    FileNode("FyoloStore.swift"),
+                    FileNode("FyoloStore+TerminalSurface.swift", changed: true),
+                    FileNode("FyoloStore+AgentStatus.swift"),
                 ]),
             ]),
         ]),
@@ -280,13 +280,13 @@ final class FileNode {
 /// live Mac sends, so the demo renders through the real reader rather than a stand-in.
 enum MockChanges {
     static let samples: [DeviceChange] = [
-        DeviceChange(path: "Sources/termio/App.swift", status: "M", additions: 40, deletions: 12),
-        DeviceChange(path: "Sources/termio/SessionInfoView.swift", status: "M", additions: 18, deletions: 3),
+        DeviceChange(path: "Sources/fyolo/App.swift", status: "M", additions: 40, deletions: 12),
+        DeviceChange(path: "Sources/fyolo/SessionInfoView.swift", status: "M", additions: 18, deletions: 3),
         DeviceChange(
-            path: "Sources/termio/TermioStore/TermioStore+TerminalSurface.swift",
+            path: "Sources/fyolo/FyoloStore/FyoloStore+TerminalSurface.swift",
             status: "M", additions: 62, deletions: 41
         ),
-        DeviceChange(path: "Sources/termio/SessionHost.swift", status: "A", additions: 120, deletions: 0),
+        DeviceChange(path: "Sources/fyolo/SessionHost.swift", status: "A", additions: 120, deletions: 0),
     ]
 
     /// Full-context sample: one long unchanged run, so the fold band and its reveal are
@@ -299,7 +299,7 @@ enum MockChanges {
      /// The window's content: a sidebar of sessions beside the terminal surface.
      /// Layout is AppKit's, so the sidebar can run the full height of the window.
      struct ContentSplit {
-         let store: TermioStore
+         let store: FyoloStore
     \u{20}
          var sidebarWidth: CGFloat = 220
          var minimumSidebarWidth: CGFloat = 180
@@ -319,7 +319,7 @@ enum MockChanges {
          }
      }
     \u{20}
-     func makeContentSplitViewController(store: TermioStore) -> NSSplitViewController {
+     func makeContentSplitViewController(store: FyoloStore) -> NSSplitViewController {
          let split = ContentSplit(store: store)
          let splitViewController = split.makeSplitViewController()
          let sidebar = split.makeSidebarItem(SidebarViewController(store: store))
@@ -361,8 +361,8 @@ enum DeviceKind: String, Codable {
     /// The Mac companion wire: JSON controls and raw PTY bytes on one socket,
     /// with the token on the query string.
     case companion
-    /// The termiod Session Protocol, straight to the box the session runs on.
-    case termiod
+    /// The fyolod Session Protocol, straight to the box the session runs on.
+    case fyolod
 }
 
 /// Everything a backend needs to dial one peer. Passed around in place of the
@@ -392,19 +392,19 @@ struct PairedMac: Codable, Equatable {
     var id: String
     var name: String
     /// ws(s)://host:port — for the companion wire the pairing token is held
-    /// separately in `token`; for termiod the path (`/ws`) is part of it.
+    /// separately in `token`; for fyolod the path (`/ws`) is part of it.
     var address: String
     var token: String?
     /// Which protocol reaches this peer. Defaulted rather than required: the
     /// stored list decodes with `try?` and returns `[]` on failure, so a new
     /// mandatory field would silently unpair every device already saved.
     var kind: DeviceKind = .companion
-    /// The `Origin` a termiod listener expects, learned at pairing time from
+    /// The `Origin` a fyolod listener expects, learned at pairing time from
     /// the invite's `url`. nil for the companion wire, which checks none.
     var origin: String?
 
     /// The companion wire carries its token as the `t` query param, the shape
-    /// the Mac's QR encodes; termiod carries it as a subprotocol, so a termiod
+    /// the Mac's QR encodes; fyolod carries it as a subprotocol, so a fyolod
     /// address dials as stored.
     var connectURL: URL? {
         guard var components = URLComponents(string: address) else { return nil }
@@ -514,7 +514,7 @@ enum CompanionLink {
 
     /// The one place a pairing is understood: the scanner hands back a raw
     /// string and parses nothing. A companion address pairs the moment it
-    /// parses; a `termio://device` invite dials first and waits for `hello_ok`,
+    /// parses; a `fyolo://device` invite dials first and waits for `hello_ok`,
     /// because saving an unverified address is what left the companion paired
     /// and silently unreachable. Returns false for an address that does not
     /// parse — `completion` carries the real outcome, later, on the main queue.
@@ -610,16 +610,16 @@ enum CompanionLink {
         var message: String {
             switch self {
             case .unreadableAddress:
-                return localized("That isn't an address Termio can pair with.")
+                return localized("That isn't an address Fyolo can pair with.")
             case .protocolTooNew:
-                return localized("This device speaks a newer protocol. Update Termio on this phone.")
+                return localized("This device speaks a newer protocol. Update Fyolo on this phone.")
             case .unreachable(let reason):
                 return reason
             }
         }
     }
 
-    /// What `termiod pair` puts in a `termio://device` link. No display name:
+    /// What `fyolod pair` puts in a `fyolo://device` link. No display name:
     /// the host never supplies one, so `PairedMac.name` stands.
     struct DeviceInvite: Equatable {
         /// The dial URL, already resolved to `ws(s)://…/ws`.
@@ -635,13 +635,13 @@ enum CompanionLink {
         var address: String { url.absoluteString }
     }
 
-    /// Reads a `termio://device?url=…&token=…&host_id=…&proto=…` link, from the
+    /// Reads a `fyolo://device?url=…&token=…&host_id=…&proto=…` link, from the
     /// scanner or from a paste. nil for anything else, including a link missing
     /// a field — a half-read QR must not pair against a guess.
     static func parseDeviceInvite(_ raw: String) -> DeviceInvite? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let components = URLComponents(string: trimmed),
-              components.scheme?.lowercased() == "termio",
+              components.scheme?.lowercased() == "fyolo",
               components.host?.lowercased() == "device"
         else { return nil }
         let items = components.queryItems ?? []
@@ -657,14 +657,14 @@ enum CompanionLink {
             url: dial,
             token: token,
             hostID: hostID,
-            proto: value("proto").flatMap { UInt32($0) } ?? Termiod.protocolVersion,
+            proto: value("proto").flatMap { UInt32($0) } ?? Fyolod.protocolVersion,
             origin: origin
         )
     }
 
     /// The invite's reachable base rendered as the socket URL: same host and
     /// port, the ws(s) twin of its scheme, and the listener's `/ws` mount under
-    /// whatever path the operator published (Tailscale Serve's `/termio`).
+    /// whatever path the operator published (Tailscale Serve's `/fyolo`).
     private static func websocketURL(from base: URLComponents) -> URL? {
         var dial = base
         switch base.scheme?.lowercased() {
@@ -694,13 +694,13 @@ enum CompanionLink {
     private static func pair(
         invite: DeviceInvite, completion: ((Result<Void, PairingFailure>) -> Void)?
     ) {
-        guard invite.proto <= Termiod.protocolVersion else {
+        guard invite.proto <= Fyolod.protocolVersion else {
             completion?(.failure(.protocolTooNew))
             return
         }
         let endpoint = DeviceEndpoint(
-            kind: .termiod, url: invite.url, token: invite.token, origin: invite.origin)
-        TermiodBackend.verify(endpoint: endpoint) { result in
+            kind: .fyolod, url: invite.url, token: invite.token, origin: invite.origin)
+        FyolodBackend.verify(endpoint: endpoint) { result in
             switch result {
             case .failure(let refusal):
                 completion?(.failure(.unreachable(refusal.message)))
@@ -720,7 +720,7 @@ enum CompanionLink {
         if let index = macs.firstIndex(where: { $0.id == identity }) {
             macs[index].address = invite.address
             macs[index].token = invite.token
-            macs[index].kind = .termiod
+            macs[index].kind = .fyolod
             macs[index].origin = invite.origin
             save(macs)
             setActive(identity)
@@ -731,7 +731,7 @@ enum CompanionLink {
             name: invite.url.host ?? localized("Device"),
             address: invite.address,
             token: invite.token,
-            kind: .termiod,
+            kind: .fyolod,
             origin: invite.origin
         ))
         save(macs)

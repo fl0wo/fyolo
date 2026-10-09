@@ -45,7 +45,7 @@ export async function GitHubBand() {
           </h2>
           <p className="mt-5 text-base leading-relaxed text-foreground">
             <span className="block">
-              Termio is free and open source, MIT licensed.
+              Fyolo is free and open source, MIT licensed.
             </span>
             <span className="block">A star helps other builders find it.</span>
           </p>

@@ -1,6 +1,6 @@
 // swift-tools-version: 5.9
 
-// TermioShared: code both the macOS app and the iOS companion compile —
+// FyoloShared: code both the macOS app and the iOS companion compile —
 // brand vectors, status semantics, and (soon) the companion wire protocol.
 // Keep this package UI-framework-light: SwiftUI is fine, AppKit/UIKit only
 // behind canImport conditionals.
@@ -8,18 +8,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "TermioShared",
+    name: "FyoloShared",
     platforms: [
         .macOS(.v13),
         .iOS(.v17),
     ],
     products: [
-        .library(name: "TermioShared", targets: ["TermioShared"]),
+        .library(name: "FyoloShared", targets: ["FyoloShared"]),
     ],
     dependencies: [
         // Highlightr — the highlight.js wrapper the iOS file viewer uses, so a
         // file opened on the phone colors like the Mac editor. iOS-ONLY: the
-        // macOS app vendors these classes instead (Sources/termio/Editor/
+        // macOS app vendors these classes instead (Sources/fyolo/Editor/
         // Highlightr), because with plain `swift build` the dependency's
         // generated `Bundle.module` only checks the .app root + a hardcoded
         // build-machine path and fatalErrors in a packaged release (the v0.2.4
@@ -28,7 +28,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "TermioShared",
+            name: "FyoloShared",
             dependencies: [
                 .product(name: "Highlightr", package: "Highlightr", condition: .when(platforms: [.iOS])),
             ],

@@ -1,5 +1,5 @@
 import Highlightr
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// Full-screen unified diff, phone rules. The desktop pane renders the same model in
@@ -671,7 +671,7 @@ final class DiffWashLayoutManager: NSLayoutManager {
     /// own layer instead, which does not move — the numbers then hang in the viewport
     /// while the code scrolls under them, and the only way back is repainting the whole
     /// viewport every frame. The desktop learned the same lesson from the other side
-    /// (see `Sources/termio/Git/DiffTextView.swift`, where AppKit's copy-on-scroll
+    /// (see `Sources/fyolo/Git/DiffTextView.swift`, where AppKit's copy-on-scroll
     /// forces a full ruler invalidation). They still stay out of any selection, because
     /// they are painted, not part of the string.
     override func drawBackground(forGlyphRange glyphsToShow: NSRange, at origin: CGPoint) {
@@ -772,7 +772,7 @@ final class DiffSyntaxHighlighter {
     /// phone; the reader stays readable in plain ink.
     private static let maxCharacters = 200_000
 
-    private let queue = DispatchQueue(label: "sh.termio.diff-syntax", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "sh.fyolo.diff-syntax", qos: .userInitiated)
     private var highlightr: Highlightr?
     private var appliedTheme: String?
     private var appliedFont: UIFont?

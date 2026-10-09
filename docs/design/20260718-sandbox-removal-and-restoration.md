@@ -12,7 +12,7 @@ related:
 
 # Sandbox removal & restoration (Apple Seatbelt subsystem)
 
-This records Termio's own per-project Seatbelt sandbox **before it was removed**, so a
+This records Fyolo's own per-project Seatbelt sandbox **before it was removed**, so a
 future engineer can rebuild it (or, preferably, bring it back in a lighter shape — see
 [§6](#6-if-we-bring-it-back-do-it-lighter)). The subsystem is being deleted, not
 deprecated in place, so this doc is the map; git is the backup.
@@ -20,11 +20,11 @@ deprecated in place, so this doc is the map; git is the backup.
 ## Why it's being removed
 
 1. **Every serious agent now ships its own sandbox.** Claude Code, Codex, and Grok all
-   confine themselves; Termio wrapping a second sandbox around them is redundant and, on
+   confine themselves; Fyolo wrapping a second sandbox around them is redundant and, on
    macOS, actively conflicting (you can't nest Seatbelt — hence the whole "stand-down"
    mechanism below existed only to work around a problem we created).
 2. **`sandbox-exec` is deprecated by Apple.** The `SeatbeltProfile` compiler targets a CLI
-   Apple has marked deprecated; betting Termio's security story on it is a dead end.
+   Apple has marked deprecated; betting Fyolo's security story on it is a dead end.
 3. **It was only half-built.** There was a working profile compiler and launch wrapper, but
    the "Security panel" was a single sheet (`SecuritySheet`) with no threat model UI, no
    presets, and no per-agent policy — not a finished security surface.
@@ -40,7 +40,7 @@ The deeper reason it isn't being rebuilt right now is a product call, not a code
 - **The problem is already solved one layer down.** The threat this guarded against — a
   rogue or prompt-injected agent running `rm -rf`, exfiltrating `~/.ssh`/the Keychain, or
   piping `curl | sh` — is now handled by the agents themselves. Claude Code, Codex, and Grok
-  each ship their own confinement. Termio spending effort here buys **~zero marginal safety**
+  each ship their own confinement. Fyolo spending effort here buys **~zero marginal safety**
   over what the user already gets by default; it mostly duplicates work the vendors do better
   and keep current.
 - **It's a moving target we'd be chasing, not owning.** `sandbox-exec` is deprecated, the
@@ -48,7 +48,7 @@ The deeper reason it isn't being rebuilt right now is a product call, not a code
   three different dialects), and Apple's replacement story (`sandbox_init`, containers) is
   unsettled. Building on this now means signing up to re-verify a security boundary against
   a shifting substrate — the worst kind of maintenance to carry on an indie, free tool.
-- **It fights Termio's whole reason to exist.** Termio is a deliberately small, focused,
+- **It fights Fyolo's whole reason to exist.** Fyolo is a deliberately small, focused,
   native terminal for agents (see [[ambition]]) — its edge is taste and a tiny surface area,
   not being a security product. A per-project SBPL compiler, a threat-model UI, presets, and
   per-agent policy is a *large, permanent* surface that pulls the project toward something it
@@ -59,9 +59,9 @@ The deeper reason it isn't being rebuilt right now is a product call, not a code
   doc plus git bring it back in an afternoon, and the recommended shape ([§6](#6-if-we-bring-it-back-do-it-lighter))
   is a few lines of launch-prefix glue rather than a security subsystem to re-own.
 
-In short: **not "sandboxing is unimportant", but "Termio owning the sandbox is the wrong
+In short: **not "sandboxing is unimportant", but "Fyolo owning the sandbox is the wrong
 place to spend a small team's attention right now."** The right posture today is to lean on
-each agent's own sandbox and keep Termio's surface small.
+each agent's own sandbox and keep Fyolo's surface small.
 
 Restoration path: **git**. The pre-removal commit (below) contains the complete, working
 implementation. Bringing it back = `git revert` / `git cherry-pick` of the removal commit,
@@ -73,7 +73,7 @@ or a fresh lighter build per [§6](#6-if-we-bring-it-back-do-it-lighter).
 776c280744f6c07dc961d31e95486d0e3356439f   (dev, 2026-07-18)
 ```
 
-Everything described here exists in full at that commit. `git show 776c280:Sources/termio/Sandbox.swift`
+Everything described here exists in full at that commit. `git show 776c280:Sources/fyolo/Sandbox.swift`
 recovers the compiler verbatim.
 
 ---
@@ -189,7 +189,7 @@ Key decisions:
 
 - **Profile rides in a file**, not inline (`sandbox-exec -f`, not `-p`), so its parens,
   quotes, and newlines never had to survive the terminal's tokenization. The file was written
-  to `TMPDIR/termio-sandbox-<first-8-of-sessionUUID>.sb` by `writeProfile`, and removed by
+  to `TMPDIR/fyolo-sandbox-<first-8-of-sessionUUID>.sb` by `writeProfile`, and removed by
   `SandboxLauncher.cleanUp(sessionID:)` when the surface was torn down (called from
   `closeSession` and `removeProject`).
 - **If the profile file couldn't be written, `command()` returned `nil`** and the caller ran
@@ -201,7 +201,7 @@ Key decisions:
   PATH logic in `launchArgv` is SHARED with non-sandbox launching and was kept** — only the
   sandbox wrapping was removed (see [§4](#4-what-was-kept-shared-with-non-sandbox-code)).
 
-Wiring in `TermioStore+TerminalSurface.swift#surface(for:in:)`:
+Wiring in `FyoloStore+TerminalSurface.swift#surface(for:in:)`:
 
 ```swift
 let sandboxedCommand: String? = project.sandbox.flatMap { profile in
@@ -222,9 +222,9 @@ isolated worktree was the sandbox's writable workspace, exactly where the sessio
 
 **Why it existed:** macOS forbids a Seatbelt sandbox inside a Seatbelt sandbox — a nested
 sandbox fails to initialize. Modern agents (Claude Code, Codex, Grok) start their *own*
-Seatbelt sandbox by default. If Termio wrapped such an agent in its profile and the agent
+Seatbelt sandbox by default. If Fyolo wrapped such an agent in its profile and the agent
 then tried to sandbox itself, the agent would fail to launch. So each agent had to be told,
-via its own CLI flags, to **stand down its internal sandbox** — leaving Termio's profile as
+via its own CLI flags, to **stand down its internal sandbox** — leaving Fyolo's profile as
 the single enforcement layer. This was a **correctness requirement, not an optimization.**
 
 The flag string lived on `AgentDefinition.sandboxStandDownArguments: String?` and was
@@ -246,10 +246,10 @@ string (parsed by `UserAgentManifest`).
 > ⚠️ **Interaction with permission-bypass flags.** These stand-down flags are distinct from
 > `permissionBypassFlag` (the "YOLO" switch, e.g. `--dangerously-skip-permissions`). Note
 > that Codex's stand-down (`--sandbox danger-full-access`) and Grok's (`--sandbox off`)
-> *also* weaken the agent's own confinement — which was acceptable *only because* Termio's
-> profile was enforcing around them. **After removal, with no Termio profile, we must NOT
+> *also* weaken the agent's own confinement — which was acceptable *only because* Fyolo's
+> profile was enforcing around them. **After removal, with no Fyolo profile, we must NOT
 > keep injecting these stand-down flags** — doing so would leave the agent both un-sandboxed
-> by Termio *and* told to disable its own sandbox = worst case. The removal drops the field
+> by Fyolo *and* told to disable its own sandbox = worst case. The removal drops the field
 > entirely, so nothing injects them. (We also deliberately do NOT auto-inject
 > `permissionBypassFlag` as a side effect of this change.)
 
@@ -261,12 +261,12 @@ Pre-removal SHA `776c280`. `file:line` are at that commit.
 
 ### Deleted files (whole-file)
 
-- `Sources/termio/Sandbox.swift` — `SandboxProfile`, `SeatbeltProfile` (SBPL compiler +
+- `Sources/fyolo/Sandbox.swift` — `SandboxProfile`, `SeatbeltProfile` (SBPL compiler +
   `canonical`/`subpaths`/`quote`), `SandboxLauncher` (`command`/`cleanUp`/`writeProfile`/
   `profileURL`/`shellQuote`). Entire file (270 lines).
 - `scripts/seatbelt-smoke.sh` — the compiler's end-to-end proof harness (sandbox-only).
 
-### `Sources/termio/AgentDefinition.swift`
+### `Sources/fyolo/AgentDefinition.swift`
 
 - `:25-29` — the `sandboxStandDownArguments: String?` stored property + its doc comment.
 - `:62` — the `init` parameter `sandboxStandDownArguments: String?`.
@@ -278,7 +278,7 @@ Pre-removal SHA `776c280`. `file:line` are at that commit.
 - `:582` — `var sandboxStandDownArguments: String?` on `UserAgentManifest`.
 - `:645` — passing it through in `UserAgentManifest.definition(directory:)`.
 
-### `Sources/termio/Models.swift`
+### `Sources/fyolo/Models.swift`
 
 - `:70-73` — the `var sandbox: SandboxProfile?` property on `Project` + doc comment.
 - `:87` — the `sandbox` case in `Project.CodingKeys`.
@@ -287,18 +287,18 @@ Pre-removal SHA `776c280`. `file:line` are at that commit.
   simply ignored — Swift `Codable` drops unknown keys — so sandboxed projects reopen as
   normal projects with no migration.)
 
-### `Sources/termio/TermioStore/TermioStore.swift`
+### `Sources/fyolo/FyoloStore/FyoloStore.swift`
 
 - `:88-90` — the `@Published var editingSecurityProjectID: Project.ID?` transient UI state
   driving the Security sheet.
 
-### `Sources/termio/TermioStore/TermioStore+TerminalSurface.swift`
+### `Sources/fyolo/FyoloStore/FyoloStore+TerminalSurface.swift`
 
 - `:118-128` — the `sandboxedCommand` block calling `SandboxLauncher.command(...)`.
 - `:149` — `let effectiveCommand = sandboxedCommand ?? agentCommand` → `agentCommand`.
 - `:84-90`, `:104-107`, `:366-369` — comments mentioning the sandbox (updated, not the code).
 
-### `Sources/termio/TermioStore/TermioStore+ProjectActions.swift`
+### `Sources/fyolo/FyoloStore/FyoloStore+ProjectActions.swift`
 
 - `:444-459` — `presentOpenProjectPanel(sandboxed:)` — drop the `sandboxed` param and its
   prompt/message branches.
@@ -309,7 +309,7 @@ Pre-removal SHA `776c280`. `file:line` are at that commit.
 - `:519` — `SandboxLauncher.cleanUp(sessionID:)` in `removeProject`.
 - `:581` — `SandboxLauncher.cleanUp(sessionID:)` in `closeSession`.
 
-### `Sources/termio/SidebarView.swift`
+### `Sources/fyolo/SidebarView.swift`
 
 - `:262-274` — the `.sheet` presenting `SecuritySheet` (driven by `editingSecurityProjectID`).
 - `:575` — the `Security…` context-menu action.
@@ -319,9 +319,9 @@ Pre-removal SHA `776c280`. `file:line` are at that commit.
 
 ### Not touched (verified unrelated)
 
-- `Shared/Sources/TermioShared/WireProtocol.swift:81` — a comment noting the *phone* has no
+- `Shared/Sources/FyoloShared/WireProtocol.swift:81` — a comment noting the *phone* has no
   `~/.ssh`; unrelated to the Seatbelt subsystem.
-- `ios/Sources/TerminalViewController.swift`, `ios/UITests/TermioMobileUITests.swift` — the
+- `ios/Sources/TerminalViewController.swift`, `ios/UITests/FyoloMobileUITests.swift` — the
   iOS demo **`defaultSandboxShell`** is ShellCraftKit/libghostty's own sample shell, a
   different "sandbox".
 - `ios/vendor/libghostty-spm/**`, `ios/build/**` — vendored libghostty (`ShellCraftKit/
@@ -338,8 +338,8 @@ exactly as it was:
 
 ```
 git revert <removal-commit>        # or
-git cherry-pick 776c280 -- Sources/termio/Sandbox.swift scripts/seatbelt-smoke.sh
-git show 776c280 -- Sources/termio/AgentDefinition.swift   # re-apply the field by hand
+git cherry-pick 776c280 -- Sources/fyolo/Sandbox.swift scripts/seatbelt-smoke.sh
+git show 776c280 -- Sources/fyolo/AgentDefinition.swift   # re-apply the field by hand
 ```
 
 The doc commit for this file lands *before* the removal commit, so this knowledge survives
@@ -349,22 +349,22 @@ even if the removal is reverted.
 
 ## 6. If we bring it back, do it lighter
 
-Do **not** resurrect the SBPL compiler as termio-owned code. `sandbox-exec` is deprecated and
-owning a security-policy compiler over-couples Termio to a subsystem the agents now own
+Do **not** resurrect the SBPL compiler as fyolo-owned code. `sandbox-exec` is deprecated and
+owning a security-policy compiler over-couples Fyolo to a subsystem the agents now own
 themselves. Instead:
 
 **Expose a launch-PREFIX seam.** Let the user prepend their *own* confinement command to a
-session's launch via config — Termio just concatenates it, owns none of the policy:
+session's launch via config — Fyolo just concatenates it, owns none of the policy:
 
 ```jsonc
 // per-project or per-agent config (illustrative — NOT built)
-"launchPrefix": "sandbox-exec -f ~/.termio/my.sb"
+"launchPrefix": "sandbox-exec -f ~/.fyolo/my.sb"
 // or a container:  "launchPrefix": "container run --rm -v $PWD:/workspace ..."
 ```
 
-Termio would prepend `launchPrefix` to the resolved command inside the existing `launchArgv`
+Fyolo would prepend `launchPrefix` to the resolved command inside the existing `launchArgv`
 path and otherwise stay out of the way. This gives power users full reach (Seatbelt,
-`sandbox-exec`, containers, `bwrap`, whatever) with **zero** security code in Termio, no SBPL
+`sandbox-exec`, containers, `bwrap`, whatever) with **zero** security code in Fyolo, no SBPL
 compiler to maintain, and no `sandboxStandDownArguments` coupling on `AgentDefinition` (if a
 user's prefix needs the agent to stand down, they add that flag to their own agent command).
 

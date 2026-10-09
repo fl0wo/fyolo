@@ -18,8 +18,8 @@ related:
 > competing with it.
 
 Measured on 2026-08-19 against `docs/switch-profile` at `4a22d88` (same commit
-as `feat/workspaces`), running as the live `termio-dev` host
-(`/Users/yuanjiwei/Documents/GitHub/termio-worktrees/workspaces/termio-dev.app`,
+as `feat/workspaces`), running as the live `fyolo-dev` host
+(`/Users/yuanjiwei/Documents/GitHub/fyolo-worktrees/workspaces/fyolo-dev.app`,
 pid 59135). Screen Recording is not granted on this machine, so this pass did
 not look at pixels. The File ▸ Workspace menu is reachable from System Events
 and is what produced the switch numbers. A trackpad swipe was not driven. It
@@ -33,7 +33,7 @@ calls the same `WorkspaceSpaces.select`.
 | Per-row menu / tombstone / device / status hoisted or deferred | sidebar rows |
 | Terminals cached across rebuilds | `SurfaceCache` |
 | File tree cached per root | `FileTreeCache` |
-| Session / inspector / roster half deferred one run-loop turn | `TermioStore+Workspaces.finishArriving`, `workspaceArrival` |
+| Session / inspector / roster half deferred one run-loop turn | `FyoloStore+Workspaces.finishArriving`, `workspaceArrival` |
 | Scope commit in a `Transaction` with `disablesAnimations` | `switchToWorkspace` |
 | Device roster one fetch per switch; identical reply is a no-op | `refreshDeviceSessions` / `applyRoster` |
 
@@ -44,7 +44,7 @@ real. It is also the wrong number for "why does this feel blocked."
 
 `WorkspaceSpaces.select` and `switchToWorkspace` both emit `Trace.workspace`
 `workspace switch`. `finishArriving` emits `workspace settle`. Those are
-`os_signpost` intervals and `elapsed_ms` lines on subsystem `sh.termio.app.dev`,
+`os_signpost` intervals and `elapsed_ms` lines on subsystem `sh.fyolo.app.dev`,
 category `app`.
 
 This pass adds two more spans and does not change control flow:
@@ -65,13 +65,13 @@ branch so the next run prints that gap as `workspace column elapsed_ms`.
 
 `WorkingIndicator` on `origin/main` (`615f49c`) is the same type as on this
 branch: `TimelineView(.animation(minimumInterval: 1.0 / 30))` in
-`Shared/Sources/TermioShared/SessionStatus.swift`. `HugeIconShape.path(in:)`
+`Shared/Sources/FyoloShared/SessionStatus.swift`. `HugeIconShape.path(in:)`
 reparses `SVGPath(icon.pathData)` on every layout in both trees
 (`BrandIcons.swift`).
 
 Conditions for the this-branch numbers: three workspaces (Sessions, work,
 ukvps), current scope Sessions (4 loose terminals + 1 chat), two sessions
-`.working` (this one and its parent), two live `termiod-read` / ghostty
+`.working` (this one and its parent), two live `fyolod-read` / ghostty
 renderer pairs. A leftover `before.app` (same bundle id, 12 hours old, ~18–28%
 `ps` CPU) was killed first so it would stop sharing the `.dev` identity.
 
@@ -92,17 +92,17 @@ host had two, plus two Metal renderers.
 | `NSHostingView.layout()` | 712 | 11.1% |
 | of those, inside `+[NSAnimationContext runAnimationGroup:]` | 706 | 11.0% |
 | `HugeIconShape.path(in:)` (inside that layout) | 148 | 2.3% |
-| `WorkingIndicator` / `TimelineView` termio symbols | 0 | inlined into SwiftUI |
+| `WorkingIndicator` / `TimelineView` fyolo symbols | 0 | inlined into SwiftUI |
 
 712 ms of layout over 8 s is 89 ms/s. At 30 layout passes per second that is
 ~3 ms per pass. `WorkingIndicator` is capped at 30 Hz. The rates match.
 
-origin/main (`615f49c`, binary from `/tmp/termio-main-idle/termio-dev.app`)
-was launched as a second process with `TERMIO_CHANNEL=idlemain` so it could
-not take this host's sockets or `~/.termio-dev`. Seeded from
+origin/main (`615f49c`, binary from `/tmp/fyolo-main-idle/fyolo-dev.app`)
+was launched as a second process with `FYOLO_CHANNEL=idlemain` so it could
+not take this host's sockets or `~/.fyolo-dev`. Seeded from
 `state.json.pre-rename` (10 projects, 24 sessions). Those sessions were
 idle in the file and this process did not mark any of them `.working`.
-`open` was not used: the bundle id is still `sh.termio.app.dev`.
+`open` was not used: the bundle id is still `sh.fyolo.app.dev`.
 
 `top -l 12 -s 1` on that pid:
 
@@ -286,12 +286,12 @@ Persist at +400 ms (0.43–0.77 ms) is not on the path. Leave it.
 
 ## Instrumentation left on the branch
 
-`TermioStore+Workspaces.swift` only: `workspace column` around the deferred
+`FyoloStore+Workspaces.swift` only: `workspace column` around the deferred
 turn, `workspace selection` and `workspace device` inside settle. No
 control-flow change. Read them with:
 
 ```
-log stream --predicate 'subsystem == "sh.termio.app.dev" && category == "app"' --level info
+log stream --predicate 'subsystem == "sh.fyolo.app.dev" && category == "app"' --level info
 ```
 
 A click should print `workspace switch`, then `workspace column` (the number

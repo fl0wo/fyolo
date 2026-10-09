@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Measures how many git subprocesses the running termio-dev app spawns while a
+# Measures how many git subprocesses the running fyolo-dev app spawns while a
 # synthetic agent workload (file appends + `git status` index rewrites + periodic
 # commits) hammers a scratch repo the app watches. The regression harness for the
 # git-spawn-storm fix: run it against two builds and compare the exact counts.
@@ -9,7 +9,7 @@
 # (with argv) to the trace file. Remember to unset it afterwards:
 #
 #   launchctl setenv GIT_TRACE2_EVENT /tmp/git-trace.jsonl
-#   open <bundle>/termio-dev.app
+#   open <bundle>/fyolo-dev.app
 #   scripts/bench-git-spawns.sh /path/to/scratch-repo 45
 #   launchctl unsetenv GIT_TRACE2_EVENT
 #   python3 -c 'import json,collections,sys; c=collections.Counter(
@@ -17,13 +17,13 @@
 #       if e.get("event")=="start"); [print(v,k) for k,v in c.most_common(12)]'
 #
 # The scratch repo must already be one of the app's projects (open it once via
-# `open -b sh.termio.app.dev <repo>`), or nothing will be watching it.
+# `open -b sh.fyolo.app.dev <repo>`), or nothing will be watching it.
 zmodload zsh/datetime
 set -u
 REPO=${1:?usage: bench-git-spawns.sh <scratch-repo> [seconds]}
 DURATION=${2:-45}
 
-APP_PID=$(pgrep -f "termio-dev.app/Contents/MacOS/termio" | head -1)
+APP_PID=$(pgrep -f "fyolo-dev.app/Contents/MacOS/fyolo" | head -1)
 [[ -z "$APP_PID" ]] && { echo "dev app not running"; exit 1; }
 echo "app: $(ps -o args= -p "$APP_PID")"
 

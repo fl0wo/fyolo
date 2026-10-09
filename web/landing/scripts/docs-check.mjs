@@ -212,7 +212,7 @@ function frontmatter(text) {
 /**
  * The anchor id of a heading, the way the docs pipeline assigns it: an explicit
  * `## 状态 [#status]` wins, otherwise the text is slugified. Inline markup is
- * stripped first, so `## The \`termio\` command-line tool` and `## **Panes**`
+ * stripped first, so `## The \`fyolo\` command-line tool` and `## **Panes**`
  * anchor on their words rather than their backticks and asterisks.
  */
 function headingAnchor(heading) {

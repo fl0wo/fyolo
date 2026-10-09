@@ -4,7 +4,7 @@ name: Release
 #   git tag v0.1.0 && git push origin v0.1.0
 # The tag is the source of truth for the version; the build number is the commit
 # count (monotonic, so Sparkle always sees a higher CFBundleVersion). The DMG and
-# the Sparkle appcast.xml are hosted on Cloudflare R2 behind downloads.termio.sh,
+# the Sparkle appcast.xml are hosted on Cloudflare R2 behind downloads.fyolo.sh,
 # which is where the app's SUFeedURL and the website's Download button point.
 on:
   push:
@@ -16,23 +16,23 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  APP_NAME: termio
+  APP_NAME: fyolo
   SPARKLE_VERSION: "2.9.3"
   # Pin the toolchain to the macOS 26.4 SDK. AppKit keys titlebar/sidebar chrome off
   # the SDK the app links against, and 26.5-linked builds drop the floating sidebar
   # inset — the window title lands flush against the sidebar divider. Keep this in
   # step with the local dev toolchain until the toolbar is adapted to the 26.5 chrome.
   DEVELOPER_DIR: /Applications/Xcode_26.4.app/Contents/Developer
-  # build-app.sh builds termiod into the bundle, and its VT engine is compiled by
+  # build-app.sh builds fyolod into the bundle, and its VT engine is compiled by
   # Zig from our libghostty fork. Pinned with its published checksum, exactly as
-  # .github/workflows/termiod.yml pins it — keep the two in step.
+  # .github/workflows/fyolod.yml pins it — keep the two in step.
   ZIG_VERSION: "0.16.0"
   ZIG_SHA256_AARCH64_MACOS: "b23d70deaa879b5c2d486ed3316f7eaa53e84acf6fc9cc747de152450d401489"
-  # The DMG lives at $DOWNLOAD_BASE_URL/v<version>/termio.dmg (immutable) with a
-  # stable $DOWNLOAD_BASE_URL/termio.dmg copy; the appcast at $DOWNLOAD_BASE_URL/
+  # The DMG lives at $DOWNLOAD_BASE_URL/v<version>/fyolo.dmg (immutable) with a
+  # stable $DOWNLOAD_BASE_URL/fyolo.dmg copy; the appcast at $DOWNLOAD_BASE_URL/
   # appcast.xml (matches SUFeedURL in packaging/Info.plist).
-  DOWNLOAD_BASE_URL: https://downloads.termio.sh
-  R2_BUCKET: termio-downloads
+  DOWNLOAD_BASE_URL: https://downloads.fyolo.sh
+  R2_BUCKET: fyolo-downloads
 
 jobs:
   release:
@@ -87,7 +87,7 @@ jobs:
       # points the daemon's build at the Command Line Tools SDK itself — Xcode 26's
       # libSystem.tbd is arm64e-only and Zig cannot link against it — and leaves
       # DEVELOPER_DIR above intact for the Swift build.
-      - name: Install Zig (for termiod's VT engine)
+      - name: Install Zig (for fyolod's VT engine)
         run: |
           url="https://ziglang.org/download/${ZIG_VERSION}/zig-aarch64-macos-${ZIG_VERSION}.tar.xz"
           curl -fsSL "$url" -o "$RUNNER_TEMP/zig.tar.xz"
@@ -96,14 +96,14 @@ jobs:
           tar -xJf "$RUNNER_TEMP/zig.tar.xz" -C "$RUNNER_TEMP/zig" --strip-components=1
           echo "$RUNNER_TEMP/zig" >> "$GITHUB_PATH"
 
-      # build-app.sh embeds + signs Sparkle, builds and signs termiod into
+      # build-app.sh embeds + signs Sparkle, builds and signs fyolod into
       # Contents/Resources, and Developer-ID-signs the bundle with the hardened
       # runtime, so the output is ready to notarize.
       - name: Build signed app bundle
         env:
           SIGN_IDENTITY: "Developer ID Application"
-          TERMIO_VERSION: ${{ steps.meta.outputs.version }}
-          TERMIO_BUILD: ${{ steps.meta.outputs.build }}
+          FYOLO_VERSION: ${{ steps.meta.outputs.version }}
+          FYOLO_BUILD: ${{ steps.meta.outputs.build }}
         run: ./scripts/build-app.sh
 
       - name: Create DMG
@@ -138,7 +138,7 @@ jobs:
       # notice them going missing: the app would install, launch, and fail only
       # when someone pointed it at a VPS.
       #
-      # The `termio` clients ship beside them and sit in exactly that position:
+      # The `fyolo` clients ship beside them and sit in exactly that position:
       # a deploy refuses outright when the client slice for a box's target is
       # missing (`remote::shipped_client`), so a lost one turns deploying from
       # something that works into something that cannot be done at all.
@@ -150,12 +150,12 @@ jobs:
           resources="$mount_point/${APP_NAME}.app/Contents/Resources"
           status=0
           for binary in \
-            "termiod:Mach-O" \
-            "termiod-x86_64-unknown-linux-musl:ELF 64-bit" \
-            "termiod-aarch64-unknown-linux-musl:ELF 64-bit" \
-            "termio:Mach-O" \
-            "termio-x86_64-unknown-linux-musl:ELF 64-bit" \
-            "termio-aarch64-unknown-linux-musl:ELF 64-bit"; do
+            "fyolod:Mach-O" \
+            "fyolod-x86_64-unknown-linux-musl:ELF 64-bit" \
+            "fyolod-aarch64-unknown-linux-musl:ELF 64-bit" \
+            "fyolo:Mach-O" \
+            "fyolo-x86_64-unknown-linux-musl:ELF 64-bit" \
+            "fyolo-aarch64-unknown-linux-musl:ELF 64-bit"; do
             name="${binary%%:*}"
             want="${binary#*:}"
             if [ ! -f "$resources/$name" ]; then
@@ -286,8 +286,8 @@ jobs:
             --notes "[Download ${APP_NAME} ${VERSION} for macOS]($DOWNLOAD_BASE_URL/v${VERSION}/${APP_NAME}.dmg)" \
             --generate-notes
 
-      # Point the Homebrew tap (termio-sh/homebrew-tap) at this release so
-      # `brew install --cask termio-sh/tap/termio` serves it. Auth is a write
+      # Point the Homebrew tap (fyolo-sh/homebrew-tap) at this release so
+      # `brew install --cask fyolo-sh/tap/fyolo` serves it. Auth is a write
       # deploy key on the tap repo. No-ops (with a notice) until the secret is set.
       - name: Bump Homebrew cask
         env:
@@ -305,14 +305,14 @@ jobs:
           chmod 600 "$KEY_FILE"
           export GIT_SSH_COMMAND="ssh -i $KEY_FILE -o StrictHostKeyChecking=accept-new"
 
-          git clone --depth 1 git@github.com:termio-sh/homebrew-tap.git "$RUNNER_TEMP/tap"
+          git clone --depth 1 git@github.com:fyolo-sh/homebrew-tap.git "$RUNNER_TEMP/tap"
           cd "$RUNNER_TEMP/tap"
           sed -i '' \
             -e "s/^  version .*/  version \"${VERSION}\"/" \
             -e "s/^  sha256 .*/  sha256 \"${SHA256}\"/" \
-            Casks/termio.rb
-          git -c user.name="termio-release" -c user.email="release@termio.sh" \
-            commit -am "termio ${VERSION}"
+            Casks/fyolo.rb
+          git -c user.name="fyolo-release" -c user.email="release@fyolo.sh" \
+            commit -am "fyolo ${VERSION}"
           git push
           echo "Bumped cask to ${VERSION} (${SHA256})"
 

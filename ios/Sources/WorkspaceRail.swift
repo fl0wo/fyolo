@@ -1,5 +1,5 @@
 import SwiftUI
-import TermioShared
+import FyoloShared
 import UIKit
 
 // MARK: - The scope

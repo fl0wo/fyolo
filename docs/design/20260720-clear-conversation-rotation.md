@@ -23,30 +23,30 @@ After the user runs `/clear` inside a Claude Code session:
 - The **sidebar row title** still shows the *old* conversation's topic
   (e.g. "Review Markdown preview feature on t…").
 - The **resume pin** (`Session.resumeID`) still points at the cleared
-  conversation, so quitting Termio in this window would resume a conversation
+  conversation, so quitting Fyolo in this window would resume a conversation
   the user deliberately discarded.
 
 Everything self-heals on the *first prompt of the new conversation* — but until
-then Termio is blind, and the Info pane actively shows wrong data.
+then Fyolo is blind, and the Info pane actively shows wrong data.
 
 ## Root cause
 
 The event model assumes "conversation identity only changes when a subscribed
 hook fires." `/clear` breaks that assumption: the one event Claude Code fires
 at that moment — `SessionStart` with `source: "clear"` — is not in the
-manifest's event list (`Sources/termio/Resources/agents/claude.json`), which
+manifest's event list (`Sources/fyolo/Resources/agents/claude.json`), which
 subscribes only to `UserPromptSubmit` / `PreToolUse` / `PostToolUse` /
 `PermissionRequest` / `Stop`.
 
 Two mechanisms downstream are starved by that missing subscription:
 
 1. **Transcript + resume pin.** `applyStatusReport`
-   (`TermioStore+AgentStatus.swift:65-80`) updates `transcriptPaths[id]` and
+   (`FyoloStore+AgentStatus.swift:65-80`) updates `transcriptPaths[id]` and
    calls `reconcileResumeID` on any report carrying a `transcript_path`. The
    mechanism was built precisely for the `/clear` rotation (the comment says
    so) — it is just wired to a signal that arrives one user-action too late.
 2. **Sidebar title.** `liveTitles` only advances on a *meaningful* OSC title
-   (`TermioStore+TerminalSurface.swift:751-764`). After `/clear` Claude resets
+   (`FyoloStore+TerminalSurface.swift:751-764`). After `/clear` Claude resets
    its title to the agent/folder name, which `isMeaningfulLiveTitle`
    deliberately rejects as startup noise — good default, but there is no
    "the conversation ended, the old topic is now wrong" invalidation signal.
@@ -82,7 +82,7 @@ With this alone, `transcriptPaths[id]` and `reconcileResumeID` advance at
 
 ### 2. Invalidate the stale topic title on conversation rotation
 
-`reconcileResumeID` (`TermioStore+TerminalSurface.swift:530-538`) is the single
+`reconcileResumeID` (`FyoloStore+TerminalSurface.swift:530-538`) is the single
 point that *knows* the conversation rotated (extracted id ≠ pinned id). When it
 detects a rotation, additionally:
 
@@ -105,7 +105,7 @@ the first message. After piece 1, `transcriptPaths[id]` points at a
 nonexistent file until then. The Info pane / View Trace path must handle this:
 render an honest empty state ("New conversation — no messages yet" or simply
 the trace with zero entries) rather than an error. Check how the trace
-renderer (`Sources/termio/Info/`) behaves on a missing file and patch the
+renderer (`Sources/fyolo/Info/`) behaves on a missing file and patch the
 smallest spot that makes it graceful.
 
 ## Things to verify while implementing
@@ -125,7 +125,7 @@ smallest spot that makes it graceful.
   is set.
 - **Hook install refresh.** `AgentStatusHooks.sync` rewrites
   `~/.claude/settings.json` at app launch, so the new event installs on next
-  Termio start. Note: an *already-running* Claude session snapshots its hook
+  Fyolo start. Note: an *already-running* Claude session snapshots its hook
   config at startup and won't fire the new hook until relaunched — expected,
   document nothing.
 - **Other agents.** This is Claude-manifest-only. Codex/OpenCode use
@@ -154,14 +154,14 @@ resume pin, invalidate the stale topic title — were already agent-generic; onl
 the *signal* (Claude's hook-carried `transcript_path`) was Claude-specific.
 Phase 2 gives every other rotating agent a signal, through two new ATP manifest
 mechanisms. All three consequences now flow through one shared adoption point
-(`TermioStore.adoptConversationID`), so title invalidation comes for free
+(`FyoloStore.adoptConversationID`), so title invalidation comes for free
 regardless of which signal fired.
 
 ### Mechanism 1 — identity-bearing reports (`hooks.conversation`)
 
 The manifest's `hooks` object gains a `conversation` locator: where the hook
 host exposes the agent's own id for the conversation it is currently writing.
-`termio agent report` grew matching flags (`--conversation <id>` for plugins
+`fyolo agent report` grew matching flags (`--conversation <id>` for plugins
 that hold the id in-process, `--conversation-from <field>` to mine it out of
 the JSON blob shell hooks receive on stdin), and the report payload carries it
 as `conversation_id`. A report whose conversation id differs from the session's
@@ -176,8 +176,8 @@ dialect-interpreted, mechanism-named, never agent-named:
 | pi plugin | the `context` mechanism — the extension context's session manager | `context` |
 
 Identity adoption is deliberately narrower than status adoption. It requires an
-*exactly-stamped* report (`TERMIO_SESSION` echoed back — the hook files are
-global, so a same-directory agent run outside Termio also reports, and a
+*exactly-stamped* report (`FYOLO_SESSION` echoed back — the hook files are
+global, so a same-directory agent run outside Fyolo also reports, and a
 cwd-guessed match must never re-pin a tab), fires only at a **turn boundary**
 (`state != working` — a working-state payload embeds prompt/tool content on
 stdin, where a colliding field name could be mined as the id; SessionStart/Stop
@@ -227,7 +227,7 @@ there is no pin to keep honest.
 
 ### Phase 2 test plan
 
-Per agent: start a session in Termio, chat until the trace/title reflect the
+Per agent: start a session in Fyolo, chat until the trace/title reflect the
 conversation, run the rotation command, then verify (a) the resume pin
 (`Session.resumeID`) advances to the agent's new id, (b) the sidebar title
 falls back to the agent name, (c) View Trace follows for agents with a

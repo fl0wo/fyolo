@@ -8,7 +8,7 @@ updated: 2026-08-24
 
 # cmux (manaflow-ai)
 
-> **Termio's single most direct competitor**: also native Swift + libghostty +
+> **Fyolo's single most direct competitor**: also native Swift + libghostty +
 > local-first + status visualization + no diff. But open-source, YC-backed,
 > ~23,000★ — it has already validated the entire category.
 
@@ -112,20 +112,20 @@ an emphasis on **programmability** and **multitasking**.
 - Product identity drift (cloud container manager → native terminal) muddies
   its positioning.
 
-## vs. Termio / takeaways
+## vs. Fyolo / takeaways
 
 - **Points of convergence**: both native macOS, local-first, status-indicating
-  sidebar, **no diff**, worktree-oriented. Termio's status dots ≈ cmux's
-  notification rings/badges; Termio's project → session sidebar ≈ cmux's
-  vertical tabs. **What Termio is building is exactly the category cmux has
+  sidebar, **no diff**, worktree-oriented. Fyolo's status dots ≈ cmux's
+  notification rings/badges; Fyolo's project → session sidebar ≈ cmux's
+  vertical tabs. **What Fyolo is building is exactly the category cmux has
   validated.**
-- **Termio is deliberately narrower and cleaner**: **project → session
+- **Fyolo is deliberately narrower and cleaner**: **project → session
   hierarchy + menu-bar tray** + **first-class, app-automated local worktrees**
   — a small, opinionated surface. cmux is more "kitchen sink": embedded
   browser, SSH, socket automation, Claude Teams, multi-model orchestration,
   iOS, plus its cloud/Docker sandbox heritage — optimized for "programmable +
   multi-pane".
-- **The defensible angle**: Termio = **opinionated minimalism + first-class
+- **The defensible angle**: Fyolo = **opinionated minimalism + first-class
   worktree automation + always-on menu-bar ambience**; these are precisely
   cmux's two gaps (no deep worktree lifecycle, no menu-bar tray, diff
   relegated to the de-emphasized cloud product).
@@ -158,13 +158,13 @@ an emphasis on **programmability** and **multitasking**.
 - **Where the paywall sits**: **metered cloud compute-hours**, plus the
   commercial license. Not collaboration.
 
-### vs. Termio
+### vs. Fyolo
 
-cmux's revenue surface is exactly the ground Termio's non-negotiable #3 rules
+cmux's revenue surface is exactly the ground Fyolo's non-negotiable #3 rules
 out — the paid tier's headline unit is 20 cloud compute-hours. That makes it a
 direct competitor on product and a **non**-competitor on business model: cmux
-cannot serve a buyer who refuses to put code on a vendor's machine, and Termio
-cannot collect usage revenue that scales on its own. Termio's answer is the
+cannot serve a buyer who refuses to put code on a vendor's machine, and Fyolo
+cannot collect usage revenue that scales on its own. Fyolo's answer is the
 second person (Team at $20/seat), which cmux does not charge for at all.
 
 ## References

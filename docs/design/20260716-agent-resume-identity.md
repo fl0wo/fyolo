@@ -18,28 +18,28 @@ related:
 
 ## The bug
 
-Termio binds each tab to one agent conversation so closing and reopening the tab
+Fyolo binds each tab to one agent conversation so closing and reopening the tab
 (or relaunching the app) resumes the *exact* prior session rather than starting
 over. For Claude Code that binding is `Session.resumeID`, pinned once at first
 launch and used to build `--resume <id>` / `--session-id <id>`
 (`AgentDefinition.resumeArguments`).
 
 The pin is written exactly once — `recordLaunch` sets `resumeID` only when it is
-still `nil` (`TermioStore+TerminalSurface.swift`). It never advances. That is
+still `nil` (`FyoloStore+TerminalSurface.swift`). It never advances. That is
 wrong whenever the agent **rotates its conversation mid-session**:
 
 - Claude Code's `/clear` mints a **new session id and a new
   `~/.claude/projects/<cwd>/<new-id>.jsonl`**, leaving the old `<old-id>.jsonl`
   on disk (it is not truncated in place). `/compact`, by contrast, keeps the same
   id — so only `/clear` (and picking another session via `/resume`) desyncs.
-- The live transcript address Termio uses for the sidebar / `sessions` CLI / trace
+- The live transcript address Fyolo uses for the sidebar / `sessions` CLI / trace
   *does* follow the rotation, because `applyStatusReport` re-stores
   `transcriptPaths[id]` from every hook that carries a path. Only the **durable
   resume pin** is left frozen.
 
 Result: while the tab is open everything tracks the new conversation, but on
 close/reopen `resolveLaunch` sees the pre-`/clear` `<old-id>.jsonl` still exists,
-so `pinnedConversationExists` is true and Termio launches `--resume <old-id>` —
+so `pinnedConversationExists` is true and Fyolo launches `--resume <old-id>` —
 resuming the conversation the user *cleared*, and orphaning the real one.
 
 ## The invariant
@@ -48,7 +48,7 @@ resuming the conversation the user *cleared*, and orphaning the real one.
 > and advances whenever the agent rotates to a new conversation.
 
 This is a small strengthening of today's behavior: the pin was already "the id we
-resume"; it just needs to stay current instead of being captured once. Termio
+resume"; it just needs to stay current instead of being captured once. Fyolo
 already learns the live conversation for other reasons (transcript path for the
 trace, discovery for Codex/OpenCode) — the fix reuses that same signal to keep the
 pin honest, rather than inventing a new source of truth.
@@ -58,7 +58,7 @@ pin honest, rather than inventing a new source of truth.
 Each `ResumeStyle` exposes its *current* conversation through a different channel,
 which is what makes a single reconcile point clean rather than a pile of special
 cases. The reconcile only needs one question answered per style: **given the live
-transcript path Termio just learned, what conversation id does it name?**
+transcript path Fyolo just learned, what conversation id does it name?**
 
 | Style | Agent | Transcript naming | Live id source | Advances on rotation? |
 | --- | --- | --- | --- | --- |
@@ -72,7 +72,7 @@ The key split:
 
 - **Filename-encoded id** (Claude, Pi): the live transcript *path* alone yields the
   id, so reconcile is a pure `path → id` function and advancing the pin is a
-  string operation on a signal Termio already holds. Claude additionally gets the
+  string operation on a signal Fyolo already holds. Claude additionally gets the
   path pushed by a hook, so it advances the instant `/clear` runs.
 - **In-file / metadata id** (Codex, OpenCode): the filename does not carry the id,
   so advancing requires re-running discovery — and discovery today deliberately
@@ -145,7 +145,7 @@ Why this shape:
   for `claudeStyle` and the `reconcileResumeID` seam. Closes the reported case; the
   hook fires on `/clear` (`SessionStart source: clear`), so the pin advances live.
 - **Phase 2 — Audit the rest.** Empirically confirm, per agent, whether its
-  clear/`new` command rotates the on-disk id and what per-session signal Termio
+  clear/`new` command rotates the on-disk id and what per-session signal Fyolo
   receives (hook field vs scan-only). Some may be non-bugs (like `/compact`).
 - **Phase 3 — Generalize.** For filename-encoded ids (Pi) wire transcript discovery
   and enable its `conversationID` case. For in-file ids (Codex/OpenCode), make

@@ -1,14 +1,14 @@
 @AGENTS.md
 
-# termio
+# fyolo
 
-## What termio is
+## What fyolo is
 
 **A terminal-first agentic development environment, including its own remote server.**
 
-Coding agents live in terminals. termio is the place those agents run, on machines
+Coding agents live in terminals. fyolo is the place those agents run, on machines
 the user already owns — a laptop, a VPS, a devbox — supervised from a native Mac
-app and an iPhone. `termiod` is the durable session host that makes "on any box"
+app and an iPhone. `fyolod` is the durable session host that makes "on any box"
 one code path instead of four.
 
 The category is crowded (Zed remote, VS Code Remote, Codespaces, Warp). That is a
@@ -19,8 +19,8 @@ positioning.** Build it.
 
 - **The session lives on the box, not in the connection.** Detach ≠ kill. An agent
   keeps working while the laptop is shut; reattach restores the exact screen.
-  Zed and VS Code tie remote work to a live connection; termio does not.
-- **The user's machines, not our cloud.** termio never provisions compute and never
+  Zed and VS Code tie remote work to a live connection; fyolo does not.
+- **The user's machines, not our cloud.** fyolo never provisions compute and never
   runs a hosted control plane. The code never leaves hardware the user controls —
   the only trust story that survives giving an agent shell access to a private repo.
 - **Agent-native at the protocol level.** Workstream status (`working` / `idle` /
@@ -31,7 +31,7 @@ positioning.** Build it.
 
 ## Architectural non-negotiables
 
-These come from `docs/design/20260730-termiod-session-protocol.md` §A and §H. Violating one
+These come from `docs/design/20260730-fyolod-session-protocol.md` §A and §H. Violating one
 is a design regression, not a tradeoff:
 
 1. **Anti-100× invariant** — byte delivery never blocks on host-side VT parse. The

@@ -27,14 +27,14 @@ tests=$!
     # on it. Before the tests start running there is no such child, so fall
     # back to the driver's own descendants — a build that wedged is worth the
     # same stack.
-    pids="$(pgrep -f 'xctest|swiftpm-testing-helper|termioPackageTests' || true)"
+    pids="$(pgrep -f 'xctest|swiftpm-testing-helper|fyoloPackageTests' || true)"
     [ -n "$pids" ] || pids="$tests $(pgrep -P "$tests" || true)"
     for pid in $pids; do
         echo "--- sample $pid: $(ps -p "$pid" -o command= | cut -c1-160)"
         sample "$pid" 5 -file /dev/stdout 2>&1 || true
     done
 
-    pkill -9 -f 'xctest|swiftpm-testing-helper|termioPackageTests' || true
+    pkill -9 -f 'xctest|swiftpm-testing-helper|fyoloPackageTests' || true
     kill -9 "$tests" 2>/dev/null || true
 ) &
 watchdog=$!

@@ -14,7 +14,7 @@ related:
 > Fixed on 2026-07-14. The faithful first-responder fault injector recovered
 > without a click, typing landed, and the user confirmed the original problem is
 > no longer occurring. The reusable root fix shipped in `libghostty-swift`
-> `1.0.12`, which Termio now requires and pins.
+> `1.0.12`, which Fyolo now requires and pins.
 
 ## Symptom
 
@@ -125,7 +125,7 @@ Read info/debug messages explicitly:
 
 ```sh
 /usr/bin/log stream --level debug \
-  --predicate 'subsystem == "sh.termio.app.dev" && category == "focus"'
+  --predicate 'subsystem == "sh.fyolo.app.dev" && category == "focus"'
 ```
 
 The visual pass condition is that the cursor returns to solid and typing lands
@@ -167,7 +167,7 @@ time across agent-state churn, split panes, window switching, and new mounts.
 
 ## Release/integration status
 
-The wrapper source change is released as `libghostty-swift` `1.0.12`, and Termio's
+The wrapper source change is released as `libghostty-swift` `1.0.12`, and Fyolo's
 manifest and resolved dependency both select that version. Keep the verified
 app-side guard through a soak period; then simplify only duplicated acquisition
 logic, retaining conservative host policy about which selected/visible pane

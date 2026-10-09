@@ -1,9 +1,9 @@
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// The icon beside a file in the inspector tree — the iOS counterpart of the
 /// Mac's `FileIconView`, driven by the same shared `LangIconCatalog`: the real
-/// language/tool logo when termio bundles one (compiled here into
+/// language/tool logo when fyolo bundles one (compiled here into
 /// `LangIcons.xcassets`); resource files and unmatched extensions draw the
 /// shared Hugeicons line glyphs; only the code-shaped fallbacks keep the tinted
 /// SF Symbol from the shared `FileTypeIcon` map — so a `.ts` reads as the

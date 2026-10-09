@@ -28,7 +28,7 @@ That surfaced as a real bug when Grok was added purely through its manifest
 errors if the id already exists), `--resume <uuid>` continues — so `resume:
 "claude"` gave it the right *arguments*. But the create-vs-resume switch asked
 "does this conversation already exist on disk?" through a probe hardcoded to
-Claude's store (`~/.claude/projects`). For Grok it was always false, so Termio
+Claude's store (`~/.claude/projects`). For Grok it was always false, so Fyolo
 re-sent `--session-id` on every relaunch for an id Grok had already saved under
 `~/.grok/sessions`, and Grok rejected the duplicate:
 
@@ -46,7 +46,7 @@ pinned family needs is data:
 
 ```jsonc
 "resume": {
-  "create":     "--session-id {id}",   // launch fresh with a termio-pinned id
+  "create":     "--session-id {id}",   // launch fresh with a fyolo-pinned id
   "resume":     "--resume {id}",        // continue a known conversation id
   "storeRoot":  "~/.grok/sessions",     // root of the agent's on-disk store
   "storeMatch": "dir:{id}",             // how a conversation is named on disk
@@ -62,7 +62,7 @@ pinned family needs is data:
 
 Rules, all inferred from which fields are present — no `kind`/`style` tag:
 
-- **`create` present ⇒ the id is pinned up front.** Termio mints the UUID, launches
+- **`create` present ⇒ the id is pinned up front.** Fyolo mints the UUID, launches
   with `create` the first time and `resume` on every relaunch. The switch is driven
   by probing the store (below), because the create flag errors on a duplicate id.
 - **`discover` present ⇒ the id is minted by the agent and recovered afterward.**
@@ -77,7 +77,7 @@ command.
 For a discovered-id agent the tab↔conversation connection is *established once,
 then saved* — after which resume is exactly as precise as the pinned family:
 
-1. **First launch** — no id exists yet, so the session launches fresh and Termio
+1. **First launch** — no id exists yet, so the session launches fresh and Fyolo
    stamps `Session.launchedAt`. The agent mints its own id internally.
 2. **Discovery** — on the next resolve, `AgentSessionStore` scans the agent's
    store for the session record born at that launch (cwd + creation-time match)
@@ -107,7 +107,7 @@ contain a `*` glob:
 | Pi | `file:*_{id}.jsonl` | `~/.pi/agent/sessions/--<cwd>--/<ts>_<id>.jsonl` |
 
 Agents bucket sessions per working directory under `storeRoot`; the probe
-(`SessionStore` in `TermioStore+TerminalSurface.swift`) globs the immediate
+(`SessionStore` in `FyoloStore+TerminalSurface.swift`) globs the immediate
 buckets for the matching entry rather than reconstruct each agent's private cwd
 encoding. The same descriptor backs three consumers:
 

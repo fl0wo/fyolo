@@ -1,5 +1,5 @@
-@testable import TermioMobile
-import TermioShared
+@testable import FyoloMobile
+import FyoloShared
 import XCTest
 
 /// The paired-device list decodes with `try?` and returns `[]` on failure, so a
@@ -37,7 +37,7 @@ final class PairedDeviceDecodingTests: XCTestCase {
     func testADeviceEntryRoundTrips() throws {
         let device = PairedMac(
             id: "h_1", name: "box", address: "ws://127.0.0.1:8790/ws",
-            token: "secret", kind: .termiod, origin: "http://127.0.0.1:8790"
+            token: "secret", kind: .fyolod, origin: "http://127.0.0.1:8790"
         )
         let data = try JSONEncoder().encode([device])
         XCTAssertEqual(try JSONDecoder().decode([PairedMac].self, from: data), [device])
@@ -53,7 +53,7 @@ final class PairedDeviceDecodingTests: XCTestCase {
 
         let device = PairedMac(
             id: "h_1", name: "box", address: "ws://127.0.0.1:8790/ws",
-            token: "secret", kind: .termiod, origin: "http://127.0.0.1:8790")
+            token: "secret", kind: .fyolod, origin: "http://127.0.0.1:8790")
         XCTAssertEqual(device.connectURL?.absoluteString, "ws://127.0.0.1:8790/ws")
         XCTAssertEqual(device.endpoint?.token, "secret")
         XCTAssertEqual(device.endpoint?.origin, "http://127.0.0.1:8790")
@@ -65,7 +65,7 @@ final class PairedDeviceDecodingTests: XCTestCase {
 final class DeviceInviteParsingTests: XCTestCase {
     func testAWholeInviteParses() throws {
         let invite = try XCTUnwrap(CompanionLink.parseDeviceInvite(
-            "termio://device?url=http%3A%2F%2F127.0.0.1%3A8790%2F&token=abc&host_id=h_1&proto=1"
+            "fyolo://device?url=http%3A%2F%2F127.0.0.1%3A8790%2F&token=abc&host_id=h_1&proto=1"
         ))
         XCTAssertEqual(invite.url.absoluteString, "ws://127.0.0.1:8790/ws")
         XCTAssertEqual(invite.token, "abc")
@@ -74,20 +74,20 @@ final class DeviceInviteParsingTests: XCTestCase {
     }
 
     /// Behind a TLS terminator the listener is published under a path
-    /// (Tailscale Serve's `--set-path=/termio`), which does not get rewritten —
+    /// (Tailscale Serve's `--set-path=/fyolo`), which does not get rewritten —
     /// so `/ws` hangs off whatever the operator published.
     func testAPublishedPathKeepsItsPrefix() throws {
         let invite = try XCTUnwrap(CompanionLink.parseDeviceInvite(
-            "termio://device?url=https%3A%2F%2Fbox.tailnet.ts.net%2Ftermio%2F&token=abc&host_id=h_1&proto=1"
+            "fyolo://device?url=https%3A%2F%2Fbox.tailnet.ts.net%2Ffyolo%2F&token=abc&host_id=h_1&proto=1"
         ))
-        XCTAssertEqual(invite.url.absoluteString, "wss://box.tailnet.ts.net/termio/ws")
+        XCTAssertEqual(invite.url.absoluteString, "wss://box.tailnet.ts.net/fyolo/ws")
         XCTAssertEqual(invite.origin, "https://box.tailnet.ts.net")
     }
 
     func testAnInviteMissingAFieldIsRefused() {
         XCTAssertNil(CompanionLink.parseDeviceInvite(
-            "termio://device?url=http%3A%2F%2F127.0.0.1%3A8790%2F&host_id=h_1"))
-        XCTAssertNil(CompanionLink.parseDeviceInvite("termio://device?token=abc&host_id=h_1"))
+            "fyolo://device?url=http%3A%2F%2F127.0.0.1%3A8790%2F&host_id=h_1"))
+        XCTAssertNil(CompanionLink.parseDeviceInvite("fyolo://device?token=abc&host_id=h_1"))
     }
 
     /// A companion address is not an invite, and must fall through to the
@@ -132,7 +132,7 @@ final class CompanionAddressNormalizationTests: XCTestCase {
         XCTAssertNil(CompanionLink.normalize("ssh://studio.local"))
         XCTAssertNil(CompanionLink.normalize("wsss://studio.local:8787"))
         XCTAssertNil(CompanionLink.normalize("file:///etc/hosts"))
-        XCTAssertNil(CompanionLink.normalize("termio://session/abc"))
+        XCTAssertNil(CompanionLink.normalize("fyolo://session/abc"))
     }
 
     func testAnAddressWithNoHostIsRefused() {
@@ -149,9 +149,9 @@ final class CompanionRefusalWordingTests: XCTestCase {
     func testAKnownCodeIsWordedByThePhone() {
         let text = CompanionRefusal.text(
             code: WireRefusal.clientTooOld,
-            fallback: "Update Termio on your phone to connect to this Mac.")
+            fallback: "Update Fyolo on your phone to connect to this Mac.")
 
-        XCTAssertEqual(text, localized("Update Termio on this phone to connect to this Mac."))
+        XCTAssertEqual(text, localized("Update Fyolo on this phone to connect to this Mac."))
     }
 
     /// An older Mac names nothing, so its sentence is the whole story.

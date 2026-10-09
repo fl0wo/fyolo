@@ -1,5 +1,5 @@
 import Foundation
-import TermioShared
+import FyoloShared
 
 /// Receives the live project/session roster from the Mac companion server over
 /// a `WebSocketLink`, so the home tree shows the same list the desktop sidebar
@@ -123,7 +123,7 @@ final class CompanionClient {
         if let roster = CompanionRoster.decode(text) {
             lastServerError = nil
             if roster.wire < Wire.minimumServer {
-                onConnectionFailure?(localized("Update Termio on your Mac to connect this phone."))
+                onConnectionFailure?(localized("Update Fyolo on your Mac to connect this phone."))
                 stop()
             } else {
                 onRoster?(roster)
@@ -165,7 +165,7 @@ enum CompanionRefusal {
             return localized(
                 "This Mac didn't recognize this phone. Scan its QR code again in Settings ▸ Mobile.")
         case WireRefusal.clientTooOld:
-            return localized("Update Termio on this phone to connect to this Mac.")
+            return localized("Update Fyolo on this phone to connect to this Mac.")
         default:
             return fallback
         }

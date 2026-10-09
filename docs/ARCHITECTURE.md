@@ -1,14 +1,14 @@
-# Termio Web — Architecture
+# Fyolo Web — Architecture
 
-This describes the `web/` project: the marketing site. Termio is **free to use**
+This describes the `web/` project: the marketing site. Fyolo is **free to use**
 — there is no checkout, no licensing service, and no backend. The desktop app
-lives in the repository root (`Sources/termio`) and is out of scope here.
+lives in the repository root (`Sources/fyolo`) and is out of scope here.
 
 ## One sub-project
 
 ### `web/landing` — marketing site
 
-The public website. A developer evaluates Termio and clicks through to download
+The public website. A developer evaluates Fyolo and clicks through to download
 the Mac app.
 
 - **Stack:** Next.js + TypeScript, styled with Tailwind CSS and
@@ -19,10 +19,10 @@ the Mac app.
 
 ## Distribution
 
-Termio ships as a notarized `.dmg` and updates itself in place:
+Fyolo ships as a notarized `.dmg` and updates itself in place:
 
 - **Download** — the landing "Download for Mac" buttons point at a stable
-  Cloudflare R2 URL (behind `downloads.termio.sh`) that always serves the newest
+  Cloudflare R2 URL (behind `downloads.fyolo.sh`) that always serves the newest
   build. The single source of that URL is `src/lib/site.ts`; the release workflow
   (`.github/workflows/release.yml`) overwrites the published `.dmg` on every tag.
 - **Auto-update** — the app embeds [Sparkle](https://sparkle-project.org/), so
@@ -42,11 +42,11 @@ There is no account, no license key, and no server in the loop.
       │                                  ▼
       │                        ┌───────────────────┐
       │        download .dmg ──│  Cloudflare R2    │
-      │                        │  downloads.termio │
+      │                        │  downloads.fyolo │
       │                        └─────────┬─────────┘
       ▼                                  │ Sparkle appcast (auto-update)
  ┌──────────────────────┐ ◀──────────────┘
- │  termio desktop app  │
+ │  fyolo desktop app  │
  │  (macOS, local-only) │
  └──────────────────────┘
 ```

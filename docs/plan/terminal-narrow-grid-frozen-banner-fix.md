@@ -15,12 +15,12 @@ related:
 > `forkpty` in `PTYProcess`. See `docs/bug/terminal-resize-no-reflow-HANDOFF.md` §0.
 > Deferred birth is unnecessary: a narrow-born banner now recovers on the first resize.
 
-> The agent's welcome banner freezes into a narrow column because Termio spawns
+> The agent's welcome banner freezes into a narrow column because Fyolo spawns
 > the child at a stale guessed winsize before the terminal view knows its real
 > width (see [the bug report](../bug/terminal-narrow-grid-frozen-banner-on-open.md)).
 > The fix: **spawn the PTY lazily, at the first real layout grid** — mirroring
 > Muxy's `pendingSurfaceCreation` gate — with a headless fallback so companion-only
-> sessions still spawn. This can be done **entirely on the Termio side**; no fork
+> sessions still spawn. This can be done **entirely on the Fyolo side**; no fork
 > or xcframework change is required.
 
 ## Goal / acceptance test
@@ -31,16 +31,16 @@ narrow box, no dead space), because the first `receive resize cols=…` the PTY
 delivers equals the real pane width — not `lastHostGridColumns`. Regression check:
 growing/shrinking afterward must still reflow the live grid; a phone attaching to a
 never-shown session must still get a running agent. Verify with
-`/tmp/termio-metrics.log` and a screenshot of the running dev app.
+`/tmp/fyolo-metrics.log` and a screenshot of the running dev app.
 
-## Why termio-side only
+## Why fyolo-side only
 
 The ghostty surface is **already** created lazily and correctly: `rebuildIfReady`
 is gated on `hasValidViewSize`, and right after it creates the surface it calls
 `synchronizeMetrics`, which computes the true grid from the view's pixel size and
 calls `inMemorySession.updateViewport(...)`. That is the exact moment the first
-**real** grid becomes known, and it already flows into Termio's InMemory `resize`
-closure. So Termio can hang the PTY spawn off that first closure fire without any
+**real** grid becomes known, and it already flows into Fyolo's InMemory `resize`
+closure. So Fyolo can hang the PTY spawn off that first closure fire without any
 new signal from the fork. (A fork-side "first real layout" hook was considered and
 rejected as unnecessary — see Alternatives.)
 
@@ -48,7 +48,7 @@ rejected as unnecessary — see Alternatives.)
 
 A naive "only spawn on first resize" breaks sessions that are never shown on the
 Mac. `CompanionServer.companionPTY(for:)`
-(`Sources/termio/CompanionServer.swift:919`) calls `surface(for:in:)` and then
+(`Sources/fyolo/CompanionServer.swift:919`) calls `surface(for:in:)` and then
 **synchronously** reads `ptyProcesses[session.id]` to hand a PTY to an attaching
 phone. For an offscreen session there is no `NSView`, so no layout, so the resize
 closure never fires and the PTY would never spawn. The fix must therefore expose an
@@ -72,14 +72,14 @@ triggers call it; whichever fires first wins, the other is a no-op.
 
 ### Restructuring `surface(for:in:)`
 
-Today, from `TermioStore+TerminalSurface.swift:95` down to `ptyProcesses[session.id]
+Today, from `FyoloStore+TerminalSurface.swift:95` down to `ptyProcesses[session.id]
 = pty` (line 186), the method: creates the `PTYProcess`, builds the
 `InMemoryTerminalSession` with `write`/`resize` closures capturing `pty`, then wires
 three things onto the pty — the output→surface sink, the liveness/status sink, and
 `onExit`. All of that must move into the deferred spawn step, because it all needs
 the live `pty`.
 
-Sketch (names illustrative; keep Termio's existing comments):
+Sketch (names illustrative; keep Fyolo's existing comments):
 
 ```swift
 func surface(for session: Session, in project: Project) -> TerminalViewState {
@@ -169,7 +169,7 @@ the `ptyProcesses[id] == nil` guard already inside the thunk.
 ### Thread-safety notes
 
 - The InMemory `resize` closure is driven from `synchronizeMetrics` →
-  `updateViewport` on the **main actor**, and `TermioStore` is `@MainActor`, so the
+  `updateViewport` on the **main actor**, and `FyoloStore` is `@MainActor`, so the
   spawn and the `ptyProcesses` mutation happen on main — no locking needed. Keep the
   `rememberHostGrid` hop on `DispatchQueue.main.async` as today.
 - Set `ptyProcesses[session.id] = pty` **before** attaching sinks so any re-entrant
@@ -196,7 +196,7 @@ an unnecessary floor risks mis-sizing a genuinely narrow pane.
   InMemory session, and the fork surface is already lazy. Adding a fork signal means
   a new semver tag + a `Package.swift` bump for zero behavioral gain. Keep the fix in
   one repo. (Revisit only if option (a)/(b) plumbing turns out ugly enough that a
-  fork-side `onFirstLayout` callback would materially simplify Termio.)
+  fork-side `onFirstLayout` callback would materially simplify Fyolo.)
 - **Roll back to `Lakr233/libghostty-spm`.** Off the table and irrelevant — both
   cores reflow the live grid; the frozen banner is a spawn-timing bug, not a core bug.
 - **Spawn eagerly but `TIOCSWINSZ` before the child prints.** Can't — `openpty` needs
@@ -214,9 +214,9 @@ an unnecessary floor risks mis-sizing a genuinely narrow pane.
 - No zig / no building Ghostty from source. If a fork change *does* prove worth it,
   ship it as a Swift-wrapper-only edit committed on the fork + a new semver tag (the
   binary target keeps pointing at the `storage.1.0.4` xcframework), then bump
-  Termio's `Package.swift`. The plan above needs none of this.
-- Work on a branch / worktree; do not touch Termio `main` until the acceptance test
-  passes. Remove the `TERMIO_METRICS_LOG` diagnostic harness in `App.swift` when done.
+  Fyolo's `Package.swift`. The plan above needs none of this.
+- Work on a branch / worktree; do not touch Fyolo `main` until the acceptance test
+  passes. Remove the `FYOLO_METRICS_LOG` diagnostic harness in `App.swift` when done.
 
 ## Outcome (2026-07-08) — INSUFFICIENT, see the bug doc
 
@@ -244,7 +244,7 @@ frame before the terminal first lays out (Muxy's SwiftUI-scene behaviour).
    when no PTY exists after `surface(...)`.
 5. Guard the pre-spawn window: `write` closure drops when no pty; confirm
    `send()`/companion paths tolerate a momentarily-absent pty (they already retry).
-6. Build (`swift build`), run the dev app with `TERMIO_METRICS_LOG=1`, and confirm
+6. Build (`swift build`), run the dev app with `FYOLO_METRICS_LOG=1`, and confirm
    the first `receive resize cols=…` equals the real pane width and the banner fills
    the pane.
 7. Regression: grow/shrink reflows the live grid; open a plain shell (no `%` stack

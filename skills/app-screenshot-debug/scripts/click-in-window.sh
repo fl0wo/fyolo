@@ -8,10 +8,10 @@
 # clicked the intended control.
 #
 # Usage: click-in-window.sh <dx> <dy>
-#   TERMIO_APP_NAME  process name (default: termio)
+#   FYOLO_APP_NAME  process name (default: fyolo)
 set -euo pipefail
 
-APP="${TERMIO_APP_NAME:-termio}"
+APP="${FYOLO_APP_NAME:-fyolo}"
 DX="$1"
 DY="$2"
 

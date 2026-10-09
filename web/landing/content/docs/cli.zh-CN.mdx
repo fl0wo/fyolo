@@ -1,36 +1,36 @@
 ---
 title: 命令行工具
-description: termio 命令——从 shell 打开项目，以及让你或另一个 Agent 派生、驱动、监督会话的 termio sessions 编排 API。
+description: fyolo 命令——从 shell 打开项目，以及让你或另一个 Agent 派生、驱动、监督会话的 fyolo sessions 编排 API。
 x-i18n:
   source_path: cli.mdx
   source_hash: 594a99d427b865712f7cb6faa8cd459e040b54d0ba11b7e09db266c61f376f70
   generated_at: 2026-09-17
 ---
 
-`termio` 是这个应用在 shell 一侧的入口：它打开项目，而通过 `termio sessions`，它就是
+`fyolo` 是这个应用在 shell 一侧的入口：它打开项目，而通过 `fyolo sessions`，它就是
 一个 Agent 用来查看和驱动兄弟会话的编排 API。开关在
 [会话控制](/docs/session-control)。
 
-打开 **设置 ▸ Termio server ▸ 命令行 ▸ 命令行工具**。它会把一个 `termio` 命令软链到你的 `PATH` 上
-（位于 `/usr/local/bin/termio`；macOS 会要求授权一次），关掉则移除这个链接。
+打开 **设置 ▸ Fyolo server ▸ 命令行 ▸ 命令行工具**。它会把一个 `fyolo` 命令软链到你的 `PATH` 上
+（位于 `/usr/local/bin/fyolo`；macOS 会要求授权一次），关掉则移除这个链接。
 
 ## 打开项目
 
 ```bash
-termio                 # 把当前目录作为项目打开
-termio ~/code/myapp    # 打开指定文件夹
+fyolo                 # 把当前目录作为项目打开
+fyolo ~/code/myapp    # 打开指定文件夹
 ```
 
-在任意目录里执行它，Termio 就会把那个文件夹带进侧栏——相当于 shell 版的 **打开项目**。
+在任意目录里执行它，Fyolo 就会把那个文件夹带进侧栏——相当于 shell 版的 **打开项目**。
 
 ## 编排模型
 
-`termio sessions` 这一族命令是 Termio 的编排 API：它让一个 Agent——或你自己的脚本——看见并
+`fyolo sessions` 这一族命令是 Fyolo 的编排 API：它让一个 Agent——或你自己的脚本——看见并
 指挥同一个项目里的同伴会话。在动词参考之前，先说下面一切都遵循的设计规则：
 
 - **默认按项目限定作用域。** 每条命令都会把调用方解析到它自己的项目（通过 PTY 携带的会话
   id，或工作目录），并且只能看见和驱动那里的同伴——绝不触及无关项目里的会话。
-- **一个地址，一个目标。** 会话用创建时生成、由 `list` 打印的 `termio://session/<uuid>`
+- **一个地址，一个目标。** 会话用创建时生成、由 `list` 打印的 `fyolo://session/<uuid>`
   深链寻址（裸 id 或唯一的 id 前缀也行）。这个链接命名的是窗格，而不是它可变的内容，所以
   一个拷走的地址能在会话被提升、降级或改名后继续有效——粘到任何地方也仍然自带说明。
 - **对话记录才是事实。** Agent 的*结果*从它自己的结构化对话记录里读（路径和行号区间由回复
@@ -46,22 +46,22 @@ termio ~/code/myapp    # 打开指定文件夹
 
 | 命令 | 作用 |
 | --- | --- |
-| `termio sessions list` | 列出本项目里的会话及其实时状态。 |
-| `termio sessions watch` | 阻塞并按行流式输出每次状态变化——轮询 `list` 的推送式替代。 |
-| `termio sessions spawn "<prompt>"` | 用这段提示启动一个新的 Agent 会话；立即返回它的会话链接。 |
-| `termio sessions run "<command>"` | 启动一个新的普通终端会话并输入那条 shell 命令——开发服务器、跑测试——在一个可见窗格里，不涉及 LLM。 |
-| `termio sessions send <link> "<text>"` | 往已有会话里输入文本，并用一次真实的回车提交——可以是驱动它的提示，也可以是回答权限确认的选项（`"1"`、`"yes"`）。 |
-| `termio sessions read <link>` | 打印会话当前的屏幕内容而不聚焦它（`--lines N` 只取尾部）——这是 `run` 会话的结果通道。 |
-| `termio sessions close <link>` | 关闭一个或多个会话标签。 |
-| `termio sessions focus <link>` | 在应用里把某个会话带到最前。 |
+| `fyolo sessions list` | 列出本项目里的会话及其实时状态。 |
+| `fyolo sessions watch` | 阻塞并按行流式输出每次状态变化——轮询 `list` 的推送式替代。 |
+| `fyolo sessions spawn "<prompt>"` | 用这段提示启动一个新的 Agent 会话；立即返回它的会话链接。 |
+| `fyolo sessions run "<command>"` | 启动一个新的普通终端会话并输入那条 shell 命令——开发服务器、跑测试——在一个可见窗格里，不涉及 LLM。 |
+| `fyolo sessions send <link> "<text>"` | 往已有会话里输入文本，并用一次真实的回车提交——可以是驱动它的提示，也可以是回答权限确认的选项（`"1"`、`"yes"`）。 |
+| `fyolo sessions read <link>` | 打印会话当前的屏幕内容而不聚焦它（`--lines N` 只取尾部）——这是 `run` 会话的结果通道。 |
+| `fyolo sessions close <link>` | 关闭一个或多个会话标签。 |
+| `fyolo sessions focus <link>` | 在应用里把某个会话带到最前。 |
 
-`<link>` 就是 `list` 打印的 `termio://session/<uuid>` 地址（裸 id、唯一 id 前缀或会话标题
-同样可用）。命令会自动限定在当前项目里，而 `termio sessions <verb> --help` 会为任意单个
+`<link>` 就是 `list` 打印的 `fyolo://session/<uuid>` 地址（裸 id、唯一 id 前缀或会话标题
+同样可用）。命令会自动限定在当前项目里，而 `fyolo sessions <verb> --help` 会为任意单个
 动词打印针对性的帮助。
 
 <DocsImage
   src="/screenshots/docs/18-sessions-list.png"
-  alt="Termio 终端只运行 termio sessions list，七个会话的 Agent 类型和实时状态与侧栏一一对应"
+  alt="Fyolo 终端只运行 fyolo sessions list，七个会话的 Agent 类型和实时状态与侧栏一一对应"
   width={2424}
   height={1664}
 />
@@ -84,8 +84,8 @@ watcher、构建——放在一个你能看、也能接手的可见窗格里；�
 对话记录。
 
 ```bash
-termio sessions run "pnpm test"
-termio sessions read 1a2b3c4d --lines 40
+fyolo sessions run "pnpm test"
+fyolo sessions read 1a2b3c4d --lines 40
 ```
 
 ## 等待结果：`--wait`
@@ -95,8 +95,8 @@ termio sessions read 1a2b3c4d --lines 40
 1000–600000）：
 
 ```bash
-termio sessions send termio://session/ab12cd34-9f2e-4c31-b8d7-3e5a12c90f44 "run the tests" --wait
-termio sessions spawn "summarize the failing CI job" --wait --timeout 120000
+fyolo sessions send fyolo://session/ab12cd34-9f2e-4c31-b8d7-3e5a12c90f44 "run the tests" --wait
+fyolo sessions spawn "summarize the failing CI job" --wait --timeout 120000
 ```
 
 调用会阻塞到这一轮尘埃落定——会话被观察到处于 `working`，随后离开该状态——回复里带着最终的
@@ -129,22 +129,22 @@ termio sessions spawn "summarize the failing CI job" --wait --timeout 120000
   一个仍处于 `working`、但**20 分钟以上没有仓库改动、对话记录几乎不增长**的会话。持续的
   输出——比如一个不断打日志的长构建——会抑制它。事件在 `evidence` 里带上检测器的判断依据
   （`"working 42m, no repo change, transcript +3 lines"`），每段安静期只触发一次，进展恢复
-  后重新武装。Termio 只发信号，绝不杀进程——会话真实状态仍是 `working`，侧栏也不受影响。
+  后重新武装。Fyolo 只发信号，绝不杀进程——会话真实状态仍是 `working`，侧栏也不受影响。
   它不在默认过滤里。
 - **事件可直接行动。** `needs-you` 事件在 `prompt` 里带着屏幕上的问题；`done` 事件带着会话的
   `transcript` 路径和 `cursor_end`——足够你去回答，或者去读结果，不必再多跑一趟。
 - **心跳。** 在 `--json` 模式下，应用会在安静 30 秒后写出 `{"heartbeat":true}`，这样安静的流
   和死掉的流可以区分。
 - **退出码。** Ctrl-C 之后是 `0`（监督的正常结束），流从应用侧关闭时是 `2`——「我选择停止」
-  和「Termio 不见了」是两种不同的结果。
+  和「Fyolo 不见了」是两种不同的结果。
 
 ## 被派生的会话知道谁派生了它
 
-当一个 Termio 会话派生另一个时，送达的提示会以一小段来源说明开头：它写明调用方的链接，并且
+当一个 Fyolo 会话派生另一个时，送达的提示会以一小段来源说明开头：它写明调用方的链接，并且
 只允许一条回传通道——任务中途的一个问题，或一行完成提示，通过
-`termio sessions send <caller-link> …` 发送。除此之外什么都不走这条路：没有对话，也不能把
+`fyolo sessions send <caller-link> …` 发送。除此之外什么都不走这条路：没有对话，也不能把
 任务反向委派回去。结果仍然以对话记录为事实——监督者去读工人的对话记录，`watch` 作为兜底。
-从普通 shell（不在任何 Termio 会话里）发起的 `spawn` 不会带这段说明。
+从普通 shell（不在任何 Fyolo 会话里）发起的 `spawn` 不会带这段说明。
 
 ## 大声失败
 
@@ -154,11 +154,11 @@ termio sessions spawn "summarize the failing CI job" --wait --timeout 120000
 会话的：
 
 ```sh
-termio sessions send <session> -- --force
+fyolo sessions send <session> -- --force
 ```
 
 一次性命令会在 15 秒的客户端超时后放弃，而不是在应用繁忙时一直挂着（可用
-`TERMIO_CLI_TIMEOUT` 环境变量覆盖；带 `--wait` 的调用会自动放宽客户端超时，让它活得比服务端
+`FYOLO_CLI_TIMEOUT` 环境变量覆盖；带 `--wait` 的调用会自动放宽客户端超时，让它活得比服务端
 的等待更久）。
 
 ## JSON 契约 [#json-contract]
@@ -196,7 +196,7 @@ JSON 回复都带 `"schema_version": 1`；在同一个版本内字段只会*新�
 `watch` 流式输出以换行分隔的 JSON 事件，而不是单个回复：
 
 ```json
-{"schema_version": 1, "link": "termio://session/ab12cd34-9f2e-4c31-b8d7-3e5a12c90f44",
+{"schema_version": 1, "link": "fyolo://session/ab12cd34-9f2e-4c31-b8d7-3e5a12c90f44",
  "status": "done", "title": "…", "cwd": "…", "snapshot": true, "prompt": "…",
  "transcript": "…", "cursor_end": 42}
 ```
@@ -211,6 +211,6 @@ JSON 回复都带 `"schema_version": 1`；在同一个版本内字段只会*新�
 <Callout type="tip">
   正是这套东西让一个 Agent 能把活交给另一个——在同伴会话里 `spawn` 一个任务，然后 `watch`
   （或轮询 `list`）直到它汇报 **完成**，再去读结果。同时盯着好几个时，
-  `termio sessions watch` 会在其中任何一个变成 **完成** 或 **需要你** 的那一刻打印出它的
+  `fyolo sessions watch` 会在其中任何一个变成 **完成** 或 **需要你** 的那一刻打印出它的
   链接——一个 Agent 监督一支队伍，全都在你自己的机器上。
 </Callout>

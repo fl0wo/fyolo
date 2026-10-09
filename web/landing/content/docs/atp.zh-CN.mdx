@@ -1,6 +1,6 @@
 ---
 title: Agent 终端协议
-description: ATP 是 Termio 托管任意 Agent 命令行工具的方式——一份 JSON 清单声明如何启动它、它如何汇报状态、如何精确恢复那段对话。Agent 自己的 TUI 始终留在真实终端里。
+description: ATP 是 Fyolo 托管任意 Agent 命令行工具的方式——一份 JSON 清单声明如何启动它、它如何汇报状态、如何精确恢复那段对话。Agent 自己的 TUI 始终留在真实终端里。
 x-i18n:
   source_path: atp.mdx
   source_hash: 2f51dccdbf356ac52a0ae23bb27d5c9873147318bf9d9b651be00ee664354485
@@ -9,12 +9,12 @@ x-i18n:
 
 编辑器类协议把你的 Agent 重新渲染进编辑器面板。ATP 押的是相反的注：Agent 自己的 TUI
 本身就是界面，所以它留在真实终端里，协议只标准化它周围那薄薄一层——**启动**、**实时
-状态** 和 **精确恢复**。Termio 附带的每个 Agent 都由这同一份清单定义；不存在特权的内部
+状态** 和 **精确恢复**。Fyolo 附带的每个 Agent 都由这同一份清单定义；不存在特权的内部
 API。
 
 ## 清单
 
-每个 Agent 一个 JSON 文件。下面是 Termio 内置的 Grok 清单，原文照录：
+每个 Agent 一个 JSON 文件。下面是 Fyolo 内置的 Grok 清单，原文照录：
 
 ```json
 {
@@ -37,7 +37,7 @@ API。
   },
   "hooks": {
     "type": "json",
-    "file": "~/.grok/hooks/termio.json",
+    "file": "~/.grok/hooks/fyolo.json",
     "dialect": "grok",
     "conversation": "sessionId",
     "events": [
@@ -60,8 +60,8 @@ API。
 | `icon` | `vector`（内置品牌标记）、`path`（你自己的 PNG/SVG 文件）或 `symbol`（一个 SF Symbol），可附带 `tint`。 |
 | `install` | 厂商的安装页面，在找不到该命令时提示。可选。 |
 | `order` | 在 Agent 选择器里的位置。可选；未声明的清单排在最后。 |
-| `skills` | Agent 的用户级技能目录（`{"dir": "~/.claude/skills"}`），Termio 的会话控制技能就写在那儿。可选；没有技能生态的 Agent 可以不写。 |
-| `configHome` | Agent 自己文档里那个用来搬走配置树的环境变量，以及它替换掉的路径（`{"env": "CLAUDE_CONFIG_DIR", "path": "~/.claude"}`）。写上它，Termio 就会装到 Agent 真正读取的位置，而不是那个字面默认值。可选。 |
+| `skills` | Agent 的用户级技能目录（`{"dir": "~/.claude/skills"}`），Fyolo 的会话控制技能就写在那儿。可选；没有技能生态的 Agent 可以不写。 |
+| `configHome` | Agent 自己文档里那个用来搬走配置树的环境变量，以及它替换掉的路径（`{"env": "CLAUDE_CONFIG_DIR", "path": "~/.claude"}`）。写上它，Fyolo 就会装到 Agent 真正读取的位置，而不是那个字面默认值。可选。 |
 
 ## 状态
 
@@ -70,28 +70,28 @@ API。
 
 | 通道 | 作用 |
 | --- | --- |
-| `hooks` | 精确通道：Termio 安装 Agent 自己的 hook 配置（按 `dialect` 为 JSON、TOML 或插件），让 Agent 自己汇报每个 `on → state` 事件。声明了 hooks 时，它就是唯一的事实来源。 |
+| `hooks` | 精确通道：Fyolo 安装 Agent 自己的 hook 配置（按 `dialect` 为 JSON、TOML 或插件），让 Agent 自己汇报每个 `on → state` 事件。声明了 hooks 时，它就是唯一的事实来源。 |
 | `titleStatus` | 针对 Agent 实时终端标题（OSC 0/2）的正则规则——这是部分 Agent 会广播的带内信号。它与 hooks 并存，并在标题翻转的瞬间纠正漏掉的事件。 |
 | `status` | 面向完全没有 hook 机制的 Agent 的屏幕分类正则。声明了 hooks 时会被忽略。 |
 
 `hooks.conversation` 指出 Agent 自己的会话 id 出现在它 hook 载荷的哪个位置（shell hooks
 是 stdin JSON 的某个字段，插件是事件的键路径）。有了它，每次状态汇报也一并带上对话*身份*
-——于是当 Agent 在会话中途切到新对话（`/new`、`/clear`）时，Termio 会在下一个事件到达的
+——于是当 Agent 在会话中途切到新对话（`/new`、`/clear`）时，Fyolo 会在下一个事件到达的
 瞬间把标签重新绑定到活着的那一段。
 
 ## 恢复 [#resume]
 
-重新打开一个会话，会把 Agent 重新启动进同一段对话。恢复是 **要么精确、要么不做**：Termio
+重新打开一个会话，会把 Agent 重新启动进同一段对话。恢复是 **要么精确、要么不做**：Fyolo
 要么恢复到某个标签所绑定的那段确切对话，要么全新启动——它绝不猜。根据出现了哪些字段，分成
 两类：
 
-**固定 id** —— 命令行接受在启动时指定会话 id。`create` 用 Termio 生成的 id 开启一段新对话，
-`resume` 续上它；`storeRoot` + `storeMatch` 描述 Agent 在磁盘上的会话存储，好让 Termio 分清
+**固定 id** —— 命令行接受在启动时指定会话 id。`create` 用 Fyolo 生成的 id 开启一段新对话，
+`resume` 续上它；`storeRoot` + `storeMatch` 描述 Agent 在磁盘上的会话存储，好让 Fyolo 分清
 两者（创建重复 id 会报错，恢复不存在的 id 也会）。
 
 **发现式 id** —— id 由 Agent 自己生成。`discover` 描述的是机制，而不是某个 Agent：会话记录
 存在哪里、一条记录怎么读，以及指向 id 和工作目录的键路径。一条记录要么是 `jsonl`（日志的
-第一行，而这份日志本身就是对话记录），要么是 `json`（一个独立的元数据文件）。Termio 找回
+第一行，而这份日志本身就是对话记录），要么是 `json`（一个独立的元数据文件）。Fyolo 找回
 这个 id，把它绑定到标签上，从此精确恢复。
 
 ```json
@@ -108,7 +108,7 @@ API。
 
 ## 添加你自己的 Agent
 
-把清单放在 `~/.termio/config/agents/<id>.json` 并重启 Termio——它就会和内置 Agent 一起出现在
+把清单放在 `~/.fyolo/config/agents/<id>.json` 并重启 Fyolo——它就会和内置 Agent 一起出现在
 选择器里，拥有同样的状态点和恢复行为。最小的清单只是一个 id、一个名字和一条命令；命令行
 支持到哪一步，就把 status 和 resume 加到哪一步。
 

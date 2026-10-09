@@ -10,7 +10,7 @@ related:
 
 # iOS TestFlight runbook — build, upload, and drive ASC from the API
 
-> How a TermioMobile build gets from this repo onto TestFlight, and how every
+> How a FyoloMobile build gets from this repo onto TestFlight, and how every
 > App Store Connect step after the upload — copy, groups, testers, review —
 > is driven from the ASC REST API instead of the website.
 
@@ -27,7 +27,7 @@ Everything personal stays outside the repo:
 | --- | --- |
 | ASC API key, **App Manager** role | `~/credentials/AuthKey_<KEYID>.p8` on the release machine; the key id is the `<KEYID>` in the filename |
 | Issuer ID | ASC → Users and Access → Integrations → App Store Connect API (one UUID per team, shown above the key list); keep a copy next to the `.p8` |
-| App id | `GET /v1/apps?filter[bundleId]=sh.termio.mobile` — resolve it from the bundle id, never hardcode |
+| App id | `GET /v1/apps?filter[bundleId]=sh.fyolo.mobile` — resolve it from the bundle id, never hardcode |
 | Team id | already in `ios/exportOptions.plist` (`teamID`) |
 
 **Key roles matter.** A *Developer*-role key can read the whole API but
@@ -51,15 +51,15 @@ KEYID=<key id>                 # filename of the App Manager .p8
 ISSUER=<issuer uuid>
 
 xcodebuild archive \
-  -project TermioMobile.xcodeproj -scheme TermioMobile \
+  -project FyoloMobile.xcodeproj -scheme FyoloMobile \
   -configuration Release -destination 'generic/platform=iOS' \
-  -archivePath build/TermioMobile.xcarchive \
+  -archivePath build/FyoloMobile.xcarchive \
   -allowProvisioningUpdates \
   -authenticationKeyPath ~/credentials/AuthKey_$KEYID.p8 \
   -authenticationKeyID $KEYID -authenticationKeyIssuerID $ISSUER
 
 xcodebuild -exportArchive \
-  -archivePath build/TermioMobile.xcarchive \
+  -archivePath build/FyoloMobile.xcarchive \
   -exportOptionsPlist exportOptions.plist -exportPath build/export \
   -allowProvisioningUpdates \
   -authenticationKeyPath ~/credentials/AuthKey_$KEYID.p8 \
@@ -156,7 +156,7 @@ no build, no review, effective immediately.
 - Review notes lead with the Blink/Termius framing: commands run on the user's
   **own Mac**, no third-party server, no account (so no demo credentials — the
   QR pairing replaces them), and a demo video of pairing + live use is linked
-  because the reviewer has no Mac running Termio.
+  because the reviewer has no Mac running Fyolo.
 - Builds expire after **90 days**; audiences that rely on the public link need
   at least one build per 90-day window to keep it alive.
 - External-tester ceiling is 10,000; the public link draws from that pool.

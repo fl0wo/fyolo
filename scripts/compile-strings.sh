@@ -5,14 +5,14 @@
 # instead of compiling it — String Catalog compilation is an Xcode-build-system
 # feature SwiftPM lacks (swiftlang/swift-package-manager#6993). So the catalog
 # stays the single editing source, and this script regenerates the checked-in
-# compiled output under Sources/termio/Resources/Localization whenever
+# compiled output under Sources/fyolo/Resources/Localization whenever
 # Localizable.xcstrings changes. Run it after editing the catalog and commit
 # both together.
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-catalog="$repo_root/Sources/termio/Resources/Localizable.xcstrings"
-output_dir="$repo_root/Sources/termio/Resources/Localization"
+catalog="$repo_root/Sources/fyolo/Resources/Localizable.xcstrings"
+output_dir="$repo_root/Sources/fyolo/Resources/Localization"
 
 # Compile into a scratch directory and only replace the checked-in output once
 # every step has succeeded, so a bad catalog can't leave the checkout stringless.

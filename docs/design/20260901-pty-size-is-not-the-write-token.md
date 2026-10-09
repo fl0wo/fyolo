@@ -6,14 +6,14 @@ created: 2026-09-01
 updated: 2026-09-08
 related:
   - ../bug/agent-tui-focus-report-resize-storm.md
-  - 20260730-termiod-session-protocol.md
+  - 20260730-fyolod-session-protocol.md
   - 20260824-ios-as-device-client.md
   - 20260819-unify-server-plane.md
 ---
 
 # PTY size is not the write token
 
-> termio bound the PTY's size to the write token: whoever typed last owned the
+> fyolo bound the PTY's size to the write token: whoever typed last owned the
 > grid. That is tmux's `latest` policy, which tmux ships as an option and not as
 > the default, because it thrashes. This replaces it — size is a session-level
 > policy the daemon computes over the attachments that are actually rendering,
@@ -75,20 +75,20 @@ most-recently-used policy, `latest`. It is an option, and it is not the default.
 
 **The mismatch is shown, not hidden.** tmux pads with `·`, screen leaves blank,
 Zellij clips. Nobody reflows per client. Per-client reflow is the only thing that
-would make both ends correct simultaneously, and for termio it is closed by
+would make both ends correct simultaneously, and for fyolo it is closed by
 construction: §A's anti-100× invariant rejects any per-frame grid encoder between
 the PTY and the pipe. Don't go looking for it.
 
-## 3. Where termio sits in that vocabulary
+## 3. Where fyolo sits in that vocabulary
 
-termio implemented `latest`, in its most reactive form:
+fyolo implemented `latest`, in its most reactive form:
 
 - the write token follows input;
 - `applyWriter` re-asserted the winner's grid on every grant;
 - `applyAuthoritativeGrid` had the writer answer any divergence by putting its
   own size back.
 
-So termio chose the one policy that oscillates, made it the only policy, and gave
+So fyolo chose the one policy that oscillates, made it the only policy, and gave
 it a trigger surface as wide as "any byte a client writes".
 
 ## 4. Proposal
@@ -106,7 +106,7 @@ size = min(grid of attachments currently rendering the session)
 ```
 
 with Zellij's refinement: only attachments *actually showing* the session count.
-termio already carries that signal on both ends — `setSurfaceVisible` on the Mac
+fyolo already carries that signal on both ends — `setSurfaceVisible` on the Mac
 (a hidden pane is not rendering) and the phone having the session on screen.
 
 Consequences:
@@ -175,7 +175,7 @@ empty; the PTY, the VT, and the ring stay where they were.
 
 An observer attaches without a tty. §A already says it never holds the write
 token; the sizing half is the same fact — there is no screen behind it that a
-viewport could be about. So `termio read` tailing a session cannot squeeze the
+viewport could be about. So `fyolo read` tailing a session cannot squeeze the
 window somebody is working in. A read-only *renderer*, if one is ever built,
 attaches `interact` and simply never types.
 
@@ -263,7 +263,7 @@ client that dropped a keyframe on that reasoning could sit blank forever. So the
 drop is gone on both ends and every keyframe is painted; the one mangled frame
 after a barrier is repaired by the mechanism that already existed for observers
 (`repaintPending` → `request_snapshot` once the surface reaches the shared grid).
-`TermiodKeyframeGridTests` went with it.
+`FyolodKeyframeGridTests` went with it.
 
 ### 6.5 §6's "the line stays as it is" is right, and now for a second reason
 
@@ -277,17 +277,17 @@ is not rendering and does not enter the min at all.
 **The Mac gets squeezed by the phone.** This is tmux's most-complained-about
 default. Zellij's visibility filter is the best known mitigation and it is in the
 proposal, but a Mac pane left open on a session the phone is also watching will
-sit at 38 columns. Whether that is acceptable, or whether termio needs tmux's
+sit at 38 columns. Whether that is acceptable, or whether fyolo needs tmux's
 `window-size` as a user-facing option, is the open question. Recommendation: ship
 the correct default first; add the option only if the complaint is real.
 
-*Answered the same afternoon, and not by the phone: two Termio windows on one
+*Answered the same afternoon, and not by the phone: two Fyolo windows on one
 session were enough. See §11.*
 
 **Where the policy runs.** Settled: the daemon, in
 `Session::apply_size_policy`, called from every change to the attachment set —
 an arrival, a departure, a viewport, a pane going to a background tab. It is the
-only thing in termiod that resizes a session. `R` and the companion `resize`
+only thing in fyolod that resizes a session. `R` and the companion `resize`
 carry viewports (§5); `E resized` is unchanged.
 
 **Attachments that render nothing.** Settled in §5.4.
@@ -335,21 +335,21 @@ stays as it is. Recorded so the next reader does not mistake it for the bug.
 
 *Updated by §11; the shapes below are current.*
 
-- `termiod/src/session.rs` — the policy itself: the session is the viewport of
+- `fyolod/src/session.rs` — the policy itself: the session is the viewport of
   the attachment most recently used; the answer is one screen's grid and never a
   blend of two; changing a viewport is a use and a token claim is not; a hidden
   attachment stops counting and starts again; nobody rendering leaves the size
   alone; a viewport of zero counts for nobody; an observer never sizes anything.
   Plus the one that had to change shape: a failed `TIOCSWINSZ` now tells nobody,
   because there is no requester to answer.
-- `Tests/termioTests/TermiodSizePolicyIntegrationTests.swift` — two real Swift
+- `Tests/fyoloTests/FyolodSizePolicyIntegrationTests.swift` — two real Swift
   attachments against a real daemon: typing on a screen brings the session to it,
   a viewer that is merely attached does not pull it back, and **resizing a pane
   with a second viewer attached resizes the session**. That last assertion is the
   report §11 exists for, and it was false on the branch that shipped §4.
-- `Tests/termioTests/TermiodWriteTokenIntegrationTests.swift` — unchanged, and
+- `Tests/fyoloTests/FyolodWriteTokenIntegrationTests.swift` — unchanged, and
   that is the point: §H #6 is an input invariant and this did not touch it.
-- `Tests/termioTests/TermiodViewportFrameTests.swift` — the `R` payload's
+- `Tests/fyoloTests/FyolodViewportFrameTests.swift` — the `R` payload's
   layout, which is the whole compatibility story.
 
 ## 11. The complaint was real, and it was not the phone
@@ -357,8 +357,8 @@ stays as it is. Recorded so the next reader does not mistake it for the bug.
 Shipped, and reported within hours: *"right sidebar 展开折叠 无法 resize tui, in
 last release version you could do it."*
 
-Reproduced against a real daemon on a dev build of `main`. One Termio window:
-⌘⌥0 moves the PTY 41×63 ↔ 41×97, every time. A second Termio window attached to
+Reproduced against a real daemon on a dev build of `main`. One Fyolo window:
+⌘⌥0 moves the PTY 41×63 ↔ 41×97, every time. A second Fyolo window attached to
 the same session at 700×600: the PTY pins to 41×61 and four toggles in the first
 window move nothing, the app logging `PTY is now 41x61; this pane has room for
 41x70` each time. Quit the second window and the toggles work again.
@@ -392,7 +392,7 @@ nothing, and nobody rendering still leaves the size where it was.
 
 ### 11.2 Why this is not the `latest` §2 warns about
 
-§3 is right that termio's old `latest` was the worst version of it, and none of
+§3 is right that fyolo's old `latest` was the worst version of it, and none of
 what made it bad is here:
 
 - **The trigger is a person, not a byte.** Bytes the terminal produced never
@@ -424,7 +424,7 @@ difference is which one: the screen nobody is touching.
 
 ### 11.4 One thing §5.4 said and the code did not
 
-`companionAttachment` builds its link through `makeTermiodLink`, which put the
+`companionAttachment` builds its link through `makeFyolodLink`, which put the
 Mac's `lastHostGrid` in the attach payload — so the bridge declared a stand-in
 viewport for a screen it does not have, against §5.4's own rule. Harmless under
 smallest-wins (it was never the smallest). Not harmless here: an attach is a use,
@@ -440,7 +440,7 @@ its resume arguments — and that path put `lastHostGrid` in the attach payload
 too. Every phone-open therefore moved the PTY to the Mac window's width for a
 pane nobody was showing, and the phone's first `resize` pulled it back. One
 wrong resize per open, which is what tears an agent TUI's composer box.
-`termio sessions send` addressing a background session did the same thing.
+`fyolo sessions send` addressing a background session did the same thing.
 
 Two changes, because the state has two halves and §5.1 keeps them apart. A
 surface made for a pane that is not on screen attaches with a zero grid — no

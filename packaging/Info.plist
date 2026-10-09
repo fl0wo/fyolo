@@ -5,20 +5,20 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Termio</string>
+	<string>Fyolo</string>
 	<key>CFBundleExecutable</key>
-	<string>termio</string>
+	<string>fyolo</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>sh.termio.app</string>
+	<string>sh.fyolo.app</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
 		<string>zh-Hans</string>
 	</array>
 	<key>CFBundleName</key>
-	<string>Termio</string>
+	<string>Fyolo</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -27,10 +27,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>sh.termio.app.session-link</string>
+			<string>sh.fyolo.app.session-link</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>termio</string>
+				<string>fyolo</string>
 			</array>
 		</dict>
 	</array>
@@ -50,7 +50,7 @@
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://downloads.termio.sh/appcast.xml</string>
+	<string>https://downloads.fyolo.sh/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>zm3UpFrDf8tFcctK2vkEhrms6oFTp50AUb824lP9BAw=</string>
 </dict>

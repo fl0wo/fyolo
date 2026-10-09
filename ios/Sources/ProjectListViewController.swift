@@ -1,5 +1,5 @@
 import SwiftUI
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// The root screen: one workspace's project list, with a "Needs You" strip
@@ -357,7 +357,7 @@ final class ProjectListViewController: UIViewController {
             emptyState.configure(
                 icon: .devicePair,
                 title: localized("No Mac connected"),
-                message: localized("Open Termio on your Mac, then pair this phone to see and drive your projects from here."),
+                message: localized("Open Fyolo on your Mac, then pair this phone to see and drive your projects from here."),
                 actionTitle: localized("Connect a Mac"),
                 busy: false
             )
@@ -368,7 +368,7 @@ final class ProjectListViewController: UIViewController {
             emptyState.configure(
                 icon: .wifiError,
                 title: localized("Can't reach your Mac"),
-                message: localized("It may be asleep or off your network. Termio keeps trying — reopen the lid, or tap to retry now."),
+                message: localized("It may be asleep or off your network. Fyolo keeps trying — reopen the lid, or tap to retry now."),
                 actionTitle: localized("Try Again"),
                 busy: false
             )
@@ -387,7 +387,7 @@ final class ProjectListViewController: UIViewController {
             emptyState.configure(
                 icon: .folder,
                 title: localized("No projects open"),
-                message: localized("Open a project in Termio on your Mac and it'll show up here."),
+                message: localized("Open a project in Fyolo on your Mac and it'll show up here."),
                 actionTitle: nil,
                 busy: false
             )

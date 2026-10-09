@@ -5,19 +5,19 @@ type: research
 created: 2026-08-22
 updated: 2026-08-22
 related:
-  - design/20260730-termiod-session-protocol.md
-  - design/20260805-termiod-device-architecture.md
-  - design/20260818-termiod-web-client-ghostty-wasm.md
+  - design/20260730-fyolod-session-protocol.md
+  - design/20260805-fyolod-device-architecture.md
+  - design/20260818-fyolod-web-client-ghostty-wasm.md
 ---
 
 # Reading list: PTYs, SSH, and detachable remote terminals
 
-> Background for anyone working on `termiod` — the prior art behind "the session
+> Background for anyone working on `fyolod` — the prior art behind "the session
 > lives on the box, not in the connection."
 
 Everything here answers one question in layers: **who owns the PTY, and what
 happens to it when the wire goes away.** `ssh` answers "sshd owns it, and it
-dies"; `termiod` answers "a daemon on the box owns it, and the wire is just a
+dies"; `fyolod` answers "a daemon on the box owns it, and the wire is just a
 monitor you plug in." The material below is what makes that distinction
 mechanical rather than rhetorical.
 
@@ -47,7 +47,7 @@ If you read only three things: [The TTY demystified](#1-what-a-pty-actually-is),
 
 ## 2. Who owns the PTY
 
-This is the section that maps directly onto the `termiod` design.
+This is the section that maps directly onto the `fyolod` design.
 
 - **[reptyr: Attach a running process to a new terminal](https://blog.nelhage.com/2011/01/reptyr-attach-a-running-process-to-a-new-terminal/)**
   and **[Changing a process's controlling terminal](https://blog.nelhage.com/2011/02/changing-ctty/)**
@@ -57,12 +57,12 @@ This is the section that maps directly onto the `termiod` design.
   structural consequence.
 - **`dtach` and `abduco` source** — roughly a thousand lines each. A daemon
   holds the PTY master; clients attach and detach over a Unix socket; nothing
-  else. The smallest complete statement of the idea `termiod` is built on. Read
+  else. The smallest complete statement of the idea `fyolod` is built on. Read
   one of them end to end before arguing about protocol design.
 - **`man tmux`, section `CONTROL MODE`**, plus iTerm2's tmux integration design
   — read as a counter-example. It is the fully worked version of *re-encoding
   the grid in the middle*, which is exactly what the anti-100× invariant in
-  [the session protocol](design/20260730-termiod-session-protocol.md) §A
+  [the session protocol](design/20260730-fyolod-session-protocol.md) §A
   forbids. Knowing precisely what that costs is worth an hour.
 
 ## 3. How SSH carries a PTY
@@ -71,7 +71,7 @@ This is the section that maps directly onto the `termiod` design.
   §6. Short, and worth reading in the original: `pty-req`, `window-change`,
   `signal`, `exit-status`, and the `env` request. §6 is where the environment
   whitelist comes from — it is why a remote agent sees no `COLORTERM` and
-  quantises the user's theme, and why matching `termiod`'s spawn environment
+  quantises the user's theme, and why matching `fyolod`'s spawn environment
   over plain `ssh` requires editing both `SendEnv` and the server's `AcceptEnv`.
 - **`man ssh_config`, `ControlMaster` / `ControlPath` / `ControlPersist`.** The
   mechanism behind the cold-260 ms → warm-20 ms measurement in the session
@@ -87,12 +87,12 @@ This is the section that maps directly onto the `termiod` design.
   The best engineering paper in this space: SSP state synchronisation,
   speculative local echo, and roaming across IP changes. Also read it as **the
   road not taken** — Mosh synchronises *screen state*, not the byte stream,
-  which is why it has no scrollback. That trade-off is the one termio declines,
+  which is why it has no scrollback. That trade-off is the one fyolo declines,
   and §D's QUIC binding is explicitly "mosh's SSP rebuilt on standard
   transport."
 - **[How Eternal Terminal works](https://eternalterminal.dev/howitworks/)** and
   its [protocol notes](https://github.com/MisterTea/EternalTerminal/blob/master/docs/protocol.md).
-  Architecturally the closest public sibling to `termiod`: SSH for
+  Architecturally the closest public sibling to `fyolod`: SSH for
   authentication, its own connection for persistence, and a
   `BackedReader`/`BackedWriter` pair that replays unacknowledged bytes by
   sequence number on reconnect. That is our ring replay, shipped by someone
@@ -100,7 +100,7 @@ This is the section that maps directly onto the `termiod` design.
 - **[Terminal sessions you can bookmark: building Zellij's web client](https://poor.dev/blog/building-zellij-web-terminal/)**
   — Aram Drevekenin. A multiplexer growing a browser client, which is the same
   problem as
-  [our web client](design/20260818-termiod-web-client-ghostty-wasm.md).
+  [our web client](design/20260818-fyolod-web-client-ghostty-wasm.md).
 
 ## Watch
 
@@ -118,7 +118,7 @@ These are the exceptions worth the time.
 - **[Ghostty: a new terminal emulator written in Zig](https://www.youtube.com/live/l_qY2p0OH9A)**
   — Mitchell Hashimoto, Zig SHOWTIME #32
   ([text version and slides](https://mitchellh.com/writing/ghostty-and-useful-zig-patterns)).
-  The internals of the core termio embeds. The Q&A is only in the video.
+  The internals of the core fyolo embeds. The Q&A is only in the video.
 - **[Zellij — a terminal workspace with batteries included](https://www.youtube.com/watch?v=nBL_8KsTA5g)**
   — Aram Drevekenin, Rust Vienna 2023, and the longer
   [Extending your terminal's superpowers with Zellij](https://www.youtube.com/watch?v=FmzuKJw5eKM).
@@ -126,11 +126,11 @@ These are the exceptions worth the time.
 
 ## Where the trail ends
 
-Nobody has published the thing termio is actually building: a **session host
+Nobody has published the thing fyolo is actually building: a **session host
 whose clients are native apps and phones, carrying agent state as a protocol
 object rather than as screen text.** Mosh solved roaming, Eternal Terminal
 solved reconnection, dtach solved detachment, Zellij is solving the web client.
 The composition — and `workstream status` as a first-class message — is ours to
 document. Anything learned here that changes the design belongs in
-[the session protocol doc](design/20260730-termiod-session-protocol.md), not in
+[the session protocol doc](design/20260730-fyolod-session-protocol.md), not in
 another entry on this list.

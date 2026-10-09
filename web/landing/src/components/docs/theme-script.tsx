@@ -16,7 +16,7 @@
 // Deliberately tiny, dependency-free, and it must not throw: Safari in private
 // mode makes localStorage access throw, and an exception here would land before
 // anything else on the page runs.
-const SCRIPT = `try{var t=localStorage.getItem("termio-docs-theme");if(t==="light"||t==="dark")document.documentElement.dataset.docsTheme=t;}catch(e){}`;
+const SCRIPT = `try{var t=localStorage.getItem("fyolo-docs-theme");if(t==="light"||t==="dark")document.documentElement.dataset.docsTheme=t;}catch(e){}`;
 
 export function DocsThemeScript() {
   // eslint-disable-next-line @next/next/no-before-interactive-script-outside-document

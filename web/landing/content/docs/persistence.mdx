@@ -3,7 +3,7 @@ title: What survives
 description: Sessions belong to the machine, not to the window — so closing, quitting, updating, and losing a connection all detach instead of killing. Here is exactly what survives each one, and what it costs when a process really does go away.
 ---
 
-Termio’s one structural promise is that a session outlives the thing you were
+Fyolo’s one structural promise is that a session outlives the thing you were
 looking at it through. Close the window, quit the app, let it update itself,
 drop the SSH link to a VPS — the agent keeps working. This page is the honest
 version of that claim: what survives each event, what doesn’t, and what it costs
@@ -11,7 +11,7 @@ when a process really does go away.
 
 ## The rule
 
-Every session runs inside `termiod`, the [Termio server](/docs/server), on the
+Every session runs inside `fyolod`, the [Fyolo server](/docs/server), on the
 machine that owns it — including the ones on this Mac. The app, the CLI, and the
 iOS app are all *viewers*. A viewer attaches to a session and detaches
 from it; it never holds the process.
@@ -26,10 +26,10 @@ purpose — **Close Session** (`⌘W`), and the process exiting by itself.
 | --- | --- | --- | --- | --- |
 | Switch sessions, hide the window, use another app | Yes | — | Yes | Yes |
 | Close the window | Yes | Yes | Yes | Yes |
-| Quit Termio (`⌘Q`) and relaunch | Yes | Yes | Yes | Yes |
-| Termio updates itself | Yes | Yes | Yes | Yes |
+| Quit Fyolo (`⌘Q`) and relaunch | Yes | Yes | Yes | Yes |
+| Fyolo updates itself | Yes | Yes | Yes | Yes |
 | The SSH link to a remote machine drops | Yes | Yes | Yes | Yes |
-| `termiod handoff` (server updates in place) | Yes | Yes | Yes | Yes |
+| `fyolod handoff` (server updates in place) | Yes | Yes | Yes | Yes |
 | The server stops, or the machine reboots | No | Yes | No | On this Mac, where the agent supports [resume](/docs/atp#resume). Never on another machine |
 | **Close Session** (`⌘W`) | No | — | — | — |
 
@@ -40,7 +40,7 @@ had never left.
 
 <Callout type="note">
   “Layout comes back” means the sidebar tree, the split groups, and the
-  inspector tab you left each workspace on. That structure is what Termio writes
+  inspector tab you left each workspace on. That structure is what Fyolo writes
   to disk; your terminals’ contents are not part of it.
 </Callout>
 
@@ -63,9 +63,9 @@ See [Keyboard shortcuts](/docs/keyboard#panes).
 
 ## When the process really does go away
 
-A server that stops — a reboot, a `termiod stop`, a box that lost power — takes
+A server that stops — a reboot, a `fyolod stop`, a box that lost power — takes
 its PTYs with it. There is no way around that; a process is a process. What
-Termio does is make coming back cheap:
+Fyolo does is make coming back cheap:
 
 - **The tree is restored.** Projects, worktrees, workspaces, split groups, and the
   session you left each workspace on all come back, because they live in a file
@@ -75,7 +75,7 @@ Termio does is make coming back cheap:
 - **Agents on this Mac that can resume, do.** Reopening a session relaunches the
   agent into the *same conversation* rather than a blank one.
 
-Resume is **exact-or-nothing**: Termio either continues the precise conversation a
+Resume is **exact-or-nothing**: Fyolo either continues the precise conversation a
 session was bound to, or it starts fresh. It never guesses at a nearby one. Which
 agents can do this is a fact about each agent’s own CLI, declared in its
 [manifest](/docs/atp#resume) — see the resume column in
@@ -88,8 +88,8 @@ fine on the Mac in front of you and almost never fine on a box you only ever rea
 over SSH, where nobody logs in interactively at all.
 
 ```bash
-termiod service install    # launchd on macOS, systemd --user on Linux
-termiod service status
+fyolod service install    # launchd on macOS, systemd --user on Linux
+fyolod service status
 ```
 
 With a service installed the server is brought back after a crash, and started
@@ -108,7 +108,7 @@ A sleeping machine isn’t running anything, so the honest rule for a laptop is:
 sessions don’t die when the Mac sleeps, they pause with it and pick up when it
 wakes.
 
-Termio does hold the machine out of *idle* sleep while there is work worth
+Fyolo does hold the machine out of *idle* sleep while there is work worth
 protecting. While any session is working or waiting on you, the server renews a
 short `caffeinate` lease, so a Mac plugged into power stays reachable for the
 agent that went quiet on a permission prompt — exactly the moment your phone
@@ -128,19 +128,19 @@ A new server build replaces the running one **in place**: the process keeps its
 id and its PTYs, and the sessions never notice.
 
 ```bash
-termiod handoff
+fyolod handoff
 ```
 
-That is also what happens when the app updates itself, which is why a Termio
+That is also what happens when the app updates itself, which is why a Fyolo
 update doesn’t cost you your running agents. A machine being set up or updated
 from **Settings ▸ Remote Hosts** takes the same path, and an update that *would*
 interrupt work in progress says so and names the session first.
 
-## What Termio does not keep
+## What Fyolo does not keep
 
 Being clear about the edges is part of the promise:
 
-- **Termio keeps no transcript of your terminals.** Scrollback lives in the
+- **Fyolo keeps no transcript of your terminals.** Scrollback lives in the
   server for the session’s lifetime and goes away with it; nothing durable is
   written. The one exception is a handoff, which passes each session’s replay
   buffer to the incoming server through a temporary file it unlinks as it
@@ -149,11 +149,11 @@ Being clear about the edges is part of the promise:
   agent back its own session id; the conversation is in the agent’s store, under
   your own account, exactly as it would be from a plain terminal.
 - **Nothing syncs anywhere.** State is per machine, on that machine. There is no
-  Termio cloud holding a copy — see [Devices](/docs/devices).
+  Fyolo cloud holding a copy — see [Devices](/docs/devices).
 
 <Cards>
-  <Card href="/docs/server" title="The Termio server">
-    What `termiod` is, how it gets onto a machine, and how to look at it.
+  <Card href="/docs/server" title="The Fyolo server">
+    What `fyolod` is, how it gets onto a machine, and how to look at it.
   </Card>
   <Card href="/docs/atp" title="Agent Terminal Protocol">
     The manifest that declares how an agent launches, reports, and resumes.

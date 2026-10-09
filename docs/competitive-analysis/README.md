@@ -1,17 +1,17 @@
-# Termio competitive analysis
+# Fyolo competitive analysis
 
-> Version: 2026-06-27 | Corresponding Termio progress: Milestones 1–5
+> Version: 2026-06-27 | Corresponding Fyolo progress: Milestones 1–5
 > (project/session sidebar, PTY persistence, agent presets, status + menu-bar
 > tray, 5-page settings, per-session git worktrees)
 
 One standalone doc per product in this directory. Reading order is by "how
-directly it competes with Termio".
+directly it competes with Fyolo".
 
 ## Contents
 
-| # | Product | One line | Relationship to Termio |
+| # | Product | One line | Relationship to Fyolo |
 | --- | --- | --- | --- |
-| [01](01-unpeel.md) | **Unpeel** | Native Mac terminal + Sessions MCP; Termio's benchmark prototype | Direct benchmark (design prototype) |
+| [01](01-unpeel.md) | **Unpeel** | Native Mac terminal + Sessions MCP; Fyolo's benchmark prototype | Direct benchmark (design prototype) |
 | [02](02-cmux.md) | **cmux** (manaflow-ai) | Native Swift+libghostty terminal, YC-backed, 23k★ | **Most direct competitor (same foundation)** |
 | [03](03-conductor.md) | Conductor | Mac-native, worktree parallelism + in-app review | Opposite philosophy (diff-heavy) |
 | [04](04-crystal.md) | Crystal / Nimbalyst | Electron, multi-session + best merge-back UX | Reference (worktrees/merging) |
@@ -19,14 +19,14 @@ directly it competes with Termio".
 | [06](06-container-use.md) | container-use | Container isolation + branch-as-environment | Too heavy (isolation ideas only) |
 | [07](07-vibe-island.md) | Vibe Island family | Notch/tray status monitors | Source of status-detection methodology |
 | [08](08-warp.md) | Warp | AI-native general-purpose terminal | Alternative paradigm |
-| [10](10-landscape-table-2026-07.md) | **Landscape table 2026-07** | Every notable open/closed product in one table + Termio highlights | **Latest consolidated view** (adds herdr, muxy, vibe-kanban, JetBrains Air, GitKraken Kepler, Warp Oz, Happy, Sculptor) |
+| [10](10-landscape-table-2026-07.md) | **Landscape table 2026-07** | Every notable open/closed product in one table + Fyolo highlights | **Latest consolidated view** (adds herdr, muxy, vibe-kanban, JetBrains Air, GitKraken Kepler, Warp Oz, Happy, Sculptor) |
 
 > Also under "alternative paradigms": Cursor / VS Code + extensions
-> (IDE-built-in agents, diff-heavy — the opposite of Termio), Ghostty /
-> WezTerm / iTerm2 (Termio's **foundation**, not competitors), plain tmux
+> (IDE-built-in agents, diff-heavy — the opposite of Fyolo), Ghostty /
+> WezTerm / iTerm2 (Fyolo's **foundation**, not competitors), plain tmux
 > hand-rolling (the DIY baseline).
 
-## Termio capability snapshot
+## Fyolo capability snapshot
 
 | Capability | Status | Notes |
 | --- | --- | --- |
@@ -44,7 +44,7 @@ directly it competes with Termio".
 
 ## Cross-product capability matrix
 
-| Capability | Termio | cmux | Unpeel | Conductor | Crystal | claude-squad |
+| Capability | Fyolo | cmux | Unpeel | Conductor | Crystal | claude-squad |
 | --- | :-: | :-: | :-: | :-: | :-: | :-: |
 | Native (not Electron) | ✅ | ✅ | ✅ | ✅ | ❌ | ➖ TUI |
 | libghostty terminal core | ✅ | ✅ | ✅ | ? | ❌ | ❌ |
@@ -62,17 +62,17 @@ directly it competes with Termio".
 
 ## Conclusion (up front)
 
-The only real gaps between Termio and its benchmark **Unpeel** are two:
+The only real gaps between Fyolo and its benchmark **Unpeel** are two:
 **Sessions MCP** and the **never-die host**. But the real market threat is
 **cmux** — also native + libghostty + local-first + status visualization + no
-diff, and already validated by YC and 23k★ for the entire category. Termio
+diff, and already validated by YC and 23k★ for the entire category. Fyolo
 cannot beat cmux on "breadth/mindshare"; **the only defensible moat is
 "minimal yet opinionated": make the project → session → worktree flow
 first-class automation, and make the menu-bar tray an always-on ambient
 presence** — exactly the ground that neither cmux (sprawling primitives, no
 menu-bar tray, worktrees only a recommended pattern) nor Conductor/Crystal
 (diff-heavy) occupies. Sticking to "small and focused, no code panels,
-local-first" is the fundamental stance that distinguishes Termio from every
+local-first" is the fundamental stance that distinguishes Fyolo from every
 competitor.
 
 See the per-product docs and

@@ -661,12 +661,12 @@
         }
       }
     },
-    "It may be asleep or off your network. Termio keeps trying — reopen the lid, or tap to retry now.": {
+    "It may be asleep or off your network. Fyolo keeps trying — reopen the lid, or tap to retry now.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "它可能已睡眠或不在同一网络。Termio 会持续尝试，你可以打开 Mac，或点按立即重试。"
+            "value": "它可能已睡眠或不在同一网络。Fyolo 会持续尝试，你可以打开 Mac，或点按立即重试。"
           }
         }
       }
@@ -991,22 +991,22 @@
         }
       }
     },
-    "Open Termio on your Mac, then pair this phone to see and drive your projects from here.": {
+    "Open Fyolo on your Mac, then pair this phone to see and drive your projects from here.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 Mac 上打开 Termio，然后配对这台 iPhone，即可在此查看并驱动你的项目。"
+            "value": "在 Mac 上打开 Fyolo，然后配对这台 iPhone，即可在此查看并驱动你的项目。"
           }
         }
       }
     },
-    "Open a project in Termio on your Mac and it'll show up here.": {
+    "Open a project in Fyolo on your Mac and it'll show up here.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 Mac 的 Termio 中打开一个项目，它就会显示在这里。"
+            "value": "在 Mac 的 Fyolo 中打开一个项目，它就会显示在这里。"
           }
         }
       }
@@ -1231,12 +1231,12 @@
         }
       }
     },
-    "Scan the QR code in Settings ▸ Mobile on a Mac, or the one `termiod pair --qr` prints on a machine running the server. Re-scanning a paired device updates its address.": {
+    "Scan the QR code in Settings ▸ Mobile on a Mac, or the one `fyolod pair --qr` prints on a machine running the server. Re-scanning a paired device updates its address.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 Mac 上打开“设置 ▸ 移动设备”扫描其二维码，或扫描运行服务器的机器上 `termiod pair --qr` 打印出的二维码。对已配对的设备重新扫描会更新其地址。"
+            "value": "在 Mac 上打开“设置 ▸ 移动设备”扫描其二维码，或扫描运行服务器的机器上 `fyolod pair --qr` 打印出的二维码。对已配对的设备重新扫描会更新其地址。"
           }
         }
       }
@@ -1441,22 +1441,22 @@
         }
       }
     },
-    "Termio can't open an SSH session on %@ from a device connection.": {
+    "Fyolo can't open an SSH session on %@ from a device connection.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Termio 无法通过设备连接在 %@ 上打开 SSH 会话。"
+            "value": "Fyolo 无法通过设备连接在 %@ 上打开 SSH 会话。"
           }
         }
       }
     },
-    "Termio couldn't attach to that session.": {
+    "Fyolo couldn't attach to that session.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Termio 无法接入该会话。"
+            "value": "Fyolo 无法接入该会话。"
           }
         }
       }
@@ -1471,12 +1471,12 @@
         }
       }
     },
-    "That isn't an address Termio can pair with.": {
+    "That isn't an address Fyolo can pair with.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这不是 Termio 可以配对的地址。"
+            "value": "这不是 Fyolo 可以配对的地址。"
           }
         }
       }
@@ -1491,12 +1491,12 @@
         }
       }
     },
-    "The address your Mac is serving, or the link `termiod pair` prints.": {
+    "The address your Mac is serving, or the link `fyolod pair` prints.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的 Mac 正在提供服务的地址，或 `termiod pair` 打印出的链接。"
+            "value": "你的 Mac 正在提供服务的地址，或 `fyolod pair` 打印出的链接。"
           }
         }
       }
@@ -1511,12 +1511,12 @@
         }
       }
     },
-    "The device sent something Termio could not read.": {
+    "The device sent something Fyolo could not read.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "该设备发送了 Termio 无法读取的内容。"
+            "value": "该设备发送了 Fyolo 无法读取的内容。"
           }
         }
       }
@@ -1541,12 +1541,12 @@
         }
       }
     },
-    "This device speaks a newer protocol. Update Termio on this phone.": {
+    "This device speaks a newer protocol. Update Fyolo on this phone.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "该设备使用的协议版本较新。请在这台 iPhone 上更新 Termio。"
+            "value": "该设备使用的协议版本较新。请在这台 iPhone 上更新 Fyolo。"
           }
         }
       }
@@ -1651,12 +1651,12 @@
         }
       }
     },
-    "Update Termio on your Mac to connect this phone.": {
+    "Update Fyolo on your Mac to connect this phone.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请更新 Mac 上的 Termio 以连接这台 iPhone。"
+            "value": "请更新 Mac 上的 Fyolo 以连接这台 iPhone。"
           }
         }
       }
@@ -1961,12 +1961,12 @@
         }
       }
     },
-    "Update Termio on this phone to connect to this Mac.": {
+    "Update Fyolo on this phone to connect to this Mac.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请更新这台 iPhone 上的 Termio 以连接这台 Mac。"
+            "value": "请更新这台 iPhone 上的 Fyolo 以连接这台 Mac。"
           }
         }
       }

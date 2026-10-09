@@ -201,7 +201,7 @@ reverted **all** custom sidebar code and went back to the native `.sidebar`,
 accepting Bug 6.
 
 **Removed in the revert (now gone from the tree):** `tameSidebarVibrancy`,
-`TermioSplitViewController`, `addSidebarToggleAccessory`, `toggleSidebarColumn`,
+`FyoloSplitViewController`, `addSidebarToggleAccessory`, `toggleSidebarColumn`,
 `dividerLayer`, `reEstablishFullHeightSidebar`, `rebuildSidebarColumn`,
 `SidebarToggleButton`, `FlatSidebarBackground`, `ChromeTheme.sidebarPanelColor`.
 

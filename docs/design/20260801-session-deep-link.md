@@ -1,15 +1,15 @@
 ---
-title: Session deep links (termio:// addresses)
+title: Session deep links (fyolo:// addresses)
 status: done
 type: design
 created: 2026-08-01
 updated: 2026-08-31
 ---
 
-# Session deep links (termio:// addresses)
+# Session deep links (fyolo:// addresses)
 
 > One address format for a session — pasteable into an agent prompt, clickable
-> on this Mac, and (with the termiod refactor) shareable to another machine.
+> on this Mac, and (with the fyolod refactor) shareable to another machine.
 
 ## Why
 
@@ -26,18 +26,18 @@ down must survive promotion, demotion, rename, and self-update relaunch.
 ## Grammar
 
 ```
-termio://[<endpoint>]/session/<uuid>[?k=<token>]
+fyolo://[<endpoint>]/session/<uuid>[?k=<token>]
 ```
 
 | Form | Meaning |
 | --- | --- |
-| `termio://session/<uuid>` | Session on **this** Mac's Termio (the reserved authority `session` marks the local shorthand). |
-| `termio://<host>[:<port>]/session/<uuid>` | Session hosted at a termiod endpoint. Opening it attaches remotely — same principle as the remote-terminal refactor: the session's home is an endpoint, not "this Mac". |
-| `https://<endpoint>/session/<uuid>#k=<token>` | The **share** artifact (slice 3). Humans share https, never a custom scheme — previewable, clickable without Termio installed; the endpoint page hands off to `termio://` when the app is present. The capability rides in the *fragment*: browsers never transmit `#…`, so the token stays out of relay/tunnel logs (sshx's zero-knowledge link pattern). |
+| `fyolo://session/<uuid>` | Session on **this** Mac's Fyolo (the reserved authority `session` marks the local shorthand). |
+| `fyolo://<host>[:<port>]/session/<uuid>` | Session hosted at a fyolod endpoint. Opening it attaches remotely — same principle as the remote-terminal refactor: the session's home is an endpoint, not "this Mac". |
+| `https://<endpoint>/session/<uuid>#k=<token>` | The **share** artifact (slice 3). Humans share https, never a custom scheme — previewable, clickable without Fyolo installed; the endpoint page hands off to `fyolo://` when the app is present. The capability rides in the *fragment*: browsers never transmit `#…`, so the token stays out of relay/tunnel logs (sshx's zero-knowledge link pattern). |
 
 - Generated links carry the **full lowercase UUID** (a shared link must stay
   unambiguous forever). Resolvers additionally accept an 8+ char id prefix.
-- The dev channel registers `termio-dev://` (same `AppChannel.suffix` mechanism
+- The dev channel registers `fyolo-dev://` (same `AppChannel.suffix` mechanism
   as ports/dirs) so dev and release never fight LaunchServices. Parsers accept
   either scheme; the app only claims its own.
 
@@ -45,7 +45,7 @@ termio://[<endpoint>]/session/<uuid>[?k=<token>]
 
 Every CLI verb that takes a target accepts:
 
-1. `termio://…/session/<uuid-or-prefix>` — canonical
+1. `fyolo://…/session/<uuid-or-prefix>` — canonical
 2. bare id — full UUID or unique prefix (git/docker style)
 3. display title — existing fallback, unchanged
 
@@ -62,7 +62,7 @@ form comes from `link` and the sidebar's **Copy Session Link**.
 Clicking a link (`application(_:open:)`):
 
 - local form → focus that session (existing `focus` verb semantics)
-- endpoint form → hand off to the termiod attach client (until that lands: log
+- endpoint form → hand off to the fyolod attach client (until that lands: log
   and ignore, documented here as the seam)
 
 ## Slices
@@ -70,7 +70,7 @@ Clicking a link (`application(_:open:)`):
 1. **Now (this doc's companion change)**: resolver acceptance, `link` in list
    JSON, sidebar "Copy Session Link", `CFBundleURLTypes` registration
    (+ dev-channel rewrite in `build-app.sh`), click-to-focus for the local form.
-2. **termiod refactor**: endpoint-form open → remote attach; session identity on
+2. **fyolod refactor**: endpoint-form open → remote attach; session identity on
    the daemon side reuses the same UUID so links are location-transparent.
 3. **Sharing**: "Copy Share Link" as a distinct, consent-bearing action that
    embeds the reachable endpoint and mints a `#k=` capability token on the
@@ -85,12 +85,12 @@ Clicking a link (`application(_:open:)`):
 - **Custom schemes are never the shared artifact.** Warp shares
   `https://app.warp.dev/session/<id>` and keeps `warp://` for local actions;
   VS Code shares `vscode.dev/tunnel/<machine>/<path>` and keeps `vscode://`
-  for handoff; Zoom shares https and hands off to `zoommtg://`. Termio
-  follows: `termio://` is the local/agent/scripting hop, https is the share.
+  for handoff; Zoom shares https and hands off to `zoommtg://`. Fyolo
+  follows: `fyolo://` is the local/agent/scripting hop, https is the share.
 - **Session id lives in the path** everywhere modern: sshx `/s/<id>`, tmate
   `/t/<token>`, Warp `/session/<id>`, vscode.dev `/tunnel/<machine>`.
   (Codespaces uses subdomains for browser-origin isolation — worth
-  remembering if termiod ever serves per-session web views on one origin.)
+  remembering if fyolod ever serves per-session web views on one origin.)
 - **Secrets: fragment > path > query.** sshx puts the E2EE key in `#…`
   (never sent to the server); Jupyter's `?token=` is the logged-everywhere
   cautionary tale; every post-2000 protocol spec deprecates `user:pass@`.
@@ -108,7 +108,7 @@ Clicking a link (`application(_:open:)`):
 - **The `<agent>@<id>` handle is removed from every output surface**
   (2026-08-01): list text/JSON, spawn/send/read/close/focus/wait replies,
   watch events (text + JSON), the caller envelope, and the installed
-  CLAUDE.md instruction block all speak `termio://session/<uuid>` now.
+  CLAUDE.md instruction block all speak `fyolo://session/<uuid>` now.
   `sessionHandle` is deleted.
 - Input stays tolerant forever: the resolver still parses `<anything>@<id>`
   (name half ignored), bare ids, prefixes, and titles.

@@ -6,7 +6,7 @@ created: 2026-08-10
 updated: 2026-08-31
 related:
   - mobile-agent-ui-protocol.md
-  - termiod-session-protocol.md
+  - fyolod-session-protocol.md
   - remote-access-relay-strategy.md
 ---
 
@@ -19,7 +19,7 @@ related:
 
 ## 1. Why this needs writing down
 
-Every other protocol boundary in termio has one deployable behind it. This one
+Every other protocol boundary in fyolo has one deployable behind it. This one
 has two, and they update independently: the Mac ships through Sparkle within
 minutes of a tag, the phone ships through App Store review and whenever the user
 gets around to it. There is no server in the middle to migrate both ends at
@@ -41,7 +41,7 @@ currently missing (§6), which is what PR #234 proposes to add.
 
 ### 2.1 One socket, two opcodes
 
-`CompanionServer` (`Sources/termio/Companion/CompanionServer.swift`) binds an
+`CompanionServer` (`Sources/fyolo/Companion/CompanionServer.swift`) binds an
 `NWListener` with a WebSocket protocol option on one port per channel — 8787
 release, 8788 dev — and never on the public net. Reaching it from outside the
 LAN is a tunnel's job, not the protocol's.
@@ -55,7 +55,7 @@ LAN is a tunnel's job, not the protocol's.
 `maximumMessageSize` is 16 MB because a phone upload (a photo for an agent
 prompt) arrives as one base64 text frame.
 
-This inherits the same invariant as `termiod` (`termiod-session-protocol.md`
+This inherits the same invariant as `fyolod` (`fyolod-session-protocol.md`
 §A): byte delivery never waits on a parse. The bridge taps `PTYProcess` on a
 private serial queue and writes through; nothing between the PTY and the socket
 looks at the bytes.
@@ -80,7 +80,7 @@ dropping the bridge.
 
 ## 3. Message catalogue
 
-`CompanionControl` (`Shared/Sources/TermioShared/WireProtocol.swift`) is one
+`CompanionControl` (`Shared/Sources/FyoloShared/WireProtocol.swift`) is one
 enum shared by both apps, with hand-written `encoded()` / `decode()` rather than
 `Codable` synthesis — the JSON is small enough to keep stable by hand, and both
 ends read it with plain `as? String` casts.
@@ -97,7 +97,7 @@ ends read it with plain `as? String` casts.
 | `listFiles` / `fileList` | request / reply | one directory's entries | — |
 | `readFile` / `file` | request / reply | file contents (+ rendered Markdown) | — |
 | `writeFile` / `written` | request / reply | mtime-checked write | `error` prefixed `conflict:` |
-| `upload` / `uploaded` | request / reply | attachment → `<project>/.termio/uploads/` | — |
+| `upload` / `uploaded` | request / reply | attachment → `<project>/.fyolo/uploads/` | — |
 | `searchFiles` / `searchResults` | request / reply | filename search, capped | — |
 | `listChanges` / `changes` | request / reply | `git status` with `+`/`−` counts | — |
 | `readDiff` / `diff` | request / reply | one file's unified diff | — |
@@ -108,7 +108,7 @@ The roster is a separate struct, not a `CompanionControl` case, because it is
 pushed rather than requested and it is the only frame carrying `wire` from the
 Mac. Its shape is `CompanionRoster { t, wire, projects[], agents[] }`, where a
 `RosterProject` owns `RosterSession`s. Both apps identify a session by the same
-uuid the desktop deep link uses (`termio://session/<uuid>`).
+uuid the desktop deep link uses (`fyolo://session/<uuid>`).
 
 ## 4. Sequences
 
@@ -130,7 +130,7 @@ sequenceDiagram
     else accepted
         M->>M: remember the connection's declared wire
         M-->>P: text roster{wire, projects, agents}
-        Note over P: roster.wire < minimumServer → fail with<br/>"Update Termio on your Mac"
+        Note over P: roster.wire < minimumServer → fail with<br/>"Update Fyolo on your Mac"
     end
 
     P->>M: text attach{session}
@@ -173,7 +173,7 @@ sequenceDiagram
     autonumber
     participant P as iPhone
     participant M as Mac (CompanionServer)
-    participant S as TermioStore
+    participant S as FyoloStore
 
     loop every 1s
         M->>S: rosterProvider()
@@ -395,6 +395,6 @@ into a valid empty one and the phone clears its own tree.
   echoed `query` covers today's planes; ids are a `Wire` bump when a plane needs
   them.
 - Multiplexing several sessions over one socket. One socket, one session.
-- A second protocol for the phone. When `termiod` lands, the phone speaks the
+- A second protocol for the phone. When `fyolod` lands, the phone speaks the
   same framed messages over the same ladder (non-negotiable #4) — this protocol
   is the near-term shape, not a parallel dialect to maintain forever.

@@ -1,6 +1,6 @@
 import Foundation
 import Network
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// One self-healing WebSocket, and the only place the app's link behaviour
@@ -32,11 +32,11 @@ final class WebSocketLink: NSObject {
         /// what the terminal needs, since scrolling the scrollback would
         /// otherwise hold the probe off for the length of the drag.
         var pingRunLoopMode: RunLoop.Mode = .default
-        /// Subprotocols to offer on the Upgrade. termiod's listener carries the
+        /// Subprotocols to offer on the Upgrade. fyolod's listener carries the
         /// pairing token here rather than in the query string, so it never
         /// reaches a proxy's request log.
         var subprotocols: [String] = []
-        /// Extra request headers. termiod's listener runs a browser CSRF check
+        /// Extra request headers. fyolod's listener runs a browser CSRF check
         /// on `Origin` and a native client sends none, so the phone states the
         /// operator's allowed origin — a value it chose, which is why the token
         /// stays the only thing authenticating the pipe.
@@ -182,7 +182,7 @@ final class WebSocketLink: NSObject {
     }
 
     /// A link that asks for no headers dials exactly the way it always has —
-    /// the request-building path exists for termiod's `Origin` and must not
+    /// the request-building path exists for fyolod's `Origin` and must not
     /// become the companion wire's path too.
     private func makeTask() -> URLSessionWebSocketTask {
         guard !configuration.headers.isEmpty else {

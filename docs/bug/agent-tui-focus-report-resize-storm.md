@@ -6,7 +6,7 @@ created: 2026-09-01
 updated: 2026-09-01
 related:
   - ../design/20260901-pty-size-is-not-the-write-token.md
-  - ../design/20260730-termiod-session-protocol.md
+  - ../design/20260730-fyolod-session-protocol.md
 ---
 
 # Agent TUIs shake on the phone — focus reports claim the write token
@@ -27,7 +27,7 @@ text with characters stranded in the right margin.
 
 ## 1. Measurement
 
-`log stream --predicate 'subsystem BEGINSWITH "sh.termio"'` over 30 seconds of
+`log stream --predicate 'subsystem BEGINSWITH "sh.fyolo"'` over 30 seconds of
 shaking:
 
 | signal | count |
@@ -39,7 +39,7 @@ shaking:
 | `daemon error: this attachment does not own the write token` | present |
 
 Sub-millisecond cadence, sustained. Both attachments live in the Mac process
-(the pane's `TermiodClient` and the companion bridge's), so one log shows both
+(the pane's `FyolodClient` and the companion bridge's), so one log shows both
 halves of the loop.
 
 Two distinct user-visible damages, one cause:
@@ -59,18 +59,18 @@ Seven steps, each verified against source.
    `ENABLE_BUTTON_MOTION_MOUSE = "\x1b[?1000h\x1b[?1002h\x1b[?1004h\x1b[?1006h"`.
    A login shell never sets it — **that is why only agent TUIs shake**.
 2. The daemon's snapshot formatter runs with `with_modes(true)`
-   (`termiod/vt/src/lib.rs:287`), so every keyframe replays `?1004h`.
+   (`fyolod/vt/src/lib.rs:287`), so every keyframe replays `?1004h`.
 3. ghostty answers a focus-reporting *enable* by writing a focus report
-   immediately, unasked — `termio/stream_handler.zig`:
+   immediately, unasked — `fyolo/stream_handler.zig`:
    `.focus_event => if (enabled) self.messageWriter(.{ .focused = ... })`,
    with bytes from `terminal/focus.zig`: `.gained => "\x1B[I"`,
    `.lost => "\x1B[O"`.
 4. `TerminalDeviceReport.isReport` did not recognise those three bytes. A CSI
    whose final byte is `I` or `O` fell through to `default: return false`, so
    the reply was classified as **typing**.
-5. Typing claims the write token (`TermiodClient.send`).
+5. Typing claims the write token (`FyolodClient.send`).
 6. `applyWriter` re-asserts the new writer's grid
-   (`TermiodClient.swift:1779`, `TermiodSession.swift:327`). That is a resize,
+   (`FyolodClient.swift:1779`, `FyolodSession.swift:327`). That is a resize,
    which is a host-side barrier, which pushes a fresh keyframe **to every
    attachment**.
 7. Go to 3, at the other client.
@@ -79,7 +79,7 @@ Nothing here is probabilistic. The loop runs as fast as the IO threads carry it.
 
 ## 3. Fix
 
-`Shared/Sources/TermioShared/TerminalDeviceReport.swift:92` classifies the bare
+`Shared/Sources/FyoloShared/TerminalDeviceReport.swift:92` classifies the bare
 three-byte `ESC [ I` / `ESC [ O` as a device report:
 
 ```swift
@@ -90,7 +90,7 @@ case 0x49, 0x4F: // I O
 ```
 
 One classifier, three call sites — the Mac pane
-(`TermioStore+TerminalSurface.swift:295`), the companion bridge
+(`FyoloStore+TerminalSurface.swift:295`), the companion bridge
 (`CompanionServer.swift:1091`), and iOS
 (`TerminalViewController.swift:763`) — so one edit covers every path.
 Parameterised forms (`ESC [ 2 I`) stay input; no key encodes to the bare form.
@@ -128,7 +128,7 @@ one instead. Each was defeated by the harness, not the code:
 
 **Rule this earns: a dev-channel measurement is invalid until you have proved
 which binary owns the port.** Run
-`lsof -nP -iTCP -sTCP:LISTEN | grep termio`, match the pid to a bundle path with
+`lsof -nP -iTCP -sTCP:LISTEN | grep fyolo`, match the pid to a bundle path with
 `ps -axo pid,args`, and only then trust a log line.
 
 A valid run needs all of:

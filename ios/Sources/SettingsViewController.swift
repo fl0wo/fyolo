@@ -1,6 +1,6 @@
 import GhosttyTheme
 import SwiftUI
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// The app's settings sheet — ChatGPT-style two-level: this root is a small
@@ -50,8 +50,8 @@ final class SettingsViewController: ThemedTableViewController {
         case version, website, privacy
     }
 
-    private static let websiteURL = URL(string: "https://termio.sh")!
-    private static let privacyURL = URL(string: "https://termio.sh/privacy")!
+    private static let websiteURL = URL(string: "https://fyolo.sh")!
+    private static let privacyURL = URL(string: "https://fyolo.sh/privacy")!
 
     private var stateObserver: NSObjectProtocol?
 
@@ -178,7 +178,7 @@ final class SettingsViewController: ThemedTableViewController {
                     Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
             case .website:
                 cell.textLabel?.text = localized("Website")
-                cell.detailTextLabel?.text = "termio.sh"
+                cell.detailTextLabel?.text = "fyolo.sh"
             case .privacy, nil:
                 cell.textLabel?.text = localized("Privacy Policy")
             }
@@ -601,7 +601,7 @@ final class DevicesSettingsViewController: ThemedTableViewController {
         case .macs:
             localized("One device is connected at a time — tap another to switch to it. Switching closes the terminals open on this phone; the sessions keep running on the Mac.")
         case .add:
-            localized("Scan the QR code in Settings ▸ Mobile on a Mac, or the one `termiod pair --qr` prints on a machine running the server. Re-scanning a paired device updates its address.")
+            localized("Scan the QR code in Settings ▸ Mobile on a Mac, or the one `fyolod pair --qr` prints on a machine running the server. Re-scanning a paired device updates its address.")
         }
     }
 
@@ -683,7 +683,7 @@ final class DevicesSettingsViewController: ThemedTableViewController {
     private func presentEnterAddress() {
         let alert = UIAlertController(
             title: localized("Connect to a Device"),
-            message: localized("The address your Mac is serving, or the link `termiod pair` prints."),
+            message: localized("The address your Mac is serving, or the link `fyolod pair` prints."),
             preferredStyle: .alert
         )
         alert.addTextField { field in
@@ -703,7 +703,7 @@ final class DevicesSettingsViewController: ThemedTableViewController {
     }
 
     /// Camera pairing — same path as typing the address, minus the typing. The
-    /// QR is either the Mac's Settings ▸ Mobile tab or `termiod pair --qr` in a
+    /// QR is either the Mac's Settings ▸ Mobile tab or `fyolod pair --qr` in a
     /// terminal on the box; the scanner reads a string and this one funnel
     /// decides which it is.
     private func presentScanner() {

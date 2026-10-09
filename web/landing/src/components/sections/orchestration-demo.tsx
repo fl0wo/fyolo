@@ -6,12 +6,12 @@ import { AgentIcon } from "@/components/agent-icons";
 import { cn } from "@/lib/utils";
 
 // The orchestration section's demo is the app itself rather than a diagram of
-// it: a Termio window whose left pane is the real sidebar, and whose content
+// it: a Fyolo window whose left pane is the real sidebar, and whose content
 // area is the layout the app actually gets used in (see the hero captures) —
 // the driver session's shell holding the left column, and a stack of the
 // agents it spawned filling the right one.
 //
-// One state machine runs all of it. The first `termio sessions spawn` splits
+// One state machine runs all of it. The first `fyolo sessions spawn` splits
 // the content area in two; every spawn after that adds a pane to the right
 // column, so the fleet builds up on screen as the driver types. Each spawn
 // also lands a session row in the sidebar, and the row and its pane then carry
@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 // block (folder over branch) left-aligned atop the content, status on a row's
 // leading mark rather than a trailing dot (Sidebar/SidebarView.swift).
 //
-// One deliberate liberty: `termio sessions spawn` starts a session, it does not
+// One deliberate liberty: `fyolo sessions spawn` starts a session, it does not
 // group it into a split — grouping is a user action ("Group with"). The demo
 // shows them grouped because the whole point is watching an agent work while
 // another drives it.
@@ -67,7 +67,7 @@ const DRIVER = { agent: "Claude Code", title: "ship v0.22.0" };
 // sidebar and the right column. A row's title is the prompt the CLI spawned it with, which is what
 // the app shows as a session's title, and `tools` is what that agent's own
 // pane shows itself doing. Output lines use the sessions-watch text shape:
-// link  [status]  detail; sessions are addressed by termio://session/<uuid>
+// link  [status]  detail; sessions are addressed by fyolo://session/<uuid>
 // since 8b38709 (the <agent>@<id> handle is gone). `interaction` (codex only)
 // shows a needs-you round trip: the agent asks, the driver answers, it resumes.
 type Tool = { verb: string; target: string; result: string };
@@ -105,8 +105,8 @@ const SESSIONS: readonly Session[] = [
     agent: "Claude Code",
     cli: "claude",
     title: "plan the auth refactor",
-    cmd: 'termio sessions spawn "plan the auth refactor" --agent claude',
-    started: "termio://session/9b3e11d0  [working]  planning",
+    cmd: 'fyolo sessions spawn "plan the auth refactor" --agent claude',
+    started: "fyolo://session/9b3e11d0  [working]  planning",
     activity: "Planning",
     elapsed: "0m 41s",
     tools: [
@@ -115,15 +115,15 @@ const SESSIONS: readonly Session[] = [
     ],
     bullet: "●",
     sub: "⌊",
-    done: "termio://session/9b3e11d0  [done]  7 steps -> PLAN.md",
+    done: "fyolo://session/9b3e11d0  [done]  7 steps -> PLAN.md",
     outcome: "7 steps -> PLAN.md",
   },
   {
     agent: "Codex",
     cli: "codex",
     title: "implement PLAN.md",
-    cmd: 'termio sessions spawn "implement PLAN.md" --agent codex',
-    started: "termio://session/7c1f2a4e  [working]  building",
+    cmd: 'fyolo sessions spawn "implement PLAN.md" --agent codex',
+    started: "fyolo://session/7c1f2a4e  [working]  building",
     activity: "Building",
     elapsed: "1m 06s",
     tools: [
@@ -133,21 +133,21 @@ const SESSIONS: readonly Session[] = [
     bullet: "•",
     sub: "└",
     interaction: {
-      needsYou: "termio://session/7c1f2a4e  [needs-you]  Run swift test? (y/n)",
-      answer: 'termio sessions send 7c1f2a4e "y"',
-      sent: "sent to termio://session/7c1f2a4e",
+      needsYou: "fyolo://session/7c1f2a4e  [needs-you]  Run swift test? (y/n)",
+      answer: 'fyolo sessions send 7c1f2a4e "y"',
+      sent: "sent to fyolo://session/7c1f2a4e",
       question: "Run swift test? (y/n)",
       reply: "y",
     },
-    done: "termio://session/7c1f2a4e  [done]  +412 -128, tests pass",
+    done: "fyolo://session/7c1f2a4e  [done]  +412 -128, tests pass",
     outcome: "+412 -128, tests pass",
   },
   {
     agent: "DeepSeek",
     cli: "deepseek",
     title: "review the diff",
-    cmd: 'termio sessions spawn "review the diff" --agent deepseek',
-    started: "termio://session/5a77c0e2  [working]  reviewing",
+    cmd: 'fyolo sessions spawn "review the diff" --agent deepseek',
+    started: "fyolo://session/5a77c0e2  [working]  reviewing",
     activity: "Reviewing",
     elapsed: "0m 28s",
     tools: [
@@ -156,15 +156,15 @@ const SESSIONS: readonly Session[] = [
     ],
     bullet: "•",
     sub: "└",
-    done: "termio://session/5a77c0e2  [done]  2 nits, 0 blockers",
+    done: "fyolo://session/5a77c0e2  [done]  2 nits, 0 blockers",
     outcome: "2 nits, 0 blockers",
   },
   {
     agent: "Grok",
     cli: "grok",
     title: "security scan, then tag v0.22.0",
-    cmd: 'termio sessions spawn "security scan, then tag v0.22.0" --agent grok',
-    started: "termio://session/d4e6b209  [working]  scanning",
+    cmd: 'fyolo sessions spawn "security scan, then tag v0.22.0" --agent grok',
+    started: "fyolo://session/d4e6b209  [working]  scanning",
     activity: "Scanning",
     elapsed: "0m 52s",
     tools: [
@@ -173,7 +173,7 @@ const SESSIONS: readonly Session[] = [
     ],
     bullet: "•",
     sub: "└",
-    done: "termio://session/d4e6b209  [done]  clean, tagged v0.22.0",
+    done: "fyolo://session/d4e6b209  [done]  clean, tagged v0.22.0",
     outcome: "clean, tagged v0.22.0",
   },
 ];
@@ -328,7 +328,7 @@ export function OrchestrationDemo() {
           </div>
 
           <div className="min-h-0 flex-1 overflow-hidden px-2 pt-1">
-            <ProjectRow name="termio" />
+            <ProjectRow name="fyolo" />
             <ul className="flex flex-col">
               <SessionRow
                 agent={DRIVER.agent}
@@ -375,7 +375,7 @@ export function OrchestrationDemo() {
             </div>
             <div className="min-w-0 leading-tight">
               <p className="truncate text-[12px] font-medium text-foreground/85">
-                termio
+                fyolo
               </p>
               <p className="truncate text-[10.5px] text-muted-foreground">main</p>
             </div>
@@ -715,7 +715,7 @@ function WorktreeRow({ branch }: { branch: string }) {
 
 // The eight perimeter cells of a 3×3 grid in clockwise order, as (column, row)
 // with the center at (1,1) — the ring the comet travels, matching the app's
-// WorkingIndicator (Shared/TermioShared/SessionStatus.swift). Geometry is the
+// WorkingIndicator (Shared/FyoloShared/SessionStatus.swift). Geometry is the
 // app's too: 2.5pt dots on a 3.6pt pitch, over a steady half-ink center.
 const RING: readonly (readonly [number, number])[] = [
   [0, 0],

@@ -35,13 +35,13 @@ const features = [
   {
     title: "Markdown you can actually read",
     blurb:
-      "Open a README or a plan and Termio renders it — GFM tables, task lists, math, Mermaid diagrams — in your terminal theme, beside the agent writing it.",
+      "Open a README or a plan and Fyolo renders it — GFM tables, task lists, math, Mermaid diagrams — in your terminal theme, beside the agent writing it.",
     Mock: MarkdownMock,
   },
   {
     title: "Your other machines",
     blurb:
-      "Termio runs sessions on the hosts in your own ~/.ssh/config, each wearing its machine's mark. System OpenSSH does the connecting — no embedded client, no relay.",
+      "Fyolo runs sessions on the hosts in your own ~/.ssh/config, each wearing its machine's mark. System OpenSSH does the connecting — no embedded client, no relay.",
     Mock: RemoteMock,
   },
   {
@@ -64,7 +64,7 @@ export function FeatureGrid() {
           </h2>
           <p className="mt-5 max-w-lg text-balance text-base leading-relaxed text-muted-foreground">
             Several agents going at once, most of them fine without you, one of
-            them stuck — Termio keeps the whole fleet in view.
+            them stuck — Fyolo keeps the whole fleet in view.
           </p>
         </Reveal>
 

@@ -8,10 +8,10 @@ related:
   - 20260831-companion-second-protocol-retires.md
   - 20260814-remote-to-device.md
   - 20260824-settings-that-know-which-machine.md
-  - 20260818-termiod-web-client-ghostty-wasm.md
-  - 20260805-termiod-device-architecture.md
-  - 20260805-termiod-hot-path-and-client-classes.md
-  - 20260730-termiod-session-protocol.md
+  - 20260818-fyolod-web-client-ghostty-wasm.md
+  - 20260805-fyolod-device-architecture.md
+  - 20260805-fyolod-hot-path-and-client-classes.md
+  - 20260730-fyolod-session-protocol.md
   - 20260810-companion-wire-protocol.md
 ---
 
@@ -26,20 +26,20 @@ related:
 The phone is the one place the repo contradicts its own architecture. Device
 architecture §2.1 says every viewer attaches to the device it is showing and
 never through another viewer; the client table at
-[`20260805-termiod-device-architecture.md`](20260805-termiod-device-architecture.md)
+[`20260805-fyolod-device-architecture.md`](20260805-fyolod-device-architecture.md)
 marks the phone as "**mirrors the Mac** — the live exception to §H #4". Today a
-session running on a VPS reaches the phone as `PTY → termiod → ssh stdio → Mac
+session running on a VPS reaches the phone as `PTY → fyolod → ssh stdio → Mac
 surface → companion ring → tunnel → phone`.
 
 **Most of what makes the direct path possible is already decided elsewhere, and
 this RFC re-decides none of it:**
 
 - The listener, the pairing token, the origin check, and the loopback bind rule
-  are [the web-client RFC](20260818-termiod-web-client-ghostty-wasm.md)
+  are [the web-client RFC](20260818-fyolod-web-client-ghostty-wasm.md)
   §"Where WSS lives" and §"Auth". iOS is the **second consumer** of that same
   bind, not a second listener.
 - The client class is settled:
-  [hot-path-and-client-classes](20260805-termiod-hot-path-and-client-classes.md)
+  [hot-path-and-client-classes](20260805-fyolod-hot-path-and-client-classes.md)
   §D.3 — *"The Mac and iOS clients are both Replicas."* The phone already carries
   libghostty, so it needs no `ghostty-vt.wasm` and no fourth class.
 - `grid_diff` is not selected because a client is a phone. §D.4 is normative on
@@ -55,9 +55,9 @@ path never breaks.
 ```mermaid
 graph LR
   subgraph today["Today — phone mirrors a Mac"]
-    P1["iPhone<br/>TermioMobile"] -->|"WSS + ?t= token"| M1["Mac<br/>CompanionServer"]
+    P1["iPhone<br/>FyoloMobile"] -->|"WSS + ?t= token"| M1["Mac<br/>CompanionServer"]
     M1 --> S1["ghostty surface<br/>on the Mac"]
-    S1 -->|"ssh stdio"| D1["termiod<br/>Linux"]
+    S1 -->|"ssh stdio"| D1["fyolod<br/>Linux"]
     D1 --> T1["PTY"]
   end
 ```
@@ -76,16 +76,16 @@ the third.
 
 | # | Change | Where | Why it gates |
 | --- | --- | --- | --- |
-| P0.1 | Per-client byte budget + sequence cursor; drop (v0) or resnapshot (v1) | `termiod/src/daemon.rs` | Risk #10 in the protocol doc: `fan_out` never blocks on a slow consumer and per-client channels are **unbounded**. A backgrounded iPhone with a dead radio is the most likely stalled consumer in the system. |
-| P0.2 | `termiod serve --wss` listener, `pair.token`, origin check | web-client RFC PR 1 | The pipe itself. Already specified; iOS adds no requirement except D2 below. |
-| P0.3 | Surface `WorkstreamSpec.project` in `Session::info()` | `termiod/src/session.rs:302`, `:335` | The daemon stores a session's project and reads back only `agent_id`. Without it a directly-attached phone is blind above the session level. One field. |
+| P0.1 | Per-client byte budget + sequence cursor; drop (v0) or resnapshot (v1) | `fyolod/src/daemon.rs` | Risk #10 in the protocol doc: `fan_out` never blocks on a slow consumer and per-client channels are **unbounded**. A backgrounded iPhone with a dead radio is the most likely stalled consumer in the system. |
+| P0.2 | `fyolod serve --wss` listener, `pair.token`, origin check | web-client RFC PR 1 | The pipe itself. Already specified; iOS adds no requirement except D2 below. |
+| P0.3 | Surface `WorkstreamSpec.project` in `Session::info()` | `fyolod/src/session.rs:302`, `:335` | The daemon stores a session's project and reads back only `agent_id`. Without it a directly-attached phone is blind above the session level. One field. |
 
 ## Decisions
 
 ### D1 — One app, two backends behind a port
 
 The UI talks to a `DeviceClient` / `DeviceSession` pair of protocols.
-`CompanionBackend` implements them over today's wire; `TermiodBackend`
+`CompanionBackend` implements them over today's wire; `FyolodBackend`
 implements them over the Session Protocol.
 
 **Against, accepted:** the test matrix doubles — every inspector pane now has two
@@ -105,7 +105,7 @@ graph TB
   end
   subgraph back["Backends"]
     F["CompanionBackend<br/>CompanionControl"]
-    G["TermiodBackend<br/>Session Protocol"]
+    G["FyolodBackend<br/>Session Protocol"]
   end
   A --> D
   C --> D
@@ -115,7 +115,7 @@ graph TB
   E --> F
   E --> G
   F -->|WSS| H["Mac"]
-  G -->|WSS| I["termiod<br/>Mac or Linux"]
+  G -->|WSS| I["fyolod<br/>Mac or Linux"]
 ```
 
 ### D2 — Open: what the origin check is *for*, once a native client exists
@@ -159,9 +159,9 @@ Three rungs, in the order the app should offer them:
 
 | Rung | When | Flow |
 | --- | --- | --- |
-| **1. Brokered by a paired Mac** | A Mac is already paired — the common case | The Mac runs `ssh <alias> termiod pair --json` over the SSH it already has, and pushes the result to the phone as a `deviceInvite` on the companion wire. Nothing is scanned or typed. |
-| **2. Terminal QR** | No Mac, or a box reached from someone else's machine | `termiod pair --qr` prints a Unicode half-block QR **into whatever terminal the operator is sitting in** — including a termio session on the Mac. The phone scans the screen it is already looking at. |
-| **3. Paste** | Screen-reader, screenshot, or a QR that will not scan | `termiod pair` prints a `termio://device?…` URL to copy by hand. |
+| **1. Brokered by a paired Mac** | A Mac is already paired — the common case | The Mac runs `ssh <alias> fyolod pair --json` over the SSH it already has, and pushes the result to the phone as a `deviceInvite` on the companion wire. Nothing is scanned or typed. |
+| **2. Terminal QR** | No Mac, or a box reached from someone else's machine | `fyolod pair --qr` prints a Unicode half-block QR **into whatever terminal the operator is sitting in** — including a fyolo session on the Mac. The phone scans the screen it is already looking at. |
+| **3. Paste** | Screen-reader, screenshot, or a QR that will not scan | `fyolod pair` prints a `fyolo://device?…` URL to copy by hand. |
 
 **Rung 1 is not a §2.1 violation.** The rejected thing is a Mac on the *data*
 path. A Mac on the *enrollment* path is the correct use of it: it already holds
@@ -196,17 +196,17 @@ names *This Mac* today.
 persisting. Saving an unverified address is what produced the companion's worst
 failure mode — paired, silently unreachable, and indistinguishable from a bug.
 
-A QR encoder in `termiod` is a small pure-data dependency and is not crypto, so
+A QR encoder in `fyolod` is a small pure-data dependency and is not crypto, so
 §H #3 is untouched.
 
 ### D5 — The codec moves to `Shared/`
 
-`Sources/termio/Terminal/Termiod/TermiodClient.swift` is 2300 lines with the
+`Sources/fyolo/Terminal/Fyolod/FyolodClient.swift` is 2300 lines with the
 protocol in identifiable blocks — Framing `:559`, Control payloads `:639`,
 Handshake `:1251` — sitting above a `Transport` abstraction (`:388`) that already
 has local-pipe and ssh-pipe cases. Roughly 700 lines are pure codec.
 
-Move those to `Shared/Sources/TermioShared/` for the reason `WireProtocol.swift`
+Move those to `Shared/Sources/FyoloShared/` for the reason `WireProtocol.swift`
 already lives there: both ends stay in sync. The Mac gains a third `Transport`
 case; iOS gets a WS transport over the identical codec.
 
@@ -238,7 +238,7 @@ start them while P0 is in flight.
 | **P1** | `DeviceClient` / `DeviceSession` protocols; `CompanionBackend` wraps today's two sockets verbatim. The one real edit is the wire-type leak: `InspectorViewController` takes `WireFileEntry` / `WireChange` / `WireDiff` directly (`:133`, `:204`, `:327`, `:353`, `:374`, `:381`), and `FileViewerController` / `DiffViewController` follow it. `RosterStore:148–217` is four call sites. | `./ios/dev-run.sh`; behaviour byte-identical against an unchanged Mac. No wire change. |
 | **P2** | One `WebSocketLink` owning connect, backoff, `NWPathMonitor`, foreground retry, the 15 s ping, and auth-first ordering. `CompanionClient` and `CompanionTransport` each reimplement all six today — ~200 duplicated lines, two places for every link fix to land. | Worth doing even if direct attach never ships. That is the test of whether this phase is real. |
 | **P3** | Codec extracted per D5. | Mac builds; its remote sessions still work through the moved codec, **before** iOS touches it. |
-| **P4** | `TermiodBackend`: `hello` / `hello_ok`, `list` for the roster, `attach` for bytes, `fs.*` / `git.*` for the inspector. `PairedMac` gains a `kind`; the Slack-workspace model — several paired, one active — carries over unchanged. | A phone attaches to a Linux box with the Mac app quit. |
+| **P4** | `FyolodBackend`: `hello` / `hello_ok`, `list` for the roster, `attach` for bytes, `fs.*` / `git.*` for the inspector. `PairedMac` gains a `kind`; the Slack-workspace model — several paired, one active — carries over unchanged. | A phone attaches to a Linux box with the Mac app quit. |
 | **P5** | The rename of D6. | — |
 | **P6** | Predictive echo; measure reattach cost. | QUIC only if §D's p95 criterion actually fires. |
 
@@ -251,8 +251,8 @@ makes a 100 ms link *feel* local.
 Things the landed backend does the weaker way, each because the stronger one
 arrived on `main` while P4 was in flight.
 
-**Done — reply correlation.** `TermiodBackend` now keys every in-flight request
-by the `re` it was sent with, read back through `Termiod.responseID(of:)` and,
+**Done — reply correlation.** `FyolodBackend` now keys every in-flight request
+by the `re` it was sent with, read back through `Fyolod.responseID(of:)` and,
 for the bytes behind an `fs_read`, through `decodeFileChunk`'s `request`. It
 matched the oldest outstanding request *of that verb* before, which held only
 while one of each was ever in flight.
@@ -261,7 +261,7 @@ That turned out to be hiding a live defect rather than only a latent one: a
 refusal carries the `re` of the request that caused it, but was attributed to
 whatever was outstanding — so a refused search cancelled a read that was still
 perfectly alive, and the read then hung until the socket dropped. Both are
-covered by `TermiodReplyCorrelationTests`.
+covered by `FyolodReplyCorrelationTests`.
 
 The remaining two:
 
@@ -273,7 +273,7 @@ The remaining two:
 - **Content search, and cancelling it.** The phone's file search is filename-only
   (`fs_match`, one reply off the host's index), so nothing is left running when a
   query is abandoned. The day this pane gains content search it inherits the
-  problem `Termiod.CancelOperation` exists for: only `fs_search` registers a
+  problem `Fyolod.CancelOperation` exists for: only `fs_search` registers a
   cancellable request, and an abandoned one leaves `git grep` running until the
   connection drops.
 

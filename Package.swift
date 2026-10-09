@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "termio",
+    name: "fyolo",
     defaultLocalization: "en",
     platforms: [.macOS(.v14)],
     dependencies: [
@@ -12,7 +12,7 @@ let package = Package(
         // GhosttyKit.xcframework, so no zig toolchain here). Same package the iOS app
         // uses, so both platforms track one dependency. The 2026-07 "fork regressed
         // live resize" suspicion that briefly rolled this back to Lakr233 was a
-        // misdiagnosis — the real bug was termio's own PTY spawn shape (see
+        // misdiagnosis — the real bug was fyolo's own PTY spawn shape (see
         // docs/bug/terminal-resize-no-reflow-HANDOFF.md §0).
         .package(url: "https://github.com/termio-sh/libghostty-swift", from: "1.1.6"),
         // Sparkle powers in-app auto-update (the "Check for Updates…" menu item and
@@ -20,7 +20,7 @@ let package = Package(
         // release; the matching EdDSA public key is embedded in packaging/Info.plist.
         .package(url: "https://github.com/sparkle-project/Sparkle.git", from: "2.6.0"),
         // Highlightr (the highlight.js wrapper powering the file editor) is VENDORED
-        // at Sources/termio/Editor/Highlightr, not a dependency: `swift build` bakes a
+        // at Sources/fyolo/Editor/Highlightr, not a dependency: `swift build` bakes a
         // dependency's `Bundle.module` accessor with only the .app root + a build-machine
         // path, so CI-built releases crashed on `Highlightr.init` (v0.2.4). See the
         // vendor README.
@@ -34,7 +34,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "termio",
+            name: "fyolo",
             dependencies: [
                 .product(name: "GhosttyTerminal", package: "libghostty-swift"),
                 // The raw libghostty C API. Used by session control to deliver a real
@@ -45,9 +45,9 @@ let package = Package(
                 .product(name: "GhosttyTheme", package: "libghostty-swift"),
                 .product(name: "Sparkle", package: "Sparkle"),
                 .product(name: "Markdown", package: "swift-markdown"),
-                .product(name: "TermioShared", package: "Shared"),
+                .product(name: "FyoloShared", package: "Shared"),
             ],
-            path: "Sources/termio",
+            path: "Sources/fyolo",
             // The vendored Highlightr copy ships its own README; it's documentation, not
             // a build input, so exclude it rather than let SwiftPM flag it as unhandled.
             exclude: [
@@ -75,7 +75,7 @@ let package = Package(
                 .copy("Resources/terminal.json"),
                 // UI strings: per-language .lproj folders generated from the String
                 // Catalog by scripts/compile-strings.sh. Every lookup must pass
-                // `Bundle.termioResources` explicitly — `String(localized:)`'s
+                // `Bundle.fyoloResources` explicitly — `String(localized:)`'s
                 // default of `Bundle.main` holds no strings in a packaged .app.
                 // Each .lproj is a verbatim `.copy`, one entry per language:
                 // `.process` lowercases the folder to `zh-hans.lproj`, and
@@ -97,14 +97,14 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "termioTests",
+            name: "fyoloTests",
             dependencies: [
-                "termio",
+                "fyolo",
                 // The shared diff model the iOS reader parses with — pure logic,
                 // so it is tested here rather than in an Xcode-only test bundle.
-                .product(name: "TermioShared", package: "Shared"),
+                .product(name: "FyoloShared", package: "Shared"),
             ],
-            path: "Tests/termioTests",
+            path: "Tests/fyoloTests",
             // The Markdown feature sheet is both the end-to-end fixture
             // `MarkdownFeatureSheetTests` renders and the document to open in the
             // reader when judging the result by eye.

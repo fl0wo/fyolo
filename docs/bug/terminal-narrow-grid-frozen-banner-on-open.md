@@ -27,14 +27,14 @@ below is kept as a record of the misdiagnosis.
 
 ## Superseded fix candidate (2026-07-08 — never worked, reverted)
 
-Candidate changes are in `Sources/termio/App.swift`,
-`Sources/termio/TermioStore/TermioStore+TerminalSurface.swift`, and
-`Sources/termio/TermioStore/TermioStore+ProjectActions.swift`.
+Candidate changes are in `Sources/fyolo/App.swift`,
+`Sources/fyolo/FyoloStore/FyoloStore+TerminalSurface.swift`, and
+`Sources/fyolo/FyoloStore/FyoloStore+ProjectActions.swift`.
 
-Root cause addressed: Termio mounted the SwiftUI split/terminal content while the manually
+Root cause addressed: Fyolo mounted the SwiftUI split/terminal content while the manually
 created `NSWindow` and its `NSSplitView` were still restoring stale geometry. The window
 frame is only one part of that. The stronger, reproduced local clue is the persisted
-`"NSSplitView Subview Frames TermioContentSplit"` default: it can restore the terminal
+`"NSSplitView Subview Frames FyoloContentSplit"` default: it can restore the terminal
 detail pane to a narrow pre-fullscreen / inspector-open width (for example 412 pt in the
 production defaults, or 639 pt in dev) even when the window will later be wide. A
 host-owned PTY born during that restored split-frame interval sees a real AppKit view,
@@ -52,13 +52,13 @@ The current candidate has three parts:
 1. Restore the saved main-window frame with `setFrameUsingName(...)` and install the
    autosave name before assigning `window.contentViewController`, so the terminal's
    first layout sees the restored frame rather than the construction frame.
-2. Stop using `NSSplitView.autosaveName = "TermioContentSplit"` on the terminal split.
+2. Stop using `NSSplitView.autosaveName = "FyoloContentSplit"` on the terminal split.
    Muxy does not restore raw split subview frames; its terminal column is laid out from
    the current SwiftUI window/sidebar state, and the Ghostty surface is materialized
-   from the current backing size. Termio's raw split-frame autosave was restoring stale
+   from the current backing size. Fyolo's raw split-frame autosave was restoring stale
    detail widths into a wide-window launch.
 3. Mirror Muxy's materialization rule: only real view-derived geometry is allowed to
-   arm an on-screen PTY birth. In Termio that now means using
+   arm an on-screen PTY birth. In Fyolo that now means using
    `TerminalViewState.surfaceSize`, which is published only from
    `TerminalSurfaceCoordinator.synchronizeMetrics()` after reading the AppKit view's
    actual bounds. The in-memory backend's generic resize callback is no longer used
@@ -74,8 +74,8 @@ The current candidate has three parts:
 Verification completed in this pass:
 
 - `swift build` succeeds.
-- `TERMIO_CHANNEL=dev ./scripts/build-app.sh` succeeds and signs
-  `termio-dev.app`; rebuilt dev app binary timestamp:
+- `FYOLO_CHANNEL=dev ./scripts/build-app.sh` succeeds and signs
+  `fyolo-dev.app`; rebuilt dev app binary timestamp:
   `Jul 8 22:58:11 2026`.
 - `swift test` is not applicable for this package: SwiftPM reports no test targets.
 
@@ -101,7 +101,7 @@ whatever width the agent was born at is frozen forever.
 
 ## Root cause (this part is solid)
 
-Termio owns the PTY (host-managed `.inMemory` backend via `PTYProcess`, **not**
+Fyolo owns the PTY (host-managed `.inMemory` backend via `PTYProcess`, **not**
 libghostty's `.exec` — `docs/CLAUDE.md` is stale on this). The agent child reads its
 winsize via `TIOCGWINSZ` at startup and prints its box at that width. **If the child
 is spawned/sized before the terminal view reaches its final width, the box freezes
@@ -115,7 +115,7 @@ distinct early-wrong sizes were found feeding the resize path:
 1. **ghostty's placeholder default surface size** — a `48×17` grid (`768×578` px) that
    ghostty fires through `receive_resize` (the `receiveResizeCallback`) *before*
    `synchronizeMetrics` delivers the real, view-derived grid. Both land through the
-   same `InMemoryTerminalSession` resize closure, so Termio can't tell them apart by
+   same `InMemoryTerminalSession` resize closure, so Fyolo can't tell them apart by
    value.
 2. **the window's own not-yet-final size at launch.** Before the final fix, `App.swift`
    created the window at
@@ -208,7 +208,7 @@ Two families of fix to evaluate (see the prompt):
 - **Make the window reach its final frame *before* the terminal ever lays out** — mirror
   Muxy, which is a SwiftUI `WindowGroup` (`MuxyApp.swift`) whose scene restores the
   frame before content layout, so the terminal's *first* `setFrameSize` is already
-  final. In Termio: call `setFrameAutosaveName` / restore the saved frame *before*
+  final. In Fyolo: call `setFrameAutosaveName` / restore the saved frame *before*
   `window.contentViewController = …`, and don't spawn until the window is on screen.
 - **Stop trusting a timer** — birth only when the grid has been stable across a couple
   of layout passes *and* the window has finished presenting (e.g. after
@@ -220,37 +220,37 @@ Two families of fix to evaluate (see the prompt):
 `createSurface()` until `backingPixelSize()` is valid and (re)tries it from
 `setFrameSize` (`GhosttyTerminalNSView.swift:349`, gate `pendingSurfaceCreation`). Its
 terminal view observes only `didChangeScreen` + occlusion — resize sensing is the same
-`setFrameSize`/`layout` as Termio. **The decisive difference is the window lifecycle:**
+`setFrameSize`/`layout` as Fyolo. **The decisive difference is the window lifecycle:**
 Muxy is a SwiftUI-scene app (`MuxyApp.swift` / `Views/MainWindow.swift`) so the window
-is at its restored size before the terminal lays out; Termio hand-builds the `NSWindow`
+is at its restored size before the terminal lays out; Fyolo hand-builds the `NSWindow`
 and restores the frame after installing content.
 
 ## Key files
 
-- `Sources/termio/TermioStore/TermioStore+TerminalSurface.swift` — `surface(for:in:)`,
+- `Sources/fyolo/FyoloStore/FyoloStore+TerminalSurface.swift` — `surface(for:in:)`,
   `spawnPTYIfNeeded`, `spawnPTY`, `scheduleSpawn`, and the `PTYHolder` / `GridBox`
   boxes. The deferred-spawn + debounce lives here.
-- `Sources/termio/TermioStore/TermioStore.swift` — `pendingSpawns`, `spawnDebounces`,
+- `Sources/fyolo/FyoloStore/FyoloStore.swift` — `pendingSpawns`, `spawnDebounces`,
   `lastHostGridColumns` / `rememberHostGrid`.
-- `Sources/termio/App.swift` — `applicationDidFinishLaunching`: window created at
+- `Sources/fyolo/App.swift` — `applicationDidFinishLaunching`: window created at
   `1100×720`, content installed at line ~119, `setFrameAutosaveName` at ~122. **Prime
   suspect for the ordering bug.**
-- `Sources/termio/CompanionServer.swift` — `companionPTY(for:)` headless spawn path.
+- `Sources/fyolo/CompanionServer.swift` — `companionPTY(for:)` headless spawn path.
 - fork `.../Surface/TerminalSurfaceCoordinator.swift` (`synchronizeMetrics`,
   `updateViewport`) and `.../InMemory/InMemoryTerminalSession.swift`
   (`receiveResizeCallback` fires the 48×17 placeholder).
 
 ## Repro & instrumentation notes
 
-- Build the dev bundle: `TERMIO_CHANNEL=dev ./scripts/build-app.sh`; run the inner
+- Build the dev bundle: `FYOLO_CHANNEL=dev ./scripts/build-app.sh`; run the inner
   binary directly so `Bundle.main` stays the `.dev` app and to pass env:
-  `TERMIO_METRICS_LOG=1 ./termio-dev.app/Contents/MacOS/termio` (the metrics sink in
+  `FYOLO_METRICS_LOG=1 ./fyolo-dev.app/Contents/MacOS/fyolo` (the metrics sink in
   `App.swift` was removed — re-add it, or use `TerminalDebugLog.enable(.metrics)`).
 - `NSLog` from `spawnPTYIfNeeded` (birth cols/rows) and the resize closure gives a
-  single wall-clock timeline in `/tmp/termio-dev.log` via `open … --stderr`.
+  single wall-clock timeline in `/tmp/fyolo-dev.log` via `open … --stderr`.
 - To reproduce the user's wide-window case you must get the window to lay out **narrow
-  first, then restore wide** — the synthetic `defaults write sh.termio.app.dev
-  "NSWindow Frame TermioMainWindow" …` before launch instead made it wide *from the
+  first, then restore wide** — the synthetic `defaults write sh.fyolo.app.dev
+  "NSWindow Frame FyoloMainWindow" …` before launch instead made it wide *from the
   first layout* (born correct), which is why attempt 3 looked fixed under test.
 - `osascript`/System Events **cannot** set window bounds here; drive resizes from inside
   the app or via the saved frame.
@@ -259,7 +259,7 @@ and restores the frame after installing content.
 
 ## Debugging prompt for a fresh agent
 
-> You are debugging a **spawn-timing / window-lifecycle** bug in Termio (native macOS
+> You are debugging a **spawn-timing / window-lifecycle** bug in Fyolo (native macOS
 > Swift + libghostty terminal for AI agents). A full-screen agent (Claude Code) opens
 > with its box-drawing welcome banner **frozen at ~52 columns on the left of a wide
 > pane**, with dead space filling the rest. Box-drawing content never reflows, so the
@@ -285,7 +285,7 @@ and restores the frame after installing content.
 >    wide) under instrumentation — the previous agent never did; its synthetic test made
 >    the window wide from the first layout. Add one-clock `NSLog` to the resize closure
 >    and `spawnPTYIfNeeded`; run the dev bundle's inner binary with `open … --stderr
->    /tmp/termio-dev.log`. Confirm birth cols < final cols and capture the timeline.
+>    /tmp/fyolo-dev.log`. Confirm birth cols < final cols and capture the timeline.
 > 2. **Explain the ~5 s-later resize burst** — what drives a layout change seconds after
 >    launch with no user input? (Toolbar/sidebar/inspector settle? A second frame
 >    restore? Metal layer? Grep `App.swift` chrome setup and the fork's settle-resync.)
@@ -303,10 +303,10 @@ and restores the frame after installing content.
 > 5. Remove all instrumentation; update this doc's status to `done` with the final
 >    root-cause and fix; work on a branch, don't touch `main` until verified.
 >
-> Key files: `Sources/termio/App.swift` (`applicationDidFinishLaunching` — window
-> lifecycle, prime suspect), `Sources/termio/TermioStore/TermioStore+TerminalSurface.swift`
+> Key files: `Sources/fyolo/App.swift` (`applicationDidFinishLaunching` — window
+> lifecycle, prime suspect), `Sources/fyolo/FyoloStore/FyoloStore+TerminalSurface.swift`
 > (`surface(for:in:)`, `spawnPTY*`, `scheduleSpawn`, `GridBox`/`PTYHolder`),
-> `Sources/termio/TermioStore/TermioStore.swift` (`pendingSpawns`, `spawnDebounces`),
-> `Sources/termio/CompanionServer.swift` (`companionPTY`). Reference: `/tmp/muxy-ref`
+> `Sources/fyolo/FyoloStore/FyoloStore.swift` (`pendingSpawns`, `spawnDebounces`),
+> `Sources/fyolo/CompanionServer.swift` (`companionPTY`). Reference: `/tmp/muxy-ref`
 > (`Muxy/MuxyApp.swift`, `Views/MainWindow.swift`, `Views/Terminal/GhosttyTerminalNSView.swift`).
 </content>

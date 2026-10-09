@@ -1,5 +1,5 @@
 import SwiftUI
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// The Chats tab: the Mac's loose agent sessions (the `chats`-kind container) —

@@ -3,7 +3,7 @@ title: Troubleshooting
 description: The things that actually go wrong — a status dot that never moves, an agent that won’t launch, sessions missing after a reboot, a box that stopped answering, a phone that can’t connect — each with a way to look rather than guess.
 ---
 
-Almost everything that looks like a Termio bug is one of the cases below, and
+Almost everything that looks like a Fyolo bug is one of the cases below, and
 each one has a way to check rather than guess. Start here before filing anything.
 
 ## Start with these three
@@ -11,14 +11,14 @@ each one has a way to check rather than guess. Start here before filing anything
 On any machine, in any state, these answer most of the question:
 
 ```bash
-termiod status                 # what's installed here, and is a daemon answering?
-termiod list                   # what sessions is it holding?
-termiod logs -n 200            # what happened while nobody was watching
+fyolod status                 # what's installed here, and is a daemon answering?
+fyolod list                   # what sessions is it holding?
+fyolod logs -n 200            # what happened while nobody was watching
 ```
 
-`termiod status` in particular ends a surprising share of “it broke” reports: it
+`fyolod status` in particular ends a surprising share of “it broke” reports: it
 says which binary is installed, which version, and whether anything is actually
-listening on the socket. To ask about another machine, `termiod list --host
+listening on the socket. To ask about another machine, `fyolod list --host
 <box>` queries that box's daemon over your own SSH config.
 
 ## A status dot never changes
@@ -26,7 +26,7 @@ listening on the socket. To ask about another machine, `termiod list --host
 The sidebar’s [status dots](/docs/sidebar#status) come from hooks installed into
 each agent’s own config, and they are installed **per machine**. An agent on a
 box you set up before turning the feature on has no hooks, so it reports nothing
-and Termio falls back to reading the screen.
+and Fyolo falls back to reading the screen.
 
 Open **Settings ▸ Remote Hosts**, pick the machine, open its **Agents** page and
 press **Reinstall Hooks and Skill**. For this Mac the same repair is
@@ -42,18 +42,18 @@ reports nothing, so the sidebar shows the last status it knew rather than
 **needs you**.
 
 If a session looks idle but nothing is happening, look at the pane itself. Answer
-the prompt once and status resumes. Termio re-asserts its hooks on launch (that
+the prompt once and status resumes. Fyolo re-asserts its hooks on launch (that
 is what keeps other tools from quietly replacing them), so the prompt can come
 back after an update.
 
 ## An agent won’t launch, or exits instantly
 
 A pane that dies at once with “failed to launch” is nearly always `PATH`, not the
-agent. Termio starts agents through your real login shell, so anything your
+agent. Fyolo starts agents through your real login shell, so anything your
 profile sets up is available — but a CLI installed somewhere your profile doesn’t
 add is still invisible.
 
-Open **Settings ▸ Agents** and look at the agent’s row: Termio resolves your login
+Open **Settings ▸ Agents** and look at the agent’s row: Fyolo resolves your login
 shell’s `PATH` and flags a command it can’t find. Either fix your profile, or
 paste the absolute path (`/opt/homebrew/bin/codex`) into the command field. The
 same field is per machine, so do it on the machine that’s failing.
@@ -62,30 +62,30 @@ same field is per machine, so do it on the machine that’s failing.
 
 Agent config files are shared ground — other agent managers write to the same
 `~/.claude/settings.json` and `~/.codex/hooks.json`, and some replace the whole
-hooks block rather than merging into it. When that happens Termio’s reports stop
+hooks block rather than merging into it. When that happens Fyolo’s reports stop
 arriving and status falls back to screen-reading.
 
-Termio re-asserts its own hooks when it launches and when you bring it back to
+Fyolo re-asserts its own hooks when it launches and when you bring it back to
 the front, so on this Mac it usually heals by itself. That sweep is local only:
 another machine keeps whatever is on it until you repair it there, with
 **Reinstall Hooks and Skill** on that machine’s **Agents** page.
 
-## `termio sessions` says `disabled`
+## `fyolo sessions` says `disabled`
 
 The orchestration API is opt-in. Turn on **Settings ▸ Agents ▸ Session control**,
-which also installs the `termio` skill that teaches agents the commands exist.
+which also installs the `fyolo` skill that teaches agents the commands exist.
 
 Every CLI error has the same shape and a nonzero exit code, so a script can
 branch on `error` rather than parse prose — the codes are listed in the
 [JSON contract](/docs/cli#json-contract).
 
-## `termio: command not found`
+## `fyolo: command not found`
 
 The command is a symlink the app installs for you: **Settings ▸ Server ▸ Command
-line ▸ Command-line tool**, which links `termio` into `/usr/local/bin` (macOS
+line ▸ Command-line tool**, which links `fyolo` into `/usr/local/bin` (macOS
 asks once). If the toggle is already on, open a new shell — a session started
-before the link existed has a stale `PATH` hash. `termiod` is a different command
-that lives on each machine; see [The Termio server](/docs/server).
+before the link existed has a stale `PATH` hash. `fyolod` is a different command
+that lives on each machine; see [The Fyolo server](/docs/server).
 
 ## Sessions are gone after a reboot
 
@@ -93,22 +93,22 @@ Without a service, the server lives as long as your login session. Install one
 and it survives logouts, crashes and reboots:
 
 ```bash
-termiod service install
-termiod service status
+fyolod service install
+fyolod service status
 ```
 
 This is the usual surprise on a remote box, where nobody logs in interactively.
-See [The Termio server](/docs/server) and [What survives](/docs/persistence).
+See [The Fyolo server](/docs/server) and [What survives](/docs/persistence).
 
 ## A machine stopped answering
 
-Work from the outside in. If plain `ssh` fails, Termio will too — it uses your
+Work from the outside in. If plain `ssh` fails, Fyolo will too — it uses your
 own `~/.ssh/config` and never carries its own credentials.
 
 ```bash
 ssh mybox true                 # does SSH itself work?
-termiod list --host mybox      # is the server answering there?
-termiod deploy --host mybox    # reinstall and verify it
+fyolod list --host mybox      # is the server answering there?
+fyolod deploy --host mybox    # reinstall and verify it
 ```
 
 `deploy` is a reconcile, so running it against a box in a bad state is safe. A key
@@ -138,10 +138,10 @@ See [The iOS app](/docs/iphone).
 
 Task notifications are a system permission like any other: macOS asks once, and
 if it was declined the app can’t ask again. Check **System Settings ▸
-Notifications ▸ Termio**, and check that **Task completion** is on under
+Notifications ▸ Fyolo**, and check that **Task completion** is on under
 **Settings ▸ Agents ▸ Notifications**.
 
-They’re also deliberately quiet. A turn that finished while Termio was the
+They’re also deliberately quiet. A turn that finished while Fyolo was the
 frontmost app doesn’t notify — you were already looking at it — and neither does
 a turn that took only a moment.
 
@@ -151,21 +151,21 @@ The server keeps a log of what happened while nobody was attached — which is
 exactly the window a bug tends to fall into.
 
 ```bash
-termiod logs -n 200            # the recent tail
-termiod logs -f                # follow it live
-termiod logs --path            # the file itself, for a bug report
+fyolod logs -n 200            # the recent tail
+fyolod logs -f                # follow it live
+fyolod logs --path            # the file itself, for a bug report
 ```
 
 <Callout type="tip">
-  Reproducing something intermittent? Leave `termiod logs -f` running in a pane of
+  Reproducing something intermittent? Leave `fyolod logs -f` running in a pane of
   its own. The log is the one record that spans the moment you weren’t attached.
 </Callout>
 
 ## Still stuck
 
 Open an issue at
-[github.com/termio-sh/termio](https://github.com/termio-sh/termio/issues) with
-the output of `termiod status` and the tail of `termiod logs`. Those two answer
+[github.com/fl0wo/fyolo](https://github.com/fl0wo/fyolo/issues) with
+the output of `fyolod status` and the tail of `fyolod logs`. Those two answer
 most of the questions a maintainer would otherwise have to ask. Add the macOS
-version, the Termio version, and whether the session was local or on another
+version, the Fyolo version, and whether the session was local or on another
 machine.

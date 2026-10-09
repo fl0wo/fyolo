@@ -1,7 +1,7 @@
 import { i18n } from "@/lib/i18n";
 import { source } from "@/lib/source";
 
-export const siteUrl = "https://www.termio.sh";
+export const siteUrl = "https://www.fyolo.sh";
 
 type DocPage = NonNullable<ReturnType<typeof source.getPage>>;
 

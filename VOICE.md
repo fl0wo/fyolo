@@ -1,11 +1,11 @@
 # VOICE.md
 
-How termio writes. Read this before writing anything a user reads: UI strings,
+How fyolo writes. Read this before writing anything a user reads: UI strings,
 the landing site, `docs/`, release notes, issues, PR bodies.
 
 ## Where these rules come from
 
-**Not from termio's own copy.** Most strings in this repo were written with AI
+**Not from fyolo's own copy.** Most strings in this repo were written with AI
 assistance. Mining them for examples would make this file a mirror — it would
 teach the next writer to reproduce whatever is already here, including the
 mistakes. That is the failure mode named below as *regression to the mean*, and
@@ -19,7 +19,7 @@ The examples here come from two outside sources:
 - **Prose** — the rules in tldraw's `VOICE.md`, an open, human-written guide by
   a team that ships developer documentation for a living.
 
-termio's existing strings are the **backlog**, not the standard. When a shipped
+fyolo's existing strings are the **backlog**, not the standard. When a shipped
 string and this file disagree, the string is the bug. Run the `review-copy`
 skill over a file rather than assuming what is there is right.
 
@@ -42,7 +42,7 @@ The reader's time is the scarce resource. Say the thing, then stop.
 
 ## UI copy
 
-termio's largest writing surface. Apple already solved most of it; the job is
+fyolo's largest writing surface. Apple already solved most of it; the job is
 to match their register, not to invent one.
 
 ### Read how Apple writes the same control
@@ -138,19 +138,19 @@ Decided. A synonym is a bug, not a style choice.
 | agent | assistant, bot, AI |
 | needs you | blocked, waiting for input (as a status label) |
 
-**Termio** in prose, `termio` on the command line. The brand is capitalized
+**Fyolo** in prose, `fyolo` on the command line. The brand is capitalized
 wherever it names the product in a sentence. It stays lowercase wherever it is a
-literal someone types or the system reads: the `termio` CLI and its subcommands,
-`sh.termio.app`, `~/.termio`, `TERMIO_SESSION`, termio.sh, and the skill's own
-`name: termio`. Never `TermIO`.
+literal someone types or the system reads: the `fyolo` CLI and its subcommands,
+`sh.fyolo.app`, `~/.fyolo`, `FYOLO_SESSION`, fyolo.sh, and the skill's own
+`name: fyolo`. Never `Fyolo`.
 
-The landing site, the README, the UI strings, and the `termio` skill follow this.
+The landing site, the README, the UI strings, and the `fyolo` skill follow this.
 The design docs under `docs/` still use lowercase in prose — backlog, not a
 second standard.
 
-### Never describe termio as paid
+### Never describe fyolo as paid
 
-termio is free. No tier, no trial, no seat, no license key. Copy implying
+fyolo is free. No tier, no trial, no seat, no license key. Copy implying
 otherwise is wrong everywhere — UI, landing site, README, release notes,
 replies to users. The words that give it away: "upgrade", "unlock", "pro",
 "premium", "free for now".
@@ -160,7 +160,7 @@ replies to users. The words that give it away: "upgrade", "unlock", "pro",
 ### Pronouns
 
 - **"you"** for the reader: "You can drag a session onto another to group them."
-- **"termio"** or **"the app"** for the software: "termio reads each agent's
+- **"fyolo"** or **"the app"** for the software: "fyolo reads each agent's
   hooks." Not "we read" — that conflates the software with the person writing.
 - **"we"** only in docs and essays where a person is genuinely speaking:
   "We tried a chat lens twice and reverted it both times."
@@ -178,7 +178,7 @@ that uniformity is itself a tell, independent of any individual word.
 
 **Do:**
 
-> `TermioStore` owns the session tree. The sidebar renders it, the watcher
+> `FyoloStore` owns the session tree. The sidebar renders it, the watcher
 > reloads directories that actually changed, and a surface cache keeps each
 > shell alive across view rebuilds — which is why switching sessions doesn't
 > restart your agent.
@@ -301,7 +301,7 @@ rewrite.
 None in copy, anywhere — UI strings, commits, PRs, issues, docs, release notes.
 
 This is a rule about tone, not about glyphs. An emoji standing in for a missing
-asset is an *icon* question, and termio answers those with Hugeicons — see the
+asset is an *icon* question, and fyolo answers those with Hugeicons — see the
 `🖼` image placeholder in `MarkdownHTML.swift`, which is inconsistent with the
 icon set rather than with this guide. Don't read that distinction as a loophole: an emoji in a
 sentence, a label, or a commit message is always wrong.
@@ -311,11 +311,11 @@ sentence, a label, or a commit message is always wrong.
 - **Sentence case** for descriptive sentences, headings, PR titles, and doc
   titles. **Title Case** for the names of features, panes, and menu items —
   Apple writes "Users & Groups", "Internet Sharing", "Remote Management", and
-  termio writes "Group with", "Close Session", "Reveal in Finder".
+  fyolo writes "Group with", "Close Session", "Reveal in Finder".
 - **Curly quotes and apostrophes** in user-facing strings. Straight quotes only
   inside code, paths, and identifiers.
 - **Backticks** in UI copy for literal commands, flags, and paths the user could
-  type: `--agent`, `~/.ssh/config`, `termio sessions`.
+  type: `--agent`, `~/.ssh/config`, `fyolo sessions`.
 - **Contractions** are preferred: "won't", "doesn't", "couldn't".
 - **Numerals** in UI: "2 sessions", not "two sessions".
 - **No trailing periods** on labels, buttons, or table cells. Full sentences in
@@ -331,7 +331,7 @@ sentence, a label, or a commit message is always wrong.
 - [ ] **Next action** — do empty states and errors tell the user what to do?
 - [ ] **Rhythm** — do the sentences vary in length, or all run the same?
 - [ ] **Vocabulary** — Group with / Ungroup / Close Session / session / project
-      / agent, `Termio` in prose and `termio` in commands?
+      / agent, `Fyolo` in prose and `fyolo` in commands?
 - [ ] **Case** — sentence case for sentences, Title Case for feature names?
 - [ ] **Apostrophes** — curly, and `Couldn't` over `Could not`?
 - [ ] **Never paid** — no upgrade, unlock, pro, trial, or tier?

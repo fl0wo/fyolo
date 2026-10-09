@@ -27,7 +27,7 @@ export function SiteNav() {
         <Link
           href="/"
           className="group absolute left-5 hidden rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring sm:left-8 sm:block"
-          aria-label="Termio home"
+          aria-label="Fyolo home"
         >
           <Logo size="lg" />
         </Link>
@@ -52,7 +52,7 @@ export function SiteNav() {
             href={discordUrl}
             target="_blank"
             rel="noreferrer"
-            aria-label="Join the Termio Discord"
+            aria-label="Join the Fyolo Discord"
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-foreground transition-all duration-200 ease-[var(--ease-apple)] hover:bg-foreground/[0.08] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] sm:px-4"
           >
             <DiscordMark className="h-4 w-4" />
@@ -62,7 +62,7 @@ export function SiteNav() {
             href={githubUrl}
             target="_blank"
             rel="noreferrer"
-            aria-label="Termio on GitHub"
+            aria-label="Fyolo on GitHub"
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-foreground transition-all duration-200 ease-[var(--ease-apple)] hover:bg-foreground/[0.08] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] sm:px-4"
           >
             <GitHubMark className="h-4 w-4" />

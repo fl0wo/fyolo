@@ -3,12 +3,12 @@ title: Your first session
 description: Open a project, launch an agent in a real terminal, and split the window so a dev server and a shell sit alongside it.
 ---
 
-A *session* in Termio is a real terminal running one thing — an agent, a dev
+A *session* in Fyolo is a real terminal running one thing — an agent, a dev
 server, or a plain shell. Here’s the path from a fresh launch to a working setup.
 
 ## Open a project
 
-From the welcome screen, choose **Open Project** and pick a folder. Termio adds
+From the welcome screen, choose **Open Project** and pick a folder. Fyolo adds
 it to the sidebar and remembers it under **Recent** for next time. A project is
 just a working directory — the agents you launch inside it start there.
 
@@ -18,7 +18,7 @@ that workspace is on. With one machine there is nothing to choose; see
 
 <DocsImage
   src="/screenshots/docs/01-open-project.png"
-  alt="The Termio welcome window with Open Project as the primary action"
+  alt="The Fyolo welcome window with Open Project as the primary action"
   width={2424}
   height={1664}
 />
@@ -26,7 +26,7 @@ that workspace is on. With one machine there is nothing to choose; see
 ## Launch an agent
 
 With a project selected, start a new session and pick an agent — Claude Code,
-Codex, Antigravity, or any other CLI you have installed. Termio opens it in a real
+Codex, Antigravity, or any other CLI you have installed. Fyolo opens it in a real
 terminal at the project root. You type into it exactly as you would in any
 terminal; the agent’s TUI renders natively.
 
@@ -42,7 +42,7 @@ permission and can’t continue without you.
 
 <DocsImage
   src="/screenshots/docs/02-agent-working.png"
-  alt="A focused Codex session working in Termio while its sidebar row reports Working"
+  alt="A focused Codex session working in Fyolo while its sidebar row reports Working"
   width={2424}
   height={1664}
 />
@@ -62,7 +62,7 @@ swap the two panes.
 <DocsVideo
   src="/screenshots/docs/21-rearrange-pane.mp4"
   poster="/screenshots/docs/21-rearrange-pane-poster.png"
-  label="A Termio pane is picked up, dragged over another pane, and dropped into a new position"
+  label="A Fyolo pane is picked up, dragged over another pane, and dropped into a new position"
 />
 
 Move focus between panes with `⌥⌘` + an arrow key, and temporarily zoom the
@@ -73,8 +73,8 @@ rebindable — see [Keyboard shortcuts](/docs/keyboard).
 ## A note on session lifetime
 
 Sessions are live processes, not saved transcripts — and the process doesn’t
-belong to the window. Every session runs inside `termiod`, the session host on
-the machine that owns it, and Termio attaches to it. Close the window and the
+belong to the window. Every session runs inside `fyolod`, the session host on
+the machine that owns it, and Fyolo attaches to it. Close the window and the
 agent keeps working; reopening from the Dock finds it where you left it.
 
 Long runs survive a relaunch, too. The daemon keeps the process; the app
@@ -83,7 +83,7 @@ same output.
 
 <Callout type="note">
   Ending a session is a deliberate act: `⌘W` closes the focused one. Everything
-  else — closing the window, quitting Termio, losing an SSH connection,
+  else — closing the window, quitting Fyolo, losing an SSH connection,
   relaunching the app — detaches rather than kills. [What
   survives](/docs/persistence) lays out every case, including the ones that do
   cost you a process.

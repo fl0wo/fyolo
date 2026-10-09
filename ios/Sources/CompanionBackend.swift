@@ -1,5 +1,5 @@
 import Foundation
-import TermioShared
+import FyoloShared
 
 /// `DeviceClient` over the Mac companion wire: one `CompanionClient` socket,
 /// with every wire type mapped to the app's own models on the way through.

@@ -1,4 +1,4 @@
-import TermioShared
+import FyoloShared
 import UIKit
 
 @main
@@ -35,7 +35,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // capture states that gestures can't reach from the CLI.
         let args = ProcessInfo.processInfo.arguments
 
-        // `-pair-device termio://device?…` pairs with a box the way a scanned
+        // `-pair-device fyolo://device?…` pairs with a box the way a scanned
         // QR does, through the same funnel and the same verify-before-save. It
         // exists because a simulator has no camera and cannot be tapped, and it
         // authors nothing the invite does not already carry.

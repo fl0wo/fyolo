@@ -1,4 +1,4 @@
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// The app's single source of truth for the Mac roster: owns the companion

@@ -4,7 +4,7 @@ This file provides guidance to AI coding agents working in this repository.
 
 ## Core rules
 
-- termio is a deliberately small, focused tool. Keep the surface area minimal;
+- fyolo is a deliberately small, focused tool. Keep the surface area minimal;
   prefer clarity over cleverness. Do not add features that were not requested.
 - Keep changes scoped to the request. Do not refactor unrelated code.
 - Respect existing worktree changes. Do not revert the user's edits unless asked.
@@ -18,21 +18,21 @@ This file provides guidance to AI coding agents working in this repository.
 
 ## Repo overview
 
-termio is a native macOS terminal app for AI coding agents: Swift +
+fyolo is a native macOS terminal app for AI coding agents: Swift +
 AppKit/SwiftUI on top of **libghostty** (Ghostty's terminal core). It is free
 software with no backend, no account, and no license server.
 
-- `Sources/termio` — the macOS app (SwiftPM executable target). Organized by
-  feature: `Terminal`, `Sidebar`, `TermioStore`, `Agents`, `Companion`, `Git`,
+- `Sources/fyolo` — the macOS app (SwiftPM executable target). Organized by
+  feature: `Terminal`, `Sidebar`, `FyoloStore`, `Agents`, `Companion`, `Git`,
   `FileBrowser`, `Editor`, `Issues`, `Settings`, `Welcome`, `Info`,
   `CommandPalette`, `Keybindings`, `Browser`, `Theme`, `App`.
-- `Shared/` — SwiftPM package (`TermioShared`) shared by the Mac app and the iOS
+- `Shared/` — SwiftPM package (`FyoloShared`) shared by the Mac app and the iOS
   companion. The companion wire protocol lives here so both ends stay in sync.
-- `ios/` — the iOS companion app (`TermioMobile.xcodeproj`, scheme
-  `TermioMobile`).
+- `ios/` — the iOS companion app (`FyoloMobile.xcodeproj`, scheme
+  `FyoloMobile`).
 - `web/landing` — the marketing site (Next.js + Tailwind + shadcn/ui), deployed
   to Vercel.
-- `scripts/` — `build-app.sh` (packages the `.app`), `termio` (the CLI that
+- `scripts/` — `build-app.sh` (packages the `.app`), `fyolo` (the CLI that
   drives a running app over its control socket), plus icon and stats helpers.
 - `packaging/` — `Info.plist`, entitlements, icon assets for the bundle.
 - `docs/` — design docs, RFCs, runbooks, bug handoffs, essays. See "Docs" below.
@@ -51,19 +51,19 @@ package. Do not try to build Ghostty from source in this repo.
 swift build                                # resolve + compile
 swift run                                  # launch the bare binary
 swift test                                 # run the unit tests
-./scripts/build-app.sh                     # ad-hoc-signed .app → ./termio.app
-TERMIO_CHANNEL=dev ./scripts/build-app.sh  # side-by-side dev app → ./termio-dev.app
+./scripts/build-app.sh                     # ad-hoc-signed .app → ./fyolo.app
+FYOLO_CHANNEL=dev ./scripts/build-app.sh  # side-by-side dev app → ./fyolo-dev.app
 ./ios/dev-run.sh                           # build + install iOS app on the device
-cargo build --bin termio                   # (in termiod/) the Rust CLI, for checkout use
+cargo build --bin fyolo                   # (in fyolod/) the Rust CLI, for checkout use
 ```
 
-termio is a real foreground AppKit app bootstrapped by an explicit
-`NSApplication` in `Sources/termio/App/App.swift`, not the SwiftUI `App`
+fyolo is a real foreground AppKit app bootstrapped by an explicit
+`NSApplication` in `Sources/fyolo/App/App.swift`, not the SwiftUI `App`
 lifecycle. Run it from a macOS GUI session.
 
-Use the dev channel whenever a released termio is installed: it gets its own
-bundle id (`sh.termio.app.dev`), state dir (`~/.termio-dev`), companion port
-(8788), and `termio-dev` CLI, with no Sparkle update feed, so it can never
+Use the dev channel whenever a released fyolo is installed: it gets its own
+bundle id (`sh.fyolo.app.dev`), state dir (`~/.fyolo-dev`), companion port
+(8788), and `fyolo-dev` CLI, with no Sparkle update feed, so it can never
 auto-update itself onto the release channel.
 
 The `macos-rebuild-dev` and `ios-rebuild-dev` skills wrap the rebuild-and-
@@ -87,57 +87,57 @@ relaunch loop; prefer them over hand-rolling the commands.
 Terminal core:
 
 - libghostty exposes two backends: `.exec` runs a PTY inside ghostty;
-  `.inMemory` is host-managed. termio uses **`.inMemory`** — the surface only
-  renders, and the bytes come from `termiod` over the session protocol
-  (`Sources/termio/Terminal/Termiod/TermiodClient.swift`). The app owns no PTY
+  `.inMemory` is host-managed. fyolo uses **`.inMemory`** — the surface only
+  renders, and the bytes come from `fyolod` over the session protocol
+  (`Sources/fyolo/Terminal/Fyolod/FyolodClient.swift`). The app owns no PTY
   of its own; quitting detaches instead of killing, which is what lets sessions
   survive a quit or a self-update.
-- The PTY lives in the daemon (`termiod/src/pty.rs`), spawned with the
+- The PTY lives in the daemon (`fyolod/src/pty.rs`), spawned with the
   `openpty` + `login_tty` shape. Do **not** switch it to `posix_spawn`: that
   shape breaks agents' resize repaint. See
   `docs/bug/terminal-resize-no-reflow-HANDOFF.md`.
-- Input must never be written on the caller's thread: `TermiodSessionLink.send`
+- Input must never be written on the caller's thread: `FyolodSessionLink.send`
   stamps and hands off to its work queue. The PTY fd itself is non-blocking in
-  the daemon (`termiod/src/pty.rs`). A blocking write under the surface lock
+  the daemon (`fyolod/src/pty.rs`). A blocking write under the surface lock
   beachballs the app.
-- One `TerminalViewState` (`Sources/termio/App/Models.swift`) owns one surface.
-  `TermioStore`'s SurfaceCache keeps it alive across view rebuilds so shells
+- One `TerminalViewState` (`Sources/fyolo/App/Models.swift`) owns one surface.
+  `FyoloStore`'s SurfaceCache keeps it alive across view rebuilds so shells
   survive session switching.
 - Changes to libghostty itself go to the fork as rebased patch files, not here;
-  termio then bumps the package version in `Package.swift`.
+  fyolo then bumps the package version in `Package.swift`.
 
 State and sessions:
 
-- `TermioStore` is the app's store, split across `TermioStore+*.swift` by
+- `FyoloStore` is the app's store, split across `FyoloStore+*.swift` by
   concern. `StateFile` owns the on-disk snapshot — only the session tree,
   selection, and inspector layout persist. Live state is never written; shells
   restart fresh.
-- Sessions are addressed by `termio://session/<uuid>` deep links. The `agent@id`
+- Sessions are addressed by `fyolo://session/<uuid>` deep links. The `agent@id`
   addressing scheme is dead.
-- The `scripts/termio` CLI talks to the running app over a local control socket.
-  `termio agent report` is the public hook contract agents call to report
+- The `scripts/fyolo` CLI talks to the running app over a local control socket.
+  `fyolo agent report` is the public hook contract agents call to report
   working / waiting / done.
 
 Companion:
 
 - The Mac serves the iOS app over a WebSocket; the wire protocol is in
-  `Shared/Sources/TermioShared/WireProtocol.swift`. The mirror is a live
+  `Shared/Sources/FyoloShared/WireProtocol.swift`. The mirror is a live
   surface, not a screenshot feed.
 - The Usage tab reads each agent through a `UsageProvider`
-  (`Sources/termio/Companion/Usage/`) — one file per agent, holding its
+  (`Sources/fyolo/Companion/Usage/`) — one file per agent, holding its
   credential read, its plan-limit endpoint, and its session-log scanner.
   `UsageMonitor` knows only the list, so supporting another agent is a new
   provider file plus a line in `UsageMonitor.providers`, not an edit threaded
   through the fetch and scan paths. Only agents whose CLI leaves a usable
-  credential on disk qualify; termio never runs a login flow.
+  credential on disk qualify; fyolo never runs a login flow.
 
 ## Where to work
 
-- `Sources/termio/Terminal` — surfaces, splits, panes, link opening.
-- `Sources/termio/TermioStore` — session tree, persistence, split groups,
+- `Sources/fyolo/Terminal` — surfaces, splits, panes, link opening.
+- `Sources/fyolo/FyoloStore` — session tree, persistence, split groups,
   agent status.
-- `Sources/termio/Agents` — agent manifests, session control, hook contract.
-- `Sources/termio/Companion` — companion server, tunnel, per-agent usage
+- `Sources/fyolo/Agents` — agent manifests, session control, hook contract.
+- `Sources/fyolo/Companion` — companion server, tunnel, per-agent usage
   providers.
 - `Shared/` — anything both platforms must agree on. Changing the wire protocol
   means changing both ends.
@@ -145,7 +145,7 @@ Companion:
 
 ## Testing
 
-- Tests live in `Tests/termioTests/` and run with `swift test` from the root.
+- Tests live in `Tests/fyoloTests/` and run with `swift test` from the root.
 - Coverage is deliberately narrow: pure logic with a real failure mode
   (`SplitTreeTests`, `OSCProgressScannerTests`, `StallProbeTests`,
   `MarkdownHTMLTests`, `GitServiceScaleTests`, `EditorTextTests`,
@@ -195,8 +195,8 @@ Dependencies and vendored code:
   resources: plain `swift build` bakes a `Bundle.module` accessor that only
   checks the `.app` root and a build-machine path, so CI-built releases crash at
   runtime even when local dev builds work. Vendor such code instead, the way
-  `Sources/termio/Editor/Highlightr/` does — upstream license in a vendor
-  `README.md`, lookups through `Bundle.termioResources`, deviations listed in the
+  `Sources/fyolo/Editor/Highlightr/` does — upstream license in a vendor
+  `README.md`, lookups through `Bundle.fyoloResources`, deviations listed in the
   file header.
 - A local build working is not evidence. Verify resource-touching changes
   against a packaged `.app`.
@@ -214,7 +214,7 @@ must not get wrong even if you never open it.
   control does, not essays about mechanism.
 - Split panes use "Group with" / "Ungroup" / "Close Session". "Close Pane" and
   "Unsplit" are dead vocabulary.
-- termio is **free**. Never describe it, in any copy, as paid or trial-limited.
+- fyolo is **free**. Never describe it, in any copy, as paid or trial-limited.
 - GitHub issue and PR comments are one clean line, not essays.
 
 ## Git and PR notes
@@ -222,7 +222,7 @@ must not get wrong even if you never open it.
 - Trunk-based: `main` is the single trunk. Branch off the latest `main` as
   `feat/…`, `fix/…`, or `chore/…`, keep it short-lived, and open a PR against
   `main`. For a substantial feature, use a worktree:
-  `git worktree add ../termio-worktrees/<slug> -b feat/<slug> main`.
+  `git worktree add ../fyolo-worktrees/<slug> -b feat/<slug> main`.
 - Commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/):
   `type(scope): imperative, lowercase summary`. Use the `conventional-commit`
   skill.

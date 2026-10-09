@@ -5,13 +5,13 @@ type: rfc
 created: 2026-08-31
 updated: 2026-09-02
 related:
-  - 20260805-termiod-device-architecture.md
+  - 20260805-fyolod-device-architecture.md
   - 20260819-unify-server-plane.md
   - 20260824-ios-as-device-client.md
-  - 20260818-termiod-web-client-ghostty-wasm.md
+  - 20260818-fyolod-web-client-ghostty-wasm.md
   - 20260810-companion-wire-protocol.md
   - 20260819-device-workspace-project.md
-  - 20260805-termiod-hot-path-and-client-classes.md
+  - 20260805-fyolod-hot-path-and-client-classes.md
   - 20260705-remote-access-relay-strategy.md
 ---
 
@@ -30,9 +30,9 @@ Three documents already own pieces of this and are **not** re-decided here:
 
 | Document | Authoritative for |
 | --- | --- |
-| [`20260818-termiod-web-client-ghostty-wasm.md`](20260818-termiod-web-client-ghostty-wasm.md) | The listener. `--wss`, loopback-only bind, the origin check, `pair.token`. iOS and the browser are both *consumers* of that one bind. |
+| [`20260818-fyolod-web-client-ghostty-wasm.md`](20260818-fyolod-web-client-ghostty-wasm.md) | The listener. `--wss`, loopback-only bind, the origin check, `pair.token`. iOS and the browser are both *consumers* of that one bind. |
 | [`20260824-ios-as-device-client.md`](20260824-ios-as-device-client.md) | The iOS **seam**: `DeviceClient` / `DeviceSession`, two backends behind one port, the codec in `Shared/`, the enrollment ladder. P1–P4 have landed. |
-| [`20260805-termiod-device-architecture.md`](20260805-termiod-device-architecture.md) | The invariants: §4 the presentation boundary, §4.1 what each side owns, §5 the four planes, §5.1 the connection as an object. |
+| [`20260805-fyolod-device-architecture.md`](20260805-fyolod-device-architecture.md) | The invariants: §4 the presentation boundary, §4.1 what each side owns, §5 the four planes, §5.1 the connection as an object. |
 
 iOS-as-device-client stops exactly where this one starts. Its own non-goals say
 it: *"The companion wire is not deleted here. It is retired when the phone and
@@ -56,22 +56,22 @@ So this document decides three things and nothing else:
 graph LR
   subgraph now["Today"]
     P["iPhone"] -->|companion wire| M["Mac app<br/>CompanionServer + tunnel"]
-    M -->|Session Protocol| L["termiod<br/>(Mac)"]
-    M -->|Session Protocol over ssh| V["termiod<br/>(VPS)"]
+    M -->|Session Protocol| L["fyolod<br/>(Mac)"]
+    M -->|Session Protocol over ssh| V["fyolod<br/>(VPS)"]
   end
   subgraph target["Target"]
-    P2["iPhone"] -->|Session Protocol| L2["termiod (Mac)"]
-    P2 -->|Session Protocol| V2["termiod (VPS)"]
+    P2["iPhone"] -->|Session Protocol| L2["fyolod (Mac)"]
+    P2 -->|Session Protocol| V2["fyolod (VPS)"]
     M2["Mac app"] -->|Session Protocol| L2
     M2 -->|Session Protocol| V2
   end
 ```
 
-The Mac app is two things at once: a **client** of `termiod` and a **server** to
-the phone. The second half is the whole of `Sources/termio/Companion/` — 2,777
-lines — plus `Shared/Sources/TermioShared/WireProtocol.swift` (821), a second
+The Mac app is two things at once: a **client** of `fyolod` and a **server** to
+the phone. The second half is the whole of `Sources/fyolo/Companion/` — 2,777
+lines — plus `Shared/Sources/FyoloShared/WireProtocol.swift` (821), a second
 framing, a second versioning scheme (`Wire.current`), a second auth story, and a
-second set of verbs for `fs.*` and `git.*` that `termiod` already answers.
+second set of verbs for `fs.*` and `git.*` that `fyolod` already answers.
 
 This is not a duplicate implementation to tidy. It is a **topology** claim: that
 the phone reaches a VPS by way of a Mac at home. Device architecture §2.1
@@ -80,8 +80,8 @@ concrete — two VT parses, a geographic detour, and a Mac that must be awake fo
 a session that is not on it.
 
 **What is different now, and why this ladder is writable at all:** the second
-backend exists. `ios/Sources/TermiodBackend.swift`, `DeviceClient.swift`,
-`WebSocketLink.swift` and `TermiodChannel.swift` are on `main`. A phone can
+backend exists. `ios/Sources/FyolodBackend.swift`, `DeviceClient.swift`,
+`WebSocketLink.swift` and `FyolodChannel.swift` are on `main`. A phone can
 already attach to a Linux box with the Mac app quit. The remaining work is not
 "build the path" — it is "move what the old path was carrying, then delete it."
 
@@ -91,15 +91,15 @@ already attach to a Linux box with the Mac app quit. The remaining work is not
 
 | Claim | Command | Result |
 | --- | --- | --- |
-| The companion server is the Mac's second server | `wc -l Sources/termio/Companion/*.swift` | 2,777 |
-| The second protocol | `wc -l Shared/Sources/TermioShared/WireProtocol.swift` | 821 |
-| The phone can already speak the first one | `ls ios/Sources/TermiodBackend.swift` | present |
-| …and already subscribes to device status | `grep -n 'events: \["roster", "status"\]' ios/Sources/TermiodBackend.swift` | 1 hit |
-| The hook contract already reports to the daemon | `termio agent report` → `termiod set-status` | `termiod/src/bin/termio.rs:615` |
-| The daemon already parses status regex | `grep -n status_rules termiod/src/agent/manifest.rs` | `:77`, `:81` |
-| …and never matches them | `grep -rn 'regex' termiod/Cargo.toml` | 0 |
-| The screen half of status is Swift-only | `TermioStore+AgentStatus.swift` | 793 |
-| Per-client backlog budget (P0.1) landed | `termiod/src/session/backlog.rs` | 160 |
+| The companion server is the Mac's second server | `wc -l Sources/fyolo/Companion/*.swift` | 2,777 |
+| The second protocol | `wc -l Shared/Sources/FyoloShared/WireProtocol.swift` | 821 |
+| The phone can already speak the first one | `ls ios/Sources/FyolodBackend.swift` | present |
+| …and already subscribes to device status | `grep -n 'events: \["roster", "status"\]' ios/Sources/FyolodBackend.swift` | 1 hit |
+| The hook contract already reports to the daemon | `fyolo agent report` → `fyolod set-status` | `fyolod/src/bin/fyolo.rs:615` |
+| The daemon already parses status regex | `grep -n status_rules fyolod/src/agent/manifest.rs` | `:77`, `:81` |
+| …and never matches them | `grep -rn 'regex' fyolod/Cargo.toml` | 0 |
+| The screen half of status is Swift-only | `FyoloStore+AgentStatus.swift` | 793 |
+| Per-client backlog budget (P0.1) landed | `fyolod/src/session/backlog.rs` | 160 |
 | Attach replay is already bounded | `const RING_CAP` (`session.rs:20`) | 128 KiB |
 
 The last row settles an inherited open question outright; see §7.1.
@@ -170,7 +170,7 @@ pick a dot colour, and it does not decide whether a finished turn is worth a
 badge. Concretely, three things stay client-side and are *not* ported:
 
 - **`statusDescription`** — "Working — Bash", "Waiting for you". Human-facing
-  copy, and localized. Stays in `TermioStore`.
+  copy, and localized. Stays in `FyoloStore`.
 - **`isViewing` arbitration.** `done` versus `idle` on a turn that just ended is
   the question *"has this person seen it?"*, which is per-viewer by definition —
   §4.1 puts selection in the viewer column. The device reports the turn boundary;
@@ -186,7 +186,7 @@ copy does not.
 
 ### 3.4 The recorded objection, answered
 
-`termiod/src/agent/fixture.rs` says, in a comment written to be found:
+`fyolod/src/agent/fixture.rs` says, in a comment written to be found:
 
 > *Invalid regex is not detected here. Swift compiles status patterns with
 > `NSRegularExpression` and drops the ones that do not compile; this carries them
@@ -203,10 +203,10 @@ The narrowing is real and bounded, so it is stated rather than glossed:
 
 - `regex` is RE2-shaped: no backreferences, no lookaround. `NSRegularExpression`
   is ICU and has both.
-- **Every pattern termio ships is inside the intersection.** The five manifests
+- **Every pattern fyolo ships is inside the intersection.** The five manifests
   carrying rules (`claude`, `codex`, `crush`, `grok`, `qwen`) use character
   classes, Unicode ranges, non-capturing groups and anchors — nothing else.
-- A user's own `~/.termio/config/agents/*.json` could use lookahead. It is
+- A user's own `~/.fyolo/config/agents/*.json` could use lookahead. It is
   dropped with a log line naming the agent and the pattern, exactly as an invalid
   pattern is today.
 - The fixture gains a duty rather than losing one: it now asserts every shipped
@@ -226,13 +226,13 @@ beside the sidecar VT rather than behind a client's surface:
 2. **Input from the other client.** `noteUserInput` exists so keystroke echo does
    not read as agent activity. It is fed from the Mac's write path. The daemon's
    PTY write path is the *real* choke point — it sees the phone's keystrokes and
-   `termio sessions send` too.
+   `fyolo sessions send` too.
 3. **One engine, one verdict.** Every client shows the same dot because there is
    one place that decided it.
 
 ### 3.6 Shape: a subscribable resource, like `fs:` and `git:`
 
-`termiod/src/resource.rs` already generalises the mechanism — a stable id, a
+`fyolod/src/resource.rs` already generalises the mechanism — a stable id, a
 monotonic `seq`, a bounded ring, replay-or-gap on resume, and a linger past the
 last subscriber. Two kinds ride it (`fs:`, `git:`) behind one `ResourceBatch`
 trait. Status is the third:
@@ -254,7 +254,7 @@ event is the per-session one, and both are emitted from the one engine.
 **Both halves ship together, or neither does.** A resource nothing subscribes to
 is a ring nobody writes — `publish_status` returns early when no one has ever
 asked — so an unconsumed `status:` would be an advertised mechanism that has
-never once run. Stage 1 therefore also moves the phone onto it: `TermiodBackend`
+never once run. Stage 1 therefore also moves the phone onto it: `FyolodBackend`
 subscribes to `status:` with its last cursor in place of the `status` event
 name, so the two paths are one path with a cursor. The `stalled` signal rides
 the same batches, so nothing is lost by dropping the broadcast — and a device
@@ -327,15 +327,15 @@ it on at the same edge that gives it an identity.
 
 ### 3.8 The hook contract does not move, and does not change
 
-`termio agent report <state>` is the public contract users hand-write hooks
-against. It already reaches the daemon: `termio.rs:615` execs
-`termiod set-status <session> <state>`, addressed by `TERMIOD_SESSION_ID`.
+`fyolo agent report <state>` is the public contract users hand-write hooks
+against. It already reaches the daemon: `fyolo.rs:615` execs
+`fyolod set-status <session> <state>`, addressed by `FYOLOD_SESSION_ID`.
 
 **Hard constraints, restated as gates:**
 
 - Every flag keeps its name and meaning: `--transcript`, `--conversation`,
   `--conversation-from`, `--tool-from`, `--prompt-title-from`, `--reply`.
-- A hook fired outside a termiod session stays silent and exits 0.
+- A hook fired outside a fyolod session stays silent and exits 0.
 - `--reply` prints `{}` on every path, including undeliverable.
 - The hook command written into a user's global config **never names a path
   inside `Bundle.main`.** It names `machine::daemon_binary()`, resolved on the box
@@ -358,7 +358,7 @@ to share it?*
 | State | Owned today | Verdict | Stage |
 | --- | --- | --- | --- |
 | **Session roster** (id, alive, cwd, pid, argv) | daemon | already the device's | — |
-| **Agent status** (working / needs-you / idle / done) | Mac app, `TermioStore+AgentStatus` | **moves** — §3 | **1** |
+| **Agent status** (working / needs-you / idle / done) | Mac app, `FyoloStore+AgentStatus` | **moves** — §3 | **1** |
 | **Live title** (`OSC 0/2`) | Mac surface, via libghostty callback | **moves** — the sidecar VT already reports `title` on every `Snapshot` | 1 |
 | **Prompt title** (agent's first prompt) | Mac app, from hook payload | **moves** — the daemon already receives it (`StatusDetails.prompt_title`) and drops it | 1 |
 | **Tool in use** | Mac app, from hook | already on the wire (`StatusDetails.tool`); the Mac just re-derives the sentence | 1 |
@@ -423,7 +423,7 @@ it replaces.**
 
 ### Stage 1 — the status plane moves to the device — *this PR*
 
-Port the status engine into `termiod`, beside the sidecar VT: screen-rule
+Port the status engine into `fyolod`, beside the sidecar VT: screen-rule
 classification, `OSC 0/2` title classification, `OSC 9;4` progress, screen-streak
 promotion with every guard, the stale-working sweep, and the four-probe stall
 detector. Publish it as the `status:` resource **and** through the existing
@@ -446,11 +446,11 @@ derives status from the same device:
 | --- | --- |
 | `cargo test` | **349 passed, 0 failed** (40 of them `session::status`) |
 | `swift build && swift test` | 959 passed, 0 failed |
-| `python3 termiod/tests/cli_compat.py` | **110/110** — the hook and CLI surface is byte-identical against the frozen shell client |
-| The real-daemon job, run locally (`TERMIO_TERMIOD_TEST_BIN=… swift test --filter TermiodFilesIntegrationTests --filter TermiodWireOrderIntegrationTests`) | **35 passed, 0 failed** |
-| iOS unit tests (`xcodebuild … -only-testing:TermioMobileTests`) | 38 passed, 0 failed (12 new) |
+| `python3 fyolod/tests/cli_compat.py` | **110/110** — the hook and CLI surface is byte-identical against the frozen shell client |
+| The real-daemon job, run locally (`FYOLO_FYOLOD_TEST_BIN=… swift test --filter FyolodFilesIntegrationTests --filter FyolodWireOrderIntegrationTests`) | **35 passed, 0 failed** |
+| iOS unit tests (`xcodebuild … -only-testing:FyoloMobileTests`) | 38 passed, 0 failed (12 new) |
 | iOS builds for the simulator | clean |
-| No second matcher: `grep -rn 'firstMatch\|NSRegularExpression' Sources/termio/Agents Sources/termio/TermioStore` | 0 |
+| No second matcher: `grep -rn 'firstMatch\|NSRegularExpression' Sources/fyolo/Agents Sources/fyolo/FyoloStore` | 0 |
 | The engine is gone, not disabled: `OSCProgressScanner.swift`, `StallProbe`, `StallMeasurement`, `applyScreenDetectedActivity`, `applyTitleActivity`, `applyProgressActivity`, `noteOutputActivity`, `sweepStaleWorking`, `sweepStalledSessions`, `makeStatusTap` | all deleted |
 | Every shipped manifest's patterns compile under `regex` | `bundled_status_patterns_compile` |
 | The hook contract is untouched | `agent_report` and `agent::install` unchanged |
@@ -502,36 +502,36 @@ Mac, first with the app running (2a) and then with it quit (2b).
 `AgentStatusRules` stays in Swift **as a type and not as a matcher** — it now
 holds pattern *sources*, because the app still parses manifests to render the
 agent roster and the fixture contract says both parsers stay
-(`termiod/src/agent/fixture.rs`). Its `explain`, its `trace` and its
+(`fyolod/src/agent/fixture.rs`). Its `explain`, its `trace` and its
 `NSRegularExpression` compilation are gone.
 
 ### Stage 2 — the Mac is a device
 
-`termiod serve --wss` on the Mac, and the app brokers enrollment the way
+`fyolod serve --wss` on the Mac, and the app brokers enrollment the way
 iOS-as-device-client D4 describes. The Mac app does not stop serving here; the
 phone simply gains a second way to reach the same sessions.
 
 #### What shipped, and where it diverged
 
 The enrollment half is done, and matches D4 rung for rung. The phone speaks the
-Session Protocol (`ios/Sources/TermiodBackend.swift`, `ios/Sources/DeviceClient.swift`),
-reads a `termio://device` invite carrying D4's four fields and no fifth
+Session Protocol (`ios/Sources/FyolodBackend.swift`, `ios/Sources/DeviceClient.swift`),
+reads a `fyolo://device` invite carrying D4's four fields and no fifth
 (`ios/Sources/Models.swift:641`; the struct's `origin` is derived from the invite's
 own `url`, not carried in the link), and dials once for `hello_ok` before persisting
-— D4's *verify before saving*. `termiod pair --qr` covers rungs 2 and 3;
+— D4's *verify before saving*. `fyolod pair --qr` covers rungs 2 and 3;
 `Settings ▸ Devices ▸ Serving` covers rung 1 (`DeviceServingSection`).
 
 The reachability half diverged, deliberately, and this document did not record
-it. A phone does not reach this Mac through `termiod serve --wss`. It reaches it
+it. A phone does not reach this Mac through `fyolod serve --wss`. It reaches it
 through `DeviceSpliceServer`, which terminates the WebSocket **in the app** and
 splices it onto the daemon's Unix socket
-(`Sources/termio/Companion/DeviceSpliceServer.swift:55-72`). The Mac's own daemon
+(`Sources/fyolo/Companion/DeviceSpliceServer.swift:55-72`). The Mac's own daemon
 is still spawned as a bare `serve`
-(`Sources/termio/Terminal/Termiod/TermiodClient.swift:718`).
+(`Sources/fyolo/Terminal/Fyolod/FyolodClient.swift:718`).
 
 **The divergence is correct, and is not to be undone.** `wss::parse_bind` refuses
-any non-loopback address (`termiod/src/wss.rs:63-70`), because the rule that keeps
-TLS out of `termiod` (§H #3) is that a tunnel or a proxy always sits in front of
+any non-loopback address (`fyolod/src/wss.rs:63-70`), because the rule that keeps
+TLS out of `fyolod` (§H #3) is that a tunnel or a proxy always sits in front of
 it. A phone on the same Wi-Fi has neither, and telling someone to publish a relay
 to reach a Mac three feet away is not an answer. The splice is what the invariant
 allows: after the Upgrade it copies bytes and never reads a frame, so it cannot
@@ -539,7 +539,7 @@ disagree with the daemon about what one means.
 
 **What it costs is exactly what the original gate measured.** A listener owned by
 an `@MainActor` class in the app process ends when the app does. Fronting
-`devicePort` with a tunnel (`Sources/termio/Companion/TunnelManager.swift:567`)
+`devicePort` with a tunnel (`Sources/fyolo/Companion/TunnelManager.swift:567`)
 does not change that: the tunnel survives the quit, the thing behind it does not.
 
 #### The gate, split
@@ -554,7 +554,7 @@ construction. Not the simulator.
 *Unrun.* The path exists end to end in code; Stage 1 recorded that no device pair
 had been run, and none has been since.
 
-**Gate 2b — remote, app quit.** A phone reaches this Mac's `termiod` through a
+**Gate 2b — remote, app quit.** A phone reaches this Mac's `fyolod` through a
 tunnel and drives a session with **the Mac app quit**. Not the simulator.
 *Unmet, and it is the work Stage 2 still owes:* the Mac's daemon has to be spawned
 with `--wss` on loopback, and the tunnel has to front that port rather than the
@@ -566,7 +566,7 @@ selects a *port*, not a *lifetime*.
 Project root, worktree branch, given title, agent presence — read from the
 device rather than from `StateFile`. §4's table row by row.
 
-**Gate:** `grep -rn 'CompanionRoster' Sources/termio/TermioStore/` → 0. The phone's
+**Gate:** `grep -rn 'CompanionRoster' Sources/fyolo/FyoloStore/` → 0. The phone's
 project list, worktree labels and titles are identical whether it reaches a
 session through the Mac or directly.
 
@@ -598,9 +598,9 @@ leaving that box.
 ### Stage 7 — the Mac app stops serving
 
 Delete `CompanionServer`, `TunnelManager`'s companion role, and the roster
-derivation. The Mac app is a client of `termiod` and nothing else.
+derivation. The Mac app is a client of `fyolod` and nothing else.
 
-**Gate:** `wc -l Sources/termio/Companion/*.swift` → only `Usage/` remains.
+**Gate:** `wc -l Sources/fyolo/Companion/*.swift` → only `Usage/` remains.
 
 ### Stage 8 — delete the wire
 
@@ -636,7 +636,7 @@ notified because it is subscribed, not because something addressed it.
 
 **What this does not solve, stated rather than hidden:** a phone with a suspended
 socket is not subscribed. Waking a backgrounded app needs APNs, which needs a
-server that holds a device token — and termio runs no hosted control plane. So
+server that holds a device token — and fyolo runs no hosted control plane. So
 the honest scope is: **banners while the app is live or recently backgrounded;
 nothing while it is suspended.** That is what the current relay delivers too, so
 this stage is not a regression — but it is not the fix for it either, and calling
@@ -645,7 +645,7 @@ it one would be a lie the user discovers at 2 a.m.
 ### 6.2 The permission broker
 
 The mechanism is a `PreToolUse` hook that blocks, and an answer that unblocks it
-(`project_termio_permission_broker`; agent-permission-questions RFC). Today the
+(`project_fyolo_permission_broker`; agent-permission-questions RFC). Today the
 block reaches the Mac app's hook socket, and the phone answers by way of the Mac.
 
 Under the device model the same mechanism has a shorter path, and one new
@@ -682,10 +682,10 @@ The plane exists (`upload_open` / `U` chunks / commit, `protocol.rs:1051`,
 in this stage:
 
 - **The phone is a source.** `DeviceClient.upload` exists on the companion
-  backend; `TermiodBackend` needs the same over `upload_open`.
+  backend; `FyolodBackend` needs the same over `upload_open`.
 - **The paste is an act, not a file.** The agent has to be told a path. That is
   the Mac's current shape too (synthetic input through ghostty's key encoder,
-  `project_termio_image_paste`), and it stays: the device stages the bytes under
+  `project_fyolo_image_paste`), and it stays: the device stages the bytes under
   `temp:` and returns a path; the client types the path. The device does not
   synthesize input, because the device does not decide presentation and a keypress
   is presentation wearing a keyboard.
@@ -697,10 +697,10 @@ this stage; not designed away either.
 ### 6.4 Usage stays box-local
 
 The Usage tab reads each agent's OAuth credential off disk and calls that agent's
-plan-limit endpoint (`Sources/termio/Companion/Usage/`, one provider per agent).
+plan-limit endpoint (`Sources/fyolo/Companion/Usage/`, one provider per agent).
 Two rules, both unchanged:
 
-- **termio never runs a login flow.** Only agents that leave a usable credential
+- **fyolo never runs a login flow.** Only agents that leave a usable credential
   on disk qualify.
 - **A credential never crosses a machine boundary.** The read happens on the box
   that owns it, and the *numbers* travel — not the token.
@@ -750,9 +750,9 @@ Split into the two halves, because only one of them exists and the earlier
 revision of this section blurred them:
 
 - **"Ask the device for a fresh screen" shipped, and is wired end to end.**
-  `request_snapshot` is sent by the Mac (`TermiodClient.requestResyncLocked`,
+  `request_snapshot` is sent by the Mac (`FyolodClient.requestResyncLocked`,
   gated on `observerRepaintPending`) and by the phone
-  (`ios/Sources/TermiodSession.swift`, same flag), both from PR #517's
+  (`ios/Sources/FyolodSession.swift`, same flag), both from PR #517's
   grid-before-bytes fix. A client that believes its screen is wrong asks, and
   the device answers with an `S` at a FIFO boundary.
 - **"Wipe first" does not exist, and nothing needs it.** `jiggleResize`'s only
@@ -776,7 +776,7 @@ only from the writer. A demoted surface is laid out at the shared grid — the M
 letterboxes, the phone scales to fit.
 
 So there is nothing to design. One reference survives, in a comment
-(`TermiodClient.swift:1284`), and it goes with the file's next edit.
+(`FyolodClient.swift:1284`), and it goes with the file's next edit.
 
 **This is also the answer to multi-client sizing (§h).** Size-follows-writer is
 settled law and this ladder builds on it rather than around it: one PTY, one
@@ -790,7 +790,7 @@ not per-pair.
 Not inherited from Stage 6 — found while building Stage 1, and recorded here
 because it is the same class of question.
 
-The daemon upgrades itself in place (`termiod handoff`): same pid, same PTYs, a
+The daemon upgrades itself in place (`fyolod handoff`): same pid, same PTYs, a
 new image. The blob carries each session's *status string*, which was enough
 while status was derived on the Mac. It is not enough now: a status is a state
 plus how long it has been true, and only the second half tells the stale-working
@@ -820,8 +820,8 @@ Stated as diffs, so the older text can be corrected rather than quietly outvoted
 | --- | --- | --- |
 | `20260819-unify-server-plane.md` §4.1 | `OSCProgressScanner` and `AgentStatusRules` stay Swift | They move (§3). The entry should be struck and replaced with the three items that genuinely stay: `statusDescription`, `isViewing` arbitration, argv→glyph. |
 | `20260819-unify-server-plane.md` §8 | Moving them is explicitly deferred | Reversed, with the ordering argument in §3.2: deferring it makes Stage 2 a regression. |
-| `20260805-termiod-device-architecture.md` client table | The phone "mirrors the Mac — the live exception to §H #4" | The exception has an expiry: Stage 8. |
-| `termiod/src/agent/fixture.rs` header | Choosing a Rust regex engine means choosing a different accepted language | True while both sides match; §3.4. The comment needs its second half. |
+| `20260805-fyolod-device-architecture.md` client table | The phone "mirrors the Mac — the live exception to §H #4" | The exception has an expiry: Stage 8. |
+| `fyolod/src/agent/fixture.rs` header | Choosing a Rust regex engine means choosing a different accepted language | True while both sides match; §3.4. The comment needs its second half. |
 
 Nothing here disagrees with `20260824-ios-as-device-client.md`. This is its
 sequel, and its non-goal — *"the companion wire is not deleted here"* — is this

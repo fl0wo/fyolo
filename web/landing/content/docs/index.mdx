@@ -1,14 +1,14 @@
 ---
 title: Introduction
-description: Termio is a native Mac app for your AI coding agents — run Claude Code, Codex, and the rest side by side, each in a real terminal, on this Mac or on a box you own.
+description: Fyolo is a native Mac app for your AI coding agents — run Claude Code, Codex, and the rest side by side, each in a real terminal, on this Mac or on a box you own.
 ---
 
-Termio is a native Mac app that gives your AI coding agents a home. Instead of
+Fyolo is a native Mac app that gives your AI coding agents a home. Instead of
 juggling agents across scattered terminal tabs, you run them side by side —
 each in a real terminal — and switch between them instantly. Everything runs on
 hardware you own: this Mac, or a box you can `ssh` to.
 
-## What Termio gives you
+## What Fyolo gives you
 
 - **A real terminal per agent.** Claude Code, Codex, Amp, Droid, Cursor, Copilot,
   Antigravity, Crush, Cline and the rest each run in a genuine PTY — not a
@@ -19,12 +19,12 @@ hardware you own: this Mac, or a box you can `ssh` to.
 - **Split panes.** Put an agent, a dev server, and a shell in the same window,
   arranged the way you think.
 - **Any machine you own.** A workspace can live on a VPS or the Mac mini across
-  the room. Termio copies one binary there over SSH and sets up the agents; the
+  the room. Fyolo copies one binary there over SSH and sets up the agents; the
   sessions run on that box and keep running whether or not you’re attached.
 - **A built-in inspector.** Browse the working directory, edit files with syntax
   highlighting, read the git diff, and search across the project — all without
   leaving the window.
-- **An orchestration API.** The `termio sessions` CLI lets one agent — or your
+- **An orchestration API.** The `fyolo sessions` CLI lets one agent — or your
   scripts — spawn siblings, answer their prompts, and supervise the fleet over
   a local socket, with pinned JSON shapes and honest exit codes.
 - **Your phone as a remote.** Pair the iPhone app once and check in on a running
@@ -32,14 +32,14 @@ hardware you own: this Mac, or a box you can `ssh` to.
 
 ## Local-first, always
 
-Termio has no account and no sign-in. Your terminals, code and agent
+Fyolo has no account and no sign-in. Your terminals, code and agent
 conversations never pass through servers of ours — there are none in the
 product’s data path. Reaching another machine goes through the system `ssh` and
-your own `~/.ssh/config`; Termio provisions nothing and relays nothing. The
+your own `~/.ssh/config`; Fyolo provisions nothing and relays nothing. The
 agents you run talk to their own providers under your own accounts, exactly as
 they would from a plain terminal.
 
-Termio is **free to use** — no account, no license keys, no payment backend.
+Fyolo is **free to use** — no account, no license keys, no payment backend.
 
 ## Pick your path
 
@@ -55,7 +55,7 @@ Most people arrive here for one of three reasons. Start where you actually are:
     agents out of each other's files, and the sidebar as a fleet dashboard.
   </Card>
   <Card href="/docs/devices" title="My code lives on another box">
-    A VPS, a Mac mini, a devbox. Termio copies one binary there over your own
+    A VPS, a Mac mini, a devbox. Fyolo copies one binary there over your own
     SSH config and the sessions run on that machine, attached or not.
   </Card>
 </Cards>
@@ -66,11 +66,11 @@ You already have a coding agent. These docs are published in a form it can read
 directly, so you can hand it the setup instead of doing it yourself:
 
 ```text
-Read https://termio.sh/llms.txt and then help me set up Termio for my project.
+Read https://fyolo.sh/llms.txt and then help me set up Fyolo for my project.
 ```
 
 Every page also answers with plain Markdown at its own URL, and
-[llms-full.txt](https://termio.sh/llms-full.txt) is the whole set in one file —
+[llms-full.txt](https://fyolo.sh/llms-full.txt) is the whole set in one file —
 so an agent can answer from the docs rather than improvising.
 
 ## Start here
@@ -92,7 +92,7 @@ so an agent can answer from the docs rather than improvising.
     Close, quit, update, reboot — exactly what happens to a running agent.
   </Card>
   <Card href="/docs/session-control" title="Orchestration & the CLI">
-    Let agents spawn, drive, and supervise each other with `termio sessions`.
+    Let agents spawn, drive, and supervise each other with `fyolo sessions`.
   </Card>
   <Card href="/docs/iphone" title="The iOS app">
     Pair your phone and check in on a running agent from anywhere.

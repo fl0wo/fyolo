@@ -1,13 +1,13 @@
 ---
 title: Installation
-description: Download Termio for macOS, drag it to Applications, and let Sparkle keep it up to date — no account or license key required.
+description: Download Fyolo for macOS, drag it to Applications, and let Sparkle keep it up to date — no account or license key required.
 ---
 
-Termio runs on Apple silicon and Intel Macs from the same download. Installation is a normal drag-to-Applications
+Fyolo runs on Apple silicon and Intel Macs from the same download. Installation is a normal drag-to-Applications
 — there’s no account to create and no license key to enter.
 
 <Callout type="note" title="Before you begin">
-  Termio needs macOS 14 or later, on Apple silicon or Intel. It hosts the agent
+  Fyolo needs macOS 14 or later, on Apple silicon or Intel. It hosts the agent
   CLIs you already have installed — it doesn’t bundle them.
 </Callout>
 
@@ -17,108 +17,108 @@ Termio runs on Apple silicon and Intel Macs from the same download. Installation
 | --- | --- |
 | **macOS** | 14 (Sonoma) or later, Apple silicon or Intel — one universal download |
 | **An account** | None. There is no sign-in, no license key, and no payment backend |
-| **Agent CLIs** | Whichever you already use — `claude`, `codex`, and the rest. Termio hosts them, it doesn’t ship them |
-| **For another machine** | Anything you can already `ssh` to. Termio reads your `~/.ssh/config` and installs nothing as root |
+| **Agent CLIs** | Whichever you already use — `claude`, `codex`, and the rest. Fyolo hosts them, it doesn’t ship them |
+| **For another machine** | Anything you can already `ssh` to. Fyolo reads your `~/.ssh/config` and installs nothing as root |
 
 ## Download and install
 
 1. Download the latest build from
-   [downloads.termio.sh](https://downloads.termio.sh/termio.dmg). The link
+   [downloads.fyolo.sh](https://downloads.fyolo.sh/fyolo.dmg). The link
    always serves the newest notarized release.
-2. Open the `.dmg` and drag **Termio** into your **Applications** folder.
+2. Open the `.dmg` and drag **Fyolo** into your **Applications** folder.
 3. Launch it from Applications. Because the app is notarized by Apple, it opens
    without a Gatekeeper warning.
 
 <DocsImage
   src="/screenshots/docs/00-dmg-install.png"
-  alt="The Termio disk image with Termio.app on the left, an Applications folder on the right, and a drag arrow between them"
+  alt="The Fyolo disk image with Fyolo.app on the left, an Applications folder on the right, and a drag arrow between them"
   width={1544}
   height={1024}
 />
 
 ## Check it worked
 
-Launch Termio and you should land on the welcome screen with **Open Project** as
+Launch Fyolo and you should land on the welcome screen with **Open Project** as
 the primary action. That’s the whole install — there is no setup wizard, no
 account step, and nothing to configure before the first session.
 
-On first launch Termio asks once whether to let your agents coordinate — that’s
+On first launch Fyolo asks once whether to let your agents coordinate — that’s
 **Session control**, which installs a small skill teaching them the
-`termio sessions` commands. **Live agent status**, the hooks behind the sidebar’s
+`fyolo sessions` commands. **Live agent status**, the hooks behind the sidebar’s
 status dots, is a separate switch on the same tab; the sidebar offers it when it
 sees an agent running. Both are optional and reversible; see [Status hooks &
 session control](/docs/session-control).
 
-If you already use [Ghostty](https://ghostty.org), there’s nothing to pick: Termio
+If you already use [Ghostty](https://ghostty.org), there’s nothing to pick: Fyolo
 reads your `~/.config/ghostty/config` on first launch and starts with the font and
 theme you chose there.
 
 ## Install with Homebrew
 
-Prefer the command line? Termio is a [Homebrew](https://brew.sh) cask:
+Prefer the command line? Fyolo is a [Homebrew](https://brew.sh) cask:
 
 ```sh
-brew install --cask termio-sh/tap/termio
+brew install --cask fyolo-sh/tap/fyolo
 ```
 
-This installs the same notarized build. Termio still updates itself through
+This installs the same notarized build. Fyolo still updates itself through
 Sparkle, so `brew upgrade` leaves it alone unless you pass `--greedy`.
 
 ## Staying up to date
 
-Termio updates itself through Sparkle. It periodically checks the download
+Fyolo updates itself through Sparkle. It periodically checks the download
 server for a newer version and offers to install it in place. The check carries
 no account or device identifier — the server sees only an IP address and the
 version being asked about.
 
-You can trigger a check any time from **Termio ▸ Check for Updates**.
+You can trigger a check any time from **Fyolo ▸ Check for Updates**.
 
 ## Bring your own agents
 
-Termio doesn’t bundle the coding agents — it hosts the ones you already have on
+Fyolo doesn’t bundle the coding agents — it hosts the ones you already have on
 your Mac. Install whichever CLIs you use (for example `claude`, `codex`, or
-`amp`) and make sure they’re on your `PATH`. Termio launches each one in a
+`amp`) and make sure they’re on your `PATH`. Fyolo launches each one in a
 login shell, so anything your shell profile sets up will be available.
 
 Once an agent is installed, it shows up as a launchable option when you start a
-session. The same is true of the agents on another machine — Termio looks for
+session. The same is true of the agents on another machine — Fyolo looks for
 them there and installs its hooks on that box. See [Devices](/docs/devices).
 
-## The `termio` command (optional)
+## The `fyolo` command (optional)
 
-Termio ships a small command-line tool. Open **Settings ▸ Server**
-and turn on **Command-line tool** to symlink `termio` onto your `PATH`. From then on
-`termio` in any directory opens it as a project, and `termio sessions …` lets your
+Fyolo ships a small command-line tool. Open **Settings ▸ Server**
+and turn on **Command-line tool** to symlink `fyolo` onto your `PATH`. From then on
+`fyolo` in any directory opens it as a project, and `fyolo sessions …` lets your
 agents coordinate with each other. It’s entirely optional — see
 [Session control & the CLI](/docs/session-control).
 
-## Where Termio keeps things
+## Where Fyolo keeps things
 
 Nothing is hidden, and nothing lives on a server of ours:
 
 | Path | What’s in it |
 | --- | --- |
-| `~/.termio/` | Your config: `keybindings.json`, custom agent manifests under `config/agents/`, and the `chats/` scratch directory |
-| `~/Library/Application Support/termio/` | App state and your `Themes/` folder |
-| `~/.local/bin/` | The session host on machines you set up over SSH — `termiod`, plus `termio` on Linux. On this Mac it ships inside the app bundle and is never installed here |
-| Each agent’s own config | Termio’s status hooks and its `termio` skill, written per agent |
+| `~/.fyolo/` | Your config: `keybindings.json`, custom agent manifests under `config/agents/`, and the `chats/` scratch directory |
+| `~/Library/Application Support/fyolo/` | App state and your `Themes/` folder |
+| `~/.local/bin/` | The session host on machines you set up over SSH — `fyolod`, plus `fyolo` on Linux. On this Mac it ships inside the app bundle and is never installed here |
+| Each agent’s own config | Fyolo’s status hooks and its `fyolo` skill, written per agent |
 
 ## Uninstalling
 
-Quit Termio and drag it to the Trash. To remove what it wrote outside the bundle,
+Quit Fyolo and drag it to the Trash. To remove what it wrote outside the bundle,
 turn off **Live agent status** and **Session control** under **Settings ▸ Agents**
 first — both toggles remove the hooks and the skill they installed on **this
-Mac**, leaving anything you wrote yourself alone. Then delete `~/.termio` and
-`~/Library/Application Support/termio` if you want the state gone too.
+Mac**, leaving anything you wrote yourself alone. Then delete `~/.fyolo` and
+`~/Library/Application Support/fyolo` if you want the state gone too.
 
 Every other machine keeps what was installed on it until you clean it up there.
 Stop the server first, because removing the service alone leaves a daemon that
 something else started still running:
 
 ```bash
-termiod stop
-termiod service uninstall
-rm -f ~/.local/bin/termiod ~/.local/bin/termio
+fyolod stop
+fyolod service uninstall
+rm -f ~/.local/bin/fyolod ~/.local/bin/fyolo
 ```
 
 ## Next steps
@@ -128,6 +128,6 @@ rm -f ~/.local/bin/termiod ~/.local/bin/termio
     Open a project and launch your first agent in a real terminal.
   </Card>
   <Card href="/docs/agents" title="Running multiple agents">
-    See which agents Termio recognizes out of the box.
+    See which agents Fyolo recognizes out of the box.
   </Card>
 </Cards>

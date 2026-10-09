@@ -1,4 +1,4 @@
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// The right-side drawer: Changes / Files, mirroring the desktop inspector's segmented

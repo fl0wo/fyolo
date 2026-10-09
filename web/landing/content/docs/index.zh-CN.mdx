@@ -1,17 +1,17 @@
 ---
 title: 简介
-description: Termio 是一款原生 Mac 应用，为你的 AI 编程 Agent 提供工作台——Claude Code、Codex 以及其他 Agent 并排运行，各自待在真实终端里，跑在本机或你自己的机器上。
+description: Fyolo 是一款原生 Mac 应用，为你的 AI 编程 Agent 提供工作台——Claude Code、Codex 以及其他 Agent 并排运行，各自待在真实终端里，跑在本机或你自己的机器上。
 x-i18n:
   source_path: index.mdx
   source_hash: a84e3d11b4b297d4273f73fb7c89b26a123137fd984129d54369adfe5cce0256
   generated_at: 2026-09-19
 ---
 
-Termio 是一款原生 Mac 应用，为你的 AI 编程 Agent 安了个家。你不必再在零散的终端
+Fyolo 是一款原生 Mac 应用，为你的 AI 编程 Agent 安了个家。你不必再在零散的终端
 标签页之间来回倒腾，而是让它们并排运行——每个都在真实终端里——并且瞬间切换。
 一切都跑在你自己的硬件上：本机，或者任何你 `ssh` 得上的机器。
 
-## Termio 给你什么
+## Fyolo 给你什么
 
 - **每个 Agent 一个真实终端。** Claude Code、Codex、Amp、Droid、Cursor、Copilot、
   Antigravity、Crush、Cline 等等，都跑在真正的 PTY 里，而不是被重新渲染的聊天记录。
@@ -20,23 +20,23 @@ Termio 是一款原生 Mac 应用，为你的 AI 编程 Agent 安了个家。你
   工作、哪个空闲、哪个需要你，一眼就知道。
 - **拆分窗格。** 把 Agent、开发服务器和 shell 放进同一个窗口，按你的思路排布。
 - **任何一台你自己的机器。** 工作区可以放在 VPS 上，或者房间另一头的 Mac mini 上。
-  Termio 通过 SSH 把一个二进制复制过去，把 Agent 配好；会话跑在那台机器上，你附不
+  Fyolo 通过 SSH 把一个二进制复制过去，把 Agent 配好；会话跑在那台机器上，你附不
   附着都照跑。
 - **内置检查器。** 浏览工作目录、带语法高亮地编辑文件、读 git 差异、在整个项目
   里搜索——全都不用离开窗口。
-- **一套编排 API。** `termio sessions` 命令行让一个 Agent（或你的脚本）通过本地
+- **一套编排 API。** `fyolo sessions` 命令行让一个 Agent（或你的脚本）通过本地
   套接字派生同伴、回答它们的提问、监督整支队伍，JSON 结构固定，退出码诚实。
 - **把手机当遥控器。** iPhone 应用配对一次，之后随时随地查看正在运行的会话——
   走你自己的网络，或你自己掌控的隧道。
 
 ## 始终本地优先
 
-Termio 没有账号，也不需要登录。你的终端、代码和 Agent 对话不会经过我们的服务器
+Fyolo 没有账号，也不需要登录。你的终端、代码和 Agent 对话不会经过我们的服务器
 ——产品的数据路径里根本没有我们的服务器。连另一台机器走的是系统 `ssh` 和你自己的
-`~/.ssh/config`；Termio 不开通任何机器，也不中转任何流量。你运行的 Agent 用你自己
+`~/.ssh/config`；Fyolo 不开通任何机器，也不中转任何流量。你运行的 Agent 用你自己
 的账号与它们各自的服务商通信，和在普通终端里完全一样。
 
-Termio **免费使用**——没有账号，没有许可证密钥，也没有支付后端。
+Fyolo **免费使用**——没有账号，没有许可证密钥，也没有支付后端。
 
 ## 选一条路
 
@@ -52,7 +52,7 @@ Termio **免费使用**——没有账号，没有许可证密钥，也没有支
     以及把侧栏当成整支队伍的看板。
   </Card>
   <Card href="/zh-CN/docs/devices" title="我的代码在另一台机器上">
-    一台 VPS、一台 Mac mini、一台开发机。Termio 通过你自己的 SSH 配置把一个二进制复制
+    一台 VPS、一台 Mac mini、一台开发机。Fyolo 通过你自己的 SSH 配置把一个二进制复制
     过去，会话就跑在那台机器上，无论你有没有附着。
   </Card>
 </Cards>
@@ -63,11 +63,11 @@ Termio **免费使用**——没有账号，没有许可证密钥，也没有支
 它，而不是自己动手：
 
 ```text
-Read https://termio.sh/llms.txt and then help me set up Termio for my project.
+Read https://fyolo.sh/llms.txt and then help me set up Fyolo for my project.
 ```
 
 每一页也都能在自己的 URL 上以纯 Markdown 应答，而
-[llms-full.txt](https://termio.sh/llms-full.txt) 是全部页面合成的一个文件——这样 Agent
+[llms-full.txt](https://fyolo.sh/llms-full.txt) 是全部页面合成的一个文件——这样 Agent
 就能照着文档回答，而不是自己编。
 
 ## 从这里开始
@@ -83,13 +83,13 @@ Read https://termio.sh/llms.txt and then help me set up Termio for my project.
     让一支队伍并排工作，一眼读出每个 Agent 的实时状态。
   </Card>
   <Card href="/zh-CN/docs/devices" title="设备">
-    把工作区放到另一台机器上，并在那儿装好 Termio server。
+    把工作区放到另一台机器上，并在那儿装好 Fyolo server。
   </Card>
   <Card href="/zh-CN/docs/persistence" title="什么会留下来">
     关闭、退出、更新、重启——正在跑的 Agent 究竟会怎么样。
   </Card>
   <Card href="/zh-CN/docs/session-control" title="编排与命令行">
-    用 `termio sessions` 让 Agent 互相派生、驱动与监督。
+    用 `fyolo sessions` 让 Agent 互相派生、驱动与监督。
   </Card>
   <Card href="/zh-CN/docs/iphone" title="iOS 应用">
     配对手机，随时随地查看正在运行的 Agent。

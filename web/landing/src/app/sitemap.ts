@@ -34,11 +34,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       const path = ["docs", ...slug].join("/");
       languages[languageTags[language] ?? language] =
         language === i18n.defaultLanguage
-          ? `https://www.termio.sh/${path}`
-          : `https://www.termio.sh/${language}/${path}`;
+          ? `https://www.fyolo.sh/${path}`
+          : `https://www.fyolo.sh/${language}/${path}`;
     }
     return {
-      url: `https://www.termio.sh${page.url}`,
+      url: `https://www.fyolo.sh${page.url}`,
       lastModified: lastEdited(`content/docs/${page.path}`, latestRelease),
       changeFrequency: "weekly" as const,
       priority: 0.6,
@@ -48,24 +48,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...docPages,
     {
-      url: "https://www.termio.sh/",
+      url: "https://www.fyolo.sh/",
       lastModified: latestRelease,
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: "https://www.termio.sh/changelog",
+      url: "https://www.fyolo.sh/changelog",
       lastModified: latestRelease,
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
-      url: "https://www.termio.sh/privacy",
+      url: "https://www.fyolo.sh/privacy",
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
-      url: "https://www.termio.sh/terms",
+      url: "https://www.fyolo.sh/terms",
       changeFrequency: "yearly",
       priority: 0.3,
     },

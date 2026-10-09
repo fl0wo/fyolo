@@ -16,7 +16,7 @@ on:
       - "web/landing/src/data/**"
       - "web/landing/scripts/**"
       - "web/landing/src/lib/i18n.ts"
-      - "Sources/termio/Keybindings/KeyCommand.swift"
+      - "Sources/fyolo/Keybindings/KeyCommand.swift"
       - ".github/workflows/docs.yml"
   pull_request:
     paths:
@@ -24,7 +24,7 @@ on:
       - "web/landing/src/data/**"
       - "web/landing/scripts/**"
       - "web/landing/src/lib/i18n.ts"
-      - "Sources/termio/Keybindings/KeyCommand.swift"
+      - "Sources/fyolo/Keybindings/KeyCommand.swift"
       - ".github/workflows/docs.yml"
 
 concurrency:

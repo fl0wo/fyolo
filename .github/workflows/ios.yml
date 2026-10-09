@@ -37,8 +37,8 @@ jobs:
 
       - name: Build for iOS Simulator
         run: |
-          xcodebuild -project ios/TermioMobile.xcodeproj \
-            -scheme TermioMobile \
+          xcodebuild -project ios/FyoloMobile.xcodeproj \
+            -scheme FyoloMobile \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             build

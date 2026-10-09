@@ -3,14 +3,14 @@ title: Running multiple agents
 description: Keep a fleet of agents side by side, read their live status at a glance, and know which signal each agent reports through — the program status protocol, hooks, its terminal title, or the screen as a last resort.
 ---
 
-Termio is built for running more than one agent at once. The sidebar is your
+Fyolo is built for running more than one agent at once. The sidebar is your
 control surface: every session is a row, and every row reports what its agent is
 doing right now. Any terminal will let you open several agents at once; what
 this buys you is not having to watch them.
 
 ## Built-in agents
 
-Termio recognizes the common coding agents out of the box:
+Fyolo recognizes the common coding agents out of the box:
 
 | Agent | CLI |
 | --- | --- |
@@ -35,7 +35,7 @@ Any of these that’s installed on your `PATH` appears as a launch option. A pla
 shell is always available too. Running something else? Any CLI can become a
 first-class agent — see [Custom agents](/docs/custom-agents).
 
-`PATH` means the machine’s own `PATH`: Termio looks for these on whichever
+`PATH` means the machine’s own `PATH`: Fyolo looks for these on whichever
 machine the workspace is on, so a VPS offers what is installed there. **Settings
 ▸ Agents** says so in the row — *Not installed on `devbox`* — rather than hiding
 it behind a machine picker, and the machine’s own page under [Remote
@@ -43,14 +43,14 @@ hosts](/docs/remote-hosts) is where you fix it.
 
 <DocsImage
   src="/screenshots/docs/17-agents-settings.png"
-  alt="Termio Agent settings with the built-in agent catalog visible and Claude Code selected"
+  alt="Fyolo Agent settings with the built-in agent catalog visible and Claude Code selected"
   width={1664}
   height={1288}
 />
 
-Termio launches each agent through your real login shell, so everything your
+Fyolo launches each agent through your real login shell, so everything your
 shell profile sets up — version managers, `PATH` additions, credentials — is
-there exactly as it would be in iTerm. If an agent is installed but Termio says
+there exactly as it would be in iTerm. If an agent is installed but Fyolo says
 it isn’t found, that is almost always a `PATH` question; the Agents tab says so
 and takes an absolute path in the command field.
 
@@ -112,12 +112,12 @@ The distinction that matters is **done** versus **needs you**. A finished turn i
 *done* — a calm cue that work landed while you were elsewhere. *Needs you* is
 reserved for an agent that genuinely cannot continue: a permission prompt, a
 question, a choice. Conflating the two is what turns a fleet into a pile of
-alarms, so Termio keeps “ready” quiet and saves the loud state for the one case
+alarms, so Fyolo keeps “ready” quiet and saves the loud state for the one case
 where walking away costs you time.
 
 <DocsImage
   src="/screenshots/docs/05-session-statuses.png"
-  alt="The Termio sidebar and termio sessions list output showing idle, working, done, and needs-you sessions"
+  alt="The Fyolo sidebar and fyolo sessions list output showing idle, working, done, and needs-you sessions"
   width={2424}
   height={1664}
 />
@@ -129,8 +129,8 @@ still know the moment something needs you.
 ## Skipping permission prompts
 
 Many agents ship a flag that stops them asking before each tool call. Where one
-exists, Termio wires it to a toggle rather than making you remember the spelling:
-turn it on for an agent in **Settings ▸ Agents** and Termio appends that agent’s
+exists, Fyolo wires it to a toggle rather than making you remember the spelling:
+turn it on for an agent in **Settings ▸ Agents** and Fyolo appends that agent’s
 own flag when it launches.
 
 It is a standing decision about that agent, so unlike its command path it is
@@ -138,7 +138,7 @@ It is a standing decision about that agent, so unlike its command path it is
 machine. Read the flag before you turn the switch on: these are the vendors’ own
 escape hatches and some of them give up more than the prompt. Codex’s is
 `--dangerously-bypass-approvals-and-sandbox`, which drops its sandbox along with
-the approvals. Termio appends what the vendor documents; it adds no sandbox of
+the approvals. Fyolo appends what the vendor documents; it adds no sandbox of
 its own.
 
 <Callout type="note">
@@ -162,21 +162,21 @@ them by name — see [Navigation](/docs/navigation).
 
 Two agents in one checkout will collide: same working tree, same index, same
 branch. The fix isn’t coordination, it’s separation — give each line of work its
-own git worktree and point an agent at each. Termio reads worktrees from git
+own git worktree and point an agent at each. Fyolo reads worktrees from git
 itself and nests them under the project, so this is a right-click rather than a
 setup step. See [Git worktrees](/docs/worktrees).
 
 ## Letting agents drive each other
 
 Once a fleet is normal, the next thing you want is for one agent to run the
-fleet. `termio sessions` is that API: an agent can list its siblings, spawn new
+fleet. `fyolo sessions` is that API: an agent can list its siblings, spawn new
 ones on a prompt, answer a session that’s blocked, and block until a turn
 settles — all over a local socket, scoped to its own project.
 
 ```bash
-termio sessions list
-termio sessions spawn "update the changelog for 0.54" --agent codex
-termio sessions watch
+fyolo sessions list
+fyolo sessions spawn "update the changelog for 0.54" --agent codex
+fyolo sessions watch
 ```
 
 It’s opt-in, and turning it on also installs a small skill that teaches your
@@ -185,12 +185,12 @@ reference and [Session control](/docs/session-control) for the switch.
 
 <Cards>
   <Card href="/docs/custom-agents" title="Custom agents">
-    Teach Termio any CLI with a small JSON manifest.
+    Teach Fyolo any CLI with a small JSON manifest.
   </Card>
   <Card href="/docs/persistence" title="What survives">
     What happens to a running agent when you close, quit, or reboot.
   </Card>
   <Card href="/docs/cli" title="Command-line tool">
-    The `termio sessions` orchestration API, verb by verb.
+    The `fyolo sessions` orchestration API, verb by verb.
   </Card>
 </Cards>

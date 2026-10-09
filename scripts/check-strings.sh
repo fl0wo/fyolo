@@ -2,7 +2,7 @@
 # Fail when the String Catalog and the source have drifted apart.
 #
 # Every UI literal reaches the catalog through `localized("…")` (see
-# Sources/termio/App/Localized.swift), and nothing verifies that the key it
+# Sources/fyolo/App/Localized.swift), and nothing verifies that the key it
 # passes actually exists. A missing key doesn't crash or fail the build — it
 # silently resolves to the English source string, so a localized pane ships
 # half-translated and looks fine to anyone testing in English. That is how six
@@ -24,7 +24,7 @@ python3 - "$repo_root" <<'PYTHON'
 import json, pathlib, re, sys
 
 repo_root = pathlib.Path(sys.argv[1])
-catalog_path = repo_root / "Sources/termio/Resources/Localizable.xcstrings"
+catalog_path = repo_root / "Sources/fyolo/Resources/Localizable.xcstrings"
 catalog = json.loads(catalog_path.read_text())
 known = set(catalog["strings"])
 
@@ -68,7 +68,7 @@ PYTHON
 
 # The compiled .lproj resources are checked in because SwiftPM can't compile a
 # String Catalog itself; a catalog edit without a recompile ships stale strings.
-output_dir="$repo_root/Sources/termio/Resources/Localization"
+output_dir="$repo_root/Sources/fyolo/Resources/Localization"
 scratch="$(mktemp -d)"
 # compile-strings.sh writes to the checked-in path, so stash a copy and put it
 # back however this exits: a check must never leave the tree modified.

@@ -8,24 +8,24 @@ updated: 2026-08-31
 
 # Fork libghostty-spm — own the wrapper, rent the engine?
 
-> Decide how much of Termio's core terminal dependency we should own: keep
+> Decide how much of Fyolo's core terminal dependency we should own: keep
 > depending on Lakr233/libghostty-spm as-is, soft-fork its Swift wrapper,
 > or hard-fork down to building GhosttyKit ourselves.
 
 ## Problem
 
-Termio's product **is** the terminal. Both apps render every session through
+Fyolo's product **is** the terminal. Both apps render every session through
 `Lakr233/libghostty-spm` (currently pinned `from: 1.2.8`):
 
 - macOS: host-managed PTY (`PTYProcess`) feeding the `.inMemory` backend.
 - iOS: the same `.inMemory` backend fed by the companion WebSocket bridge.
 
 We have now hit **four production-grade bugs in a few weeks**, and every one of
-them lives in the dependency, not in Termio:
+them lives in the dependency, not in Fyolo:
 
 | date | bug | layer | our workaround |
 | --- | --- | --- | --- |
-| ~06-27 | OpenCode renders blank (reply-gated queries never answered without a continuous tick) | Swift wrapper (tick scheduling) | warm-up tick pump in `TermioStore.warmUpRendering` |
+| ~06-27 | OpenCode renders blank (reply-gated queries never answered without a continuous tick) | Swift wrapper (tick scheduling) | warm-up tick pump in `FyoloStore.warmUpRendering` |
 | ~07-02 | Engine crashes on surface teardown when switching sessions fast | Swift wrapper (lifecycle) | keep-alive LRU of session screens in `RootContainerViewController` |
 | earlier | Hardcoded link-open delegate, no link-regex API | Swift wrapper (API surface) | `@retroactive` conformance + Notification hack |
 | 07-03 | **App-wide freeze**: `InMemoryTerminalSession.receive` holds the session lock across a blocking `ghostty_surface_write_buffer` while the io thread's resize ack wants the same lock → three-thread deadlock | Swift wrapper (locking) | ration + debounce `fitToSize` (shrinks the window, cannot close it) |
@@ -54,7 +54,7 @@ Upstream context worth weighing:
 
 - Lakr233 is *active* (1.2.4 → 1.2.8 in three weeks) and the package is MIT —
   friendly to both PRs and forks, and license-compatible with open-sourcing
-  Termio.
+  Fyolo.
 - ghostty's own libghostty is still officially "unstable / unsupported"; this
   third-party wrapper exists precisely because there is no blessed
   distribution. That could change — if ghostty ever ships an official
@@ -78,7 +78,7 @@ Upstream context worth weighing:
 
 Fork `libghostty-spm`; its `Package.swift` keeps pointing at upstream's
 `storage.1.2.x` XCFramework, so we inherit the Zig builds for free. Repoint
-Termio's two references (root `Package.swift`, iOS pbxproj) at the fork.
+Fyolo's two references (root `Package.swift`, iOS pbxproj) at the fork.
 
 - **Patch set, day one:** (1) the deadlock fix in `receive()`; (2) teardown
   hardening so the LRU cache becomes an optimization instead of a
@@ -106,7 +106,7 @@ Termio's two references (root `Package.swift`, iOS pbxproj) at the fork.
 - **Risk:** we become a de-facto libghostty distributor right before upstream
   possibly ships an official one.
 
-### D. Vendor the wrapper into the Termio repo (copy, not fork)
+### D. Vendor the wrapper into the Fyolo repo (copy, not fork)
 
 Copy the Swift sources under `Vendor/` and drop the package. Maximum control,
 no upstream sync path — every future upstream improvement must be hand-ported.
@@ -123,7 +123,7 @@ divergence. Worse than B on every axis except "no GitHub fork to run".
    first genuine hard-fork trigger. If `sessions read` / richer status
    detection is on the 1–2 month roadmap, C stops being over-engineering and
    becomes the plan; B is then a stepping stone, not a destination.
-3. **What does open-sourcing Termio change?** A fork is *more* legible to OSS
+3. **What does open-sourcing Fyolo change?** A fork is *more* legible to OSS
    users than a pile of workarounds in app code (they can see exactly what we
    changed and why). MIT both ways; no license friction either direction.
 4. **Upstream's trajectory.** If Lakr233 merges our PRs promptly, the fork's
@@ -140,8 +140,8 @@ libghostty.
 
 ## Open questions
 
-- Fork under the personal account or a Termio org (matters for OSS optics)?
-- Do we pin exact versions (`.exact`) in Termio once on a fork, to make every
+- Fork under the personal account or a Fyolo org (matters for OSS optics)?
+- Do we pin exact versions (`.exact`) in Fyolo once on a fork, to make every
   upgrade a deliberate rebase?
 - Should the deadlock fix land as a PR to upstream *first*, before any fork
   exists, to test upstream responsiveness cheaply?

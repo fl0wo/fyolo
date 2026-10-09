@@ -9,8 +9,8 @@ updated: 2026-07-02
 # Vibe Island family (status monitors)
 
 > Doesn't take over the terminal; only answers "what state is the agent in
-> right now". The **source of Termio's status-detection methodology** — but
-> because Termio owns the PTY, it achieves the zero-config detection these
+> right now". The **source of Fyolo's status-detection methodology** — but
+> because Fyolo owns the PTY, it achieves the zero-config detection these
 > tools can't.
 
 ## One-line positioning
@@ -55,17 +55,17 @@ hooks + JSONL combined.
 - Weaknesses: **status only** — they don't own the session/terminal; mostly
   bolt-ons that get signals indirectly via hooks/JSONL.
 
-## vs. Termio / takeaways
+## vs. Fyolo / takeaways
 
-- **Termio's structural advantage**: because it **owns the PTY**, it already
+- **Fyolo's structural advantage**: because it **owns the PTY**, it already
   achieves zero-config "needs you" from libghostty's native bell / OSC 9·99
   notifications — something the Vibe Island-style bolt-ons cannot do.
-- **To get per-turn precision ("thinking / which tool is running")**, Termio
+- **To get per-turn precision ("thinking / which tool is running")**, Fyolo
   still needs the **Claude Code hooks layer**: a local listener, correlating
-  sessions by unique `cwd`/worktree path (Termio's per-session worktree
+  sessions by unique `cwd`/worktree path (Fyolo's per-session worktree
   conveniently provides a unique cwd). The best implementation blueprint is
   `open-vibe-island`'s `hook → socket → reducer`.
-- **Form factor**: Termio chose the **menu-bar tray** (already built) over the
+- **Form factor**: Fyolo chose the **menu-bar tray** (already built) over the
   notch — more restrained, doesn't cover content.
 
 ## References

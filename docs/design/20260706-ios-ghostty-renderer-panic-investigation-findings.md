@@ -101,7 +101,7 @@ orphan class of bug can't exist.
 **Host-managed I/O is wrapper-only.** The official Swift integration is
 **exec/PTY-only** — `SurfaceConfiguration.withCValue()` never sets `config.backend`
 (defaults to EXEC), and repo-wide there are **zero** Swift hits for `HOST_MANAGED`
-/ `receive_buffer` / `receive_resize`. Termio on iOS can't spawn a PTY (sandbox;
+/ `receive_buffer` / `receive_resize`. Fyolo on iOS can't spawn a PTY (sandbox;
 data comes from the companion socket + SSH). So "switch to the official
 integration" is **not viable** — you'd re-implement the wrapper on top of it.
 
@@ -123,7 +123,7 @@ integration" is **not viable** — you'd re-implement the wrapper on top of it.
 2. **Adopt official integration wholesale — rejected.** Exec-only; you'd re-add
    host-managed and still maintain a fork.
 3. **Fork ghostty to upstream a host-managed Swift path — high effort**, only if
-   Termio wants to shed the wrapper entirely.
+   Fyolo wants to shed the wrapper entirely.
 
 ## Build path (to ship the Bug A / layerClass Zig patch)
 

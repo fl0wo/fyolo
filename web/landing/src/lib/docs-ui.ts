@@ -57,7 +57,7 @@ const en: DocsChrome = {
   askClaude: "Ask Claude",
   askChatGPT: "Ask ChatGPT",
   askPrompt:
-    "Read {url} — it is a page of the Termio documentation. Answer my questions about it, and say when something isn't covered there.",
+    "Read {url} — it is a page of the Fyolo documentation. Answer my questions about it, and say when something isn't covered there.",
   editPage: "Edit this page on GitHub",
   language: "Language",
   skipToContent: "Skip to content",
@@ -89,7 +89,7 @@ const zhCN: DocsChrome = {
   askClaude: "问 Claude",
   askChatGPT: "问 ChatGPT",
   askPrompt:
-    "请阅读 {url}，这是 Termio 文档的一页。请据此回答我的问题；文档里没写到的地方，直接说明。",
+    "请阅读 {url}，这是 Fyolo 文档的一页。请据此回答我的问题；文档里没写到的地方，直接说明。",
   editPage: "在 GitHub 上编辑本页",
   language: "语言",
   skipToContent: "跳到正文",

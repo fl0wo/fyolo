@@ -5,7 +5,7 @@ type: rfc
 created: 2026-09-19
 updated: 2026-09-19
 related:
-  - 20260730-termiod-session-protocol.md
+  - 20260730-fyolod-session-protocol.md
   - 20260819-unify-server-plane.md
 ---
 
@@ -22,14 +22,14 @@ and it is the whole story:
 
 | # | Where | What it decides |
 | --- | --- | --- |
-| 1 | app — `TermiodPasteInterceptor` (`Terminal/Termiod/TermiodTransfer.swift`) | A local `NSEvent` monitor. Runs **before the view sees the key**, so it silently wins over 2 and 3. |
+| 1 | app — `FyolodPasteInterceptor` (`Terminal/Fyolod/FyolodTransfer.swift`) | A local `NSEvent` monitor. Runs **before the view sees the key**, so it silently wins over 2 and 3. |
 | 2 | wrapper — `AppTerminalView+Input.swift` | `pasteboardHoldsImageOnly` → `surface.submitCtrlV()`, handing the TUI a Ctrl+V so the agent reads the Mac clipboard itself. |
 | 3 | wrapper — `TerminalController+Callbacks.swift` | `readClipboard` serves `isTextMime` only; `pasteboardText()` is a bare `NSPasteboard.general.string(forType:.string)`. |
 
 Layer 2 is a real asset and should be understood as one: **upstream ghostty does
 not have it.** In ghostty, ⌘V onto an image-only clipboard silently does nothing
 (discussion #10478) because `getOpinionatedStringContents()` handles file URLs
-and strings and nothing else. Only Ctrl+V works there. termio is ahead.
+and strings and nothing else. Only Ctrl+V works there. fyolo is ahead.
 
 Layer 3 is the liability. Upstream's clipboard read maps a file URL to a
 shell-escaped absolute path, per pasteboard item, joined by spaces:
@@ -103,7 +103,7 @@ below.
 **A trap worth the next person's time.** The wrapper's release CI rebuilds
 against ghostty *main*, so cutting a release moves the engine whether or not the
 change needs it: `1.1.0` came out carrying ghostty `-2671-gb32f20f` against a
-pin on `-2555-g7aab0a0`, 116 commits of drift. `termiod/vt/Cargo.toml` requires
+pin on `-2555-g7aab0a0`, 116 commits of drift. `fyolod/vt/Cargo.toml` requires
 the Rust VT and the Swift clients to run **one** ghostty, and says a mismatched
 `GHOSTTY_SOURCE_DIR` "does not fail to build — it corrupts the heap". The fix
 was to re-cut with the workflow's `ghostty_ref` input pinned to the sha already
@@ -133,7 +133,7 @@ the length of the gap.
 
 **Do not delete PR #666's Edit ▸ Paste interception as part of this.** Before it,
 Edit ▸ Paste reached `AppTerminalView.paste(_:)` and never
-`TermiodPasteInterceptor`, so **remote image paste through the Edit menu was
+`FyolodPasteInterceptor`, so **remote image paste through the Edit menu was
 broken** and #666 fixed it by accident. Removing it would reintroduce a bug that
 predates the PR. Whether the hand-rolled `NSMenuItemValidation` shim it uses is
 the right way to keep that coverage is a separate question, and needs a real run
@@ -185,7 +185,7 @@ capability changes nothing on its own: the agent has to make the request. An age
 that today shells out to a Mac clipboard utility will not start issuing in-band
 reads because we can answer them, and opencode #25806 suggests the ecosystem is
 not there. Before retiring `submitCtrlV`, demonstrate an end-to-end read through
-termiod and an SSH hop, decide how paste confirmation applies to a binary read,
+fyolod and an SSH hop, decide how paste confirmation applies to a binary read,
 and keep a working path for clients that never adopt it.
 
 Until then the upload crossing in PR #670 is the honest answer for remote

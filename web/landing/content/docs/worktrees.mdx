@@ -1,21 +1,21 @@
 ---
 title: Git worktrees
-description: Termio reads your repository’s worktrees straight from git and shows them as a nested branch under the project, so parallel agent work stays isolated.
+description: Fyolo reads your repository’s worktrees straight from git and shows them as a nested branch under the project, so parallel agent work stays isolated.
 ---
 
 When you have several agents working a repository at once, you don’t want them
 stepping on each other’s files. Git worktrees give each line of work its own
-checkout on its own branch — and Termio surfaces them natively.
+checkout on its own branch — and Fyolo surfaces them natively.
 
-## How Termio sees worktrees
+## How Fyolo sees worktrees
 
-Termio derives worktrees directly from git (`git worktree list`), so any
+Fyolo derives worktrees directly from git (`git worktree list`), so any
 worktree you create — from the command line or elsewhere — shows up in the
 sidebar automatically. Each one appears as a nested folder under its project,
 labeled with its branch, forming a three-level tree: project → worktree →
 sessions.
 
-The list stays in sync: Termio reconciles it when a project loads, when the app
+The list stays in sync: Fyolo reconciles it when a project loads, when the app
 regains focus, and when the git directory changes.
 
 ## Working in a worktree
@@ -30,7 +30,7 @@ An empty worktree still appears in the tree. Open its context menu and choose
 
 <DocsImage
   src="/screenshots/docs/12-worktree-hierarchy.png"
-  alt="A Termio project with main and feature worktrees expanded, and an empty worktree context menu offering New Terminal and New Agent Session"
+  alt="A Fyolo project with main and feature worktrees expanded, and an empty worktree context menu offering New Terminal and New Agent Session"
   width={2424}
   height={1664}
 />
@@ -45,7 +45,7 @@ requests happen in the terminal, where you (or the agent) already are — see th
 
 <DocsImage
   src="/screenshots/docs/13-review-worktree.png"
-  alt="A feature worktree selected in the Termio sidebar with its own file changes and unified diff open in the inspector"
+  alt="A feature worktree selected in the Fyolo sidebar with its own file changes and unified diff open in the inspector"
   width={2424}
   height={1664}
 />

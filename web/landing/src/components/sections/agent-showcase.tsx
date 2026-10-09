@@ -71,7 +71,7 @@ const agents = [
   {
     name: "Claude Code",
     blurb:
-      "Anthropic's agentic coding CLI. Termio ships it a skill, so it can list, spawn, and answer the sessions running beside it — the panel here is that skill running.",
+      "Anthropic's agentic coding CLI. Fyolo ships it a skill, so it can list, spawn, and answer the sessions running beside it — the panel here is that skill running.",
   },
   {
     name: "Codex",
@@ -389,7 +389,7 @@ export function AgentShowcase() {
                         frames.current[i] = node;
                       }}
                       role="img"
-                      aria-label={`${agent.name} running in Termio`}
+                      aria-label={`${agent.name} running in Fyolo`}
                       aria-hidden={i !== active}
                       className="pointer-events-none absolute inset-0 h-full w-full will-change-[opacity,filter,transform] motion-reduce:transition-opacity motion-reduce:duration-300"
                     >

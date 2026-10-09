@@ -21,10 +21,10 @@ body:
     validations:
       required: false
   - type: input
-    id: termio-version
+    id: fyolo-version
     attributes:
-      label: termio version
-      description: termio ▸ About termio.
+      label: fyolo version
+      description: fyolo ▸ About fyolo.
       placeholder: 0.21.0
     validations:
       required: true

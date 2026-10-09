@@ -1,12 +1,12 @@
 import { cn } from "@/lib/utils";
 
-// The pieces of Termio's own chrome, drawn in DOM so the marketing mocks stay
+// The pieces of Fyolo's own chrome, drawn in DOM so the marketing mocks stay
 // crisp at any size and can animate. Shared by the orchestration demo and the
 // feature grid's mocks, so a detail only has to be right once.
 //
 // Everything here is ported from the app rather than invented: the status
 // language from Sidebar/SidebarView.swift, the working mark's geometry from
-// Shared/TermioShared/SessionStatus.swift.
+// Shared/FyoloShared/SessionStatus.swift.
 
 export type Status = "idle" | "working" | "needs-you" | "done";
 

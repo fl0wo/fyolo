@@ -1,13 +1,13 @@
 ---
-title: Markdown in Termio
+title: Markdown in Fyolo
 status: demo
 type: reference
 updated: 2026-08-22
 ---
 
-# Markdown in Termio
+# Markdown in Fyolo
 
-Everything on this page renders in Termio's Preview: open any `.md` file from the
+Everything on this page renders in Fyolo's Preview: open any `.md` file from the
 inspector, and the reader draws it in iA Writer Quattro on a capped measure, with
 code in your terminal font so Preview and Edit read as one document.
 
@@ -33,10 +33,10 @@ palette. You can <mark>highlight a phrase</mark>, write H<sub>2</sub>O and
 E = mc<sup>2</sup>, and abbreviate a <abbr title="pseudo-terminal">PTY</abbr>
 inline.
 
-Links come in three kinds: a [web link](https://termio.sh), a
+Links come in three kinds: a [web link](https://fyolo.sh), a
 [relative link to a file in this repo](AGENTS.md), and an
 [in-page anchor](#tables) that jumps to a heading below. A bare URL such as
-https://github.com/termio-sh/termio autolinks on its own. Shortcodes become
+https://github.com/fl0wo/fyolo autolinks on its own. Shortcodes become
 emoji: :rocket: :sparkles: :white_check_mark: :warning:
 
 Footnotes work too — the session lives on the box, not in the connection.[^1]
@@ -45,7 +45,7 @@ Footnotes work too — the session lives on the box, not in the connection.[^1]
 
 - A terminal-first agentic development environment
 - Sessions that survive a closed laptop
-  - `termiod` hosts the PTY on the machine itself
+  - `fyolod` hosts the PTY on the machine itself
   - Detaching is not killing
     - Reattach restores the exact screen
 - The user's machines, never a hosted control plane
@@ -71,7 +71,7 @@ Footnotes work too — the session lives on the box, not in the connection.[^1]
 > sidecar for snapshots.
 
 > [!TIP]
-> `TERMIO_CHANNEL=dev` gets you a fully separate app — its own bundle id, state
+> `FYOLO_CHANNEL=dev` gets you a fully separate app — its own bundle id, state
 > directory, companion port and CLI — so a dev build can never disturb the release
 > one.
 
@@ -103,7 +103,7 @@ func attach(to session: SessionID) async throws -> Snapshot {
 ```
 
 ```rust
-// termiod: the durable session host. One code path for laptop, VPS and devbox.
+// fyolod: the durable session host. One code path for laptop, VPS and devbox.
 pub async fn spawn(cmd: Command, size: WinSize) -> Result<Session> {
     let pty = Pty::open(size)?;
     let child = pty.spawn(cmd)?;
@@ -114,12 +114,12 @@ pub async fn spawn(cmd: Command, size: WinSize) -> Result<Session> {
 ```bash
 swift build                                # resolve + compile
 swift test                                 # run the unit tests
-TERMIO_CHANNEL=dev ./scripts/build-app.sh  # side-by-side dev app
+FYOLO_CHANNEL=dev ./scripts/build-app.sh  # side-by-side dev app
 ```
 
 ```json
 {
-  "session": "termio://session/9E2C1F04-6B7A-4E5D-9C31-5A0D7B18E2F1",
+  "session": "fyolo://session/9E2C1F04-6B7A-4E5D-9C31-5A0D7B18E2F1",
   "status": "needs-you",
   "device": "devbox",
   "attached": ["mac", "iphone"]
@@ -134,7 +134,7 @@ TERMIO_CHANNEL=dev ./scripts/build-app.sh  # side-by-side dev app
 An unlabelled fence stays plain:
 
 ```
-$ termio agent report --status done
+$ fyolo agent report --status done
 ok
 ```
 
@@ -144,7 +144,7 @@ A ```` ```mermaid ```` fence is drawn as a real diagram, not a code block.
 
 ```mermaid
 flowchart LR
-    Mac[Mac app] -- framed protocol --> D((termiod))
+    Mac[Mac app] -- framed protocol --> D((fyolod))
     Phone[iPhone] -- companion WS --> Mac
     D --> PTY[PTY session]
     PTY --> Agent[Coding agent]
@@ -155,7 +155,7 @@ flowchart LR
 sequenceDiagram
     participant P as iPhone
     participant M as Mac
-    participant D as termiod
+    participant D as fyolod
     P->>M: attach(session)
     M->>D: attach
     D-->>M: snapshot
@@ -167,8 +167,8 @@ sequenceDiagram
 
 | Channel | Bundle id | State directory | Companion port |
 | --- | --- | --- | --- |
-| release | `sh.termio.app` | `~/.termio` | 8787 |
-| dev | `sh.termio.app.dev` | `~/.termio-dev` | 8788 |
+| release | `sh.fyolo.app` | `~/.fyolo` | 8787 |
+| dev | `sh.fyolo.app.dev` | `~/.fyolo-dev` | 8788 |
 
 Alignment is honored per column:
 
@@ -192,7 +192,7 @@ $$
 
 Relative image paths resolve against the file's own folder:
 
-![Termio in dark mode: a live Claude Code session next to the project sidebar](web/landing/public/screenshots/hero1.png)
+![Fyolo in dark mode: a live Claude Code session next to the project sidebar](web/landing/public/screenshots/hero1.png)
 
 ## Collapsed detail
 
@@ -219,7 +219,7 @@ as a second, lossier surface only adds a place for the two to disagree.
 ## 中文排版
 
 同一份阅读器也照顾中文：整篇文档是中文时行距会放宽，标点会做压缩处理，所以「引号」、
-（括号）和逗号之间不会留出突兀的空白。中英混排时——比如提到 `termiod` 或 PTY——西文
+（括号）和逗号之间不会留出突兀的空白。中英混排时——比如提到 `fyolod` 或 PTY——西文
 仍然保持原本的字距。
 
 ---

@@ -1,4 +1,4 @@
-// The changelog rendered at /changelog, newest entry first. Termio ships through
+// The changelog rendered at /changelog, newest entry first. Fyolo ships through
 // Sparkle, so a release here corresponds to a notarized build users auto-update
 // to. Keep entries short and user-facing — what changed, not how. Categories are
 // optional; omit any that are empty for a release. Items may open with a short
@@ -22,7 +22,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Fewer hooks for Claude Code and Pi",
     changes: {
       improved: [
-        "Claude Code keeps one hook, for the tool it is running. Pi needs none, and Termio removes the extension it installed before.",
+        "Claude Code keeps one hook, for the tool it is running. Pi needs none, and Fyolo removes the extension it installed before.",
       ],
     },
   },
@@ -32,7 +32,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Agents report their own status over the terminal",
     changes: {
       new: [
-        "Program status: Claude Code 2.1.295 and Pi 1.1.0 tell Termio whether they are working, waiting on you, or done over the terminal itself (OSC 7501). It needs no hooks and works the same on a remote machine. Older versions keep reporting through hooks.",
+        "Program status: Claude Code 2.1.295 and Pi 1.1.0 tell Fyolo whether they are working, waiting on you, or done over the terminal itself (OSC 7501). It needs no hooks and works the same on a remote machine. Older versions keep reporting through hooks.",
       ],
     },
   },
@@ -111,7 +111,7 @@ export const changelog: ChangelogEntry[] = [
         "Settings: hooks and the agent skill now sit on a machine's Agents page, beside the CLIs they are written for, and Server has its own page apart from Remote Hosts.",
       ],
       fixed: [
-        "Losing the connection to a session no longer strands its pane. Termio reconnects on its own — and immediately when you come back to the app — instead of asking you to close the session, which would have ended it.",
+        "Losing the connection to a session no longer strands its pane. Fyolo reconnects on its own — and immediately when you come back to the app — instead of asking you to close the session, which would have ended it.",
         "Dropping a file onto a split now hands it to the pane you can see, not to whichever pane happened to be mounted last.",
         "Plain-text files — a LICENSE, anything past the highlighting limit — are drawn in the theme's ink instead of black on a dark background.",
         "Collapsing the sidebar and reopening it no longer takes the navigator button, workspace name, sort menu and ＋ out of the toolbar for good.",
@@ -158,11 +158,11 @@ export const changelog: ChangelogEntry[] = [
     changes: {
       new: [
         "A session's branch label stays live when its repo is on another machine — switch branches on the box and the sidebar follows, no SSH round-trip.",
-        "Every remote deploy now ships the termio command beside the session host, and sessions find it first on their PATH, so agents on a box report working / needs-you the same way they do on this Mac.",
+        "Every remote deploy now ships the fyolo command beside the session host, and sessions find it first on their PATH, so agents on a box report working / needs-you the same way they do on this Mac.",
         "Diagrams and images in the reader open full screen.",
       ],
       fixed: [
-        "Deleting a worktree's folder outside Termio no longer strands its row — the sidebar matches rows to git's own record and lets go of what git no longer tracks, and a checkout that isn't there offers no session.",
+        "Deleting a worktree's folder outside Fyolo no longer strands its row — the sidebar matches rows to git's own record and lets go of what git no longer tracks, and a checkout that isn't there offers no session.",
       ],
     },
   },
@@ -172,7 +172,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Updates stop garbling running sessions",
     changes: {
       fixed: [
-        "Updating Termio no longer leaves running sessions with garbled screens on the next reattach — a session carried across an update repaints cleanly the moment a phone or a Mac window opens it again.",
+        "Updating Fyolo no longer leaves running sessions with garbled screens on the next reattach — a session carried across an update repaints cleanly the moment a phone or a Mac window opens it again.",
         "Setting up a remote device records what the deploy just observed, so the next connection doesn't re-ask the machine what it already answered.",
       ],
     },
@@ -201,10 +201,10 @@ export const changelog: ChangelogEntry[] = [
     changes: {
       new: [
         "Remote projects launch agent sessions now, not just terminals: the box's own session host starts the agent through its login shell, in the recorded checkout, and the session survives disconnects like any other.",
-        "Updating Termio updates this Mac's session host too: the daemon takes the new binary in place, keeping every running session. When that isn't free, Termio names the sessions in the way and asks instead of interrupting them.",
+        "Updating Fyolo updates this Mac's session host too: the daemon takes the new binary in place, keeping every running session. When that isn't free, Fyolo names the sessions in the way and asks instead of interrupting them.",
       ],
       improved: [
-        "termio version flags a session host running behind the installed binary and says how to bring it current.",
+        "fyolo version flags a session host running behind the installed binary and says how to bring it current.",
       ],
       fixed: [
         "Sessions started by hand on a remote box now group under their git repository on a directly-attached iPhone, instead of all landing in Terminals.",
@@ -225,7 +225,7 @@ export const changelog: ChangelogEntry[] = [
       ],
       fixed: [
         "Opening a session from the phone no longer resizes it to the Mac's window first, which was mangling agent TUIs' composer boxes on every open.",
-        "⌘H hides the app: the app menu now carries the standard Hide Termio, Hide Others, and Show All items.",
+        "⌘H hides the app: the app menu now carries the standard Hide Fyolo, Hide Others, and Show All items.",
       ],
     },
   },
@@ -252,7 +252,7 @@ export const changelog: ChangelogEntry[] = [
         "The Changes pane reads a remote machine's checkout — status, diffs, history, and branch comparison — over the session host instead of shelling out over SSH, so a repo on a VPS behaves like one on this Mac.",
         "The file tree and content search go the same way. Search is ripgrep's own engine embedded in the host, and it honours the repo's excludes.",
         "Agents can carry their own startup arguments, set per agent in Settings.",
-        "The termio command is a real binary now, shipped inside the app instead of a shell script — it fails loudly instead of guessing, and rejects a flag it does not know rather than passing it on as text.",
+        "The fyolo command is a real binary now, shipped inside the app instead of a shell script — it fails loudly instead of guessing, and rejects a flag it does not know rather than passing it on as text.",
       ],
       improved: [
         "A session is sized to the screen someone is actually using. Working on the phone sizes it to the phone; typing on the Mac hands it back, and a window nobody is looking at stops holding it down.",
@@ -274,7 +274,7 @@ export const changelog: ChangelogEntry[] = [
     changes: {
       new: [
         "The Mac stays awake while any session is busy. An agent stopped at a permission prompt no longer lets the machine idle into sleep before your phone can answer.",
-        "termio version prints one table — this client, the app, this Mac's session host, and every known remote's — so version skew is visible before it bites.",
+        "fyolo version prints one table — this client, the app, this Mac's session host, and every known remote's — so version skew is visible before it bites.",
       ],
       improved: [
         "When a machine can't be reached, its dot now carries ssh's own last words — \"Permission denied (publickey)\" instead of \"the connection closed\" — and a box without the session host installed says exactly that. Fix the network, switch back to the app, and it reconnects by itself.",
@@ -324,7 +324,7 @@ export const changelog: ChangelogEntry[] = [
     title: "A frozen session leaves evidence behind",
     changes: {
       new: [
-        "The session host keeps a log at ~/Library/Logs/termio/termiod.log, so a session that froze or died has something to show for it afterwards. `termiod logs` prints it.",
+        "The session host keeps a log at ~/Library/Logs/fyolo/fyolod.log, so a session that froze or died has something to show for it afterwards. `fyolod logs` prints it.",
       ],
       fixed: [
         "In fullscreen, the navigator toggle sat a gap away from the column below it once the titlebar was summoned.",
@@ -359,8 +359,8 @@ export const changelog: ChangelogEntry[] = [
     title: "Set up a machine in one step, every time",
     changes: {
       new: [
-        "Installing and updating termiod on a machine is one step that works from any state: nothing installed, an older build, a newer build the daemon hasn't picked up. Set Up puts the right binary there, restarts the daemon when it's safe, checks the new one answers, and puts the old one back if it doesn't.",
-        "termiod reports its version. A machine's pane shows what it runs, and an update waiting on work in progress says so — naming the session — with Update Anyway beside it.",
+        "Installing and updating fyolod on a machine is one step that works from any state: nothing installed, an older build, a newer build the daemon hasn't picked up. Set Up puts the right binary there, restarts the daemon when it's safe, checks the new one answers, and puts the old one back if it doesn't.",
+        "fyolod reports its version. A machine's pane shows what it runs, and an update waiting on work in progress says so — naming the session — with Update Anyway beside it.",
         "Your own idle terminals on a machine no longer block its update; only a command still running or an agent mid-task does.",
         "Settings ▸ General ▸ Privacy: a switch for anonymous daily usage statistics. It sends nothing in this release.",
       ],
@@ -382,11 +382,11 @@ export const changelog: ChangelogEntry[] = [
     changes: {
       new: [
         "Settings now says which machine it means. Agents, Workspace and the rest carry a machine scope, every device you've added is a row rather than something behind a picker, and each one gets its own pages. What you change on a device is what that device gets.",
-        "Agent integration installs onto another machine, not just this one. termio reads the same agent manifests it uses here and writes the hooks, the plugin dialects, the config block and the skill onto the box over the daemon — so an agent on a VPS reports working, waiting and done the way a local one does.",
+        "Agent integration installs onto another machine, not just this one. fyolo reads the same agent manifests it uses here and writes the hooks, the plugin dialects, the config block and the skill onto the box over the daemon — so an agent on a VPS reports working, waiting and done the way a local one does.",
         "The file tree reaches the other machine. Search a checkout on a device and follow its `cd`, open what the search found, and save the file back to the device it was read from.",
         "Your phone can attach straight to a device over the session protocol, instead of only reaching it through this Mac.",
         "The code editor learned real editing: find and replace with the Mac find keys, comment lines, move and copy lines, indent on Return, Tab to indent a block, indentation guides, and a wash on other occurrences of the word under the caret.",
-        "⌘W closes the focused session. It never quits termio.",
+        "⌘W closes the focused session. It never quits fyolo.",
       ],
       improved: [
         "Panes you can't see stop rendering. A window full of sessions used to keep a live renderer behind every hidden pane; now only what's on screen draws.",
@@ -397,7 +397,7 @@ export const changelog: ChangelogEntry[] = [
       fixed: [
         "A folder git doesn't track is no longer described as a clean working tree.",
         "ANSI white is readable on the light default theme.",
-        "termio finds a device's agents where that device actually keeps them, honours the XDG bases on this Mac too, and never merges over a config you edited by hand. A reinstall replaces the device's own hooks instead of stacking beside them.",
+        "fyolo finds a device's agents where that device actually keeps them, honours the XDG bases on this Mac too, and never merges over a config you edited by hand. A reinstall replaces the device's own hooks instead of stacking beside them.",
         "Installing onto a device no longer freezes the Settings window while it works.",
         "Clicking a file tree row that's already selected reopens the file, and an ended session row drags and drops like a live one.",
       ],
@@ -411,16 +411,16 @@ export const changelog: ChangelogEntry[] = [
       new: [
         "Drag a session out of the sidebar and onto a pane to group it in beside what's already there. Every part of the pane is a live edge, so releasing anywhere picks a side rather than landing in a dead middle. A pane the session can't join declines the drag, and the pane already holding it dims.",
         "Inside the sidebar, where a dragged row lands decides what happens to it: the middle of a row groups the two sessions, the top or bottom edge reorders into that gap. A line means \"between these\", a lifted row means \"into this one\".",
-        "`termio sessions spawn` and `run` take `--direction right|down` and `--ratio`, so a spawned session can say where it goes and how much of the split it takes. `--direction down --ratio 0.25` is a log strip.",
+        "`fyolo sessions spawn` and `run` take `--direction right|down` and `--ratio`, so a spawned session can say where it goes and how much of the split it takes. `--direction down --ratio 0.25` is a log strip.",
       ],
       improved: [
         "Splitting the same way twice now shares the space evenly — split right twice and the panes read as thirds, instead of a half and two quarters. Dividers you've dragged yourself stay where you put them, and the rest redistribute around them.",
         "A workspace comes back to the session you left it on, rather than whatever sorts first. The row carries its panes, its split group and its inspector tab with it, so returning to a scope puts your own work back on screen.",
       ],
       fixed: [
-        "A prompt sent to a session now says when it was written but never received. An agent still on a startup gate — a hook-trust prompt, a first-run notice — takes typed text as the answer to its own question and shows nothing for it; the send used to report success anyway. `termio sessions list` flags the session until something else is delivered to it.",
+        "A prompt sent to a session now says when it was written but never received. An agent still on a startup gate — a hook-trust prompt, a first-run notice — takes typed text as the answer to its own question and shows nothing for it; the send used to report success anyway. `fyolo sessions list` flags the session until something else is delivered to it.",
         "The address that serves your phone retries with backoff when it can't come up, stays down once you suspend it, and no longer keeps minting fresh URLs it can't serve. Its failure messages are translated.",
-        "A session started by the termio server no longer inherits signals the server happened to have ignored or blocked, which could leave ⌃C or ⌃Z doing nothing in that terminal.",
+        "A session started by the fyolo server no longer inherits signals the server happened to have ignored or blocked, which could leave ⌃C or ⌃Z doing nothing in that terminal.",
       ],
     },
   },
@@ -440,7 +440,7 @@ export const changelog: ChangelogEntry[] = [
     title: "A session on another machine says what it's working on",
     changes: {
       fixed: [
-        "A session running on another machine now follows what its agent is doing, the way a local one does — the row becomes the agent's name, then the topic it's working on. It used to sit on a fixed \"project · host\" label forever: the name termio composed for the row was kept in the same place a name you type goes, so nothing was ever allowed to replace it.",
+        "A session running on another machine now follows what its agent is doing, the way a local one does — the row becomes the agent's name, then the topic it's working on. It used to sit on a fixed \"project · host\" label forever: the name fyolo composed for the row was kept in the same place a name you type goes, so nothing was ever allowed to replace it.",
         "Maximizing a file no longer flashes the file tree on the way there.",
       ],
     },
@@ -451,8 +451,8 @@ export const changelog: ChangelogEntry[] = [
     title: "A session that can't start says why",
     changes: {
       fixed: [
-        "A session whose folder has been deleted, moved, or left on an unmounted drive now names the folder. It used to report that your shell didn't exist — the same error code covers both, and termio picked the wrong one to blame.",
-        "Running the test suite from a checkout no longer overwrites the installed app's projects and sessions. This one only ever reached people who build termio themselves.",
+        "A session whose folder has been deleted, moved, or left on an unmounted drive now names the folder. It used to report that your shell didn't exist — the same error code covers both, and fyolo picked the wrong one to blame.",
+        "Running the test suite from a checkout no longer overwrites the installed app's projects and sessions. This one only ever reached people who build fyolo themselves.",
       ],
     },
   },
@@ -472,7 +472,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Put a workspace on another machine",
     changes: {
       new: [
-        "A workspace can live on a box you own — a VPS, or the Mac mini on the same desk — and termio sets up the session host there for you. It copies one binary into ~/.local/bin over SSH — no root, no package manager. A machine already running one is upgraded in place.",
+        "A workspace can live on a box you own — a VPS, or the Mac mini on the same desk — and fyolo sets up the session host there for you. It copies one binary into ~/.local/bin over SSH — no root, no package manager. A machine already running one is upgraded in place.",
         "Settings ▸ Workspaces: every workspace on one screen, with renaming and removing beside the one they act on. The switcher menu could only ever offer those for the workspace you were already in, which is why they read as \"Rename Workspace\" with no name in them.",
         "The phone groups projects by workspace, and each section names the machine that workspace is on. The roster used to arrive as one flat list, so a checkout on a VPS and one on this Mac looked the same.",
       ],
@@ -499,8 +499,8 @@ export const changelog: ChangelogEntry[] = [
     title: "A dev build no longer shares the session host",
     changes: {
       fixed: [
-        "A second build of termio on the same Mac now keeps its own sessions. Both used one session host, so each was handed the other's entire list, showed every row of it under Also Running, and could close sessions the other was running. Sessions under a shipped termio are unaffected and keep running across the update.",
-        "Rows under Also Running show the folder a session is running in, instead of the whole command it was started with. The command was the shell wrapper termio launches through, so the part worth reading was cut off the end; it's on the row's tooltip now.",
+        "A second build of fyolo on the same Mac now keeps its own sessions. Both used one session host, so each was handed the other's entire list, showed every row of it under Also Running, and could close sessions the other was running. Sessions under a shipped fyolo are unaffected and keep running across the update.",
+        "Rows under Also Running show the folder a session is running in, instead of the whole command it was started with. The command was the shell wrapper fyolo launches through, so the part worth reading was cut off the end; it's on the row's tooltip now.",
       ],
     },
   },
@@ -516,7 +516,7 @@ export const changelog: ChangelogEntry[] = [
         "Rows under Also Running are named after the program they're running, instead of the identifier the session was created with.",
       ],
       fixed: [
-        "Sessions belonging to another copy of termio on the same Mac no longer appear under Also Running. Both share one session host, so the second one to open was handed the first one's whole list and showed every row of it as a session nothing accounted for.",
+        "Sessions belonging to another copy of fyolo on the same Mac no longer appear under Also Running. Both share one session host, so the second one to open was handed the first one's whole list and showed every row of it as a session nothing accounted for.",
       ],
     },
   },
@@ -528,8 +528,8 @@ export const changelog: ChangelogEntry[] = [
       fixed: [
         "An agent's spinner stopped about twelve seconds into a turn and never came back, so a session that was still working sat there looking idle. It now runs as long as the turn does.",
         "Sessions the daemon hosts read their status from the same signals a local one does. They had only the window title to go on, so a turn that started without a hook went unseen.",
-        "Agent status no longer goes quiet for good when another build of termio is launched beside the app. Two of them share the machine now, and one that lost the status channel takes it back on its own.",
-        "Claude Code's newer spinner counts as working. It changed shape in 2.1.228, and termio still recognized only the old one.",
+        "Agent status no longer goes quiet for good when another build of fyolo is launched beside the app. Two of them share the machine now, and one that lost the status channel takes it back on its own.",
+        "Claude Code's newer spinner counts as working. It changed shape in 2.1.228, and fyolo still recognized only the old one.",
       ],
     },
   },
@@ -589,7 +589,7 @@ export const changelog: ChangelogEntry[] = [
         "Settings ▸ SSH is now Settings ▸ Machines: the hosts from your ~/.ssh/config, each one a click from a connection test or a terminal.",
         "A Codex session names itself from your first prompt, the way the other agents do.",
         "A loose terminal titles the window with its own directory.",
-        "`termio sessions send --key` presses a named key, instead of only sending a line of text.",
+        "`fyolo sessions send --key` presses a named key, instead of only sending a line of text.",
       ],
       fixed: [
         "Open Project and New Workspace stay clickable in the sidebar's + menu once a second machine is configured.",
@@ -597,7 +597,7 @@ export const changelog: ChangelogEntry[] = [
         "The file editor shows a file even when syntax highlighting cannot start.",
         "Background blur is ignored at full opacity, where it had nothing to blur.",
         "The Issues list rebuilds when you change its kind or filter.",
-        "Notifications are gated on Termio's own bundle rather than any bundle.",
+        "Notifications are gated on Fyolo's own bundle rather than any bundle.",
         "Markdown with a Mermaid diagram no longer flashes a stray window.",
       ],
     },
@@ -608,7 +608,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Speaks Simplified Chinese",
     changes: {
       new: [
-        "Simplified Chinese: the Mac app and the iPhone companion are fully translated. Termio follows your macOS language, and Settings ▸ General pins one if you'd rather choose.",
+        "Simplified Chinese: the Mac app and the iPhone companion are fully translated. Fyolo follows your macOS language, and Settings ▸ General pins one if you'd rather choose.",
         "More than one Mac: pair every Mac you work on from the phone and switch between them — the laptop at home, the devbox at the office — from a rail on the Projects screen or the Devices settings page.",
         "Custom relay: point remote access at a relay you host yourself instead of the built-in tunnel.",
         "Session control reaches every agent that supports skills, Amp, Antigravity, Hermes and Kimi included. Agents whose CLI isn't installed are skipped rather than half-configured.",
@@ -631,14 +631,14 @@ export const changelog: ChangelogEntry[] = [
     title: "Runs on Intel Macs",
     changes: {
       new: [
-        "Universal binary: Termio runs on Intel Macs as well as Apple silicon, from the same download.",
+        "Universal binary: Fyolo runs on Intel Macs as well as Apple silicon, from the same download.",
         "Usage: Kimi Code and Grok plan limits and token usage sit next to Claude Code and Codex, after a per-agent Allow.",
       ],
       improved: [
         "New Terminal (⌘T) opens in the focused session's working directory, beside that session. File ▸ New Terminal at Home still starts at your home directory.",
       ],
       fixed: [
-        "⌘W no longer quits Termio — closing the window leaves every session and agent alive, and the Dock icon brings it back. Quitting, or closing a session that is still running something, now asks first.",
+        "⌘W no longer quits Fyolo — closing the window leaves every session and agent alive, and the Dock icon brings it back. Quitting, or closing a session that is still running something, now asks first.",
         "A split group's sidebar bracket covers the same rows as the panes on screen.",
         "The reveal arrows in a diff's collapsed bands point the way the reveal walks.",
       ],
@@ -668,7 +668,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Session control, as a skill",
     changes: {
       new: [
-        "Agent skill: Termio installs a termio skill into the agents that support one, so an agent can see its sibling sessions, spawn one, send a prompt, and read the reply — without you pasting CLI instructions into a prompt. Switch it off in Settings ▸ General.",
+        "Agent skill: Fyolo installs a fyolo skill into the agents that support one, so an agent can see its sibling sessions, spawn one, send a prompt, and read the reply — without you pasting CLI instructions into a prompt. Switch it off in Settings ▸ General.",
       ],
       improved: [
         "Settings ▸ General leads with the command line and names the skill section.",
@@ -681,7 +681,7 @@ export const changelog: ChangelogEntry[] = [
     title: "The font and theme you already picked",
     changes: {
       new: [
-        "Ghostty config inheritance: on first launch Termio reads your ~/.config/ghostty/config and starts with the font and theme you already chose there.",
+        "Ghostty config inheritance: on first launch Fyolo reads your ~/.config/ghostty/config and starts with the font and theme you already chose there.",
       ],
       improved: [
         "The Interface settings tab folded into Appearance.",
@@ -731,7 +731,7 @@ export const changelog: ChangelogEntry[] = [
         "The inspector's file tree stays fast on huge project roots.",
       ],
       fixed: [
-        "The terminal surface stopped swallowing Termio's own shortcuts.",
+        "The terminal surface stopped swallowing Fyolo's own shortcuts.",
       ],
     },
   },
@@ -781,7 +781,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Notifications an agent can raise",
     changes: {
       new: [
-        "termio notify: an agent can raise a native macOS notification from its own shell — a title, a body, and a click that jumps to the session it came from.",
+        "fyolo notify: an agent can raise a native macOS notification from its own shell — a title, a body, and a click that jumps to the session it came from.",
         "The inspector's side is per session, so one session can keep files on the right while another keeps them on the left.",
         "Issues: a pull request's files read as one continuous multi-file diff.",
       ],
@@ -844,7 +844,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Your agents can tap you on the shoulder",
     changes: {
       new: [
-        "Task notifications: when an agent finishes a task — or stops to ask you something — while Termio is in the background, a native macOS notification appears with the agent's icon; click it to jump straight to that session. Quick replies and answer-only chat turns stay quiet, and a blocked agent always gets through. Toggle it (and its sound) in Settings › General.",
+        "Task notifications: when an agent finishes a task — or stops to ask you something — while Fyolo is in the background, a native macOS notification appears with the agent's icon; click it to jump straight to that session. Quick replies and answer-only chat turns stay quiet, and a blocked agent always gets through. Toggle it (and its sound) in Settings › General.",
         "Issues: a new inspector pane lists the project's GitHub issues and pull requests, readable without leaving the terminal.",
         "SSH: an SSH settings tab reads ~/.ssh/config as the source of truth, with Test Connection probes — and New SSH Connection now lists your config hosts, one click to connect.",
         "Sessions CLI: send and spawn take --wait to block until the turn settles, and watch emits stalled events when a working session stops making progress.",
@@ -914,7 +914,7 @@ export const changelog: ChangelogEntry[] = [
     changes: {
       new: [
         "Split panes: agents started from the CLI auto-split beside their caller, and any two sessions can be grouped or ungrouped by hand.",
-        "Termio is now MIT-licensed.",
+        "Fyolo is now MIT-licensed.",
       ],
       improved: [
         "Sidebar scrolling stays smooth with many busy sessions.",
@@ -973,7 +973,7 @@ export const changelog: ChangelogEntry[] = [
     changes: {
       new: [
         "The diff is one continuous view: selection flows across hunks, ⌘F searches it, keyboard walks it, and changed words highlight within lines.",
-        "Docs: termio.sh gained a documentation site, served for agents too (llms.txt and raw-Markdown routes).",
+        "Docs: fyolo.sh gained a documentation site, served for agents too (llms.txt and raw-Markdown routes).",
         "iOS: worktree branches, Chats, and Markdown previews sync to the phone.",
       ],
       improved: [
@@ -988,7 +988,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Agent status you can trust",
     changes: {
       new: [
-        "Status from the source: Termio now reads the status marks agents broadcast in their terminal titles — Claude's spinner, Codex and Grok's \"Action Required\" — so the sidebar lights up the instant a turn starts, ends, or blocks on you.",
+        "Status from the source: Fyolo now reads the status marks agents broadcast in their terminal titles — Claude's spinner, Codex and Grok's \"Action Required\" — so the sidebar lights up the instant a turn starts, ends, or blocks on you.",
         "Grok joins the built-in agent lineup.",
         "Markdown: .md files open in an Edit/Preview editor with a book-quality reading view.",
         "Agent manifests: the built-in lineup is now driven by editable manifest files, with a redesigned Agents settings pane — reorder the roster or add your own agents.",
@@ -1009,7 +1009,7 @@ export const changelog: ChangelogEntry[] = [
     title: "Sandbox retirement",
     changes: {
       improved: [
-        "The per-project Seatbelt sandbox has been retired: modern agents ship their own sandboxes, and macOS is deprecating the mechanism Termio's relied on. One project setting fewer.",
+        "The per-project Seatbelt sandbox has been retired: modern agents ship their own sandboxes, and macOS is deprecating the mechanism Fyolo's relied on. One project setting fewer.",
       ],
       fixed: [
         "Folders in the file tree expand and collapse from a single click on the row.",
@@ -1073,7 +1073,7 @@ export const changelog: ChangelogEntry[] = [
   {
     version: "0.8.0",
     date: "2026-07-15",
-    title: "Termio notices your agents",
+    title: "Fyolo notices your agents",
     changes: {
       new: [
         "Start claude, codex, or any agent by hand in a plain terminal and its row upgrades itself — brand icon, live title, working status — no setup required.",
@@ -1240,7 +1240,7 @@ export const changelog: ChangelogEntry[] = [
     title: "A new app identity",
     changes: {
       improved: [
-        "The app's bundle identifier is now sh.termio.app. If auto-update doesn't offer this release, download it once from the site — updates continue normally afterwards.",
+        "The app's bundle identifier is now sh.fyolo.app. If auto-update doesn't offer this release, download it once from the site — updates continue normally afterwards.",
       ],
     },
   },
@@ -1272,10 +1272,10 @@ export const changelog: ChangelogEntry[] = [
   {
     version: "0.1.0",
     date: "2026-07-06",
-    title: "Hello, Termio",
+    title: "Hello, Fyolo",
     changes: {
       new: [
-        "Termio's first public release — a native Mac terminal built for running AI coding agents, free to download.",
+        "Fyolo's first public release — a native Mac terminal built for running AI coding agents, free to download.",
         "Projects and sessions live in a full-height sidebar, with live working / idle / attention status for every agent.",
         "Git worktrees are grouped as folders under their project, and each folder shows its live branch.",
         "Sandbox: opt a project into running its sessions inside an Apple Seatbelt sandbox, contained from the rest of your Mac.",

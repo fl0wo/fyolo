@@ -1,6 +1,6 @@
 import Highlightr
 import QuickLook
-import TermioShared
+import FyoloShared
 import UIKit
 import WebKit
 

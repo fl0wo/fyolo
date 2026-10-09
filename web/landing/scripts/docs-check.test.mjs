@@ -24,8 +24,8 @@ test("an explicit [#id] wins over the text", () => {
 
 test("strips inline markup rather than slugifying it", () => {
   assert.equal(
-    headingAnchor("The `termio` command-line tool"),
-    "the-termio-command-line-tool",
+    headingAnchor("The `fyolo` command-line tool"),
+    "the-fyolo-command-line-tool",
   );
   assert.equal(headingAnchor("**Panes**"), "panes");
   assert.equal(headingAnchor("See [Concepts](/docs/concepts)"), "see-concepts");

@@ -25,7 +25,7 @@ const points = [
   {
     title: "Paired, not hosted",
     blurb:
-      "Pair every Mac you work on with a QR code and switch between them. Token-gated, no Termio cloud in the middle.",
+      "Pair every Mac you work on with a QR code and switch between them. Token-gated, no Fyolo cloud in the middle.",
   },
 ] as const;
 

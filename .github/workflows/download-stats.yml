@@ -1,13 +1,13 @@
 name: Download stats
 
-# Daily digest of downloads.termio.sh: pulls yesterday's download / active-Mac
+# Daily digest of downloads.fyolo.sh: pulls yesterday's download / active-Mac
 # numbers from Cloudflare's GraphQL Analytics API, appends them to a CSV ledger
 # on the orphan `stats` branch (Cloudflare's free plan only retains ~7 days, so
 # the running total has to be accumulated), and posts a summary to Telegram.
 #
 # Required repo secrets:
-#   CF_ANALYTICS_TOKEN   Cloudflare API token, Zone > Analytics > Read on termio.sh
-#   CF_ZONE_ID           termio.sh zone id (same value as CLOUDFLARE_ZONE_ID)
+#   CF_ANALYTICS_TOKEN   Cloudflare API token, Zone > Analytics > Read on fyolo.sh
+#   CF_ZONE_ID           fyolo.sh zone id (same value as CLOUDFLARE_ZONE_ID)
 #   TELEGRAM_BOT_TOKEN   from @BotFather
 #   TELEGRAM_CHAT_ID     chat id to post into
 
@@ -54,7 +54,7 @@ jobs:
       - name: Commit ledger
         run: |
           cd _stats
-          git config user.name  "termio-stats-bot"
+          git config user.name  "fyolo-stats-bot"
           git config user.email "actions@users.noreply.github.com"
           git add downloads.csv
           git diff --cached --quiet && echo "no change" && exit 0

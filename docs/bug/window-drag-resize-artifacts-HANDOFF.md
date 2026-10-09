@@ -6,7 +6,7 @@ created: 2026-09-01
 updated: 2026-09-04
 related:
   - ../design/20260901-pty-size-is-not-the-write-token.md
-  - ../design/20260730-termiod-session-protocol.md
+  - ../design/20260730-fyolod-session-protocol.md
   - terminal-resize-no-reflow-HANDOFF.md
   - phone-attached-resize-HANDOFF.md
   - agent-tui-focus-report-resize-storm.md
@@ -37,7 +37,7 @@ cost the first two days.
 ## 1. The short answer
 
 One PTY, **two terminal emulators**. libghostty runs a full VT on the client and
-reflows on its own authority; termiod runs a second authoritative VT as a
+reflows on its own authority; fyolod runs a second authoritative VT as a
 snapshot sidecar. Every artifact in this file lives in the gap between them —
 what one reflowed, when the other was told, and which of the two the user was
 looking at while they disagreed.
@@ -84,7 +84,7 @@ zellij's rendering filter.
 
 ### 3.2 The screen was truncated instead of rewrapped
 
-termiod's VT resized without reflow on purpose: a shell answers SIGWINCH by
+fyolod's VT resized without reflow on purpose: a shell answers SIGWINCH by
 moving the cursor up a row count computed from the **old** width, so rewrapping
 under it duplicates the prompt (the ⌘D report). But every attachment repaints
 from that screen, so a line the program had wrapped stayed broken where it was
@@ -273,10 +273,10 @@ it used to send two.
 
 A whole sibling investigation (`phone-attached-resize-HANDOFF.md`) measured a
 pane at the wrong grid on a branch that could not produce it. The dev app had
-been launched from a shell inside Termio, which exports `TERMIOD_SOCK`; that
-overrides `TERMIO_CHANNEL`, `open` passes it to the app, and the dev build
+been launched from a shell inside Fyolo, which exports `FYOLOD_SOCK`; that
+overrides `FYOLO_CHANNEL`, `open` passes it to the app, and the dev build
 attached to the **release** daemon — v0.48.0, no size policy, where PTY size
-*is* the write token. Launch with `env -u TERMIOD_SOCK`.
+*is* the write token. Launch with `env -u FYOLOD_SOCK`.
 
 ### 4.4 "It broke again" was a build that never had the fix
 
@@ -289,13 +289,13 @@ fix.
 
 The same checkout also held a day of **uncommitted** work from a parallel
 session — §3.9–§3.11, diagnosed and fixed but never branched. Two fix sets
-existed, neither build had both, and both touched `TermiodClient.swift` and
+existed, neither build had both, and both touched `FyolodClient.swift` and
 `session.rs`.
 
 **Check what the running binary was built from before believing a symptom.**
-`termiod status` names the daemon; the app's build time against `git log` names
+`fyolod status` names the daemon; the app's build time against `git log` names
 the app. And note that **the daemon does not restart when the app is rebuilt** —
-`termiod handoff` replaces it in place, keeping every PTY.
+`fyolod handoff` replaces it in place, keeping every PTY.
 
 ## 5. The measurements that settled it
 
@@ -312,7 +312,7 @@ cheap.
 hint row then `ESC[66G` — `/rc` at column 66. Rewrap that screen to 66 and `/`
 is the last cell while `rc` wraps; the 78-cell border splits into 66 + 12. That
 is the reporter's picture, glyph for glyph. Reproduced directly against
-`termiod-vt`: 82 → 55 gives a 55-cell run, a 27-cell run, and `for age` / `nts /
+`fyolod-vt`: 82 → 55 gives a 55-cell run, a 27-cell run, and `for age` / `nts /
 rc`. The `/rc` "sticking" was never sticking — it is Claude Code's
 right-aligned `/rc` falling off a wrap.
 
@@ -329,7 +329,7 @@ right-aligned `/rc` falling off a wrap.
   `InMemoryTerminalSession.updateViewport` made public in the fork.
 - **The mirror-mode RFC.** cmux does not have this family because it never runs
   two terminal authorities: a remote pane is `manualMirror`, where the embedder
-  owns the PTY and the terminal protocol and Ghostty only renders. termio's
+  owns the PTY and the terminal protocol and Ghostty only renders. fyolo's
   `.inMemory` is cmux's `manual`. A mirror mode would delete this class by
   construction, and must be argued against §A's anti-100× invariant.
 - **Sidecar never recovers after a handoff.** `mark_vt_stale` is a permanent
@@ -354,13 +354,13 @@ right-aligned `/rc` falling off a wrap.
   ```
   Four links log into one stream — one per open session plus the companion
   bridge — so the session name on every line is not decoration.
-- `TERMIO_TERMINAL_DEBUG=1` with `launchctl setenv` exposes ghostty's inner
+- `FYOLO_TERMINAL_DEBUG=1` with `launchctl setenv` exposes ghostty's inner
   metrics.
-- **Screenshots of the app** must go through the `termio.dev.snapshot`
+- **Screenshots of the app** must go through the `fyolo.dev.snapshot`
   distributed notification sent with `swift -e` (JXA cannot send it); Metal
   content is invisible to `screencapture`, which also needs a Screen Recording
   grant nobody driving this ever had.
-- **The daemon's own truth**: render `termiod attach --observe` through pyte, or
+- **The daemon's own truth**: render `fyolod attach --observe` through pyte, or
   read a snapshot's `vt` payload directly. An observer declares no viewport, so
   it never moves the session's size.
 - Never launch a second dev app from another path — it revokes the running one's

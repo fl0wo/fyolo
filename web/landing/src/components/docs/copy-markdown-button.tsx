@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 // "Copy for LLM" — copies the page's raw Markdown to the clipboard, so you can
 // paste it into an agent for context. Borrowed from Warp's docs, and especially
-// fitting here: Termio's readers are running coding agents all day.
+// fitting here: Fyolo's readers are running coding agents all day.
 export function CopyMarkdownButton({
   markdown,
   labels,

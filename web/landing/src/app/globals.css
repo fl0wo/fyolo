@@ -19,7 +19,7 @@
   --font-mono: var(--font-mono-stack);
   --font-heading: var(--font-system-sans);
 
-  /* termio brand accents — the terminal traffic-light trio plus gradient blues/purples. */
+  /* fyolo brand accents — the terminal traffic-light trio plus gradient blues/purples. */
   --color-brand-red: #ff5252;
   --color-brand-amber: #ffb764;
   --color-brand-amber-deep: #fd9426;
@@ -30,7 +30,7 @@
   --color-brand-blue-deep: #0072fb;
   --color-brand-cyan: #0fb7fa;
   --color-brand-purple: #b855e7;
-  /* The Termio brand anchor — an electric terminal teal, used sparingly for the
+  /* The Fyolo brand anchor — an electric terminal teal, used sparingly for the
      hero eyebrow, the live prompt arrow, and the CTA's edge light. */
   --color-brand-teal: #00d3c7;
   --color-brand-teal-deep: #00afa5;
@@ -112,7 +112,7 @@
   --radius: 1rem;
   /* Apple's standard easing curve and the spring used for press feedback. */
   --ease-apple: cubic-bezier(0.25, 0.1, 0.25, 1);
-  /* Apple's San Francisco via the system stack — termio's users are on macOS, so
+  /* Apple's San Francisco via the system stack — fyolo's users are on macOS, so
      Safari/Chrome render native SF (Display/Text optical sizing chosen by size).
      SF Pro can't be self-hosted (Apple license), so we ride the OS font; non-Apple
      visitors fall back to their own system UI font. */
@@ -1225,7 +1225,7 @@ html[data-docs-theme="light"]:has(.docs-surface) {
     padding: 0.1em 0.3em;
   }
   /* In a heading, code is part of the heading: it takes its size and weight and
-     drops the chip, so `## The \`termio\` command-line tool` reads as one line of
+     drops the chip, so `## The \`fyolo\` command-line tool` reads as one line of
      type instead of a label with a badge in it. */
   .docs-surface article .prose :is(h1, h2, h3, h4) code {
     padding: 0;
@@ -1290,7 +1290,7 @@ html[data-docs-theme="light"]:has(.docs-surface) {
   .docs-surface article .prose table tbody tr:last-child td {
     border-bottom: none;
   }
-  /* A command or a shortcut is one token. Wrapped, `termio sessions spawn
+  /* A command or a shortcut is one token. Wrapped, `fyolo sessions spawn
      "<prompt>"` reads as two. */
   .docs-surface article .prose table code {
     white-space: nowrap;

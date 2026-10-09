@@ -1,9 +1,9 @@
-# Contributing to Termio
+# Contributing to Fyolo
 
-Termio is a terminal-first environment for AI coding agents. The Mac app is
+Fyolo is a terminal-first environment for AI coding agents. The Mac app is
 Swift + AppKit/SwiftUI on top of **libghostty** (Ghostty's terminal core); the
-sessions themselves live in **`termiod`**, the Rust session host under
-`termiod/`. It is a deliberately small, focused tool — prefer clarity over cleverness, keep the
+sessions themselves live in **`fyolod`**, the Rust session host under
+`fyolod/`. It is a deliberately small, focused tool — prefer clarity over cleverness, keep the
 surface area minimal, and don't add features nobody asked for. When in doubt,
 open an issue and discuss before writing code.
 
@@ -12,8 +12,8 @@ open an issue and discuss before writing code.
 - macOS 14+.
 - Swift 6 (Xcode 26).
 - Rust (`cargo`) and **Zig 0.16.0 on `PATH` under that exact name**, to build
-  `termiod`. The daemon embeds libghostty-vt, which `build.rs` builds with Zig;
-  `termiod/DEPLOY.md` has the exact environment. Without them there is no
+  `fyolod`. The daemon embeds libghostty-vt, which `build.rs` builds with Zig;
+  `fyolod/DEPLOY.md` has the exact environment. Without them there is no
   session backend, so the app starts but can open no session.
 - You do **not** need `zig` for the Swift side: libghostty ships as a prebuilt
   `GhosttyKit.xcframework` via the
@@ -25,18 +25,18 @@ open an issue and discuss before writing code.
 ### Quick loop (bare binary)
 
 ```sh
-(cd termiod && cargo build)   # the session host — sessions need it
+(cd fyolod && cargo build)   # the session host — sessions need it
 swift build                   # resolves dependencies + compiles
 swift run                     # launches the app
 ```
 
 A bare `swift run` binary has no bundle, so it looks for the daemon at
-`termiod/target/{release,debug}/termiod` in the checkout it lives in. Build
-`termiod` once and every later `swift run` finds it; `TERMIO_TERMIOD_BIN`
+`fyolod/target/{release,debug}/fyolod` in the checkout it lives in. Build
+`fyolod` once and every later `swift run` finds it; `FYOLO_FYOLOD_BIN`
 overrides the path.
 
-Run from a macOS GUI session — Termio is a real foreground AppKit app
-(bootstrapped by an explicit `NSApplication` in `Sources/termio/App/App.swift`,
+Run from a macOS GUI session — Fyolo is a real foreground AppKit app
+(bootstrapped by an explicit `NSApplication` in `Sources/fyolo/App/App.swift`,
 not the SwiftUI `App` lifecycle).
 
 ### App bundle (Dock icon, Sparkle embedded)
@@ -45,31 +45,31 @@ not the SwiftUI `App` lifecycle).
 `.app`:
 
 ```sh
-./scripts/build-app.sh        # ad-hoc-signed release build → ./termio.app
-open ./termio.app
+./scripts/build-app.sh        # ad-hoc-signed release build → ./fyolo.app
+open ./fyolo.app
 ```
 
-The script builds `termiod` and bundles it into `Contents/Resources`. Without
+The script builds `fyolod` and bundles it into `Contents/Resources`. Without
 `cargo` and `zig` a release build fails outright; a dev build warns and ships
 without a daemon, which means it can open no session.
 
 ### Dev channel (run beside an installed release)
 
-If you have a released Termio installed, build the side-by-side dev app so you
+If you have a released Fyolo installed, build the side-by-side dev app so you
 don't clobber it:
 
 ```sh
-TERMIO_CHANNEL=dev ./scripts/build-app.sh    # → ./termio-dev.app
-open ./termio-dev.app
+FYOLO_CHANNEL=dev ./scripts/build-app.sh    # → ./fyolo-dev.app
+open ./fyolo-dev.app
 ```
 
-The dev channel gets its own bundle id (`sh.termio.app.dev`), its own state dir
-(`~/.termio-dev`), its own companion port (8788), a `termio-dev` CLI, and no
+The dev channel gets its own bundle id (`sh.fyolo.app.dev`), its own state dir
+(`~/.fyolo-dev`), its own companion port (8788), a `fyolo-dev` CLI, and no
 Sparkle update feed, so it can never auto-update itself onto the release channel.
 
 ### iOS companion
 
-The iOS app lives in `ios/` (`TermioMobile.xcodeproj`, scheme `TermioMobile`).
+The iOS app lives in `ios/` (`FyoloMobile.xcodeproj`, scheme `FyoloMobile`).
 `ios/dev-run.sh` builds and installs it pointed at this Mac's companion server.
 Shared wire-protocol code lives in `Shared/` and is used by both platforms.
 
@@ -94,14 +94,14 @@ From `AGENTS.md` (the authoritative copy, also what AI coding agents read):
 
 ### libghostty specifics
 
-- Termio uses the host-managed `.inMemory` backend: the surface renders bytes
+- Fyolo uses the host-managed `.inMemory` backend: the surface renders bytes
   the app attaches to over the session protocol
-  (`Sources/termio/Terminal/Termiod/TermiodClient.swift`). The PTY itself lives
-  in the daemon (`termiod/src/pty.rs`), spawned with the `openpty` +
+  (`Sources/fyolo/Terminal/Fyolod/FyolodClient.swift`). The PTY itself lives
+  in the daemon (`fyolod/src/pty.rs`), spawned with the `openpty` +
   `login_tty` shape. Do **not** switch the spawn to `posix_spawn` — that PTY
   shape breaks agents' resize repaint (see
   `docs/bug/terminal-resize-no-reflow-HANDOFF.md`).
-- One `TerminalViewState` owns one surface; `TermioStore`'s SurfaceCache keeps
+- One `TerminalViewState` owns one surface; `FyoloStore`'s SurfaceCache keeps
   it alive across view rebuilds so shells survive session switching.
 
 ### Dependencies and vendored code
@@ -111,14 +111,14 @@ library dependency that ships resources**: plain `swift build` generates a
 broken `Bundle.module` accessor (it only checks the `.app` root and a
 hardcoded build-machine path), so CI-built releases crash at runtime even when
 local dev builds work. This shipped as a crash twice (v0.1.0, v0.2.4). Vendor
-such code instead, the way `Sources/termio/Editor/Highlightr/` does: include
+such code instead, the way `Sources/fyolo/Editor/Highlightr/` does: include
 the upstream license in a vendor `README.md`, route resource lookups through
-`Bundle.termioResources`, and list local deviations from upstream in the file
+`Bundle.fyoloResources`, and list local deviations from upstream in the file
 header.
 
 Changes to libghostty itself go to the
 [termio-sh/libghostty-swift](https://github.com/termio-sh/libghostty-swift)
-fork (as rebased patch files there), not this repo; Termio then bumps the
+fork (as rebased patch files there), not this repo; Fyolo then bumps the
 package version in `Package.swift`.
 
 ## Patch conventions
@@ -135,7 +135,7 @@ package version in `Package.swift`.
   Long-lived divergent branches are exactly what this workflow exists to avoid.
 - Open the PR against `main`: `gh pr create --base main`.
 - For a substantial feature, a git worktree keeps it isolated:
-  `git worktree add ../termio-worktrees/<slug> -b feat/<slug> main`.
+  `git worktree add ../fyolo-worktrees/<slug> -b feat/<slug> main`.
 
 ### Commits
 
@@ -176,14 +176,14 @@ git push origin v0.3.0
 That fires `.github/workflows/release.yml`, which builds the app,
 Developer-ID-signs and notarizes it, packages a DMG, signs and merges the
 Sparkle appcast, uploads everything to Cloudflare R2
-(`downloads.termio.sh`), and records a GitHub Release.
+(`downloads.fyolo.sh`), and records a GitHub Release.
 
 - **The tag is the version**: `v0.3.0` → `CFBundleShortVersionString = 0.3.0`.
 - **The build number is the commit count** on `HEAD`, stamped into
   `CFBundleVersion`; it must only ever increase (see the history-rewrite
   warning above).
 - Existing installs pick the release up on their next Sparkle check via
-  `https://downloads.termio.sh/appcast.xml`.
+  `https://downloads.fyolo.sh/appcast.xml`.
 
 Details, one-time secret setup, and the manual verification checklist live in
 `docs/RELEASING.md` and `docs/runbook/macos-release-runbook.md`. To reproduce
@@ -191,7 +191,7 @@ a release-style signed bundle locally:
 
 ```sh
 SIGN_IDENTITY="Developer ID Application" \
-TERMIO_VERSION=0.3.0 TERMIO_BUILD=$(git rev-list --count HEAD) \
+FYOLO_VERSION=0.3.0 FYOLO_BUILD=$(git rev-list --count HEAD) \
   ./scripts/build-app.sh
 ```
 

@@ -10,7 +10,7 @@ updated: 2026-07-27
 
 > Make trying a terminal theme a fast, keyboard-first flow — search, preview live
 > on the real terminal, commit or revert — instead of a trip through Settings.
-> Implements [#118](https://github.com/termio-sh/termio/issues/118).
+> Implements [#118](https://github.com/fl0wo/fyolo/issues/118).
 
 ## Problem
 
@@ -48,7 +48,7 @@ search, grouping, and keyboard nav; each theme is a `PaletteItem` of kind `.them
    restore it on any dismissal that isn't a commit (`endThemeBrowsing`), and seed the
    highlight to the current theme so the opening preview is a no-op. `Enter`/click
    commits; Esc, click-away, and switching modes all revert.
-5. **No dedicated chord** (no `⌘K ⌘T`). Termio has no chord-prefix system and one
+5. **No dedicated chord** (no `⌘K ⌘T`). Fyolo has no chord-prefix system and one
    feature doesn't justify introducing one; the palette command is the entry point.
 
 ### North stars
@@ -85,9 +85,9 @@ The 485 bundled themes partition to **399 dark / 86 light**, both slots full aga
 
 ## Key files
 
-- `Sources/termio/CommandPalette/CommandPalette.swift` — `PaletteMode.themes`, the
+- `Sources/fyolo/CommandPalette/CommandPalette.swift` — `PaletteMode.themes`, the
   "Change Theme…" command, `themeItems`, slot resolution, `begin/endThemeBrowsing`,
   live-preview + revert, swatch rows.
-- `Sources/termio/Theme/ThemeLibrary.swift` — the `search("")` → `allThemes` fix.
-- `Sources/termio/Settings/ThemePickerField.swift` — existing picker; source of the
+- `Sources/fyolo/Theme/ThemeLibrary.swift` — the `search("")` → `allThemes` fix.
+- `Sources/fyolo/Settings/ThemePickerField.swift` — existing picker; source of the
   reused `ThemeSwatch` and the live-apply path.

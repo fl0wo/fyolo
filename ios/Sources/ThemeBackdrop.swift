@@ -2,7 +2,7 @@ import UIKit
 import GhosttyTheme
 
 /// Chrome colors borrowed from the terminal theme the user picked — the phone's
-/// counterpart of the Mac's `ChromeTheme`, and for the same reason: termio keeps
+/// counterpart of the Mac's `ChromeTheme`, and for the same reason: fyolo keeps
 /// a single source of color truth rather than a second palette that drifts from
 /// the terminal's. The inbox, project pages, settings cards, and the terminal
 /// surface all read as one canvas instead of a themed terminal floating in stark

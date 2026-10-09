@@ -1,13 +1,13 @@
-# Termio — landing page
+# Fyolo — landing page
 
-The marketing site for **Termio**, a native macOS terminal that gives every AI
+The marketing site for **Fyolo**, a native macOS terminal that gives every AI
 coding agent (Claude Code, Codex, Gemini, Amp, and more) a first-class home.
-Termio is **free to use** — the site's only call to action is the Mac download.
+Fyolo is **free to use** — the site's only call to action is the Mac download.
 
 Built with **Next.js (App Router) + TypeScript + Tailwind CSS v4 + shadcn/ui**.
 The visual design is modeled on [superwhisper.com](https://superwhisper.com) — a
 dark, cinematic, gradient-forward Mac-app aesthetic — while all copy and product
-facts are about Termio.
+facts are about Fyolo.
 
 ## Run it
 
@@ -41,7 +41,7 @@ src/
     site-nav.tsx        # sticky nav
     site-footer.tsx     # grouped footer links
     hero-gradient.tsx   # animated WebGL mesh-gradient hero backdrop
-    termio-window.tsx   # CSS/JSX mock of the app (hero visual)
+    fyolo-window.tsx   # CSS/JSX mock of the app (hero visual)
     reveal.tsx          # IntersectionObserver scroll-entrance wrapper
     sections/           # hero, social-proof, features, faq, cta-band
     ui/                 # shadcn components (button, card, accordion, badge, separator)

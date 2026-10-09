@@ -5,7 +5,7 @@ type: rfc
 created: 2026-09-02
 updated: 2026-09-02
 related:
-  - 20260730-termiod-session-protocol.md
+  - 20260730-fyolod-session-protocol.md
   - 20260829-feature-cut-after-superlogical-demo.md
   - 20260831-docker-dockerd-lessons.md
 ---
@@ -13,11 +13,11 @@ related:
 # Superlogical's server memory model: three levels of parking
 
 > Capture Mitchell Hashimoto's 2026-09 talk on the Superlogical server's memory
-> optimizations, and work out which of the ideas apply to termiod.
+> optimizations, and work out which of the ideas apply to fyolod.
 
 Source: <https://x.com/mitchellh/status/2095232081853039041> (11.7-minute audio,
 transcribed with Whisper; full transcript at the end). Superlogical is the
-closest competitor to termiod's slice: a self-hosted session host bundled into a
+closest competitor to fyolod's slice: a self-hosted session host bundled into a
 Mac app that also runs standalone on Linux.
 
 ## The claims
@@ -80,17 +80,17 @@ terminal, the snapshot is **streamed from disk directly to the client** — the
 server never rehydrates. A client hammering attach/detach against a parked
 terminal costs the server nothing but disk streaming.
 
-## What this means for termiod
+## What this means for fyolod
 
-termiod today matches Superlogical's baseline shape — one PTY per session, a
-dedicated read path (`termiod/src/pty.rs`), sidecar VT for
+fyolod today matches Superlogical's baseline shape — one PTY per session, a
+dedicated read path (`fyolod/src/pty.rs`), sidecar VT for
 snapshot-at-boundaries — and the anti-100× invariant already forbids the
 per-frame work that makes tmux expensive. The parking tiers are the delta:
 
 1. **Snapshot-from-disk on attach is protocol-compatible.** "State sync only at
    boundaries" already means attach = snapshot; serving that snapshot from a
    parked on-disk image instead of a live VT changes nothing on the wire. This
-   is the most termiod-shaped idea in the talk.
+   is the most fyolod-shaped idea in the talk.
 2. **PTY parking is the cheap first step.** Demoting idle/unobserved PTYs from
    dedicated threads to one shared poller needs no snapshot format, no
    encryption story, and directly addresses the "hundreds of agent sessions on
@@ -107,7 +107,7 @@ per-frame work that makes tmux expensive. The parking tiers are the delta:
    with the user occasionally typing stays parked.
 
 None of this is committed work; this doc records the mechanisms so a future
-memory/scale pass on termiod starts from here instead of from the tweet.
+memory/scale pass on fyolod starts from here instead of from the tweet.
 
 ## Full transcript (Whisper, lightly annotated)
 

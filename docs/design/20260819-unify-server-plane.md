@@ -7,19 +7,19 @@ updated: 2026-08-31
 related:
   - 20260831-companion-second-protocol-retires.md
   - 20260831-docker-dockerd-lessons.md
-  - 20260817-one-path-local-through-termiod.md
-  - 20260817-one-path-local-through-termiod.review-claude.md
+  - 20260817-one-path-local-through-fyolod.md
+  - 20260817-one-path-local-through-fyolod.review-claude.md
   - 20260818-one-workspace-source.md
   - 20260818-one-workspace-source.review-codex.md
   - 20260818-remote-git-plane.md
-  - 20260805-termiod-device-architecture.md
+  - 20260805-fyolod-device-architecture.md
   - 20260819-device-workspace-project.md
-  - 20260818-termiod-web-client-ghostty-wasm.md
+  - 20260818-fyolod-web-client-ghostty-wasm.md
 ---
 
 # Unify the server plane in Rust, reduce the Mac app to a viewer
 
-> One server — `termiod` — owns every answer two people on two machines would
+> One server — `fyolod` — owns every answer two people on two machines would
 > expect to match. Swift renders and nothing else. This is the **execution
 > spine**: the single ordered list of what happens next, restamped against the
 > tree at `c69c022`.
@@ -33,9 +33,9 @@ place to read *why*:
 
 | Document | What it is authoritative for |
 | --- | --- |
-| `20260805-termiod-device-architecture.md` | **The normative invariants.** §4 the presentation boundary, §4.1 what each side owns, §5 the four planes and one connection, §5.1 the connection as an object |
+| `20260805-fyolod-device-architecture.md` | **The normative invariants.** §4 the presentation boundary, §4.1 what each side owns, §5 the four planes and one connection, §5.1 the connection as an object |
 | `20260819-device-workspace-project.md` | The vocabulary: Device → Workspace → Project → Session, and which of those a device owns |
-| `20260817-one-path-local-through-termiod.md` | The Swift-side inventory, the daemon-lifecycle blockers, the CLI verb-by-verb split |
+| `20260817-one-path-local-through-fyolod.md` | The Swift-side inventory, the daemon-lifecycle blockers, the CLI verb-by-verb split |
 | `20260818-remote-git-plane.md` | The git tiers, and the askpass mechanism |
 
 This document does the three things none of them can do individually:
@@ -81,7 +81,7 @@ inherited; none is new here.
 5. **No nested window manager in the host.** One PTY per session.
 6. **Single writer, many readers.**
 7. **The host describes state; it never decides how that state looks**
-   (device arch §4). The `grid_diff` refusal at `TermiodClient.swift:27` and the
+   (device arch §4). The `grid_diff` refusal at `FyolodClient.swift:27` and the
    `S`-payload `palette: false` fix are the same rule twice.
 
 ---
@@ -89,36 +89,36 @@ inherited; none is new here.
 ## 2. Ground truth — measured 2026-08-22 at `c69c022`
 
 The first revision of this document was cut at `7fedc72`. Thirteen commits have
-landed under `termiod/` since, and they move three of its eight stages. What
+landed under `fyolod/` since, and they move three of its eight stages. What
 follows replaces §1 of that revision wholesale.
 
 > **Restamp, 2026-08-31.** The tree outran this section within hours of the
 > 2026-08-22 stamp, and the doc went nine days without recording it. What is
 > true now:
 >
-> - **Stage 2 is done.** `feat/termiod-session-facts` merged as PR #400 the
+> - **Stage 2 is done.** `feat/fyolod-session-facts` merged as PR #400 the
 >   same afternoon (2026-08-22T14:46Z); all four of its gates closed —
->   `termiod.yml` has the ubuntu-24.04-arm job, the wire-order integration
->   test exists (`TermiodWireOrderIntegrationTests.swift`),
+>   `fyolod.yml` has the ubuntu-24.04-arm job, the wire-order integration
+>   test exists (`FyolodWireOrderIntegrationTests.swift`),
 >   `Tombstone::from_info` carries `child_executable_replaced`
 >   (`tombstone.rs:123`), and `displayLabel` reads `foregroundArgv` first
->   (`TermiodProtocol.swift:966-977`).
+>   (`FyolodProtocol.swift:966-977`).
 > - **Stages 7 and 8 collapsed into one step, and the soak was served
 >   retroactively.** `a8b15bd` (2026-08-22, two hours after PR #400) deleted
->   `PTYProcess.swift` and every `TERMIO_TERMIOD` branch without the
+>   `PTYProcess.swift` and every `FYOLO_FYOLOD` branch without the
 >   flag-default-on release Stage 7 specified. The sequencing risk was taken,
 >   not mitigated — and then paid off empirically: the daemon-only backend
 >   shipped in every tag from v0.41.0 onward with no rollback. Stage 8's greps
 >   pass on main today.
-> - **Stage 6 is done.** `grep -rn 'PTYProcess' Sources/termio/Companion/` → 0;
+> - **Stage 6 is done.** `grep -rn 'PTYProcess' Sources/fyolo/Companion/` → 0;
 >   `PTYBridge` no longer exists (PR #404 and follow-ups #490, #495, #517).
 > - **Stage 5** items 2 and 3 are done differently than written: Linux systemd
 >   `--user` supervision landed inside PR #522 (`a1a8cdc`), and PR #530 made
->   termiod own the unit; `feat/termiod-remote-install` was superseded by the
+>   fyolod own the unit; `feat/fyolod-remote-install` was superseded by the
 >   reconcile loop (PRs #499, #522, #543) and deleted. Item 1 (local launchctl
 >   supervision) is still open.
 > - **Stage 3** is half done: `fs.search` shipped and is consumed
->   (`TermiodFiles.swift:559-644`). The daemon's `git.diff` shipped long ago
+>   (`FyolodFiles.swift:559-644`). The daemon's `git.diff` shipped long ago
 >   (`d38f50c`, §2 table below); what is untouched is its Swift consumer —
 >   `grep -rn '"git\.' Sources/` → 0.
 > - **Stage 10 is pulled forward, starting 2026-08-31.** Its gate was never
@@ -133,19 +133,19 @@ follows replaces §1 of that revision wholesale.
 
 | Commit | What it changes for this plan |
 | --- | --- |
-| `d38f50c feat(termiod): serve the git read tier from the device` | `git.log`, `git.show`, `git.branches` beside `git.diff`. `git.rs` 501 → **1,271 lines** (`run_log:374`, `run_show:426`, `run_branches:503`); `protocol.rs:611-642` carries the requests, `:770-811` the replies. Every verb runs the box's own git with `--no-optional-locks`. **This is remote-git-plane §5 Stage 1, minus `git.blame`** |
-| `ab104f3 test(termiod): cover the git read tier over the wire` | the read tier is tested at the protocol boundary, not only in-process |
-| `26a5dcb` + `c4934c2` (`feat/rust-foreground`, PR #366) | `foreground_pid`, `foreground_argv`, `foreground_job`, `child_cwd`, `child_executable`, `child_executable_replaced` on `SessionInfo` (`protocol.rs:1020-1045`), fed by a new `termiod/src/proc.rs` (416 lines, cfg-gated: `KERN_PROCARGS2` on macOS, `/proc/<pid>/{cmdline,cwd,exe}` on Linux) and `tcgetpgrp` on the PTY **master** (`pty.rs:252-260`). **First time a Linux host can name the agent in a session at all** |
-| `1746593 fix(termiod): scope the daemon socket and launchd job by channel` | **Stage 4 items 1 and 2 of the last revision, both done.** `Termiod.socketPath(channelSuffix:environment:)` (`TermiodClient.swift:62-85`) mirrors `paths::channel_suffix()` (`paths.rs:23`); `service::label()` (`service.rs:36-40`) suffixes the launchd label, which is also the plist filename and the `gui/$UID` target |
-| `ff53d19 perf(files): score the name index with frizbee's SIMD matcher` | `fs.match`'s scorer (`files.rs:348-381`), `frizbee 0.13` in `termiod/Cargo.toml` |
-| `2ed6ff6 ci(termiod): run the Swift files client against a real daemon` | `.github/workflows/termiod.yml:139` runs `swift test --filter TermiodFilesIntegrationTests` against a daemon CI just built. The opt-in integration suite is no longer opt-in-and-never-run |
-| `96dc2df fix(termiod): give daemon-hosted sessions the same status tap as local ones` | agent status no longer degrades when a session moves to the daemon |
-| `3ded234 fix(termiod): strip the launcher's identity from spawned sessions` | `CLAUDE_CODE_*`, `TMUX`, `TERM_PROGRAM` no longer leak from whoever started the daemon into every session it spawns |
+| `d38f50c feat(fyolod): serve the git read tier from the device` | `git.log`, `git.show`, `git.branches` beside `git.diff`. `git.rs` 501 → **1,271 lines** (`run_log:374`, `run_show:426`, `run_branches:503`); `protocol.rs:611-642` carries the requests, `:770-811` the replies. Every verb runs the box's own git with `--no-optional-locks`. **This is remote-git-plane §5 Stage 1, minus `git.blame`** |
+| `ab104f3 test(fyolod): cover the git read tier over the wire` | the read tier is tested at the protocol boundary, not only in-process |
+| `26a5dcb` + `c4934c2` (`feat/rust-foreground`, PR #366) | `foreground_pid`, `foreground_argv`, `foreground_job`, `child_cwd`, `child_executable`, `child_executable_replaced` on `SessionInfo` (`protocol.rs:1020-1045`), fed by a new `fyolod/src/proc.rs` (416 lines, cfg-gated: `KERN_PROCARGS2` on macOS, `/proc/<pid>/{cmdline,cwd,exe}` on Linux) and `tcgetpgrp` on the PTY **master** (`pty.rs:252-260`). **First time a Linux host can name the agent in a session at all** |
+| `1746593 fix(fyolod): scope the daemon socket and launchd job by channel` | **Stage 4 items 1 and 2 of the last revision, both done.** `Fyolod.socketPath(channelSuffix:environment:)` (`FyolodClient.swift:62-85`) mirrors `paths::channel_suffix()` (`paths.rs:23`); `service::label()` (`service.rs:36-40`) suffixes the launchd label, which is also the plist filename and the `gui/$UID` target |
+| `ff53d19 perf(files): score the name index with frizbee's SIMD matcher` | `fs.match`'s scorer (`files.rs:348-381`), `frizbee 0.13` in `fyolod/Cargo.toml` |
+| `2ed6ff6 ci(fyolod): run the Swift files client against a real daemon` | `.github/workflows/fyolod.yml:139` runs `swift test --filter FyolodFilesIntegrationTests` against a daemon CI just built. The opt-in integration suite is no longer opt-in-and-never-run |
+| `96dc2df fix(fyolod): give daemon-hosted sessions the same status tap as local ones` | agent status no longer degrades when a session moves to the daemon |
+| `3ded234 fix(fyolod): strip the launcher's identity from spawned sessions` | `CLAUDE_CODE_*`, `TMUX`, `TERM_PROGRAM` no longer leak from whoever started the daemon into every session it spawns |
 
 Still true from the previous stamp, re-verified today: `Checkout` is the shipped
 `(device, root)` reference (`DeviceContext.swift:56-101`); the panes no longer
 ask a session how it was opened; `multiplexingArguments(host:)` ships
-(`TermiodClient.swift:233`, applied at `:406`); the daemon builds universal,
+(`FyolodClient.swift:233`, applied at `:406`); the daemon builds universal,
 `lipo`s with a failing arch check, signs inside the outer seal, and resolves out
 of `Bundle.main` (`daemonBinaryPath()`, `:119`).
 
@@ -155,7 +155,7 @@ of `Bundle.main` (`daemonBinaryPath()`, `:119`).
 grep -rn 'SFTPClient\|SSHFileSystemProvider\|SSHMux\|SSHProviderError\|sftpAlias' Sources/ Tests/ | wc -l   → 0
 grep -rc 'op = "fs_list"' Sources/                                                                          → 1
 grep -rn 'PTYProcess(' Sources/ | wc -l                                                                     → 1
-grep -rn 'TermiodConnection' Sources/ | wc -l                                                               → 0
+grep -rn 'FyolodConnection' Sources/ | wc -l                                                               → 0
 ```
 
 (Restamp 2026-08-31: the `PTYProcess(` row is now 0 — the constructor went
@@ -170,13 +170,13 @@ tree. Stage 1 is closed.
 
 Stages 5 and 6 of the last revision were **half-landed in Rust and unreached from
 Swift**. All three gaps below now have an implementation, **written, reviewed,
-and committed together on `feat/termiod-session-facts`, but unmerged** (§2.4) —
+and committed together on `feat/fyolod-session-facts`, but unmerged** (§2.4) —
 they are recorded here as the problem statement Stage 2 is answering, not as
 open work. Where an answer is only partial, the gate that remains is named in
 Stage 2.
 
 **(a) Swift never decodes the foreground fields.**
-`Termiod.SessionInformation` (`TermiodClient.swift:780-819`) decodes eleven keys
+`Fyolod.SessionInformation` (`FyolodClient.swift:780-819`) decodes eleven keys
 — `id, name, pid, alive, cwd, command, status, agentId, title, createdUnix,
 attachedClients` — and **none** of the six the daemon now sends. The consequence
 is visible: `displayLabel` still falls back to `programName(in: command)`
@@ -219,7 +219,7 @@ the ordinary pipeline case — `foo | bar` puts both in a group named after `foo
 and when `foo` exits first the group still owns the tty. `/proc/<pgid>/cmdline`
 is then gone, `process_arguments` returns `None`, and the session reports
 `foreground_job: true` with no argv: the client knows a job is running and
-cannot name it. `grep -rn 'pgrp' termiod/src/` finds only `tcgetpgrp` — nothing
+cannot name it. `grep -rn 'pgrp' fyolod/src/` finds only `tcgetpgrp` — nothing
 scans `/proc/*/stat` field 5 for a live member of the group, and nothing calls
 libproc's `proc_listpgrppids` on macOS, though both mechanisms exist. The fix is
 per-platform and belongs with the rest of `proc.rs`'s cfg-gating.
@@ -232,22 +232,22 @@ restamp).
 
 ### 2.4 Unmerged branches that bear on this plan
 
-(Restamp 2026-08-31: the two `feat/termiod-session-facts` rows merged as
-PR #400 the same afternoon this table was written; `feat/termiod-remote-install`
-was superseded by the reconcile loop and deleted. Only `feat/termiod-wss` is
+(Restamp 2026-08-31: the two `feat/fyolod-session-facts` rows merged as
+PR #400 the same afternoon this table was written; `feat/fyolod-remote-install`
+was superseded by the reconcile loop and deleted. Only `feat/fyolod-wss` is
 still an unmerged branch; `feat/foreground-parity` remains a dead worktree.
 The rows stand as the record of what was measured.)
 
 | Branch | Size | Standing |
 | --- | --- | --- |
-| `feat/termiod-remote-install` (`a497c00`) | 7 files, +732/−3 | **Answers open question 2 of the last revision.** Settings ▸ Machines reports what a box has and installs the slice this app carries; freshness is a digest, not a version string; the upload lands on a temp name and is moved only after `chmod`. Ships `TermiodInstaller.swift` (335) + 155 lines of tests, a `release.yml` artifact step, and `web/landing/public/install.sh`. Folded into Stage 5 |
-| `feat/termiod-wss` (5 commits) | 69 files, +18,791/−4 | A third client and a transport. Adds **zero** protocol verbs and touches **zero** Swift. **Its merge risk is no longer near zero** — `git log --oneline main --not feat/termiod-wss -- termiod/` is now **13 commits**, including `d38f50c`, `c4934c2` and `1746593`, so it needs a rebase across `protocol.rs`, `daemon.rs`, `git.rs` and `session.rs` rather than the byte-identical merge the last stamp described. Deferred, §8 |
-| `feat/termiod-session-facts` (`f4d8903`, `4f0e7da`) | 4 files · **+985/−62** | **Stage 2's host half, implemented and reviewed.** `proc.rs` +595, `session.rs` +328, `protocol.rs` +117, `daemon.rs` +7. The second commit adapts the new tests to `c69c022`'s graceful-shutdown API. **101 tests pass.** |
-| `feat/termiod-session-facts` (`96c73ad`) | 6 files · **+856/−59** | **Stage 2's client half, implemented and reviewed.** `TermiodClient.swift` +181, `TermioStore+Termiod.swift` +135, `TermioStore+TerminalSurface.swift` +95, `TermioStore+ProjectActions.swift` +38, and 28 new cases across `TermiodEventTests` (+179) and `TermiodStatusTests` (+287). **483 tests pass.** |
-| `feat/foreground-parity` | 0 commits · +42 uncommitted, plus an untracked `TermioStore+SessionFacts.swift` | **An earlier, superseded attempt at the same client half.** It decodes `foregroundJob` as a non-optional `Bool` with `?? false`, which erases "the device did not answer" from the type — the distinction the skew rule rests on — and it carries no tests. **Do not merge it alongside the pair above**; harvest `SessionFacts`'s single-answer framing if anything, and drop the rest. |
+| `feat/fyolod-remote-install` (`a497c00`) | 7 files, +732/−3 | **Answers open question 2 of the last revision.** Settings ▸ Machines reports what a box has and installs the slice this app carries; freshness is a digest, not a version string; the upload lands on a temp name and is moved only after `chmod`. Ships `FyolodInstaller.swift` (335) + 155 lines of tests, a `release.yml` artifact step, and `web/landing/public/install.sh`. Folded into Stage 5 |
+| `feat/fyolod-wss` (5 commits) | 69 files, +18,791/−4 | A third client and a transport. Adds **zero** protocol verbs and touches **zero** Swift. **Its merge risk is no longer near zero** — `git log --oneline main --not feat/fyolod-wss -- fyolod/` is now **13 commits**, including `d38f50c`, `c4934c2` and `1746593`, so it needs a rebase across `protocol.rs`, `daemon.rs`, `git.rs` and `session.rs` rather than the byte-identical merge the last stamp described. Deferred, §8 |
+| `feat/fyolod-session-facts` (`f4d8903`, `4f0e7da`) | 4 files · **+985/−62** | **Stage 2's host half, implemented and reviewed.** `proc.rs` +595, `session.rs` +328, `protocol.rs` +117, `daemon.rs` +7. The second commit adapts the new tests to `c69c022`'s graceful-shutdown API. **101 tests pass.** |
+| `feat/fyolod-session-facts` (`96c73ad`) | 6 files · **+856/−59** | **Stage 2's client half, implemented and reviewed.** `FyolodClient.swift` +181, `FyoloStore+Fyolod.swift` +135, `FyoloStore+TerminalSurface.swift` +95, `FyoloStore+ProjectActions.swift` +38, and 28 new cases across `FyolodEventTests` (+179) and `FyolodStatusTests` (+287). **483 tests pass.** |
+| `feat/foreground-parity` | 0 commits · +42 uncommitted, plus an untracked `FyoloStore+SessionFacts.swift` | **An earlier, superseded attempt at the same client half.** It decodes `foregroundJob` as a non-optional `Bool` with `?? false`, which erases "the device did not answer" from the type — the distinction the skew rule rests on — and it carries no tests. **Do not merge it alongside the pair above**; harvest `SessionFacts`'s single-answer framing if anything, and drop the rest. |
 
 The two completion worktrees were committed separately, then cherry-picked onto
-`feat/termiod-session-facts` at `c69c022` with this RFC. That integration branch
+`feat/fyolod-session-facts` at `c69c022` with this RFC. That integration branch
 was the only branch to review or merge for Stage 2 (merged as PR #400).
 `feat/foreground-parity` remains a superseded, uncommitted worktree and must
 not be combined with it.
@@ -265,7 +265,7 @@ uses the settled terms exclusively:
 Device        a machine, identified by host_id, reached by ≥1 ~/.ssh/config alias
   └ Workspace a named scope in the sidebar; holds projects and loose sessions
       └ Project    a checkout: a directory root on that device
-          └ Session a PTY in that device's termiod
+          └ Session a PTY in that device's fyolod
 ```
 
 Two ownership claims, and they point in different directions on purpose:
@@ -313,12 +313,12 @@ this list rather than around it.
 | --- | --- | --- |
 | libghostty surface, `TerminalPane`, `SplitTree`, every `*View` | `Terminal/` 6,218 · `Sidebar/` 1,971 · `Info/` 5,813 | Rendering, layout and panes are client concerns — invariant #5 |
 | ~~`OSCProgressScanner`~~ · ~~`AgentStatusRules`~~ | — | **Struck 2026-08-31.** They moved, and the argument is in [`20260831-companion-second-protocol-retires.md`](20260831-companion-second-protocol-retires.md) §3: identical bytes do not produce identical verdicts, because the rules also read *this* client's scroll, keystrokes, tick history and selection. What stays is the presentation half below |
-| `statusDescription`, the done-vs-idle call, argv → glyph | `TermioStore+AgentStatus.swift` | The device sends an enum and a source; the sentence, the dot and "has this person seen it" are the viewer's — §4 |
-| Theme, palette, fonts, keybindings | `Theme/` 527 · `Keybindings/` 628 | The `grid_diff` refusal (`TermiodClient.swift:27`) is the same rule: the host must never resolve a colour |
+| `statusDescription`, the done-vs-idle call, argv → glyph | `FyoloStore+AgentStatus.swift` | The device sends an enum and a source; the sentence, the dot and "has this person seen it" are the viewer's — §4 |
+| Theme, palette, fonts, keybindings | `Theme/` 527 · `Keybindings/` 628 | The `grid_diff` refusal (`FyolodClient.swift:27`) is the same rule: the host must never resolve a colour |
 | `TaskNotifications`, `MenuBarController`, keychain reads, `NSWorkspace`, Quick Look | `App/` 4,320 · `Companion/Usage/` | This Mac's Notification Center is this Mac's |
 | Encoding a human keypress | `Terminal/Ghostty/` | Needs an `NSEvent` and ghostty's key encoder — invariant #5 wearing a keyboard |
-| **Workspace grouping**, session naming, `termio://session/<uuid>` links | `TermioStore/` | §3. The arrangement is the user's, not the device's |
-| `focus`, `notify` CLI verbs | `TermioStore+SessionControl.swift:44-53` | Name *this* window and *this* Mac |
+| **Workspace grouping**, session naming, `fyolo://session/<uuid>` links | `FyoloStore/` | §3. The arrangement is the user's, not the device's |
+| `focus`, `notify` CLI verbs | `FyoloStore+SessionControl.swift:44-53` | Name *this* window and *this* Mac |
 | argv → agent mapping | client-side | The daemon reports argv; which glyph that becomes is presentation |
 
 ### 4.2 Moves to Rust
@@ -340,9 +340,9 @@ Ordered by how ready the daemon already is. "Daemon state" is measured today.
 | `.gitignore`, remote/PR URLs, clone info, stall fingerprint | `GitService.swift:565-984` | **Absent** | 9 |
 | Discard, stage, commit, stash, branch ops | `GitService.discard` + absent | **Absent** — new scope | 11 |
 | Fetch / pull / push, askpass | absent | **Absent** — new scope | 11 |
-| Session roster, `read`, `send`, `watch`, `spawn`, `close` | `TermioStore+SessionControl.swift` 1,040 | Verbs exist; the CLI talks to the Swift socket | 10 |
+| Session roster, `read`, `send`, `watch`, `spawn`, `close` | `FyoloStore+SessionControl.swift` 1,040 | Verbs exist; the CLI talks to the Swift socket | 10 |
 | Agent hook sink | `HookListener.swift` 944, `agent-status.sock` on this Mac | `set_status` exists; nothing routes a hook into it | 10 |
-| Agent status: screen rules, `OSC 0/2` title, `OSC 9;4` progress, streak promotion, stale sweep, stall probe | `TermioStore+AgentStatus.swift` 793 (deleted) | **Shipped** (`session/status.rs`), published as the `status:` resource | **done — retirement RFC Stage 1** |
+| Agent status: screen rules, `OSC 0/2` title, `OSC 9;4` progress, streak promotion, stale sweep, stall probe | `FyoloStore+AgentStatus.swift` 793 (deleted) | **Shipped** (`session/status.rs`), published as the `status:` resource | **done — retirement RFC Stage 1** |
 | PTY ownership | `PTYProcess.swift` 996 (deleted in `a8b15bd`) | **Shipped** (`pty.rs`) | **8 — done** |
 
 ### 4.3 Deleted outright
@@ -350,9 +350,9 @@ Ordered by how ready the daemon already is. "Daemon state" is measured today.
 | File | Lines | Stage | Gate |
 | --- | --- | --- | --- |
 | `SFTPClient.swift`, `SSHFileSystemProvider.swift`, `SSHFileSystemProviderTests.swift`, `Checkout.sftpAlias`, `SSHMux` | 1,409 + ~120 | 1 | **done** — the symbol grep in §2.2 is 0 |
-| `PTYBridge`'s dependence on `PTYProcess` | — | 6 | `grep -rn 'PTYProcess' Sources/termio/Companion/` → 0 |
-| `Termiod.isEnabled` (`TermiodClient.swift:46`) and every branch on it | — | 8 | `grep -rn 'TERMIO_TERMIOD\b' Sources/ \| wc -l` → 0 |
-| `PTYProcess(` construction (`TermioStore+TerminalSurface.swift:253`) and `PTYProcess.swift` | 996 | 8 | `grep -rn 'PTYProcess(' Sources/ \| wc -l` → 0 |
+| `PTYBridge`'s dependence on `PTYProcess` | — | 6 | `grep -rn 'PTYProcess' Sources/fyolo/Companion/` → 0 |
+| `Fyolod.isEnabled` (`FyolodClient.swift:46`) and every branch on it | — | 8 | `grep -rn 'FYOLO_FYOLOD\b' Sources/ \| wc -l` → 0 |
+| `PTYProcess(` construction (`FyoloStore+TerminalSurface.swift:253`) and `PTYProcess.swift` | 996 | 8 | `grep -rn 'PTYProcess(' Sources/ \| wc -l` → 0 |
 | `ContentSearch.swift`, `FileTreeWatcher.swift` | 283 | 9 | their symbol grep → 0 |
 
 `RemoteFileTree.swift` (507 lines) is **not** deleted — settled in the last
@@ -365,9 +365,9 @@ the deletion target was the transport.
 
 ## 5. The blocker, narrowed
 
-`withControlChannel` (`TermiodClient.swift:1155`) is one-shot: it opens a
+`withControlChannel` (`FyolodClient.swift:1155`) is one-shot: it opens a
 `Transport`, `defer`s its close, and nothing can outlive the closure. Re-verified
-today; `grep -rn 'TermiodConnection' Sources/` → 0.
+today; `grep -rn 'FyolodConnection' Sources/` → 0.
 
 **What it does and does not gate:**
 
@@ -378,8 +378,8 @@ today; `grep -rn 'TermiodConnection' Sources/` → 0.
 - **Gated** — `subscribe_resource` for `fs:` and `git:`, and therefore live file
   watching, the git Changes pane, and `fs.match` coverage. A subscription's
   whole value is that it outlives the request.
-- **Gated** — the companion's exit fan-out (§6 Stage 6). `TermiodSessionLink.onExit`
-  is one closure held by `attachTermiodLink` (`TermioStore+Termiod.swift:119`);
+- **Gated** — the companion's exit fan-out (§6 Stage 6). `FyolodSessionLink.onExit`
+  is one closure held by `attachFyolodLink` (`FyoloStore+Fyolod.swift:119`);
   the observer registry belongs on a connection, not on a transport.
 
 The cost the blocker does not name: each one-shot call over SSH is a full connect
@@ -414,12 +414,12 @@ double build.
 
 Landed as `68f5006` + `8e106ea`: **+513 / −2,030** across 14 files, of which 141
 additions are integration tests. Gates re-run in §2.2 and all clean. CI now runs
-the Swift client against a real daemon (`termiod.yml:139`), which closes the
+the Swift client against a real daemon (`fyolod.yml:139`), which closes the
 "opt-in and therefore never run" gap the original stage carried.
 
 One verification remains open and is recorded as open, not claimed: the device
 branch of the pane has not been seen on screen against a second machine running
-`termiod`.
+`fyolod`.
 
 ### Stage 2 — foreground parity: the client half — **done**
 
@@ -429,7 +429,7 @@ is kept as written because it records the decisions, two of which contradict
 one-path §3.2 and won.
 
 Nothing below is a proposal. It is the shape the implementation settled on,
-recorded because two of the decisions contradict what `20260817-one-path-local-through-termiod.md`
+recorded because two of the decisions contradict what `20260817-one-path-local-through-fyolod.md`
 §3.2 specified, and a later reader comparing the two needs to know which won.
 
 #### The wire, as built
@@ -466,7 +466,7 @@ would cost 216–292 ms on the main thread over SSH to learn nothing.
 
 An in-process PTY still wins outright when one exists — it is asked `tcgetpgrp`
 at the instant of the question, so its `false` is a genuinely fresher no
-(`TermioStore.foregroundJob(reportedLocally:reportedByDevice:)`). Only a session
+(`FyoloStore.foregroundJob(reportedLocally:reportedByDevice:)`). Only a session
 this app does not host falls through to the device's cache.
 
 The staleness is accepted because it is bounded in both directions, and the two
@@ -533,13 +533,13 @@ Two guards make the split safe:
 #### Remaining gates — all four closed by 2026-08-31 (kept as the record of what they were)
 
 - **Linux `cfg` compilation and runtime.** The `/proc` path has never been
-  compiled or run; it waits on `termiod.yml`'s ubuntu-24.04-arm job. Behaviourally:
+  compiled or run; it waits on `fyolod.yml`'s ubuntu-24.04-arm job. Behaviourally:
   run `sleep 60 | cat` in a session, and after the leader exits `foreground_job`
   is true **and** `foreground_argv` is non-empty.
 - **Combined wire-order integration coverage is absent.** Each half is tested
   against its own fixtures; nothing exercises a real daemon pushing a roster
   update and then an exit event to a real Swift client, in order. The
-  `TermiodFilesIntegrationTests` pattern (`termiod.yml:139`) is the place for it.
+  `FyolodFilesIntegrationTests` pattern (`fyolod.yml:139`) is the place for it.
 - **`child_executable_replaced` is still not on `Tombstone`.** The exit *event*
   carries it; `Tombstone::from_info` (`tombstone.rs:96-108`) does not, so a
   client that was not attached when the session died cannot learn it. §2.3(b).
@@ -573,7 +573,7 @@ genuinely different shapes and only one of them is hard.
 
 **4a — the argument list.** `multiplexingArguments(host:)` already ships
 `ControlMaster`, `ControlPersist` and a length-capped `ControlPath`, and refuses
-to override a user's `ControlMaster no` (`TermiodClient.swift:233-236`, applied
+to override a user's `ControlMaster no` (`FyolodClient.swift:233-236`, applied
 at `:406`). What is missing is `BatchMode` and `ConnectTimeout`, which every
 other ssh call site in the app sets and this one does not — so an unloaded key
 prompts onto an unread stderr and the attach hangs with no error. **A one-line
@@ -582,17 +582,17 @@ change with a real failure behind it.**
 *Gate:* attach to a host with a passphrase-protected key and no agent: a named
 error inside `ConnectTimeout`, never a hang.
 
-**4b — `TermiodConnection`.** One per device, owning the transport, its health
-and reconnect. `TermiodSessionLink` becomes a client of it rather than a
+**4b — `FyolodConnection`.** One per device, owning the transport, its health
+and reconnect. `FyolodSessionLink` becomes a client of it rather than a
 transport owner; `withControlChannel` becomes a channel *on* it rather than a
-process. `handleStreamEnd` (`TermiodClient.swift:1867-1873`) stops calling
+process. `handleStreamEnd` (`FyolodClient.swift:1867-1873`) stops calling
 `deliverExitLocked` — **a transport failure is not a process exit**, and today
 they are the same code path. The exit observer registry Stage 6 needs lands here.
 
 *Gates:*
 - Three panes on one SSH device: `pgrep -lf 'ssh .*<alias>'` shows **one** ssh.
 - `launchctl kickstart -k` the daemon with three local panes open: each pane
-  shows a state named `daemon_lost`, distinct from `exited`, and `termiod
+  shows a state named `daemon_lost`, distinct from `exited`, and `fyolod
   tombstones` lists all three with no invented exit status. **Not** "history
   intact" — sessions do not survive a daemon restart and by decision never will
   (`tombstone.rs`, burial loop).
@@ -614,7 +614,7 @@ Items 1 and 2 of the *last revision's* list landed in `1746593`; the three
 numbered below are what remained when this was written. Of those, items 2 and
 3 are done as of 2026-08-31 (systemd inside PR #522, unit ownership in
 PR #530; the reconcile loop of PRs #499/#522/#543 superseding
-`feat/termiod-remote-install`). Item 1 — nothing calls `launchctl` on the
+`feat/fyolod-remote-install`). Item 1 — nothing calls `launchctl` on the
 local Mac — is the one still open. See the §2 restamp.
 
 1. **The app installs or repairs the launchd job on launch.** Nothing calls
@@ -628,7 +628,7 @@ local Mac — is the one still open. See the §2 restamp.
    `service.rs:161-165` currently *refuses* on Linux with an error telling the
    user to do it by hand. That refusal is honest and is not shippable as the
    answer.
-3. **Merge `feat/termiod-remote-install`** (§2.4), which is what makes 1 and 2
+3. **Merge `feat/fyolod-remote-install`** (§2.4), which is what makes 1 and 2
    reachable for a box the user has not touched: Settings ▸ Machines probes with
    `--version` rather than `test -x` (executing the binary is what proves it
    matches the CPU and links against a libc that exists), compares a digest
@@ -675,12 +675,12 @@ each a decision:
 Exit fan-out is inherited from 4b rather than solved here.
 
 **Gates:** one-path §5 Stage 4's criteria, unchanged, plus
-`grep -rn 'PTYProcess' Sources/termio/Companion/` → 0. Verified on a real device,
+`grep -rn 'PTYProcess' Sources/fyolo/Companion/` → 0. Verified on a real device,
 not the simulator.
 
 ### Stage 7 — default on, for one full release — **collapsed into Stage 8; soak served retroactively** (§2 restamp)
 
-Ship with `Termiod.isEnabled` defaulting to **true** and `TERMIO_TERMIOD=0`
+Ship with `Fyolod.isEnabled` defaulting to **true** and `FYOLO_FYOLOD=0`
 able to force it off. Then run one release and change nothing else in this list.
 
 This is not a formality. Stages 1–6 each removed a reason the flag existed;
@@ -697,14 +697,14 @@ notifications behave as they did with the flag off.
 
 ### Stage 8 — delete the local PTY fork — **done** (`a8b15bd`, 2026-08-22; gates pass on main)
 
-Only now. Remove `Termiod.isEnabled` and every branch on it, the in-process
-`PTYProcess` construction (`TermioStore+TerminalSurface.swift:253`), the flag-off
-alerts (`TermioStore+Termiod.swift:861-865`, `TermioStore+TerminalSurface.swift:572`),
+Only now. Remove `Fyolod.isEnabled` and every branch on it, the in-process
+`PTYProcess` construction (`FyoloStore+TerminalSurface.swift:253`), the flag-off
+alerts (`FyoloStore+Fyolod.swift:861-865`, `FyoloStore+TerminalSurface.swift:572`),
 the `ptyProcesses` half of `terminateAllSessions`, and `PTYProcess.swift` itself.
 
 **Gates:** one-path §5 Stage 5's criteria verbatim —
-`grep -rn 'TERMIO_TERMIOD\b' Sources/ | wc -l` → 0 (correctly excluding
-`TERMIO_TERMIOD_BIN`); `grep -rn 'PTYProcess(' Sources/ | wc -l` → 0; `sleep 300`
+`grep -rn 'FYOLO_FYOLOD\b' Sources/ | wc -l` → 0 (correctly excluding
+`FYOLO_FYOLOD_BIN`); `grep -rn 'PTYProcess(' Sources/ | wc -l` → 0; `sleep 300`
 in a local pane survives a quit and relaunch at the same pid; `swift test` green;
 a screen-recorded pass of new terminal, new agent session, group, close with a
 running job, close idle, agent self-quit.
@@ -746,12 +746,12 @@ not obviously authorized by "the user let us read this machine" (open question 3
 one-path §7 and its Stage 6, unchanged in content and in internal order: `read`,
 `send`/`answer`, `watch`, `list`, `spawn`/`run`/`close`, then
 `agent report` → `set-status` plus hook installation on the device.
-`scripts/termio` becomes a router; `focus` and `notify` stay in Swift (§4.1).
+`scripts/fyolo` becomes a router; `focus` and `notify` stay in Swift (§4.1).
 
 Now cheap, because there is one session backend to route to rather than two.
 
 **Gates:** one-path Stage 6's criteria verbatim, including the old-shape check on
-**values** — `termio sessions list --json` matched against the pre-move build for
+**values** — `fyolo sessions list --json` matched against the pre-move build for
 a session that has `cd`'d out of its spawn directory, which is the case that
 passes a field-identical check while `cwd` silently rots.
 
@@ -779,7 +779,7 @@ contention; a passphrase-protected clone completes after answering on the Mac an
 a cancel produces a named error rather than a hang.
 
 `git.blame` (remote-git-plane §5 Stage 1) is **not** scheduled: it is
-editor-adjacent and termio's editor is a preview (§9.5).
+editor-adjacent and fyolo's editor is a preview (§9.5).
 
 ---
 
@@ -812,27 +812,27 @@ editor-adjacent and termio's editor is a preview (§9.5).
 
 5. **The brief's "delete `RemoteFileTree.swift`" is wrong.** §4.3.
 
-6. **`20260817-one-path-local-through-termiod.md` §5.2 item 1 and
+6. **`20260817-one-path-local-through-fyolod.md` §5.2 item 1 and
    `one-binary-and-a-daemon-that-ships.md` §1 both lead with a solved problem.**
    "A released build cannot start a daemon at all" was true when written:
-   `2199f35` builds, `lipo`s, arch-checks and signs `termiod` into
+   `2199f35` builds, `lipo`s, arch-checks and signs `fyolod` into
    `Contents/Resources`, and `daemonBinaryPath()` resolves it. What is left is
    Stage 5, a much smaller item than either RFC prices it at.
 
-7. **`20260817-one-path-local-through-termiod.md` Stage 2 item `4a` is partly done, not
+7. **`20260817-one-path-local-through-fyolod.md` Stage 2 item `4a` is partly done, not
    done.** The last revision of this document said "done"; that overstated it.
    `multiplexingArguments` ships, `BatchMode`/`ConnectTimeout` do not, and the
    missing pair is the difference between a named error and a hang. Corrected in
    Stage 4a.
 
 8. **`one-binary-and-a-daemon-that-ships.md` §2.3 stays dead.** Two binaries, two
-   names. A daemon named `termio` copied to Application Support lands byte-for-
+   names. A daemon named `fyolo` copied to Application Support lands byte-for-
    byte on the path `CommandLineTool.supportCopyURL` owns and that every
    installed hook names absolutely; the hook ends `2>/dev/null || true`, so
-   status reporting would die silently. And a router named `termio` cannot
-   dispatch to a binary named `termio`. **Do not re-propose.**
+   status reporting would die silently. And a router named `fyolo` cannot
+   dispatch to a binary named `fyolo`. **Do not re-propose.**
 
-9. **`20260817-one-path-local-through-termiod.md` §3.2's `foreground_changed` event does
+9. **`20260817-one-path-local-through-fyolod.md` §3.2's `foreground_changed` event does
    not exist and should not be built.** That section specifies
    `E { ev: "foreground_changed", session, pid, argv, cwd? }` as a debounced
    push. The implementation instead reuses `E roster`, which already carried
@@ -844,7 +844,7 @@ editor-adjacent and termio's editor is a preview (§9.5).
    needs no second shape to version. **Strike the `foreground_changed` line from
    §3.2; its three rules stand.**
 
-10. **`20260817-one-path-local-through-termiod.md` §3.2's last sentence is inverted by the
+10. **`20260817-one-path-local-through-fyolod.md` §3.2's last sentence is inverted by the
     mechanism.** It reads: *"`foreground_job` rides `list` rather than an event
     because its consumer asks once, at close time, and a stale push is worse than
     a fresh question."* The premise does not hold. `Session::info()` reads the
@@ -864,14 +864,14 @@ editor-adjacent and termio's editor is a preview (§9.5).
 Not "out of scope forever" — sequenced after this plan, with the reason recorded
 so nobody reads the absence as an oversight.
 
-- **Merging `feat/termiod-wss`.** Worth doing on its own terms: it proves the
+- **Merging `feat/fyolod-wss`.** Worth doing on its own terms: it proves the
   protocol is transport-agnostic (invariant #4) with a byte-identical splice, it
   is 100% additive, and it adds zero protocol verbs. It is **not** progress on
   the Swift→Rust boundary and nothing here depends on it. Two conditions before
-  it lands: it needs a rebase across the thirteen `termiod/` commits it is now
+  it lands: it needs a rebase across the thirteen `fyolod/` commits it is now
   behind (§2.4), and nothing in CI runs `vitest`/`tsc`/`vite build` for
-  `web/client/`. `termiod/ARCHITECTURE.md` still describes termiod as
-  Unix-socket + `termiod stdio` only.
+  `web/client/`. `fyolod/ARCHITECTURE.md` still describes fyolod as
+  Unix-socket + `fyolod stdio` only.
 - **iOS attaching directly to a device.** Device arch §8.12. The topology is
   decided; the transport is not, and it is gated on §9.6 — how a phone reaches a
   device without embedding SSH (invariant #3). Until that is answered, the phone
@@ -888,11 +888,11 @@ so nobody reads the absence as an oversight.
   for the same reason.
 - **QUIC, discovery, `grid_diff` by default.**
 - **Session survival across a daemon restart.** Decided against
-  (`20260817-one-path-local-through-termiod.md` §5.2 item 7): a holder process or an
+  (`20260817-one-path-local-through-fyolod.md` §5.2 item 7): a holder process or an
   `exec`-preserving re-exec is a supervisor design, and it reintroduces the
   failure mode the daemon exists to remove — two processes disagreeing about who
   owns a PTY. Make restarts rare and honest instead.
-- **Merging `termio` and `termiod` into one binary.** §7.8.
+- **Merging `fyolo` and `fyolod` into one binary.** §7.8.
 - ~~**Moving `OSCProgressScanner` or `AgentStatusRules` to the host.**~~
   **Reversed and done**, as Stage 1 of
   [`20260831-companion-second-protocol-retires.md`](20260831-companion-second-protocol-retires.md).
@@ -915,7 +915,7 @@ so nobody reads the absence as an oversight.
    without measuring it because the tree expands one directory per click and
    search does not.)*
 2. ~~**What does a plain-`ssh` session's Files pane say, and who installs the
-   daemon?**~~ **Answered** by `feat/termiod-remote-install` (§2.4), folded into
+   daemon?**~~ **Answered** by `feat/fyolod-remote-install` (§2.4), folded into
    Stage 5. The pane's honest empty state names the host; Settings ▸ Machines is
    the affordance.
 3. **Does the watcher's budget need a bound before Stage 9?** Raised by the codex
@@ -928,9 +928,9 @@ so nobody reads the absence as an oversight.
    need `(Checkout, relative path)` before Stage 9. Not before Stage 3 —
    previews stage to a local temp file and already work that way.
 5. **Does blame belong at all?** remote-git-plane §5 Stage 1 lists it and its own
-   §9.5 doubts it, on the grounds that blame is editor-adjacent and termio's
+   §9.5 doubts it, on the grounds that blame is editor-adjacent and fyolo's
    editor is a preview. It did not ship with the rest of the read tier
-   (`grep -rn blame termiod/src/` → 0). Decide when there is a real editor
+   (`grep -rn blame fyolod/src/` → 0). Decide when there is a real editor
    surface, not before.
 6. **What does a Sparkle update do to a running daemon?** one-path §5.2 item 9
    recommends a compatibility window. Stage 7 cannot ship without an answer,

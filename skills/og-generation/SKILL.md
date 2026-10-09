@@ -24,7 +24,7 @@ All paths below are relative to `web/landing/`.
 2. **Apply the requested changes** (copy, screenshot, layout) to
    `src/app/og-card/page.tsx`. Current design decisions — keep them unless the
    user overrides:
-   - Wordmark is capitalized **"Termio"** (matches the nav `Logo` component).
+   - Wordmark is capitalized **"Fyolo"** (matches the nav `Logo` component).
    - Headline slogan has **no trailing period**.
    - Subline: "Terminal-first Agentic Development Environment, built for
      AI builders."

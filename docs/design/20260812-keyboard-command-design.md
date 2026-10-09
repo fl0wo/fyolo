@@ -13,7 +13,7 @@ updated: 2026-08-25
 
 ## The rule
 
-**Presentation or process.** Every command in termio acts on one or the other,
+**Presentation or process.** Every command in fyolo acts on one or the other,
 and that decides its key, its confirmation, and whether it may cascade.
 
 - Keys that change presentation — panes, windows, focus, the inspector — never
@@ -25,24 +25,24 @@ the one in front of you. That is the whole design; the rest of this doc is which
 object each key acts on, when a process key may ask, and how the neighbours answer
 the same question.
 
-This replaces the earlier "termio is sidebar-shaped, not tab-shaped" framing,
+This replaces the earlier "fyolo is sidebar-shaped, not tab-shaped" framing,
 which described a conclusion but couldn't be applied to a key you hadn't already
 decided. Presentation-or-process can.
 
 ## Which object ⌘W acts on
 
 Every tabbed terminal binds ⌘W to "close the surface", and in those apps the
-surface *is* the process — closing it kills the program. termio's objects don't
+surface *is* the process — closing it kills the program. fyolo's objects don't
 line up one-to-one:
 
-| termio | tabbed terminal (iTerm2, Ghostty) |
+| fyolo | tabbed terminal (iTerm2, Ghostty) |
 | --- | --- |
 | **Pane** — a view slot in a split group | surface — the process itself |
 | **Session** — durable: owns the PTY, a resume id, sometimes a worktree; lives in the sidebar; survives relaunch | (no equivalent) |
 | **Split group** — the layout, persisted | tab |
 | **Window** — one, always | one of many |
 
-So `close_surface` has two possible readings in termio: *remove this pane from the
+So `close_surface` has two possible readings in fyolo: *remove this pane from the
 layout* (Ungroup), or *end this session*. **The session is the one users arrive
 expecting** — it is the tab-shaped object here, the thing that appears in the
 sidebar, gets named, and is what "close this" means when you look at the screen.
@@ -53,7 +53,7 @@ structurally faithful translation — same "close the thing in front", no smuggl
 process kill. That reasoning holds and was still the wrong trade: it optimised for
 what the key *doesn't* destroy at the cost of what the key *is for*, and left the
 verb people actually wanted — Close Session — with no key at all
-([#242 follow-up](https://github.com/termio-sh/termio/issues/242)).
+([#242 follow-up](https://github.com/fl0wo/fyolo/issues/242)).
 
 What has to stay true is the part #242 was really about. That bug was not "⌘W
 killed a session"; it was ⌘W closing the single window, the app terminating with
@@ -106,7 +106,7 @@ how alarming the command sounds:
 
 Every one of these dialogs takes **Return to confirm and Escape to cancel**, with the
 destructive button added first so it is the default and the initial first responder
-(`TermioStore.applyConfirmationKeys`). Ghostty puts Return on Cancel and cmux puts it
+(`FyoloStore.applyConfirmationKeys`). Ghostty puts Return on Cancel and cmux puts it
 on Confirm; the reasoning for following cmux is under *Ghostty* below.
 
 That carve-out is what made ⌘W = Close Session viable at all. Under the *first*
@@ -169,10 +169,10 @@ confirmation (`QuitConfirmationAlertPresenter`) is built the same way — Quit a
 first so Return quits — plus a "Don't warn again for Cmd+Q" suppression checkbox.
 Checked against cmux `main`, 2026-08-25.
 
-**Where termio differs:** the cascade is the same shape — close the focused thing,
+**Where fyolo differs:** the cascade is the same shape — close the focused thing,
 fall through to the window when nothing is left — but the dialogs aren't. cmux
 gates the cascade with a confirmation and adds a separate running-process one;
-termio asks only for a shell with a live command, and never for the window close,
+fyolo asks only for a shell with a live command, and never for the window close,
 because closing the window destroys nothing here.
 
 ### Zed — the same object problem, solved by context
@@ -189,12 +189,12 @@ Zed's `default-macos.json` resolves ⌘W per context:
 Zed is the closest structural match: a durable object list on the side, panes as
 views, and ⌘W closing the *item* while the file stays on disk. Two things
 transfer directly. First, ⌘W in an auxiliary window means Close Window — the
-key-window routing termio now implements. Second, `confirm_quit` defaults to
+key-window routing fyolo now implements. Second, `confirm_quit` defaults to
 **false**: Zed doesn't need a quit confirmation because quitting an editor
 destroys nothing recoverable.
 
-That last point is the sharpest contrast in this doc. termio confirms on ⌘Q for
-exactly the reason Zed doesn't: quitting termio kills live processes that no
+That last point is the sharpest contrast in this doc. fyolo confirms on ⌘Q for
+exactly the reason Zed doesn't: quitting fyolo kills live processes that no
 autosave can bring back.
 
 ### Ghostty — the same confirmation policy, a different probe
@@ -202,17 +202,17 @@ autosave can bring back.
 Ghostty's `confirm-close-surface` defaults to `true`, documented as: confirm before
 closing a surface, *"even if shell integration says a process isn't running"* only
 when set to `always`. So its default is already "ask only when something is
-running" — the same policy as termio's Close Session, reached independently.
+running" — the same policy as fyolo's Close Session, reached independently.
 
 The difference is the liveness probe. Ghostty asks the **shell** (OSC 133 command
-marks, via shell integration); termio asks the **kernel** (`tcgetpgrp` on the PTY
+marks, via shell integration); fyolo asks the **kernel** (`tcgetpgrp` on the PTY
 master), and only for a session whose declared agent is a shell. Ghostty's signal
 is the more general one, but it depends on shell integration being installed and
-emitting marks; termio's works regardless of the user's shell config, at the cost
-of saying nothing about an agent — which termio answers by not asking for agent
+emitting marks; fyolo's works regardless of the user's shell config, at the cost
+of saying nothing about an agent — which fyolo answers by not asking for agent
 sessions at all.
 
-Its close dialog defaults focus to **Cancel**, so Return cancels. termio shipped that
+Its close dialog defaults focus to **Cancel**, so Return cancels. fyolo shipped that
 too, and **no longer does** — this is the one place the neighbours split, so the
 disagreement is worth stating rather than averaging away:
 
@@ -226,7 +226,7 @@ disagreement is worth stating rather than averaging away:
   community plugin that fills the gap uses tmux's `y`/Escape, so Return isn't a
   confirm key there either — but it's a TUI, where Return can't be one.
 
-termio follows cmux, for the reason its own reversal makes plain: this dialog only
+fyolo follows cmux, for the reason its own reversal makes plain: this dialog only
 appears after the user pressed ⌘W or ⌘Q **on purpose**, and a confirmation whose
 "yes" the keyboard cannot reach isn't cautious, it's a dead end you have to take
 your hands off the keys to answer. So Return confirms, Escape cancels, and the
@@ -253,7 +253,7 @@ one searchable root, with an optional per-command hotkey and alias, and a
 contextual action panel on ⌘K. Almost nothing is bound by default; discovery
 carries the long tail and the user promotes what they use.
 
-termio's equivalent is already in place: `KeyCommandCatalog` is the single source
+fyolo's equivalent is already in place: `KeyCommandCatalog` is the single source
 of truth for every rebindable command, the ⌘⇧P palette searches it, Settings ▸
 Keyboard rebinds it, and the surface's ghostty unbind set is *derived* from it so
 a rebind can't be swallowed by the terminal. The lesson taken from Raycast is
@@ -269,7 +269,7 @@ explicit:
 > multiple bindings that match at the same level in the tree, then the binding
 > defined later takes precedence.
 
-VS Code says the same thing with `when` clauses. termio does not: `KeyCommandCatalog`
+VS Code says the same thing with `when` clauses. fyolo does not: `KeyCommandCatalog`
 is a flat table, and ⌘W resolves itself *imperatively*, inside one action — is the
 key window an auxiliary one, is a session selected, otherwise close the window.
 
@@ -278,7 +278,7 @@ exactly one place to read. It is deliberate, not an oversight — but it only ea
 that defence if the decision is *isolated and tested*, because this is the binding
 that regresses silently: the window still closes, just the wrong one — and now that
 the key ends a process, a regression can also end the wrong session. cmux guards
-the same key with a CI lint. termio's equivalent is `CloseCommand.action`, a pure
+the same key with a CI lint. fyolo's equivalent is `CloseCommand.action`, a pure
 function over "what is in front" × "is a session selected", with
 `CloseCommandTests` pinning every combination.
 
@@ -292,7 +292,7 @@ inspector, ⌘W closes the session instead of the detail. Zed would close the de
 its `Workspace` context binds ⌘W to `CloseActiveDock`.
 
 That symptom is **not** fixed by adding another branch. Zed's dock binding matches
-only when focus is *in* the dock; termio has no focus notion for the inspector, so
+only when focus is *in* the dock; fyolo has no focus notion for the inspector, so
 "close the detail whenever one is open" would break the common case — a diff open
 beside a terminal you are typing in. Doing it correctly needs a focus/context
 notion, which is the refactor, not a patch.
@@ -305,7 +305,7 @@ then, branch and keep it in one function.
 
 - **⌘W = Ungroup** shipped from 2026-08-12 to 2026-08-25, then lost the key to
   Close Session — the literal iTerm2/Ghostty reading and the original
-  recommendation in [#204](https://github.com/termio-sh/termio/issues/204),
+  recommendation in [#204](https://github.com/fl0wo/fyolo/issues/204),
   arrived at a second time by the browser route: ⌘W closes a tab, and the
   tab-shaped object here is the session.
 
@@ -316,7 +316,7 @@ then, branch and keep it in one function.
   that the binding costs nothing it used to. Ungroup keeps the menu verb.
 
   **The cost, recorded so it isn't rediscovered as a surprise:** ⌘W now ends an
-  agent session with no dialog and no undo. Chrome has ⌘⇧T; termio has nothing
+  agent session with no dialog and no undo. Chrome has ⌘⇧T; fyolo has nothing
   that reopens a closed session. If that becomes the complaint, the answer is a
   reopen, not a confirmation — a dialog on every press is the failure mode this
   doc already has a section about.
@@ -333,7 +333,7 @@ then, branch and keep it in one function.
 
 ## Deferred
 
-Tracked in [#204](https://github.com/termio-sh/termio/issues/204):
+Tracked in [#204](https://github.com/fl0wo/fyolo/issues/204):
 
 - The ghostty-defaults fixture test, so a libghostty bump that adds a default
   binding breaks the build instead of silently shadowing an app key.

@@ -12,19 +12,19 @@ import { supportedAgents } from "@/lib/site";
 // and the FAQPage structured data below.
 const faqs: { question: string; answer: string }[] = [
   {
-    question: "Is Termio free?",
-    answer: "Yes. Termio is free and open source. No account, no cloud.",
+    question: "Is Fyolo free?",
+    answer: "Yes. Fyolo is free and open source. No account, no cloud.",
   },
   {
     question:
-      "What happens to a running agent when I quit Termio or close the laptop?",
+      "What happens to a running agent when I quit Fyolo or close the laptop?",
     answer:
-      "Sessions are hosted by termiod, not the app window. Quit Termio, sleep the laptop, or reboot — the agent keeps running. Reattach restores the exact screen.",
+      "Sessions are hosted by fyolod, not the app window. Quit Fyolo, sleep the laptop, or reboot — the agent keeps running. Reattach restores the exact screen.",
   },
   {
     question: "Can I run agents on a remote machine?",
     answer:
-      "Yes. Any Linux VPS you can ssh to — Termio reads ~/.ssh/config and never rewrites it. Set Up copies one binary over SSH, starts the daemon, and installs the agents’ hooks there. Local and remote sessions run through the same host.",
+      "Yes. Any Linux VPS you can ssh to — Fyolo reads ~/.ssh/config and never rewrites it. Set Up copies one binary over SSH, starts the daemon, and installs the agents’ hooks there. Local and remote sessions run through the same host.",
   },
   {
     question: "How is this different from Zed remote or VS Code Remote?",
@@ -34,16 +34,16 @@ const faqs: { question: string; answer: string }[] = [
   {
     question: "How is this different from tmux?",
     answer:
-      "tmux is a prefix-key multiplexer you attach a terminal to. Termio is a native Mac app with its own session host — same sessions on this Mac, a remote box, or the iPhone companion. You don’t have to learn tmux. There is no prefix key to remember.",
+      "tmux is a prefix-key multiplexer you attach a terminal to. Fyolo is a native Mac app with its own session host — same sessions on this Mac, a remote box, or the iPhone companion. You don’t have to learn tmux. There is no prefix key to remember.",
   },
   {
     question: "Which agents are supported?",
     answer: `${supportedAgents.join(", ")}, and any other coding agent that runs in a terminal. Each session is a real terminal, not a chat view.`,
   },
   {
-    question: "How does Termio know when an agent needs me?",
+    question: "How does Fyolo know when an agent needs me?",
     answer:
-      "Agents report working, needs you and done through hooks Termio installs. If a hook isn’t there, Termio reads the screen.",
+      "Agents report working, needs you and done through hooks Fyolo installs. If a hook isn’t there, Fyolo reads the screen.",
   },
   {
     question: "Is my code private?",
@@ -51,8 +51,8 @@ const faqs: { question: string; answer: string }[] = [
       "Yes. No account, no cloud, no telemetry. Code never leaves machines you own.",
   },
   {
-    question: "Is Termio a fork of Ghostty?",
-    answer: "No. Termio is built on libghostty. It is not a fork.",
+    question: "Is Fyolo a fork of Ghostty?",
+    answer: "No. Fyolo is built on libghostty. It is not a fork.",
   },
   {
     question: "Is there an iPhone app?",
@@ -62,7 +62,7 @@ const faqs: { question: string; answer: string }[] = [
   {
     question: "Can I script it?",
     answer:
-      "Yes. The termio CLI drives the running app over a local socket, and ships as an agent skill.",
+      "Yes. The fyolo CLI drives the running app over a local socket, and ships as an agent skill.",
   },
   {
     question: "What are the requirements?",

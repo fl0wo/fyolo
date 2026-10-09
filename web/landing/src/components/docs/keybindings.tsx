@@ -1,7 +1,7 @@
 import keybindings from "@/data/keybindings.json";
 
 // Renders one category of the app's shortcut catalog. The data is generated from
-// Sources/termio/Keybindings/KeyCommand.swift (pnpm keybindings:sync), so the docs
+// Sources/fyolo/Keybindings/KeyCommand.swift (pnpm keybindings:sync), so the docs
 // can't claim a binding the app doesn't ship — which they did for two releases.
 //
 // Command names stay in English: they're the menu titles, and the table is a map

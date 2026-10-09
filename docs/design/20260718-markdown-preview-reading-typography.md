@@ -17,9 +17,9 @@ related:
 ## Goal & non-goals
 
 **Goal.** When you open a Markdown file (`CLAUDE.md`, `AGENTS.md`,
-`docs/design/*.md`, READMEs) in Termio's over-the-terminal file editor, a
+`docs/design/*.md`, READMEs) in Fyolo's over-the-terminal file editor, a
 **Preview** mode renders it with excellent reading typography that (a) follows
-Termio's active chrome theme, (b) works fully offline, and (c) feels native and
+Fyolo's active chrome theme, (b) works fully offline, and (c) feels native and
 premium.
 
 **Non-goals.**
@@ -89,22 +89,22 @@ Takeaway: keep the WebView, invest everything in typography + a proper renderer.
 
 ## The curated stack
 
-No single OSS project drops in, because Termio has two constraints most ignore:
-**fully offline/bundled**, and **must track Termio's arbitrary chrome-theme
+No single OSS project drops in, because Fyolo has two constraints most ignore:
+**fully offline/bundled**, and **must track Fyolo's arbitrary chrome-theme
 colors** (not just `prefers-color-scheme` light/dark). So we borrow the best
-piece from each and drive it all off Termio's theme variables.
+piece from each and drive it all off Fyolo's theme variables.
 
 | Layer | Decision | Source / license |
 | --- | --- | --- |
 | Reading metrics | Port **Tailwind Typography (`prose`)** vertical rhythm, type scale, and measure into a standalone, `var(--…)`-driven `reader.css`. Port the *metrics*, not the Tailwind build. | [tailwindlabs/tailwindcss-typography](https://github.com/tailwindlabs/tailwindcss-typography) (MIT) |
 | Signature body font | Bundle **iA Writer Quattro** (variable, proportional-but-monospaced-rooted — the reference face for Markdown reading). System `-apple-system` is the graceful fallback. | [iaolo/iA-Fonts](https://github.com/iaolo/iA-Fonts) (SIL OFL 1.1) |
-| Code highlighting | **Shiki-grade fidelity, zero web-view JS**: pre-highlight fenced blocks **host-side in Swift** using the already-vendored Highlightr / highlight.js, emit classed `<span>` HTML, ship a highlight theme CSS mapped to Termio vars. | reuse vendored `Editor/Highlightr` |
+| Code highlighting | **Shiki-grade fidelity, zero web-view JS**: pre-highlight fenced blocks **host-side in Swift** using the already-vendored Highlightr / highlight.js, emit classed `<span>` HTML, ship a highlight theme CSS mapped to Fyolo vars. | reuse vendored `Editor/Highlightr` |
 | Layout principles | Tufte's *ideas* — narrow measure, quiet links, real italics/bold — not the library. | [tufte-css](https://edwardtufte.github.io/tufte-css/) (reference only) |
 
 ### Rejected alternatives
 
 - **github-markdown-css** (MIT, standalone) — themes via
-  `@media (prefers-color-scheme)`, so it can't follow Termio's custom chrome
+  `@media (prefers-color-scheme)`, so it can't follow Fyolo's custom chrome
   colors. Excellent reference for GFM element coverage; wrong theming model to
   adopt wholesale.
 - **Shiki JS in the web view** — best-in-class highlighter, but its whole win is
@@ -147,7 +147,7 @@ dense skin separate). Responsibilities the current loader lacks:
   read `window.scrollY` before reload, restore after `didFinish`.
 - Navigation delegate: intra-doc `#anchor` scrolls in place; `http(s)` opens in
   the default browser (reuse the existing trace link handler); `file://` routes
-  back through Termio's file-preview overlay.
+  back through Fyolo's file-preview overlay.
 - Transparent background (`drawsBackground = false`) to avoid white flash, like
   `FilePreview.WebPreview`.
 
@@ -193,7 +193,7 @@ body.reader {
 runs highlight.js (already loaded by Highlightr via JavaScriptCore) to produce
 the highlighted **HTML string** (`hljs.highlight(code, {language}).value`) and
 splices it in. Ship a highlight theme CSS whose token colors are mapped onto
-Termio theme vars (or reuse Highlightr's Xcode/Xcode-dark theme for parity with
+Fyolo theme vars (or reuse Highlightr's Xcode/Xcode-dark theme for parity with
 the editor). Result: no JavaScript runs in the reader web view at all — same
 "zero client JS" property that makes Shiki fast, using what we already bundle.
 

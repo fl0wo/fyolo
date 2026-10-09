@@ -63,7 +63,7 @@ until the official packages land.
   design (the package still imports `MSDisplayLink`, names `startDisplayLink`
   / `DisplayLinkCallbackContext`) is a CADisplayLink that ticks+draws at vsync
   while input/PTY events just mark dirty. Land it in the fork and PR upstream.
-  *Workaround shipped termio-side (2026-07-05, `DisplayTerminalView` in
+  *Workaround shipped fyolo-side (2026-07-05, `DisplayTerminalView` in
   `TerminalViewController.swift`): ride the wrapper's scroll pan (our target
   fires after its) and drive `ghostty_surface_refresh`+`draw` synchronously on
   `.changed`, plus a momentum-tail CADisplayLink — via `@_silgen_name`, the
@@ -91,13 +91,13 @@ The rest is gated on an audit that a first attempt couldn't complete.
 
 - [ ] **Audit Codex / OpenCode / Pi rotation (Phase 2)** — empirically confirm, per
   agent, whether its clear/`new` command rotates the on-disk session id (and thus
-  whether the resume target goes stale), and what per-session signal Termio receives
+  whether the resume target goes stale), and what per-session signal Fyolo receives
   (hook field vs scan-only). First attempt (2026-07-16) stalled: a throwaway Codex
-  session driven via `termio sessions` never accepted input (stayed `idle`, wrote no
+  session driven via `fyolo sessions` never accepted input (stayed `idle`, wrote no
   rollout — a login/trust/model gate on TUI launch), so no rotation data was
   captured. *Trigger: when the three agents are confirmed logged-in and drivable via
   `sessions send` — or audit each by hand (launch, run its clear, `find -newer` its
-  store dir) outside Termio.*
+  store dir) outside Fyolo.*
 - [ ] **Generalize the pin advance to the confirmed agents (Phase 3)** — for
   filename-encoded ids (Pi, `<timestamp>_<id>.jsonl`) wire its transcript discovery
   and enable the `piStyle` case of `ResumeStyle.conversationID(fromTranscriptPath:)`.

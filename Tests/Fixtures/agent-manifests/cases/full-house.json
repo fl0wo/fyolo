@@ -20,7 +20,7 @@
   "skills": { "dir": "~/.full/skills" },
   "hooks": {
     "type": "json",
-    "file": "~/.full/hooks/termio.json",
+    "file": "~/.full/hooks/fyolo.json",
     "dialect": "copilot",
     "capturesTranscript": true,
     "conversation": "session_id",

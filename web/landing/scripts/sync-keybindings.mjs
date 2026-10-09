@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Derives the docs' keyboard-shortcut table from the app's own catalog.
 //
-// KeyCommandCatalog in Sources/termio/Keybindings/KeyCommand.swift is the single
+// KeyCommandCatalog in Sources/fyolo/Keybindings/KeyCommand.swift is the single
 // source of truth for every command and its shipped shortcut; the AppKit menu and
 // the command palette both read from it. The docs used to restate that table by
 // hand, which drifted: the shortcuts page still described a pane-rearrange chord
@@ -21,7 +21,7 @@ const repoRoot = resolve(landingRoot, "../..");
 
 const CATALOG = resolve(
   repoRoot,
-  "Sources/termio/Keybindings/KeyCommand.swift",
+  "Sources/fyolo/Keybindings/KeyCommand.swift",
 );
 const OUTPUT = resolve(landingRoot, "src/data/keybindings.json");
 
@@ -196,7 +196,7 @@ function build() {
 
   return {
     // Regenerate with `pnpm keybindings:sync`; `pnpm docs:check` guards it.
-    generatedFrom: "Sources/termio/Keybindings/KeyCommand.swift",
+    generatedFrom: "Sources/fyolo/Keybindings/KeyCommand.swift",
     categories,
   };
 }

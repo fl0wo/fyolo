@@ -18,7 +18,7 @@ related:
 
 ## Summary
 
-Termio runs coding agents (Claude Code, Codex, OpenCode, Pi) in terminal sessions.
+Fyolo runs coding agents (Claude Code, Codex, OpenCode, Pi) in terminal sessions.
 A project can opt into a **sandbox**: every session of that project runs as a normal
 host process wrapped in an Apple **Seatbelt** profile (`sandbox-exec -f`). The
 project directory stays read-write, system paths stay readable, and everything else
@@ -41,13 +41,13 @@ across a VM boundary from the terminal**:
 - a 16 GiB rootfs per project, orphan-cleanup signal handlers (VMs leaked);
 - a `com.apple.security.virtualization` entitlement that broke `swift run`, a macOS-26
   floor, and a vmnet bug under `~/Documents`;
-- the hook/control plane (`HookListener`, `SessionControl`, `termio sessions`) broke
+- the hook/control plane (`HookListener`, `SessionControl`, `fyolo sessions`) broke
   inside the VM and needed a "Phase 2 socket bridge".
 
 Studying `nolabs-ai/nono` (a zero-VM agent sandbox: macOS Seatbelt, Linux Landlock+seccomp)
 made the reframe obvious: **the VM was the wrong axis for a terminal app.** Seatbelt
 keeps the agent a host process (PTY stays native), costs ~0 (no boot, no disk), and
-fully covers Termio's actual threat model. Every line in the list above disappears.
+fully covers Fyolo's actual threat model. Every line in the list above disappears.
 
 ## Threat model
 
@@ -59,18 +59,18 @@ the agent's *own* non-Bash tools (e.g. a file-read tool) and any subprocess it s
 (that only gates its Bash tool).
 
 **Out of scope.** A macOS kernel privilege-escalation exploit chained by the agent to
-escape Seatbelt. A VM is a stronger boundary here, but this is not Termio's threat
+escape Seatbelt. A VM is a stronger boundary here, but this is not Fyolo's threat
 model — and the defense would fail anyway the moment the user pastes the agent's output.
 
 ## Design
 
-### One enforcement layer, owned by Termio
+### One enforcement layer, owned by Fyolo
 
 macOS **forbids applying a second Seatbelt sandbox inside an existing one** (verified:
 nested `sandbox-exec` fails to initialize). Both Claude Code and Codex sandbox their
 own Bash execution via Seatbelt. Therefore the agent **must be told to stand down its
-own sandbox** so Termio's outer profile is the single layer — this is required, not an
-optimization. Termio's outer profile already covers every Bash command the agent runs
+own sandbox** so Fyolo's outer profile is the single layer — this is required, not an
+optimization. Fyolo's outer profile already covers every Bash command the agent runs
 (inheritance), *plus* the agent process itself, so nothing is lost.
 
 Per-agent stand-down (`AgentPreset.sandboxStandDownArguments`):
@@ -84,7 +84,7 @@ are not touched by sandboxing.
 
 ### The chokepoint
 
-The entire integration is one place — `TermioStore.surface(for:in:)` — the same spot
+The entire integration is one place — `FyoloStore.surface(for:in:)` — the same spot
 the VM used. When `project.sandbox != nil`, the session's PTY command is wrapped:
 
 ```
@@ -95,7 +95,7 @@ The profile rides in a **temp file** (`-f`), not inline (`-p`), so its parenthes
 quotes, and newlines never have to survive however libghostty tokenizes the command
 string. `SandboxLauncher` writes/cleans the per-session `.sb` file. libghostty stays
 oblivious; the PTY stays native `.exec`; hooks and the control plane work again because
-the agent is a host process (`TERMIO_SESSION` is now always set).
+the agent is a host process (`FYOLO_SESSION` is now always set).
 
 ### The profile compiler
 
@@ -128,7 +128,7 @@ their stand-down flags (exit 0).
 
 ## Configuration model
 
-The per-project config is a **JSON file at `<project>/.termio/sandbox.json`** — the
+The per-project config is a **JSON file at `<project>/.fyolo/sandbox.json`** — the
 source of truth — with the Security panel as a view over it.
 
 - **JSON, not TOML.** `SandboxProfile` is already `Codable` → native `JSONEncoder`/
@@ -138,14 +138,14 @@ source of truth — with the Security panel as a view over it.
 - **In-repo, so it travels with the project** and is team-shareable (nono's "fork the
   config, share it" model), git-diffable.
 - **⚠️ The file is read-only inside the sandbox.** The workspace is writable, so an agent
-  could otherwise rewrite `.termio/sandbox.json` to widen its own jail — the same class
-  of hole as a writable `.git/hooks` or `.mcp.json`. `.termio/` goes in the deny-write
+  could otherwise rewrite `.fyolo/sandbox.json` to widen its own jail — the same class
+  of hole as a writable `.git/hooks` or `.mcp.json`. `.fyolo/` goes in the deny-write
   baseline. Non-negotiable while the file is in-repo.
 - Source of truth = the file; `Project.sandbox` is the in-memory mirror loaded on open.
   `enabled` (or file presence) gates the sandbox.
 
 ```jsonc
-// .termio/sandbox.json — this project's agent sandbox (read-only to the agent)
+// .fyolo/sandbox.json — this project's agent sandbox (read-only to the agent)
 {
   "enabled": true,
   "workspaceReadOnly": false,
@@ -175,7 +175,7 @@ invisibly. A top-tier Apple design would add, **without** turning it into a matr
    Always / Deny"), TCC-style, instead of upfront configuration. Technical enabler:
    **sandbox extension tokens** (`sandbox_extension_issue_file`) to widen access at runtime.
 3. **Progressive disclosure.** Simple by default; "Advanced…" reveals/opens
-   `.termio/sandbox.json` and a raw-SBPL appendix (`extraRules`).
+   `.fyolo/sandbox.json` and a raw-SBPL appendix (`extraRules`).
 4. **Make risk legible.** The off-state warning (built) + a "recently blocked" activity
    view (transparency & control).
 
@@ -213,7 +213,7 @@ implementation, and Pierce Freeman's deep dive. Roughly in priority order:
   build-script sections). `swift run` works; app stays macOS 14; no entitlement.
 - **Phase 3 (in progress).** Security panel built and visually verified (toggle, filesystem,
   secrets, network); custom-paths picker, `.git`/clean-env hardening, the keychain decision,
-  and the `.termio/sandbox.json` file-as-source-of-truth are the remaining work.
+  and the `.fyolo/sandbox.json` file-as-source-of-truth are the remaining work.
 
 ## Alternatives considered
 

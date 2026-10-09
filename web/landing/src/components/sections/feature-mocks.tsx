@@ -43,7 +43,7 @@ export function SidebarMock() {
       <div className="px-2">
         <div className="flex items-center gap-1.5 px-1.5 py-1 text-[10px] text-foreground/80">
           <FolderGlyph className="size-3 text-muted-foreground" />
-          <span>termio</span>
+          <span>fyolo</span>
         </div>
         <ul className="flex flex-col">
           {FLEET.map((session, i) => (
@@ -98,7 +98,7 @@ export function PaletteMock() {
       </div>
       <div className="px-3 font-mono text-[9px] leading-[1.7]">
         <p className="mock-theme-ink">$ swift build</p>
-        <p className="mock-theme-ink opacity-70">Compiling termio…</p>
+        <p className="mock-theme-ink opacity-70">Compiling fyolo…</p>
       </div>
 
       {/* The palette itself, floating over the session. */}
@@ -208,7 +208,7 @@ export function InspectorMock() {
 /* ------------------------------------------------------------ 4. markdown --- */
 
 // A README opened in the reader. The pane cross-fades between the source and
-// what Termio renders from it — GFM tables and task lists included.
+// what Fyolo renders from it — GFM tables and task lists included.
 export function MarkdownMock() {
   return (
     <MockWindow className="relative h-[9.5rem] flex-col">
@@ -349,7 +349,7 @@ export function WorktreeMock() {
       <div className="px-2">
         <div className="flex items-center gap-1.5 px-1.5 py-1 text-[10px] text-foreground/80">
           <FolderGlyph className="size-3 text-muted-foreground" />
-          <span>termio</span>
+          <span>fyolo</span>
         </div>
         <ul className="flex flex-col">
           {WORKTREES.map((tree, i) => (

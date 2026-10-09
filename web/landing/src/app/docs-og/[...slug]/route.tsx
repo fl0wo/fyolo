@@ -36,7 +36,7 @@ export async function GET(
   const page = source.getPage(path, i18n.defaultLanguage);
   const title = drawable(page?.data.title ?? "Documentation");
   const description = drawable(page?.data.description ?? "");
-  const trail = ["termio.sh", "docs", ...path].join("/");
+  const trail = ["fyolo.sh", "docs", ...path].join("/");
 
   return new ImageResponse(
     (
@@ -70,7 +70,7 @@ export async function GET(
         >
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ display: "flex", fontSize: 30, letterSpacing: -0.5 }}>
-              termio
+              fyolo
             </div>
             <div
               style={{

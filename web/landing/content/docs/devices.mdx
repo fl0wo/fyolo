@@ -1,11 +1,11 @@
 ---
 title: Devices
-description: Run your agents on machines you already own — this Mac, the Mac mini on the desk, a VPS. Termio copies one binary there over SSH, sets up the agents, and the sessions keep running whether or not you’re attached.
+description: Run your agents on machines you already own — this Mac, the Mac mini on the desk, a VPS. Fyolo copies one binary there over SSH, sets up the agents, and the sessions keep running whether or not you’re attached.
 ---
 
-Termio runs your agents on machines you already own: this Mac, the Mac mini on
-the same desk, a VPS you pay for. There is no Termio cloud to provision from and
-nothing to sign into — a machine is a machine Termio can `ssh` to.
+Fyolo runs your agents on machines you already own: this Mac, the Mac mini on
+the same desk, a VPS you pay for. There is no Fyolo cloud to provision from and
+nothing to sign into — a machine is a machine Fyolo can `ssh` to.
 
 Everything in the app files under one hierarchy:
 
@@ -27,10 +27,10 @@ This Mac is a device like any other, and it’s the one you already have. Until
 you add a second, the level stays out of your way — `New Terminal` and `Open
 Project…` are plain verbs, because there is only one place they could mean.
 
-Termio reads `~/.ssh/config` and never rewrites it behind your back. Anything
-you can already `ssh` to is a machine Termio can reach:
+Fyolo reads `~/.ssh/config` and never rewrites it behind your back. Anything
+you can already `ssh` to is a machine Fyolo can reach:
 
-- **File ▸ Connect to…** lists the aliases in your config that Termio hasn’t
+- **File ▸ Connect to…** lists the aliases in your config that Fyolo hasn’t
   worked on yet. Connecting opens a terminal there.
 - **Add Host…** appends a `Host` block for a box that isn’t in your config yet.
   Lead with the address; the name is what you’ll type after `ssh`. A key is the
@@ -40,11 +40,11 @@ you can already `ssh` to is a machine Termio can reach:
 
 ## Setting up a machine
 
-Open **Settings ▸ Remote Hosts**, pick the machine, and press **Set Up**. Termio
-copies the session host — `termiod`, plus the `termio` CLI on Linux — into
+Open **Settings ▸ Remote Hosts**, pick the machine, and press **Set Up**. Fyolo
+copies the session host — `fyolod`, plus the `fyolo` CLI on Linux — into
 `~/.local/bin` over SSH.
 No root, no package manager, nothing to add to your shell profile. It then looks
-for the agent CLIs installed there and writes Termio’s hooks and its agent skill
+for the agent CLIs installed there and writes Fyolo’s hooks and its agent skill
 for each one, so an agent on a VPS reports **working**, **needs you**, and
 **done** exactly the way a local one does.
 
@@ -53,8 +53,8 @@ one line — *Ready*, *Set up this host*, or *Update ready*. [Remote
 hosts](/docs/remote-hosts) is the operating manual: testing the route, why a
 password isn’t enough, what each rung installs, and how to repair one.
 
-<Callout type="note" title="What Termio does not do">
-  Termio never provisions a machine, never runs a control plane, and never
+<Callout type="note" title="What Fyolo does not do">
+  Fyolo never provisions a machine, never runs a control plane, and never
   routes your traffic. It shells out to the system `ssh`, with your
   `~/.ssh/config` and your keychain as the only authorities. Your code stays on
   hardware you control — which is the only trust story that survives giving an
@@ -63,7 +63,7 @@ password isn’t enough, what each rung installs, and how to repair one.
 
 ## Sessions live on the machine
 
-Every session runs inside `termiod` on the machine that owns it — including the
+Every session runs inside `fyolod` on the machine that owns it — including the
 sessions on this Mac, which run in the local daemon. The app is a viewer that
 attaches and detaches.
 
@@ -71,7 +71,7 @@ That’s why closing the window leaves everything running, and why a remote
 session isn’t tied to the SSH connection that opened it: dropping the link
 detaches you, it doesn’t kill the agent. Reattaching restores the screen.
 
-Only **Close Session** (`⌘W`) ends a session on purpose. Quitting Termio detaches
+Only **Close Session** (`⌘W`) ends a session on purpose. Quitting Fyolo detaches
 instead, and the next launch reattaches.
 
 ## What reaches across
@@ -89,11 +89,11 @@ the project is on:
   Where an agent’s CLI lives is a fact about one machine, so it’s answered on
   that machine’s own page under **Remote Hosts** rather than on a page about
   agents.
-- **Paste an image** into an agent running on the machine and Termio carries the
+- **Paste an image** into an agent running on the machine and Fyolo carries the
   file across.
 
-Sessions started outside Termio show up by themselves — `ssh` in, launch
-something with `termiod`, and the sidebar files it as an ordinary session. The
+Sessions started outside Fyolo show up by themselves — `ssh` in, launch
+something with `fyolod`, and the sidebar files it as an ordinary session. The
 machine’s own roster is the source, so nothing running on the box goes missing.
 
 <Cards>

@@ -64,7 +64,7 @@ cat <<'EOF'
     ASC_KEY_ID                   the 10-char Key ID
     ASC_ISSUER_ID                the Issuer ID (UUID)
     CLOUDFLARE_API_TOKEN         (optional) edge cache purge — Zone: Cache Purge
-    CLOUDFLARE_ZONE_ID           (optional) the termio.sh zone ID
+    CLOUDFLARE_ZONE_ID           (optional) the fyolo.sh zone ID
 
 Then cut a release with:
     git tag v0.1.0 && git push origin v0.1.0

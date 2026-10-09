@@ -1,9 +1,9 @@
 ---
 title: Custom agents
-description: Teach Termio about any CLI by dropping a small JSON manifest in ~/.termio/config/agents — give it a name, an icon, and live status detection, and it becomes a first-class agent alongside the built-ins.
+description: Teach Fyolo about any CLI by dropping a small JSON manifest in ~/.fyolo/config/agents — give it a name, an icon, and live status detection, and it becomes a first-class agent alongside the built-ins.
 ---
 
-Termio ships with the common coding agents built in, but the catalog is open: any
+Fyolo ships with the common coding agents built in, but the catalog is open: any
 command-line tool can become a first-class agent. You describe it in a small JSON
 manifest, and from then on it appears in the new-session menu, the Settings ▸
 Agents list, and the sidebar with its own name, icon, and live status — exactly
@@ -20,7 +20,7 @@ like Claude Code or Codex.
 Drop a JSON file into your config folder, named after the agent’s `id`:
 
 ```
-~/.termio/config/agents/<id>.json
+~/.fyolo/config/agents/<id>.json
 ```
 
 A minimal manifest needs only an `id`, a `name`, and the `command` to launch:
@@ -33,7 +33,7 @@ A minimal manifest needs only an `id`, a `name`, and the `command` to launch:
 }
 ```
 
-Termio reads the folder at launch and again whenever you bring the app forward
+Fyolo reads the folder at launch and again whenever you bring the app forward
 with Agents settings open, so a new manifest usually appears without a restart.
 The agent then shows up wherever you start a session; enable or reorder it from
 **Settings ▸ Agents** like any other.
@@ -45,7 +45,7 @@ hosts](/docs/remote-hosts) for the same rows read from a machine’s side.
 
 <DocsImage
   src="/screenshots/docs/26-custom-agent.png"
-  alt="Termio Agent settings with a custom Review Agent selected and its manifest-backed command, status patterns, and delete action visible"
+  alt="Fyolo Agent settings with a custom Review Agent selected and its manifest-backed command, status patterns, and delete action visible"
   width={1664}
   height={1288}
 />
@@ -85,7 +85,7 @@ For `path`, put the image file next to the `.json` in the same folder.
 
 ### Live status
 
-If your agent doesn’t ship a hook system, Termio can still read its status by
+If your agent doesn’t ship a hook system, Fyolo can still read its status by
 matching regular expressions against the terminal screen. List patterns that mean
 “busy” under `working` and patterns that mean “waiting on you” under `attention`:
 

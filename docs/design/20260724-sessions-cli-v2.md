@@ -79,8 +79,8 @@ isolated.
 11. **Sync semantics are split across PRs.** #72's `--wait` predates the
     `spawn`/`send` split and needs rebasing onto the new verb set.
 
-Test-infra note: three stale `termio-dev` apps from sibling worktrees kept
-resurrecting on the shared `sh.termio.app.dev` bundle id / socket, repeatedly
+Test-infra note: three stale `fyolo-dev` apps from sibling worktrees kept
+resurrecting on the shared `sh.fyolo.app.dev` bundle id / socket, repeatedly
 poisoning runs. Not a CLI bug, but it gates trustworthy verification (§7).
 
 ## 3. Design principles
@@ -103,16 +103,16 @@ poisoning runs. Not a CLI bug, but it gates trustworthy verification (§7).
 
 ```
 request_once():
-  response=$(printf '%s' "$request" | nc -w "${TERMIO_CLI_TIMEOUT:-15}" -U "$SOCKET")
+  response=$(printf '%s' "$request" | nc -w "${FYOLO_CLI_TIMEOUT:-15}" -U "$SOCKET")
   [ -z "$response" ] && {
-    echo "termio: no reply from the app (timed out or not running)" >&2
+    echo "fyolo: no reply from the app (timed out or not running)" >&2
     return 1
   }
   # existing error:* / "ok":false matching unchanged
 ```
 
 - Empty reply → exit 1 with a human-actionable message (P1).
-- `nc -w` gives every one-shot request a read timeout; `TERMIO_CLI_TIMEOUT`
+- `nc -w` gives every one-shot request a read timeout; `FYOLO_CLI_TIMEOUT`
   overrides for slow machines. `watch` is exempt (it is *supposed* to sit open;
   its liveness comes from the heartbeat, §4.3).
 - `json_escape` grows: escape `\t` explicitly, strip remaining C0 controls
@@ -170,7 +170,7 @@ and needs no code.
 - **`cwd`**: omit the key when unknown rather than emitting `""`.
 - **Exit codes**: `0` on interrupt (normal supervision end), `2` when the server
   vanishes (missed heartbeats / EOF) — so a supervising agent can distinguish
-  "I chose to stop" from "Termio died".
+  "I chose to stop" from "Fyolo died".
 
 ### 4.4 One sync vocabulary (reimplement #72)
 
@@ -207,7 +207,7 @@ question it can only stop as `needs-you` and hope the supervisor notices via
 prepend a provenance envelope to the delivered prompt, with zero shell changes:
 
 > You were spawned by `<caller-handle>`. To ask them a question mid-task, run
-> `termio sessions send <caller-handle> "<question>"`. Otherwise just finish —
+> `fyolo sessions send <caller-handle> "<question>"`. Otherwise just finish —
 > they read your transcript.
 
 Hard rules, stated in the envelope itself (agent↔agent messaging invites loops
@@ -219,7 +219,7 @@ and injection):
   encourage summarizing results into a message (workers forget instructions;
   the supervisor's `watch`/transcript path is the reliable one and remains the
   backstop regardless).
-- Only injected when the caller *is* a Termio session (`caller_session`
+- Only injected when the caller *is* a Fyolo session (`caller_session`
   resolves); a plain-shell `spawn` gets no envelope.
 
 ### 4.7 Loop-level stall detection — `stalled` watch events (Phase 4)
@@ -229,12 +229,12 @@ the fleet-scale runaway: a session that is `working` for tens of minutes while
 producing nothing — the unattended-runaway anti-pattern (arXiv 2607.00038), the
 one loop-engineering primitive the supervision plane can uniquely own. Prior
 art is all in-harness (OpenHands StuckDetector kills its own agent off its own
-event stream, with documented false-kills on legitimately slow builds); Termio
+event stream, with documented false-kills on legitimately slow builds); Fyolo
 watches any agent from outside, across the fleet.
 
 **Two design laws, learned from OpenHands' scars:**
 
-1. **Signal, never kill.** Termio emits an event; the supervisor (agent or
+1. **Signal, never kill.** Fyolo emits an event; the supervisor (agent or
    human, possibly on the phone) decides. A wrong alert costs nothing; a wrong
    kill destroys a long legitimate task.
 2. **Multi-signal AND, edge-triggered.** No single signal may fire alone; any
@@ -265,7 +265,7 @@ gain an `evidence` string:
 ```
 
 The sweep rides the existing stale-working sweep timer in
-`TermioStore+AgentStatus`; per-session probe state (`workingSince`, repo
+`FyoloStore+AgentStatus`; per-session probe state (`workingSince`, repo
 fingerprint, transcript size, last-alert) lives beside it. The CLI needs no new
 flags — `--state stalled` already parses; v1 keeps it **out of the default
 filter** until the thresholds have been tuned against real fleets, then it
@@ -286,7 +286,7 @@ per-agent transcript schemas; ship 4a without it.
 - **No daemon.** The app remains the server; the CLI stays a thin `nc` client.
   (If the app must be running anyway to host the PTYs, a daemon adds surface,
   not capability.)
-- **No CLI config file.** One env var (`TERMIO_CLI_TIMEOUT`) is the entire
+- **No CLI config file.** One env var (`FYOLO_CLI_TIMEOUT`) is the entire
   configuration surface.
 
 ## 6. Phasing
@@ -308,7 +308,7 @@ Scripted matrix (superset of the 2026-07-24 manual run):
 - All verbs × `--json`/text × error paths (bad agent, bad handle, no prompt,
   no handle) asserting **exit codes**, not just output.
 - **Silence tests**: SIGSTOP the app mid-request → expect timeout + exit 1
-  within `TERMIO_CLI_TIMEOUT`; kill the app under an open `watch` → expect
+  within `FYOLO_CLI_TIMEOUT`; kill the app under an open `watch` → expect
   exit 2 after missed heartbeats.
 - **Hostile input**: prompts containing tabs, control chars, `"` `\`,
   handle-shaped leading words, 10KB bodies.
@@ -318,6 +318,6 @@ Scripted matrix (superset of the 2026-07-24 manual run):
   heartbeat cadence, reconnect behavior.
 
 Prerequisite: fix the dev-channel collision that poisoned this round —
-per-worktree dev channels (`TERMIO_CHANNEL=dev-<slug>` deriving bundle id,
+per-worktree dev channels (`FYOLO_CHANNEL=dev-<slug>` deriving bundle id,
 support dir, and socket) so parallel worktree builds stop fighting over
-`sh.termio.app.dev`. Without it, none of the above is trustworthy.
+`sh.fyolo.app.dev`. Without it, none of the above is trustworthy.

@@ -1,0 +1,78 @@
+[package]
+name = "fyolod"
+version = "0.1.0"
+edition = "2021"
+publish = false
+default-run = "fyolod"
+description = "fyolod — durable PTY session host (POC). Detach ≠ kill."
+license = "MIT"
+
+# `vt` is a workspace member, and a default one, so a bare `cargo test` — which
+# is what CI runs — covers the snapshot boundary's own tests. Without this it
+# silently tests only this package, and anything asserted inside `vt` never runs.
+[workspace]
+members = ["vt"]
+default-members = [".", "vt"]
+
+[lib]
+name = "fyolod"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fyolod"
+path = "src/bin/fyolod.rs"
+
+[[bin]]
+name = "fyolo"
+path = "src/bin/fyolo.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "io-std", "sync", "macros", "signal", "time", "process"] }
+bytes = "1"
+fyolod-vt = { path = "vt" }
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+notify = { version = "8", default-features = false, features = ["macos_fsevent"] }
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
+frizbee = "0.13.0"
+# Agent status rules are regex, and after
+# `docs/design/20260831-companion-second-protocol-retires.md` §3 the daemon is
+# the only side that matches them. `default-features` off drops the
+# `perf-dfa-full` and Unicode tables this never needs; `unicode-case` and
+# `unicode-perl` stay because shipped manifests match spinner code-point ranges
+# case-insensitively.
+regex = { version = "1", default-features = false, features = ["std", "perf", "unicode-case", "unicode-perl", "unicode-gencat"] }
+# WebSocket framing for the opt-in loopback listener — the handshake and the
+# frame codec, nothing else. No `connect`, no `native-tls`, no `rustls`: TLS
+# belongs in Tailscale Serve or Caddy, and §H #3 forbids embedding crypto.
+tokio-tungstenite = { version = "0.26", default-features = false, features = ["handshake"] }
+futures-util = { version = "0.3", default-features = false, features = ["sink"] }
+# QR generation is pure data — a bit matrix, not crypto. Default features pull
+# image and svg renderers this never uses.
+qrcode = { version = "0.14", default-features = false }
+# `fs.search` is ripgrep's engine as libraries, not an `rg` subprocess: fyolod
+# ships as one static binary to boxes that have neither ripgrep nor, in the
+# containers, git. `grep-searcher` is the line/context/encoding machinery,
+# `grep-matcher` the trait it searches through, `ignore` the gitignore-aware
+# parallel-capable walk, and `aho-corasick` the fixed-string matcher behind
+# that trait — no regex engine, because the wire has always promised literals.
+grep-searcher = "0.1"
+grep-matcher = "0.1"
+ignore = "0.4"
+aho-corasick = { version = "1", default-features = false, features = ["std", "perf-literal"] }
+
+[dev-dependencies]
+# `connect` only exists so the WSS acceptance test can dial its own listener.
+# The shipped binary never links a client: `cargo build` keeps the handshake
+# feature alone.
+tokio-tungstenite = { version = "0.26", default-features = false, features = ["handshake", "connect"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"

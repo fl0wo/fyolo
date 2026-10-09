@@ -1,13 +1,13 @@
 ---
 title: 自定义 Agent
-description: 往 ~/.termio/config/agents 里放一个小小的 JSON 清单，就能让 Termio 认识任何命令行工具——给它名字、图标和实时状态识别，它就和内置 Agent 一样是一等公民。
+description: 往 ~/.fyolo/config/agents 里放一个小小的 JSON 清单，就能让 Fyolo 认识任何命令行工具——给它名字、图标和实时状态识别，它就和内置 Agent 一样是一等公民。
 x-i18n:
   source_path: custom-agents.mdx
   source_hash: c740d7d136f49ebb07cfb3a5b95d98e036e5b56767e7e3e8252d1b97c593dca7
   generated_at: 2026-09-19
 ---
 
-Termio 内置了常见的编程 Agent，但这个目录是开放的：任何命令行工具都能成为一等 Agent。
+Fyolo 内置了常见的编程 Agent，但这个目录是开放的：任何命令行工具都能成为一等 Agent。
 你用一个小小的 JSON 清单描述它，从此它就出现在新建会话菜单、**设置 ▸ Agent** 列表和
 侧栏里，带着自己的名字、图标和实时状态——和 Claude Code 或 Codex 别无二致。
 
@@ -21,7 +21,7 @@ Termio 内置了常见的编程 Agent，但这个目录是开放的：任何命�
 把一个 JSON 文件放进你的配置文件夹，以该 Agent 的 `id` 命名：
 
 ```
-~/.termio/config/agents/<id>.json
+~/.fyolo/config/agents/<id>.json
 ```
 
 一份最小的清单只需要 `id`、`name` 和启动用的 `command`：
@@ -34,7 +34,7 @@ Termio 内置了常见的编程 Agent，但这个目录是开放的：任何命�
 }
 ```
 
-Termio 在启动时读取这个文件夹，之后每当你在 Agent 设置打开的情况下把应用切回前台时也会
+Fyolo 在启动时读取这个文件夹，之后每当你在 Agent 设置打开的情况下把应用切回前台时也会
 重读，所以新清单通常不用重启就会出现。之后你在任何新建会话的地方都能看到它；像其他 Agent
 一样，从 **设置 ▸ Agent** 里启用或排序。
 
@@ -44,7 +44,7 @@ Termio 在启动时读取这个文件夹，之后每当你在 Agent 设置打开
 
 <DocsImage
   src="/screenshots/docs/26-custom-agent.png"
-  alt="Termio Agent 设置选中自定义 Review Agent，并显示由清单提供的命令、状态模式和删除操作"
+  alt="Fyolo Agent 设置选中自定义 Review Agent，并显示由清单提供的命令、状态模式和删除操作"
   width={1664}
   height={1288}
 />
@@ -83,7 +83,7 @@ Termio 在启动时读取这个文件夹，之后每当你在 Agent 设置打开
 
 ### 实时状态
 
-如果你的 Agent 没有 hook 机制，Termio 仍然可以用正则匹配终端画面来读它的状态。把表示
+如果你的 Agent 没有 hook 机制，Fyolo 仍然可以用正则匹配终端画面来读它的状态。把表示
 「忙」的模式列在 `working` 下，把表示「在等你」的模式列在 `attention` 下：
 
 ```json

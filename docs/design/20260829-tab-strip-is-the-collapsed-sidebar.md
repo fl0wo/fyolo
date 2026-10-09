@@ -24,7 +24,7 @@ related:
 
 ## The one idea
 
-Termio has one session switcher, the sidebar, and one way to hide it, the
+Fyolo has one session switcher, the sidebar, and one way to hide it, the
 navigator toggle. Hiding it today leaves nothing behind: the band above the
 terminal holds the toggle, the branch picker and the inspector switch, and the
 user is flying blind — no status rings, no way to see which agent went
@@ -41,9 +41,9 @@ and the strip is what a collapsed sidebar *becomes*.
 ```
  sidebar open                                    sidebar collapsed
  ┌────────────────┬─────────────────────────┐   ┌─────────────────────────────────────────────────────┐
- │ ☰ Work   ⇅ +   │ termio · main      ⊞ ▤  │   │ ☰ Work ▾│termio·main│● Claude│○ zsh│Terminals│+ ⊞ ▤ │
+ │ ☰ Work   ⇅ +   │ fyolo · main      ⊞ ▤  │   │ ☰ Work ▾│fyolo·main│● Claude│○ zsh│Terminals│+ ⊞ ▤ │
  ├────────────────┼─────────────────────────┤   ├─────────────────────────────────────────────────────┤
- │ ▾ termio       │                         │   │                                                     │
+ │ ▾ fyolo       │                         │   │                                                     │
  │   ● Claude  ◀──┼── selected              │   │  $ claude                                           │
  │   ○ zsh        │                         │   │  ▌                                                  │
  │ ▾ Terminals    │                         │   │                                                     │
@@ -116,14 +116,14 @@ of a list — the strip and the list are one model in two geometries, which is
 the property this RFC wants.
 
 Why Chrome needs names and colours: its groups are invented by the user out of
-arbitrary pages, so identity has to be painted on. Why Termio does not: its
+arbitrary pages, so identity has to be painted on. Why Fyolo does not: its
 groups are folders. A project's name is its identity and a section's name is
 its kind. Painting colours on top would be a knob with nothing to decide.
 
-Why Chrome's ⌘1–9 reaches tabs and Termio's reaches workspaces: Chrome's
-top-level object is the tab; Termio's is the workspace, decided in the keyboard
+Why Chrome's ⌘1–9 reaches tabs and Fyolo's reaches workspaces: Chrome's
+top-level object is the tab; Fyolo's is the workspace, decided in the keyboard
 design and already drawn beside each workspace in the switcher. A Chrome
-window is a Termio workspace — one strip, one workspace, switch to see another.
+window is a Fyolo workspace — one strip, one workspace, switch to see another.
 
 How the two geometries are switched: Chrome's vertical tabs (2025) and Edge's
 before them are one toggle reachable from two places — the strip's context
@@ -154,7 +154,7 @@ worth taking; the invariant is not, because the accordion makes it moot.
 
 ## The mapping
 
-| Chrome | Termio | Note |
+| Chrome | Fyolo | Note |
 | --- | --- | --- |
 | Window | Workspace | The strip shows `currentWorkspace`; ⌘1–9 switch |
 | Tab group | Terminals section, Chats section, project, worktree | Chip + run; the run draws only for the selection's group |
@@ -177,7 +177,7 @@ a tab is a whole layout, never a slot within one.
 ```
  sidebar (vertical)                     strip (horizontal), same order
  ──────────────────                     ────────────────────────────────────────────
- ▾ termio                           ─▶  │ termio·main │                 open: holds the selection
+ ▾ fyolo                           ─▶  │ fyolo·main │                 open: holds the selection
    ┌ ● Claude Code   split group    ─▶                │ ● Claude Code ⧉2 │
    └ ○ zsh           (bracketed run)                     one tab, two leaves
    ○ zsh             lone session   ─▶                                     │ ○ zsh │
@@ -241,7 +241,7 @@ vertical and horizontal tabs get right and the thing two independent
 derivations would drift on within a month.
 
 ```
-                  TermioStore
+                  FyoloStore
       ┌──────────────────────────────────┐
       │ projects · worktrees · sessions  │
       │ splitGroups · deviceSessions     │
@@ -282,7 +282,7 @@ beside the chrome that is there today:
 - **The branch picker retires while the strip is up.** It is display only —
   the project's name over its branch, no menu — and both facts move to the
   group chip: the project's name is the chip, and the primary checkout's chip
-  carries the branch after it (`termio · main`), the way a worktree chip already
+  carries the branch after it (`fyolo · main`), the way a worktree chip already
   *is* its branch. With the sidebar open the picker stays, since nothing else in
   the band says which project the terminal is in.
 - **The band goes compact.** Its height comes from `toolbarStyle`, not from its
@@ -296,13 +296,13 @@ beside the chrome that is there today:
 ```
  sidebar open
  ┌───────────────────────────────────────────────────────────────────────────────────────┐
- │ ☰ Work         ⇅   +    ┃ termio                                               ⊞ ▤    │
+ │ ☰ Work         ⇅   +    ┃ fyolo                                               ⊞ ▤    │
  └───────────────────────────────────────────────────────────────────────────────────────┘
    toggleNavigator  flex  sort  new │ sidebarTrackingSeparator │ branchPicker  flex  toggleInspector
 
  sidebar collapsed
  ┌───────────────────────────────────────────────────────────────────────────────────────┐
- │ ☰ Work ▾ │ termio·main │ ● Claude Code ⧉2 │ ○ zsh │ fix-auth ● │ Terminals │ +   ⊞ ▤  │
+ │ ☰ Work ▾ │ fyolo·main │ ● Claude Code ⧉2 │ ○ zsh │ fix-auth ● │ Terminals │ +   ⊞ ▤  │
  └───────────────────────────────────────────────────────────────────────────────────────┘
    toggleNavigator │ ───────────── tabStrip: grows to fill, shrinks first ───────────── │ toggleInspector
    + workspace switcher
@@ -333,7 +333,7 @@ the switcher (see *Pinned*).
 
 ```
  ┌──────────────────────────────────────────────────────────────┐
- │ ☰ Work ▾ │ termio·main │ ● Claude Code ⧉2 │ ○ zsh │ +   ⊞ ▤  │
+ │ ☰ Work ▾ │ fyolo·main │ ● Claude Code ⧉2 │ ○ zsh │ +   ⊞ ▤  │
  └──┬───────────────────────────────────────────────────────────┘
     │  ✓ Work                ⌘1
     │    Personal ●          ⌘2       ← needs-you elsewhere
@@ -370,7 +370,7 @@ the terminal pane), inherited with the slot.
 ```
  sidebar collapsed, inspector open
  ┌─────────────────────────────────────────────────────────────────────┬──────────────────────────────┐
- │ ☰ Work ▾ │ termio·main │ ● Claude Code ⧉2 │ ○ zsh │ fix-auth ● │ +  ┃ Files Search Changes Info  ▤ │
+ │ ☰ Work ▾ │ fyolo·main │ ● Claude Code ⧉2 │ ○ zsh │ fix-auth ● │ +  ┃ Files Search Changes Info  ▤ │
  ├─────────────────────────────────────────────────────────────────────┼──────────────────────────────┤
  │ terminal                                                            │ inspector                    │
  └─────────────────────────────────────────────────────────────────────┴──────────────────────────────┘
@@ -380,10 +380,10 @@ the terminal pane), inherited with the slot.
 Chrome's side panel is the comparison people reach for, and it is shaped
 differently on purpose: the panel carries its own header (title, pop-out, ×)
 so that Chrome's tab strip and toolbar can each span the full window as their
-own rows. Termio has one band, and the accordion keeps the strip short, so a
+own rows. Fyolo has one band, and the accordion keeps the strip short, so a
 self-headed inspector would buy band space nobody needs and cost the inspector
 a row and the window its symmetry — the sidebar's controls would still be in
-the band. What Chrome's panel does get right, Termio already does: the panel
+the band. What Chrome's panel does get right, Fyolo already does: the panel
 follows the tab. Gemini's panel is per-tab; the inspector shows the selected
 session's project, and the accordion draws from the same `selectedSessionID`,
 so switching tabs moves the open group and the inspector together.
@@ -400,17 +400,17 @@ Chrome. Terminals, Chats and worktrees are groups like any other, so the rule
 has no special cases.
 
 ```
- selected: Claude Code in termio
+ selected: Claude Code in fyolo
  ┌─────────────────────────────────────────────────────────────────┐
- │ termio·main │ ● Claude Code ⧉2 │ ○ zsh │ fix-auth ● │ Terminals │
+ │ fyolo·main │ ● Claude Code ⧉2 │ ○ zsh │ fix-auth ● │ Terminals │
  └─────────────────────────────────────────────────────────────────┘
-   open: termio                     folded: fix-auth (needs-you dot), Terminals
+   open: fyolo                     folded: fix-auth (needs-you dot), Terminals
 
  selected: Codex in fix-auth
  ┌─────────────────────────────────────────────────────────┐
- │ termio·main ◐ │ termio ⎇ fix-auth │ ● Codex │ Terminals │
+ │ fyolo·main ◐ │ fyolo ⎇ fix-auth │ ● Codex │ Terminals │
  └─────────────────────────────────────────────────────────┘
-   folded: termio (working dot)   open: fix-auth     folded: Terminals
+   folded: fyolo (working dot)   open: fix-auth     folded: Terminals
 ```
 
 Three things follow:
@@ -446,7 +446,7 @@ shows.
 ```
  open chip            tab (lone)          tab (split, active)         folded chip
  ┌─────────────┐  ┃  ┌──────────────┐  ┃  ┌─────────────────────────┐  ┃  ┌────────────┐
- │ termio·main │  ┃  │ ◐ ○ zsh    × │  ┃  │ ◐ ● Claude Code  ⧉2   × │  ┃  │ fix-auth ● │
+ │ fyolo·main │  ┃  │ ◐ ○ zsh    × │  ┃  │ ◐ ● Claude Code  ⧉2   × │  ┃  │ fix-auth ● │
  └─────────────┘  ┃  └──────────────┘  ┃  └─────────────────────────┘  ┃  └────────────┘
   label, secondary   icon ring title ×    SidebarRowHighlight fill;      no run; status dot;
   hairline under     hover-only ×         hairlines drop beside it       click = its tab menu
@@ -499,27 +499,27 @@ another wants you — and the sidebar keeps lifting the rows as it does.
 
 A session the device reports that no row accounts for needs no group of its
 own: the roster sweep (#528, RFC 20260830) auto-adopts it as an ordinary row,
-so a session someone started from the `termiod` CLI shows in the strip exactly
+so a session someone started from the `fyolod` CLI shows in the strip exactly
 as any other session does. This supersedes the *Also running* group an earlier
 revision of this RFC placed last in the strip.
 
 ## What changes in code
 
-1. `TermioStore`: `switcherRows` (the derivation lifted out of `SidebarView.body`
+1. `FyoloStore`: `switcherRows` (the derivation lifted out of `SidebarView.body`
    and `sidebarSessionGroups`). The Session menu and `selectAdjacentSession`
    read `switcherRows`; behaviour is unchanged. No fold state is added.
-2. `Sources/termio/Sidebar/SidebarView.swift`: renders `switcherRows`; its fold
+2. `Sources/fyolo/Sidebar/SidebarView.swift`: renders `switcherRows`; its fold
    `@State` stays. A pure refactor with a screenshot before and after.
-3. `Sources/termio/Sidebar/TabStripView.swift` (new — it is the sidebar's other
+3. `Sources/fyolo/Sidebar/TabStripView.swift` (new — it is the sidebar's other
    geometry, so it lives beside it): chips, runs, tabs, the `+`, drag and drop
    through the existing delegates. The accordion is a render-time filter: the
    group containing `selectedSessionID` draws its tabs, every other group draws
    its chip.
-4. `Sources/termio/App/App.swift`: a `.tabStrip` toolbar identifier, inserted and
+4. `Sources/fyolo/App/App.swift`: a `.tabStrip` toolbar identifier, inserted and
    removed by `setNavigatorItemsVisible`, swapping the branch picker out and in
    with it; the workspace switcher survives the collapse; `.unifiedCompact` on
    macOS 26 in `installToolbar`.
-5. `Sources/termio/Settings/AppearanceSettingsTab.swift`: the **Tabs** picker,
+5. `Sources/fyolo/Settings/AppearanceSettingsTab.swift`: the **Tabs** picker,
    bound to `store.sidebarVisible` through the collapse path; *Show Tabs
    Vertically* / *Horizontally* as context-menu items on the strip and the
    sidebar header.
@@ -535,7 +535,7 @@ status, the accordion, `+`, chip menus); then × and drag.
 
 - **A tab-layout mode of its own.** Superlogical stores the choice as a mode
   beside the sidebar toggle, which leaves a state where the setting and the
-  window disagree. Termio's picker is the navigator toggle's second handle on
+  window disagree. Fyolo's picker is the navigator toggle's second handle on
   the one autosaved state. Collapsed means strip. Open means sidebar.
 - **Strip and sidebar together.** Built and dropped 2026-07-06. Two switchers.
 - **A second row under the toolbar.** Xcode's shape. It costs a line of terminal
@@ -550,7 +550,7 @@ status, the accordion, `+`, chip menus); then × and drag.
   inspector's controls stay in the band (see *Beside the inspector*). Its
   left/right alignment setting is a knob for the same reason.
 - **Per-group colours.** Chrome needs them because its groups are arbitrary.
-  Termio's groups are folders with names.
+  Fyolo's groups are folders with names.
 - **Tabs inside a pane.** Rejected by `SplitTree` at birth: a leaf is a session.
   A tab here is the whole layout, which is the opposite layer.
 - **Native `NSWindow` tabbing.** Every tab would be a window, which fights the

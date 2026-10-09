@@ -1,9 +1,9 @@
 ---
 title: The sidebar
-description: The sidebar is Termio’s control surface — one workspace at a time, with Terminals, Chats, and Projects grouped in one list and every session reporting a live status.
+description: The sidebar is Fyolo’s control surface — one workspace at a time, with Terminals, Chats, and Projects grouped in one list and every session reporting a live status.
 ---
 
-Everything you run in Termio lives in the sidebar on the left. It’s one scrollable
+Everything you run in Fyolo lives in the sidebar on the left. It’s one scrollable
 list, grouped into sections, where every row is a live session reporting what it’s
 doing right now. Click a row to bring it forward; the rest keep running in the
 background.
@@ -34,8 +34,8 @@ The sidebar groups your sessions by what they are:
 
 Empty sections stay hidden, so the list only shows what you’re actually using.
 
-Sessions the machine is hosting that Termio didn’t start — one you began over
-plain `ssh`, or launched with `termiod` on the box — appear in the list
+Sessions the machine is hosting that Fyolo didn’t start — one you began over
+plain `ssh`, or launched with `fyolod` on the box — appear in the list
 automatically as ordinary sessions, filed into the project whose folder they run
 in, or under **Terminals** otherwise. There is no separate section to learn: a
 session is a session, wherever it came from. If a machine can’t be reached, the
@@ -43,7 +43,7 @@ device switcher says so in `ssh`’s own words rather than going quiet.
 
 <DocsImage
   src="/screenshots/docs/04-project-session-hierarchy.png"
-  alt="The Termio sidebar showing Terminals, Chats, projects, worktrees, and their nested sessions"
+  alt="The Fyolo sidebar showing Terminals, Chats, projects, worktrees, and their nested sessions"
   width={2424}
   height={1664}
 />
@@ -74,7 +74,7 @@ model and where each signal comes from.
 
 The **Chats** section holds scratch agent sessions — for when you want to ask an
 agent something without opening a project. Press `⌘N` for a **New Chat** and it
-starts in a shared scratch directory (`~/.termio/chats`), never in whatever folder
+starts in a shared scratch directory (`~/.fyolo/chats`), never in whatever folder
 you happen to be in. Close them individually, or clear the lot from the section’s
 menu. Treat them as disposable: quick questions, throwaway experiments, nothing
 you need to keep.

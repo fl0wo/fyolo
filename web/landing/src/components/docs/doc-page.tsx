@@ -76,7 +76,7 @@ export async function docPageMetadata(
     width: 1200,
     height: 630,
     type: "image/png",
-    alt: `${english?.data.title ?? title} — Termio documentation`,
+    alt: `${english?.data.title ?? title} — Fyolo documentation`,
   };
 
   return {
@@ -127,7 +127,7 @@ export async function DocPage({
 
   // Structured data. `TechArticle` is what a documentation page is, and stating it
   // lets a search engine treat the page as documentation rather than guessing from
-  // the markup; `BreadcrumbList` is what produces the "Termio › Docs › …" trail
+  // the markup; `BreadcrumbList` is what produces the "Fyolo › Docs › …" trail
   // under a result instead of a bare URL. Both are cheap and neither duplicates
   // anything the <meta> tags already say.
   const url = `${siteUrl}${docUrl(lang, slug)}`;
@@ -142,12 +142,12 @@ export async function DocPage({
       mainEntityOfPage: url,
       isPartOf: {
         "@type": "WebSite",
-        name: "Termio",
+        name: "Fyolo",
         url: siteUrl,
       },
       publisher: {
         "@type": "Organization",
-        name: "Termio",
+        name: "Fyolo",
         url: siteUrl,
       },
     },
@@ -155,7 +155,7 @@ export async function DocPage({
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Termio", item: siteUrl },
+        { "@type": "ListItem", position: 1, name: "Fyolo", item: siteUrl },
         {
           "@type": "ListItem",
           position: 2,
@@ -223,8 +223,8 @@ export async function DocPage({
       }}
       footer={{ enabled: !curatesNextSteps }}
       editOnGithub={{
-        owner: "termio-sh",
-        repo: "termio",
+        owner: "fyolo-sh",
+        repo: "fyolo",
         sha: "main",
         // page.path is relative to the collection dir (content/docs).
         path: `web/landing/content/docs/${page.path}`,

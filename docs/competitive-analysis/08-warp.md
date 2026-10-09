@@ -33,17 +33,17 @@ completions / agents directly into the terminal experience.
 - Modern, fluid terminal fundamentals; deep AI completion/agent integration.
 - Company scale and ecosystem far beyond indie tools.
 
-## Weaknesses / relationship to Termio
+## Weaknesses / relationship to Fyolo
 
 - **No multi-agent session dashboard**: its core is "one great terminal + AI",
   not "orchestrate N agents in one place and watch their status".
-- **Account + cloud required**: the exact opposite of Termio's "local-first,
-  no account, no telemetry" — a hard selling point for Termio with
+- **Account + cloud required**: the exact opposite of Fyolo's "local-first,
+  no account, no telemetry" — a hard selling point for Fyolo with
   privacy/intranet users.
-- **Different paradigm**: Termio is more focused, lighter, more local; Warp is
+- **Different paradigm**: Fyolo is more focused, lighter, more local; Warp is
   more general, heavier, more cloud.
 - **Risk note**: if Warp ships a "multi-agent session dashboard + status" in
-  its main product, the space for indie tools shrinks — Termio's hedge is
+  its main product, the space for indie tools shrinks — Fyolo's hedge is
   precisely "native and lightweight + no account + not an IDE".
 
 ## Business model & funding
@@ -70,12 +70,12 @@ completions / agents directly into the terminal experience.
   "revenue growth is driven primarily by AI consumption rather than seat-based
   licensing."
 
-### vs. Termio
+### vs. Fyolo
 
 Warp is the proof that metered cloud agent compute is the fastest revenue engine
-in this category — and it is precisely the engine Termio's non-negotiable #3
+in this category — and it is precisely the engine Fyolo's non-negotiable #3
 forbids. The consequence is structural and worth stating plainly in any funding
-conversation: **Termio's revenue ramp is slower by design.** What it buys is the
+conversation: **Fyolo's revenue ramp is slower by design.** What it buys is the
 one buyer Warp's model structurally cannot serve — anyone who will not put a
 private repo on a vendor's machine. Do not pitch against Warp on growth rate;
 pitch on the buyer Warp is excluded from.
@@ -84,8 +84,8 @@ Compare the two extremes of the same market: **Daytona** sold pure metered
 sandbox compute and went 0 → $1M ARR in two months. **Ona** (ex-Gitpod) sold
 environments and seats, took six years to ~$7M, and exited to OpenAI on
 2026-06-11 — bought specifically so Codex could keep working for hours after the
-laptop closes, which is Termio's own headline differentiator. The model vendors
-are absorbing durable agent execution into their walled gardens; Termio's
+laptop closes, which is Fyolo's own headline differentiator. The model vendors
+are absorbing durable agent execution into their walled gardens; Fyolo's
 counter is that a developer runs several agents and owns several machines, and
 no vendor's garden covers that.
 
@@ -101,11 +101,11 @@ no vendor's garden covers that.
 ## Side note: other alternative paradigms
 
 - **Cursor / VS Code + extensions**: IDE-built-in agents, diff/code-panel
-  heavy — **the opposite philosophy to Termio**. Termio bets on "the agent
+  heavy — **the opposite philosophy to Fyolo**. Fyolo bets on "the agent
   already lives in the code; humans only need the conversation".
-- **Ghostty / WezTerm / iTerm2**: general-purpose terminals — Termio's
+- **Ghostty / WezTerm / iTerm2**: general-purpose terminals — Fyolo's
   **foundation**, not competitors. Notably, **WezTerm's mux-server** is the
-  best engineering reference for Termio's never-die host.
+  best engineering reference for Fyolo's never-die host.
 - **Plain tmux + hand-rolled worktrees**: the free DIY baseline, but no status
   dashboard, no at-a-glance overview, no brand polish — exactly the experience
-  Termio aims to replace.
+  Fyolo aims to replace.

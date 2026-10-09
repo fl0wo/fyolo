@@ -9,7 +9,7 @@ related:
   - 20260814-remote-to-device.decisions.md
   - 20260824-agent-integration-on-a-device.md
   - 20260824-ios-as-device-client.md
-  - 20260805-termiod-device-architecture.md
+  - 20260805-fyolod-device-architecture.md
   - 20260819-device-workspace-project.md
 ---
 
@@ -63,11 +63,11 @@ That is the gap.
 
 | Component | Change |
 | --- | --- |
-| `Sources/termio/Settings/` | Tab grouping, a Machines surface, per-machine panes |
+| `Sources/fyolo/Settings/` | Tab grouping, a Machines surface, per-machine panes |
 | `SettingsFile.swift` (`SettingsStore`) | A device section in `settings.json` |
-| `~/.termio/devices/<host_id>.json` | New: discovered state, a cache |
+| `~/.fyolo/devices/<host_id>.json` | New: discovered state, a cache |
 | `AgentConfigStore` | Already the per-machine probe and file access; gains callers |
-| `termiod` | Later: serves a device's own settings (§Unresolved 3) |
+| `fyolod` | Later: serves a device's own settings (§Unresolved 3) |
 
 ## Proposed implementation
 
@@ -96,7 +96,7 @@ badge; the session start is where the substitution happened.
 - **Settings ▸ Agents** = *what you use*. Enabled set, order, default agent, and
   the per-agent pane's manifest-level config. Plus a **passive** readiness line
   linking to the machine.
-- **A machine's pane** = *what that machine is*. Reachability, `termiod` version
+- **A machine's pane** = *what that machine is*. Reachability, `fyolod` version
   and deploy, per-agent presence and command path, hooks and skill, serving.
 
 The absence of a device control on Appearance is what says Appearance is not
@@ -134,7 +134,7 @@ scoping the theme would be wrong: the theme is viewer-owned (device architecture
 
 | | Theme | Device tint |
 | --- | --- | --- |
-| Answers | how termio should look | which machine am I on |
+| Answers | how fyolo should look | which machine am I on |
 | Scope | one per app install | one colour per `host_id` |
 | Applies to | whole UI and terminal palette | chrome only: machine row, sidebar mark, hairline |
 | Set in | Appearance | that machine's pane |
@@ -165,7 +165,7 @@ badge.
 
 ### D6 — One line, not a ladder
 
-Deploy `termiod` → probe agent CLIs → install hooks and skill is a real dependency
+Deploy `fyolod` → probe agent CLIs → install hooks and skill is a real dependency
 chain, and wrong as a primary UI: four rungs with independent states turn choosing
 a machine into infrastructure triage.
 
@@ -177,13 +177,13 @@ owns how they behave.
 
 ### D7 — Storage follows from scope
 
-`SettingsStore` already writes `~/.termio/settings.json` with only the keys the
+`SettingsStore` already writes `~/.fyolo/settings.json` with only the keys the
 user set, so it stays short enough for a dotfiles repo (`SettingsFile.swift`).
 
 - **Authored** — per-machine command paths, the tint, workspace intent → a section
   in that same `settings.json`.
-- **Discovered** — availability probes, `termiod` version, integration state →
-  `~/.termio/devices/<host_id>.json`, deletable at any time, **never
+- **Discovered** — availability probes, `fyolod` version, integration state →
+  `~/.fyolo/devices/<host_id>.json`, deletable at any time, **never
   authoritative**.
 
 Keying by `host_id` and not alias keeps one box reached three ways as one blob —
@@ -196,7 +196,7 @@ Ten flat tabs teach nothing. Three groups, mapping one-to-one onto the model:
 
 ```mermaid
 flowchart LR
-  subgraph app["This app — how termio behaves here"]
+  subgraph app["This app — how fyolo behaves here"]
     A1["General"]
     A2["Appearance"]
     A3["Terminal"]
@@ -229,7 +229,7 @@ What moves:
 | --- | --- | --- |
 | General ▸ Agent skill (Session control, Reinstall skill) | the machine's pane | It installs into an agent's config dir **on a machine**. |
 | General ▸ Status (Live agent status, Reinstall hooks) | the machine's pane | Same, and it is why a VPS agent has no hook status. |
-| General ▸ Command line (install the `termio` CLI) | **This Mac's** pane | Installing a CLI on a machine is a machine operation; it sits beside "deploy `termiod`" on every other pane. |
+| General ▸ Command line (install the `fyolo` CLI) | **This Mac's** pane | Installing a CLI on a machine is a machine operation; it sits beside "deploy `fyolod`" on every other pane. |
 | Agents ▸ per-agent command path | the machine's pane | D1, D7 authored half. |
 | **Mobile** | the machine's pane, as its **Serving** section | D9. |
 | Devices (`= "ssh"`) | Machines | D2. |
@@ -242,13 +242,13 @@ scope, and the tab stops lying.
 Everything in `Settings ▸ Mobile` is a fact about one machine: the companion
 port, the pairing token, the QR encoding them, the tunnel, and which phones are
 paired **to that Mac**. It looks app-scoped only because the Mac is currently the
-only machine that serves anything — which `termiod serve --wss`
+only machine that serves anything — which `fyolod serve --wss`
 ([20260824-ios-as-device-client.md](20260824-ios-as-device-client.md)) ends.
 
 | Section | This Mac | A device |
 | --- | --- | --- |
 | Reached by | it is here | alias, destination, identity file, Test Connection |
-| Runs | `termio` CLI, agent CLIs, hooks and skill | `termiod` version + deploy, agent CLIs, hooks and skill |
+| Runs | `fyolo` CLI, agent CLIs, hooks and skill | `fyolod` version + deploy, agent CLIs, hooks and skill |
 | Serving | companion: port, QR, token, tunnel, paired phones | `serve --wss` bind, pair token + `--qr`, origin, paired clients |
 
 Pairing a phone with a Mac and with a VPS are the same feature on two machines —
@@ -321,7 +321,7 @@ Two consequences worth stating:
 2. **Where does "Set up this device" live** — only the machine's pane, or also as
    a prompt on first entering a workspace on an unprepared machine? The second is
    better UX and worse discoverability.
-3. **When does the device file stop being the Mac's?** §2.1 points at `termiod`
+3. **When does the device file stop being the Mac's?** §2.1 points at `fyolod`
    owning and serving it — a phone attached directly to a VPS cannot read the
    Mac's `settings.json` — but that depends on protocol and storage work this RFC
    does not decide. A dependency, not a schedule.
@@ -353,7 +353,7 @@ and nothing else here rests on it.
 ## Definition of Done
 
 1. D2 settled; a Machines surface exists.
-2. `SettingsStore` resolves a device section; `~/.termio/devices/<host_id>.json`
+2. `SettingsStore` resolves a device section; `~/.fyolo/devices/<host_id>.json`
    is written, read as a cache, and safe to delete.
 3. Agents shows readiness in all **three** states, summarised across the roster,
    and every machine value it holds is a row naming its machine (D10). No control

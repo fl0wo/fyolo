@@ -15,10 +15,10 @@ order, and so does everything below.
 
 ## Adding a host
 
-Termio reads `~/.ssh/config` and never rewrites it behind your back. Anything you
-can already `ssh` to is a machine Termio can reach — there is nothing to import.
+Fyolo reads `~/.ssh/config` and never rewrites it behind your back. Anything you
+can already `ssh` to is a machine Fyolo can reach — there is nothing to import.
 
-- **File ▸ Connect to…** lists the aliases in your config Termio hasn’t worked on
+- **File ▸ Connect to…** lists the aliases in your config Fyolo hasn’t worked on
   yet. Picking one opens a terminal there.
 - **Add Host…** — at the end of **File ▸ New SSH Connection**, and on the Remote
   Hosts pane — appends a `Host` block for a box that isn’t in your config yet. Lead with the
@@ -44,7 +44,7 @@ carries `ssh`’s own reason rather than a fixed label:
 | The reason `ssh` gave | Everything else — refused, timed out, unknown host — reported in `ssh`’s words. |
 
 Test with the machine’s own alias, the same way the rest of the app reaches it.
-If `ssh mybox` fails in your terminal, this will fail too — Termio carries no
+If `ssh mybox` fails in your terminal, this will fail too — Fyolo carries no
 credentials of its own.
 
 ## Why a password isn’t enough
@@ -55,13 +55,13 @@ The connections that carry sessions, the file tree, search, and the git panes al
 exactly where a human is sitting there to type it, and fails everywhere else.
 
 So the pane says that plainly and offers the fix in place: **Set Up Key…** runs
-`ssh-copy-id` in a terminal with the key Termio would use. The host asks for your
+`ssh-copy-id` in a terminal with the key Fyolo would use. The host asks for your
 password once, there, and from then on every path can reach it. If `~/.ssh` has
 no key `ssh` would offer on its own, the row says so and points at `ssh-keygen`
 first.
 
 <Callout type="note">
-  The key is yours and the command is the standard one. Termio never stores a
+  The key is yours and the command is the standard one. Fyolo never stores a
   password, never embeds an SSH implementation, and never writes a credential
   anywhere but where `ssh` and your keychain already keep them.
 </Callout>
@@ -69,7 +69,7 @@ first.
 ## Setting it up
 
 Getting a box ready is a real dependency chain — put the server there, find out
-which agent CLIs it has, write Termio’s hooks and skill into them. Showing that
+which agent CLIs it has, write Fyolo’s hooks and skill into them. Showing that
 as four independent states would turn picking a machine into infrastructure
 triage, so the pane promises **one outcome** and keeps the rungs underneath it:
 
@@ -80,7 +80,7 @@ triage, so the pane promises **one outcome** and keeps the rungs underneath it:
 | **Ready** | Agents on that machine can run — and, with the integration switches on, report their status back here. |
 | **Update ready** | A newer server is staged, and the running one is holding it off because it has work in progress. |
 
-Pressing **Set Up** walks the ladder: copy `termiod` into `~/.local/bin` over
+Pressing **Set Up** walks the ladder: copy `fyolod` into `~/.local/bin` over
 SSH, probe for your agent CLIs, then bring the hooks and the skill into line with
 what the switches on **Settings ▸ Agents** ask for — installing each half, or
 removing it, per switch. With both off it deliberately installs neither, and the
@@ -88,7 +88,7 @@ line then promises only that agents there can run. No root, no package manager,
 nothing added to your shell profile.
 
 When a rung fails, the line names **that rung** rather than “setup failed” — and
-only the first one. A machine with no `termiod` also has no hooks, and naming
+only the first one. A machine with no `fyolod` also has no hooks, and naming
 both invites you to fix the consequence instead of the cause.
 
 <Callout type="tip">
@@ -108,18 +108,18 @@ axis. Opening it gives you:
   to launch the agent the way that machine’s login shell would; fill it in
   (`/opt/homebrew/bin/codex`) when the binary lives somewhere the profile doesn’t
   add. Which agents appear at all is still **Settings ▸ Agents**.
-- **Installed by Termio.** What Termio wrote into each agent’s config on that
+- **Installed by Fyolo.** What Fyolo wrote into each agent’s config on that
   machine — **Hooks** (so agents report their status) and the **Skill**. One
   **Reinstall Hooks and Skill** button repairs both; reach for it after
   hand-editing one, or when a status dot stops moving.
 
   The skill a box gets is not the one this Mac gets. Agents here learn
-  `termio sessions`, scoped to their own project; agents on a machine learn
-  `termiod list`, `create`, `send` and `kill`, scoped to that whole machine —
+  `fyolo sessions`, scoped to their own project; agents on a machine learn
+  `fyolod list`, `create`, `send` and `kill`, scoped to that whole machine —
   because that is the command that exists there.
 
 *Can’t check* is a third answer on purpose, and it’s never a defect in the agent:
-it means Termio couldn’t reach the machine to ask. Reporting that as “not
+it means Fyolo couldn’t reach the machine to ask. Reporting that as “not
 installed” would send you to reinstall a CLI that’s already there; reporting it
 as “installed” would promise a launch that can’t happen.
 
@@ -146,26 +146,26 @@ or an agent mid-task does.
 From the command line the same reconcile is one verb:
 
 ```bash
-termiod deploy --host mybox
+fyolod deploy --host mybox
 ```
 
 It ends in the same state whatever state it started in, so running it against a
-box that looks wrong is safe. See [The Termio server](/docs/server).
+box that looks wrong is safe. See [The Fyolo server](/docs/server).
 
 ## When a host stops answering
 
-Work from the outside in — `ssh` first, then the daemon, then Termio:
+Work from the outside in — `ssh` first, then the daemon, then Fyolo:
 
 ```bash
 ssh mybox true                 # does SSH itself work?
-termiod list --host mybox      # is the server answering there?
-termiod deploy --host mybox    # reinstall and verify it
+fyolod list --host mybox      # is the server answering there?
+fyolod deploy --host mybox    # reinstall and verify it
 ```
 
 A dropped connection detaches you; it doesn’t kill anything. The sessions are on
 that box, in its daemon, and reattaching restores the screen — see [What
 survives](/docs/persistence). If they really did go away after a reboot, the box
-is missing a service: `termiod service install`.
+is missing a service: `fyolod service install`.
 
 The device switcher reports an unreachable machine in `ssh`’s own words rather
 than going quiet, so the failure you read is the failure `ssh` had. More symptoms
@@ -175,8 +175,8 @@ and their checks are in [Troubleshooting](/docs/troubleshooting).
   <Card href="/docs/devices" title="Devices">
     The model: what a machine is, and what reaches across to one.
   </Card>
-  <Card href="/docs/server" title="The Termio server">
-    `termiod` itself — installing it, keeping it alive, looking at it.
+  <Card href="/docs/server" title="The Fyolo server">
+    `fyolod` itself — installing it, keeping it alive, looking at it.
   </Card>
   <Card href="/docs/session-control" title="Status hooks & session control">
     The two switches whose files land on every machine you set up.

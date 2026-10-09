@@ -1,21 +1,21 @@
 ---
-title: Termio server
-description: 一台机器上跑着什么，才让会话比应用活得久——termiod 怎么装、怎么保活、怎么原地升级，以及出问题时怎么查。
+title: Fyolo server
+description: 一台机器上跑着什么，才让会话比应用活得久——fyolod 怎么装、怎么保活、怎么原地升级，以及出问题时怎么查。
 x-i18n:
   source_path: server.mdx
   source_hash: bf864f95fa2aa45c230d824957fdd651ad91d6840177e71f4aa2c9d5241cc495
   generated_at: 2026-09-19
 ---
 
-每个会话都跑在 `termiod` —— Termio server —— 里，跑在拥有它的那台机器上，本机的会话也
+每个会话都跑在 `fyolod` —— Fyolo server —— 里，跑在拥有它的那台机器上，本机的会话也
 一样。Mac 应用、iOS 应用和命令行都只是*观察者*：它们连上一个会话，再断开。会话不属于
 你当时正在看的那个窗口。
 
-这正是退出 Termio 不会杀掉你的 Agent 的原因。
+这正是退出 Fyolo 不会杀掉你的 Agent 的原因。
 
 ## 它是什么
 
-`termiod` 是会话的宿主，不是窗口管理器。它持有 PTY、保存回滚缓冲，并在有观察者连上来时
+`fyolod` 是会话的宿主，不是窗口管理器。它持有 PTY、保存回滚缓冲，并在有观察者连上来时
 给它一份快照。本机的观察者通过 Unix socket 找到它；远程则由应用开一条 SSH 管道，连到对
 面那台机器上同一个二进制。一套协议，两种走法——这就是 VPS 上的会话用起来和本机一样的
 原因。
@@ -28,18 +28,18 @@ x-i18n:
 `~/.local/bin` 并启动它。没有要装的包，也不需要 root。
 
 ```bash
-termiod deploy                      # 在本机安装或更新，然后校验
-termiod deploy --host mybox         # 同样的事，走你自己的 SSH 配置
+fyolod deploy                      # 在本机安装或更新，然后校验
+fyolod deploy --host mybox         # 同样的事，走你自己的 SSH 配置
 ```
 
 `deploy` 是唯一的安装路径，而且它是一次调和：无论机器处于什么状态，跑完都落到同一个状态。
-Termio 读 `~/.ssh/config` 找主机，所以一台你已经能 `ssh` 上去的机器不需要任何新配置。参见
+Fyolo 读 `~/.ssh/config` 找主机，所以一台你已经能 `ssh` 上去的机器不需要任何新配置。参见
 [设备](/docs/devices)。
 
 ## 让它一直活着
 
 ```bash
-termiod service install    # macOS 用 launchd，Linux 用 systemd --user
+fyolod service install    # macOS 用 launchd，Linux 用 systemd --user
 ```
 
 没有 service 时，server 只活到你这次登录结束。装上之后，它会在崩溃后和重启后自己回来——
@@ -50,32 +50,32 @@ termiod service install    # macOS 用 launchd，Linux 用 systemd --user
 新版本会**原地**替换正在运行的那个：进程保留自己的 pid 和 PTY，会话完全察觉不到。
 
 ```bash
-termiod handoff
+fyolod handoff
 ```
 
-应用自我更新时走的也是这条路——这就是 Termio 更新不会让你损失正在跑的 Agent 的原因。
+应用自我更新时走的也是这条路——这就是 Fyolo 更新不会让你损失正在跑的 Agent 的原因。
 每种情况见[什么会留下来](/zh-CN/docs/persistence)，包括 handoff 覆盖不了的那些。
 
 ## 查看它
 
-三条命令几乎能回答所有「是我的问题还是 Termio 的问题」：
+三条命令几乎能回答所有「是我的问题还是 Fyolo 的问题」：
 
 | 命令 | 它告诉你什么 |
 | --- | --- |
-| `termiod status` | 这台机器上有什么：二进制、它的版本，以及 socket 上是否真的有守护进程在应答。 |
-| `termiod list` | 宿主正持有的会话——加 `--host <box>` 可以问另一台机器。 |
-| `termiod logs` | 没有观察者连着的时候，server 记下了什么。`-f` 跟随输出，`--path` 打印文件路径，方便附进 bug 报告。 |
+| `fyolod status` | 这台机器上有什么：二进制、它的版本，以及 socket 上是否真的有守护进程在应答。 |
+| `fyolod list` | 宿主正持有的会话——加 `--host <box>` 可以问另一台机器。 |
+| `fyolod logs` | 没有观察者连着的时候，server 记下了什么。`-f` 跟随输出，`--path` 打印文件路径，方便附进 bug 报告。 |
 
 <Callout type="note">
-  `termiod` 是 server 自己的命令，和应用替你安装的
-  [`termio` 命令行工具](/docs/cli)是两回事。你很少需要手动敲 `termiod`——应用会替你跑
+  `fyolod` 是 server 自己的命令，和应用替你安装的
+  [`fyolo` 命令行工具](/docs/cli)是两回事。你很少需要手动敲 `fyolod`——应用会替你跑
   这些——但当某台机器不对劲、你想看而不是猜的时候，它就在那儿。
 </Callout>
 
 ## 停掉它
 
 ```bash
-termiod stop
+fyolod stop
 ```
 
 当还有命令在跑、或还有观察者连着时，它会拒绝，所以一次手滑的 `stop` 不会连带毁掉 Agent

@@ -13,7 +13,7 @@ related:
 
 > Fixed on 2026-07-14. The app-side `moveFocus` driver covers the selected surface,
 > and equivalent pre-window retry behavior shipped in `libghostty-swift` `1.0.12`,
-> which Termio now requires and pins.
+> which Fyolo now requires and pins.
 
 ## Symptom
 
@@ -56,7 +56,7 @@ that AppKit accepted the move. No unrelated render is needed.
 `AppTerminalView`, so the reusable component no longer drops a focus request just
 because `updateNSView` arrived before window attachment. Its pre-window regression
 test attaches the view after the first attempt and verifies that it becomes first
-responder without another SwiftUI render. Termio's manifest and resolved dependency
+responder without another SwiftUI render. Fyolo's manifest and resolved dependency
 both select that release.
 
 ## Verification

@@ -33,7 +33,7 @@ export function DocsHeader({ lang }: { lang: DocsLanguage }) {
           <Link
             href={home}
             className="group flex shrink-0 items-center rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-            aria-label="Termio"
+            aria-label="Fyolo"
           >
             <Logo />
           </Link>
@@ -52,7 +52,7 @@ export function DocsHeader({ lang }: { lang: DocsLanguage }) {
             href={githubUrl}
             target="_blank"
             rel="noreferrer"
-            aria-label="Termio on GitHub"
+            aria-label="Fyolo on GitHub"
             className="hidden h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:inline-flex"
           >
             <GitHubMark className="h-4 w-4" />

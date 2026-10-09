@@ -15,17 +15,17 @@ updated: 2026-07-02
 
 ## Motivation
 
-Termio shows one session at a time; the sidebar is the multiplexer. That is
+Fyolo shows one session at a time; the sidebar is the multiplexer. That is
 right for switching *between* agents, but not for working *alongside* one: ssh
 into a server while a local shell tails logs, or run commands next to a working
 agent. Ghostty solves this with splits — but splits are not a libghostty
 feature. They live entirely in Ghostty's macOS app layer; every embedder builds
-their own. This RFC is Termio's version.
+their own. This RFC is Fyolo's version.
 
 Two facts make it cheap here:
 
 - **Every session is already an independent, always-mounted surface.** One
-  session = one `TerminalViewState` (cached in `TermioStore.surfaces`) backed by
+  session = one `TerminalViewState` (cached in `FyoloStore.surfaces`) backed by
   its own host-managed `PTYProcess`. `TerminalPane` keeps all opened sessions
   mounted in a ZStack and toggles opacity. Splits are a tree model plus layout
   math — **zero PTY / libghostty changes**.
@@ -46,7 +46,7 @@ Two facts make it cheap here:
    tree-less). Revealing a tree must never resize its panes — visibility stays
    pure opacity + hit-testing, as today.
 3. **Sessions stay flat** in `projects[].sessions`. The sidebar, the
-   `termio sessions` CLI, and the iOS companion address sessions by id and are
+   `fyolo sessions` CLI, and the iOS companion address sessions by id and are
    unchanged. Split trees are a *layout overlay* that only references session
    ids.
 4. **`selectedSessionID` remains the single source of truth** and now means
@@ -62,7 +62,7 @@ Two facts make it cheap here:
 
 ## Design
 
-### Model — `Sources/termio/SplitTree.swift` (new)
+### Model — `Sources/fyolo/SplitTree.swift` (new)
 
 ```swift
 enum SplitAxis: String, Codable, Hashable { case horizontal, vertical }
@@ -95,7 +95,7 @@ collapses to its sibling), `updatingRatio(at: [SplitBranch], to:)` (clamped
 (`Models.swift:34-43`, same pattern as `pinned`). Old `state.json` files load
 unchanged; `StateFile.Snapshot` is untouched — trees persist with the project.
 
-### Layout — `Sources/termio/SplitLayout.swift` (new)
+### Layout — `Sources/fyolo/SplitLayout.swift` (new)
 
 A pure, stateless flattener:
 
@@ -112,12 +112,12 @@ when the container cannot fit two minimums; it is never persisted.
 `DividerHandle` carries the node `path`, `axis`, the strip `rect`, and the
 parent `nodeRect` so a drag location maps back to a ratio.
 
-### Store — `Sources/termio/TermioStore/TermioStore+Splits.swift` (new)
+### Store — `Sources/fyolo/FyoloStore/FyoloStore+Splits.swift` (new)
 
 - `splitTree(containing id:) -> SplitTree?` — session ids are unique across
   projects.
 - `splitSession(_ id:, direction:)` — factor `addSession`'s `Terminal N` title
-  numbering (`TermioStore+ProjectActions.swift:6-16`) into a shared
+  numbering (`FyoloStore+ProjectActions.swift:6-16`) into a shared
   `makeSession(in:agent:)`; then, in **one** `projects[index]` mutation (one
   `persist()`, one render): append the new `.terminal` session and replace the
   target leaf with `.split(axis:, ratio: 0.5, …)` — the new pane takes the
@@ -134,12 +134,12 @@ parent `nodeRect` so a drag location maps back to a ratio.
   session renders full-pane again), and return the sibling's first leaf as the
   selection fallback.
 
-`closeSession` (`TermioStore+ProjectActions.swift:169-193`) calls
+`closeSession` (`FyoloStore+ProjectActions.swift:169-193`) calls
 `removeFromSplits` inside the same mutation and prefers its fallback over the
 index-neighbor heuristic. The CLI (`sessions stop`) and the iOS companion both
 route through `closeSession`, so tree fix-up is centralized — no other close
 path exists (a shell exiting does not close its session today).
-`TermioStore.restored` prunes each project's `splits` against live session ids,
+`FyoloStore.restored` prunes each project's `splits` against live session ids,
 defending against a state file written by a crashed run.
 
 ### Rendering — `TerminalPane.swift`
@@ -173,14 +173,14 @@ Session**, acting on the pane under the cursor (which is focused first).
 
 The embedded view cannot provide this itself: `libghostty-spm` is an external
 package (Lakr233) whose `TerminalViewRepresentable` hardcodes
-`TerminalView(frame:)` — Termio cannot inject an `AppTerminalView` subclass to
+`TerminalView(frame:)` — Fyolo cannot inject an `AppTerminalView` subclass to
 override `menu(for:)`. And the package's `rightMouseDown`
 (`AppTerminalView+Input.swift:157`) forwards right-clicks to the surface as
 `GHOSTTY_MOUSE_RIGHT` (never consulting `menu(for:)`), except on a text
 selection where it pops its own Copy menu — so SwiftUI `.contextMenu` or the
 NSView `.menu` property would never fire.
 
-Instead, Termio installs a **local `NSEvent` monitor** for `.rightMouseDown`
+Instead, Fyolo installs a **local `NSEvent` monitor** for `.rightMouseDown`
 (the same bypass-the-package spirit as the link-open delegate workaround):
 
 - Convert the event location into the terminal pane's coordinate space; ignore
@@ -199,7 +199,7 @@ Instead, Termio installs a **local `NSEvent` monitor** for `.rightMouseDown`
   bypasses the monitor** and forwards to the shell (the terminal convention
   for "send it to the app").
 
-### Menu & keybinds — `App.swift`, `TermioStore+TerminalSurface.swift`
+### Menu & keybinds — `App.swift`, `FyoloStore+TerminalSurface.swift`
 
 File menu gains **Split Left**, **Split Right ⌘D**, **Split Up**,
 **Split Down ⌘⇧D**, and **Close Session ⌘W** (⌘W is currently unclaimed),
@@ -256,7 +256,7 @@ is additive later without model changes.
    sizes hold, ratio survives restart.
 3. Click a pane → focus + sidebar selection follow; sidebar row reveals the
    whole tree.
-4. Close a middle pane via sidebar ✕, ⌘W, and `termio sessions stop <id>` —
+4. Close a middle pane via sidebar ✕, ⌘W, and `fyolo sessions stop <id>` —
    tree collapses to the sibling; the last pane renders full-pane.
 5. Restart: geometry restored, fresh shells spawn on first reveal.
 6. ssh in one pane + local shell in the other; project/session switches cause

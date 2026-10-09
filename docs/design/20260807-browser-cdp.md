@@ -6,7 +6,7 @@ created: 2026-08-07
 updated: 2026-08-12
 related:
   - 20260810-companion-wire-protocol.md
-  - termiod-session-protocol.md
+  - fyolod-session-protocol.md
   - agent-extensibility.md
 ---
 
@@ -51,8 +51,8 @@ Two consequences that are easy to get wrong:
 ## 2. The interface is two verbs
 
 ```
-termio browser cdp <Method> [params-json]   # the page API
-termio browser status                       # is a browser attached, what is bound
+fyolo browser cdp <Method> [params-json]   # the page API
+fyolo browser status                       # is a browser attached, what is bound
 ```
 
 That is the whole agent-facing surface. `tabs` is `Target.getTargets`. Reading
@@ -77,7 +77,7 @@ that three tab routes were being called with no route registered to serve them.
 `rfcs/minimal-cdp-surface.md` in that repo has the full accounting.
 
 The reason to sit at the raw end rather than the `chrome-devtools-mcp` end
-(51 tools, `uid` handles, no CDP passthrough) is specific to termio: **the agent
+(51 tools, `uid` handles, no CDP passthrough) is specific to fyolo: **the agent
 already has a shell.** A verb CLI re-implements, badly, what the agent can do by
 piping. Everything below is why that is necessary but not sufficient.
 
@@ -100,7 +100,7 @@ grounding (`aria-ref` handles) and event-driven waiting (`waitForResponse`,
 
 We are not adopting it, for reasons of dependency rather than design:
 
-- It requires **Node plus Playwright** on the machine. termio ships no JS
+- It requires **Node plus Playwright** on the machine. fyolo ships no JS
   runtime and must not acquire one — the same objection that rules out bundling
   `bun`.
 - playwriter depends on `@xmorse/playwright-core`, a **fork** of playwright-core.
@@ -129,7 +129,7 @@ from both.
 One asymmetry disqualifies browser-harness as a model for the transport,
 though: it connects over `--remote-debugging-port` and launches Chrome itself.
 Per §1 that **cannot reach the user's default profile** on Chrome 136+. It
-automates *a* browser; termio automates *your* browser. Its design choices —
+automates *a* browser; fyolo automates *your* browser. Its design choices —
 coordinate clicks, launch-your-own — are reasonable in a world where the
 profile does not matter, and are not reasonable here.
 
@@ -143,17 +143,17 @@ a design error, not a documentation problem.
 
 ## 3. Discovery costs zero turns
 
-Browser availability is a fact termio holds — the app *is* the endpoint the
+Browser availability is a fact fyolo holds — the app *is* the endpoint the
 extension connects to. So it belongs in the environment, stamped at PTY spawn
-alongside `TERMIO_SESSION`:
+alongside `FYOLO_SESSION`:
 
 ```
-TERMIO_BROWSER=ready | no-extension | off
+FYOLO_BROWSER=ready | no-extension | off
 ```
 
 The skill's first instruction is to read it. `ready` means go straight to the
 verb: no probe, no subprocess, no round trip. Anything else means one
-`termio browser status` (the env is fixed at spawn; the extension may have
+`fyolo browser status` (the env is fixed at spawn; the extension may have
 connected since) and then stop.
 
 This matters more because the feature is opt-in: `off` is the common case, and
@@ -169,7 +169,7 @@ external being present (`AgentAvailability.swift`).
 
 | piece | preinstalled? |
 | --- | --- |
-| `termio browser` verbs (Swift) | yes — compiled in; cannot not be |
+| `fyolo browser` verbs (Swift) | yes — compiled in; cannot not be |
 | companion server accepting extension clients | **no** — refuses until enabled |
 | Chrome extension | **no** — only the user can install into Chrome |
 | the skill in the agent's skill dirs | **no** — written on enable |
@@ -178,7 +178,7 @@ Enabling does three things: flips the gate so the server will accept an
 extension, opens the Chrome install path, installs the skill.
 
 **Why off by default is not merely taste.** A `chrome.debugger` extension with
-`<all_urls>` over the user's logged-in Chrome is the most invasive thing termio
+`<all_urls>` over the user's logged-in Chrome is the most invasive thing fyolo
 would ship — more invasive than the agent's shell access, because it carries
 live authenticated sessions. And concretely: if the companion server accepted
 extension connections unconditionally, any local process could impersonate an
@@ -199,17 +199,17 @@ and derails whatever it was doing.
 
 ## 5. Transport: no second server
 
-The extension dials **out** to termio's existing companion WebSocket
+The extension dials **out** to fyolo's existing companion WebSocket
 (`CompanionServer`, port 8787 / 8788 dev) and presents the pairing token, using
 the same `.auth` control frame the phone uses. Health check first, reconnect
 loop after.
 
-No new port, no second daemon, no Node runtime. termio ships no JS runtime and
+No new port, no second daemon, no Node runtime. fyolo ships no JS runtime and
 must not acquire one for this — the same objection that rules out bundling
 `bun` for `browseruse` or depending on a global `npm install` of `runbrowser`.
 
-`termio browser` reaches the app over the existing AF_UNIX control socket,
-beside `termio sessions` and `termio agent report`. Passing a method name and a
+`fyolo browser` reaches the app over the existing AF_UNIX control socket,
+beside `fyolo sessions` and `fyolo agent report`. Passing a method name and a
 JSON blob down a socket is framing, not logic, so the CLI stays thin shell.
 
 **The Swift side never parses a page.** It moves a method and a params blob in
@@ -266,7 +266,7 @@ So the split is:
   the host can read.
 
 The host-side surface for events, when it lands, should be one verb —
-`termio browser events subscribe|read` — not a per-case `wait` vocabulary.
+`fyolo browser events subscribe|read` — not a per-case `wait` vocabulary.
 
 **Deliberately deferred:** both are designed against a real task that needs
 them, not guessed at now. What is decided is *where they live* — in the
@@ -275,11 +275,11 @@ extension, not in a skill file and not behind a Node dependency.
 ### The two capabilities that cost nothing
 
 browser-harness's distinctive bets are the cheapest things on this list for
-termio, and they are currently missing from the design.
+fyolo, and they are currently missing from the design.
 
 **Self-repair.** browser-harness lets the agent edit `agent_helpers.py`
 mid-task: hit a missing capability, write it, re-run. That requires a code
-execution environment with an editable helpers file — which **termio's agent
+execution environment with an editable helpers file — which **fyolo's agent
 already has**, because it is sitting in a shell with a filesystem. The cost is
 not code; it is one instruction in the skill: *when you work out a CDP sequence
 that works, write it to a script and reuse it, rather than re-deriving it next
@@ -288,7 +288,7 @@ time and we get browser-harness's weak primitive with none of its recovery.
 
 **Domain knowledge.** The long tail — this site needs a scroll before the button
 is real, that one rejects synthetic events — is not eliminable by any interface.
-browser-harness stores it as per-domain markdown. termio's equivalent already
+browser-harness stores it as per-domain markdown. fyolo's equivalent already
 exists: **skills**, with a distribution format defined in
 [20260812-agent-plugins.md](./agent-plugins.md). Also free.
 
@@ -311,7 +311,7 @@ substitutes.
 
 ## 8. Remote sessions: the part that is ours
 
-`termio browser` from a termiod session on a VPS routes back over the same
+`fyolo browser` from a fyolod session on a VPS routes back over the same
 framed connection to the Mac's Chrome. From the agent's side nothing changes —
 same verbs, same PATH, same env var.
 
@@ -327,7 +327,7 @@ An agent acting in the user's authenticated Chrome is a trust event. Three
 surfaces, all of which already exist:
 
 - ghost cursor and element highlight in-page, from the extension's content script
-- Chrome's own "termio is debugging this browser" infobar — **never suppress it**
+- Chrome's own "fyolo is debugging this browser" infobar — **never suppress it**
 - the session trace: browser calls and screenshots land there, and the trace
   already renders as themed HTML and already shows on the phone
 
@@ -336,14 +336,14 @@ in their browser from their pocket.
 
 ## 10. What this is not
 
-- **Not a plugin system.** termio has no extension mechanism and should not
+- **Not a plugin system.** fyolo has no extension mechanism and should not
   grow one for a single consumer. A settings gate and a skill install is the
   whole mechanism.
 - **Not an in-app browser.** A WKWebView pane is logged into nothing, which is
   exactly what makes automated browsing useless for real tasks, and it puts an
   app inside the terminal.
-- **Not a second binary.** The capability cannot function without termio.app
-  running, so a standalone `browser` command would be a client of termio
+- **Not a second binary.** The capability cannot function without fyolo.app
+  running, so a standalone `browser` command would be a client of fyolo
   wearing a costume. Its Unix analogues are `systemctl` and `ip` — subcommand
   dispatchers over a daemon — not `ls`.
 - **Not an npm dependency.** See §5.
@@ -359,10 +359,10 @@ in their browser from their pocket.
 2. **Web Store listing** — unavoidable cost, and the long pole. v0 can ship the
    extension unpacked in the bundle with the Settings button revealing it and
    opening `chrome://extensions`; that unblocks everything else.
-3. **Skill install scope** — global (`~/.claude/skills`), matching how termio
+3. **Skill install scope** — global (`~/.claude/skills`), matching how fyolo
    installs hooks, rather than project-local.
 4. **Events** — §7.
-5. **Whether a portable host ever ships** for non-termio agents. The contract
+5. **Whether a portable host ever ships** for non-fyolo agents. The contract
    makes it possible; nothing suggests demand yet. Wait for the signal.
 
 ## Sources

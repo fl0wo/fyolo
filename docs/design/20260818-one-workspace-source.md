@@ -7,10 +7,10 @@ updated: 2026-08-31
 related:
   - 20260818-one-workspace-source.review-codex.md
   - 20260818-remote-git-plane.md
-  - 20260817-one-path-local-through-termiod.md
+  - 20260817-one-path-local-through-fyolod.md
   - 20260814-remote-to-device.md
-  - 20260805-termiod-device-architecture.md
-  - 20260730-termiod-session-protocol.md
+  - 20260805-fyolod-device-architecture.md
+  - 20260730-fyolod-session-protocol.md
 ---
 
 # A project carries its machine — delete the host container
@@ -30,7 +30,7 @@ that shape on two counts, both correct:
   reached by LAN, WAN, and Tailscale names forks into three workspaces, when
   `DeviceContext.swift:214-225` already prefers `deviceID`;
 - keeping `.local` as a lasting public case preserves the local special-case
-  that `20260817-one-path-local-through-termiod.md` exists to delete.
+  that `20260817-one-path-local-through-fyolod.md` exists to delete.
 
 It also found that `.host` provably cannot own a workspace root
 (`hostContainer` keeps one root per alias, first-writer-wins), and that the
@@ -65,7 +65,7 @@ There is no host container in Zed's project tree, and the recents list is one
 flat list where `Local` and `Remote(..)` rows are rendered side by side
 (`crates/recent_projects/src/recent_projects.rs:1476-1519`).
 
-The thing that superficially resembles termio's `.host` container is settings
+The thing that superficially resembles fyolo's `.host` container is settings
 only (`crates/settings_content/src/settings_content.rs:1284-1305`):
 
 ```rust
@@ -104,16 +104,16 @@ which the remote server answers in `handle_list_remote_directory`
 Both feed the **same picker component**. The smoothness is not UI polish; it is
 the refusal to own two pickers.
 
-### 1.2 Where termio is ahead, and must not copy down
+### 1.2 Where fyolo is ahead, and must not copy down
 
 Zed keys a remote workspace by `RemoteConnectionOptions`
 (`crates/remote/src/remote_client.rs:1323-1329`) — Ssh/Wsl/Docker connection
 parameters. That is a **route**. Zed has no stable machine identity, so one box
 reached two ways is two workspaces.
 
-termiod's `host_id` from `hello_ok` is a real device identity, and
+fyolod's `host_id` from `hello_ok` is a real device identity, and
 `DeviceContext.swift:214-225` already prefers it once both ends know it. Take
-Zed's *shape*; keep termio's identity. This is the first draft's alias mistake,
+Zed's *shape*; keep fyolo's identity. This is the first draft's alias mistake,
 fixed at the root rather than papered over.
 
 ## 2. The model
@@ -154,11 +154,11 @@ protocol DirectoryLister {
 
 - **Local** — `FileManager`, and `NSOpenPanel` remains available as the native
   affordance for `.local`.
-- **Device** — `FsList` (`termiod/src/protocol.rs:473`), which is termio's
+- **Device** — `FsList` (`fyolod/src/protocol.rs:473`), which is fyolo's
   `ListRemoteDirectory`. It already exists, is batched and `seq`-stamped, and is
   smoke-tested. **No protocol change.**
 
-`presentOpenProjectPanel` (`TermioStore+ProjectActions.swift:583-592`) becomes
+`presentOpenProjectPanel` (`FyoloStore+ProjectActions.swift:583-592`) becomes
 "Open Project… on \<device\>", choosing its lister from the device the window is
 on. `addProject(at:)` (`:597-614`) gains the location and stops calling
 `resolveBranchLabel` against the local filesystem for a device project.
@@ -170,7 +170,7 @@ no `DeviceMenuTag`, so it never learns which device the window is showing.
 ## 4. Loose sessions — the one thing Zed does not answer
 
 Zed has no session outside a project, so its model has no place for a bare
-remote shell. termio does: today that shell lives in the `.host` container this
+remote shell. fyolo does: today that shell lives in the `.host` container this
 RFC deletes.
 
 **Decision: a per-device Terminals group.** It is the same presentation grouping
@@ -187,7 +187,7 @@ Already built on `feat/one-workspace-source`: the inspector no longer resolves
 this Mac's files, git, or search for a session running elsewhere. Independent of
 the model below, and it stands.
 
-*Gate:* `grep -rn 'sshHost' Sources/termio/FileBrowser/ | wc -l` → 0; a remote
+*Gate:* `grep -rn 'sshHost' Sources/fyolo/FileBrowser/ | wc -l` → 0; a remote
 session opened from a local project row shows an empty state naming the device.
 **Met:** build clean, six tests in `InspectorWorkspaceTests` green, including
 `testRemoteSessionUnderALocalProjectOffersNoLocalRoot`.
@@ -196,7 +196,7 @@ session opened from a local project row shows an empty state naming the device.
 
 Add `ProjectLocation`, migrate existing state, and delete `.host` as a
 container, moving its sessions into the per-device Terminals group (§4).
-Everything that branches on `session.sshHost` or `session.termiodRemoteHost` to
+Everything that branches on `session.sshHost` or `session.fyolodRemoteHost` to
 decide *where data lives* switches to the project's location. Panes stay as
 honest as Stage 0 left them — no new capability.
 
@@ -228,7 +228,7 @@ protocol names `fs_watch`), while list/read need `files`. Capabilities are fixed
 at `hello`, so one channel must negotiate all of them or reopen.
 
 *Gate:* replay inside the watcher's 300-second linger
-(`termiod/src/resource.rs:51`) is exact; past it, `gap: true` correctly forces a
+(`fyolod/src/resource.rs:51`) is exact; past it, `gap: true` correctly forces a
 full rescan. The first draft's "sleep the Mac and it catches up incrementally"
 gate was wrong and is replaced by this pair.
 
@@ -265,7 +265,7 @@ save and is corrected here.
 
 1. **Connection ownership.** The review requires a durable per-device
    connection before resource subscriptions, while `withControlChannel`
-   (`TermiodClient.swift:1025-1042`) is one-shot. Stage 3 depends on this; Stages
+   (`FyolodClient.swift:1025-1042`) is one-shot. Stage 3 depends on this; Stages
    1-2 do not, since `fs.list` is a request/response.
 2. **Watcher budget.** Which roots may start a recursive watch and name index on
    someone else's machine, with what quota and eviction. Opening a project is a
@@ -288,5 +288,5 @@ save and is corrected here.
 - No mount, in any form.
 - No new transport, and no protocol change before Stage 4.
 - No multi-root projects. Zed's workspaces hold several paths
-  (`RemoteProject { paths: Vec<String> }`); termio's hold one, and this RFC does
+  (`RemoteProject { paths: Vec<String> }`); fyolo's hold one, and this RFC does
   not change that.

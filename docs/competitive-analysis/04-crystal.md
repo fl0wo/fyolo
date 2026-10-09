@@ -39,17 +39,17 @@ Multi-session Claude Code, one git worktree per session, with the most refined
 ## Weaknesses
 
 - **Electron** (not native, heavy) — the fit and finish trail
-  Termio/cmux/Unpeel.
+  Fyolo/cmux/Unpeel.
 - On the diff/review route, large surface area.
 
-## vs. Termio / takeaways
+## vs. Fyolo / takeaways
 
 - **Borrow its git plumbing directly**: the worktree create/list/lock/clean
   command sequences, branch naming, and the safety rule of "check
   dirty/untracked/unpushed before destroy".
 - "Hover to reveal the real git commands" is a good interaction pattern for a
-  tool like Termio that is **opinionated but wants to stay transparent**.
-- Termio should not compete on merge-UI richness — Termio's merge story should
+  tool like Fyolo that is **opinionated but wants to stay transparent**.
+- Fyolo should not compete on merge-UI richness — Fyolo's merge story should
   stop at "view diff (externally) + push/PR" and stay light.
 
 ## References

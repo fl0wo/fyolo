@@ -37,7 +37,7 @@ shows the spinning cursor and logs one line per event, visible with:
 
 ```sh
 /usr/bin/log show --start "<time>" --info --debug \
-  --predicate 'process == "spindump" AND eventMessage CONTAINS "termio"' \
+  --predicate 'process == "spindump" AND eventMessage CONTAINS "fyolo"' \
   --style compact | grep -E "spin: start|slow hid response"
 ```
 
@@ -51,17 +51,17 @@ seconds — the typing freeze, measured by the OS. Two bursts on 2026-09-04:
 
 Every line carries `not sampling due to conditions 0x4000…` — the OS throttled
 itself and wrote **no stack captures** (no `.hang` files in DiagnosticReports).
-So the system log proves *when* and *how long*; the *why* comes from termio's
+So the system log proves *when* and *how long*; the *why* comes from fyolo's
 own instrumentation and live `sample` runs.
 
-### What termio's own trace recorded
+### What fyolo's own trace recorded
 
 The `Trace.workspace` spans from
 [workspace-switch-latency](../design/20260819-workspace-switch-latency.md)
 caught the worst stall end-to-end:
 
 ```
-18:44:39.301  workspace switch to=Termio  elapsed_ms=1.27
+18:44:39.301  workspace switch to=Fyolo  elapsed_ms=1.27
 18:44:47.856  (AppKit) WARNING: Application performed a reentrant operation
               in its NSTableView delegate. This warning will become an assert…
 18:44:48.050  workspace column  elapsed_ms=8749.42
@@ -77,8 +77,8 @@ Column-turn cost by workspace size, all on the same build:
 | Switch target | Rows | Column turn |
 | --- | --- | --- |
 | Work | 15 | 145–273ms |
-| Termio, warm (rows/surfaces cached) | 37 | 244ms–1573ms |
-| Termio, cold (first visit) | 37 | **8749ms** |
+| Fyolo, warm (rows/surfaces cached) | 37 | 244ms–1573ms |
+| Fyolo, cold (first visit) | 37 | **8749ms** |
 
 2.4× the rows costs 32× the time: the cold mount is super-linear, which is what
 the reentrant-delegate warning predicts — per-row work that re-enters table
@@ -195,7 +195,7 @@ plan, two sharpen it:
 
 Reference code, per fix:
 
-- `sizingOptions = []`: termio's own detail pane already does it, with the
+- `sizingOptions = []`: fyolo's own detail pane already does it, with the
   full rationale in the comment (`App.swift:644–655`) — the sidebar hosting
   controller at `App.swift:623` is the one that never got it. Same move in
   the wild: cmux hosts SwiftUI session rows in recycled `NSTableCellView`s
@@ -219,17 +219,17 @@ Reference code, per fix:
 Everything needed is already instrumented — before/after is one `log show`
 away:
 
-- `workspace column elapsed_ms` on subsystem `sh.termio.app`, category `app`
+- `workspace column elapsed_ms` on subsystem `sh.fyolo.app`, category `app`
   (cold switch into the biggest workspace is the number that matters).
-- spindump's `slow hid response` lines for termio (query in §1) over a normal
+- spindump's `slow hid response` lines for fyolo (query in §1) over a normal
   working session — the target is zero above threshold.
 - An idle `sample` with two working sessions: `NSHostingView.layout()` share
   of the main thread, compared against the ~10% baseline recorded here.
 
 ## 5. What this is not
 
-- Not the daemon: `termiod` samples idle throughout.
-- Not the PTY write path: `TermiodSessionLink` stamps and hands off to its
+- Not the daemon: `fyolod` samples idle throughout.
+- Not the PTY write path: `FyolodSessionLink` stamps and hands off to its
   work queue; `outputLock` is never taken on the main thread.
 - Not the agent CLI: the stalls fire on workspace switches with no agent
   involvement.

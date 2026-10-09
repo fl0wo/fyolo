@@ -17,10 +17,10 @@ x-i18n:
 
 ## 添加一台主机 [#adding-a-host]
 
-Termio 读 `~/.ssh/config`，并且从不背着你改写它。任何你已经能 `ssh` 上去的机器，Termio
+Fyolo 读 `~/.ssh/config`，并且从不背着你改写它。任何你已经能 `ssh` 上去的机器，Fyolo
 就能连上——没有什么要导入的。
 
-- **文件 ▸ 连接到…** 列出你配置里 Termio 还没打过交道的别名。选一个就会在那儿打开一个
+- **文件 ▸ 连接到…** 列出你配置里 Fyolo 还没打过交道的别名。选一个就会在那儿打开一个
   终端。
 - **添加主机…**——在**文件 ▸ 新建 SSH 连接**的末尾，也在远程主机页面上——为一台还不在你
   配置里的机器追加一个 `Host` 配置块。先填地址；名字就是你之后跟在 `ssh` 后面打的那个。
@@ -44,7 +44,7 @@ Termio 读 `~/.ssh/config`，并且从不背着你改写它。任何你已经能
 | `ssh` 给出的原因 | 其余所有情况——被拒绝、超时、未知主机——按 `ssh` 自己的话报出来。 |
 
 测试用的是这台机器自己的别名，和应用其他部分连它的方式一样。如果 `ssh mybox` 在你的终端
-里就失败，这里也会失败——Termio 不携带任何自己的凭据。
+里就失败，这里也会失败——Fyolo 不携带任何自己的凭据。
 
 ## 为什么密码不够用 [#why-a-password-isnt-enough]
 
@@ -53,19 +53,19 @@ Termio 读 `~/.ssh/config`，并且从不背着你改写它。任何你已经能
 也就是说它们永远没法回答一个提示。密码只在有个人坐在那儿打字的地方管用，在其他任何地方
 都不管用。
 
-所以这个页面把话说明白，并就地给出修法：**设置密钥…** 会在一个终端里用 Termio 要用的那把
+所以这个页面把话说明白，并就地给出修法：**设置密钥…** 会在一个终端里用 Fyolo 要用的那把
 密钥跑 `ssh-copy-id`。主机在那儿问你一次密码，之后每条路都能连上它了。如果 `~/.ssh` 里
 没有一把 `ssh` 会自己提供的密钥，那一行会说出来，并先把你指向 `ssh-keygen`。
 
 <Callout type="note">
-  密钥是你自己的，命令也是标准的那个。Termio 从不保存密码，从不内嵌 SSH 实现，也从不把
+  密钥是你自己的，命令也是标准的那个。Fyolo 从不保存密码，从不内嵌 SSH 实现，也从不把
   凭据写到 `ssh` 和你的钥匙串本来就放它们的地方之外。
 </Callout>
 
 ## 把它设置好 [#setting-it-up]
 
 把一台机器准备好是一条真实的依赖链——先把 server 放上去，再弄清它有哪些 Agent 命令行工具，
-再把 Termio 的 hooks 和技能写进它们里面。把这些做成四个互相独立的状态显示出来，会让「选一台
+再把 Fyolo 的 hooks 和技能写进它们里面。把这些做成四个互相独立的状态显示出来，会让「选一台
 机器」变成一场基础设施排障，所以这个页面只承诺**一个结果**，把那些梯级放在它下面：
 
 | 那一行说 | 含义 |
@@ -75,13 +75,13 @@ Termio 读 `~/.ssh/config`，并且从不背着你改写它。任何你已经能
 | **已就绪** | 那台机器上的 Agent 能跑——并且在集成开关打开时，能把状态汇报回这里。 |
 | **更新已就绪** | 新的 server 已经放好了，正在跑的那个因为手上有活儿而把它挡着。 |
 
-按**设置**会走完整条梯子：通过 SSH 把 `termiod` 复制进 `~/.local/bin`、探测你的 Agent
+按**设置**会走完整条梯子：通过 SSH 把 `fyolod` 复制进 `~/.local/bin`、探测你的 Agent
 命令行工具，然后按**设置 ▸ Agent** 上那两个开关的要求，把 hooks 和技能对齐——该装的装，
 该删的删。两个都关着时它有意什么也不装，那一行也就只承诺那里的 Agent 能跑。不需要 root，
 不需要包管理器，也不用往你的 shell 配置里加任何东西。
 
 某一级失败时，那一行会点名**那一级**，而不是说「设置失败」——而且只说第一级。一台没有
-`termiod` 的机器同样没有 hooks，把两件事都说出来，只会让你去修结果而不是修原因。
+`fyolod` 的机器同样没有 hooks，把两件事都说出来，只会让你去修结果而不是修原因。
 
 <Callout type="tip">
   某个 Agent 命令行工具没装在那儿，并不会挡住**就绪**。那是关于那个 Agent 的事实，不是这台
@@ -97,15 +97,15 @@ Termio 读 `~/.ssh/config`，并且从不背着你改写它。任何你已经能
   *无法检查*。路径留空，就按那台机器的登录 shell 的方式启动这个 Agent；当二进制装在它的
   配置没加进来的位置时，就把路径填上（`/opt/homebrew/bin/codex`）。哪些 Agent 会出现在
   这里，仍然由**设置 ▸ Agents** 决定。
-- **Termio 安装的内容。** Termio 写进那台机器上每个 Agent 配置里的东西——**Hooks**（让
+- **Fyolo 安装的内容。** Fyolo 写进那台机器上每个 Agent 配置里的东西——**Hooks**（让
   Agent 汇报自己的状态）和**技能**。一个**重新安装 Hooks 和技能**按钮修好这两样；手改过
   其中一个之后，或者状态点不动了的时候，就用它。
 
-  一台机器拿到的技能，和本机拿到的不是同一个。这里的 Agent 学的是 `termio sessions`，
-  限定在它自己的项目里；一台机器上的 Agent 学的是 `termiod list`、`create`、`send` 和
+  一台机器拿到的技能，和本机拿到的不是同一个。这里的 Agent 学的是 `fyolo sessions`，
+  限定在它自己的项目里；一台机器上的 Agent 学的是 `fyolod list`、`create`、`send` 和
   `kill`，作用范围是整台机器——因为那才是那边真正存在的命令。
 
-*无法检查*是有意留的第三个答案，而且它从来不是 Agent 的毛病：它的意思是 Termio 连不上这台
+*无法检查*是有意留的第三个答案，而且它从来不是 Agent 的毛病：它的意思是 Fyolo 连不上这台
 机器去问。把它报成「未安装」，会让你去重装一个本来就在的命令行工具；报成「已安装」，则是
 在承诺一次根本发生不了的启动。
 
@@ -128,25 +128,25 @@ daemon 还没接过去的版本——而且如果新的那个不应答，它会�
 从命令行来看，同一次对账就是一个动词：
 
 ```bash
-termiod deploy --host mybox
+fyolod deploy --host mybox
 ```
 
 不管从什么状态开始，它都结束在同一个状态，所以对一台看起来不对劲的机器跑它是安全的。参见
-[Termio server](/zh-CN/docs/server)。
+[Fyolo server](/zh-CN/docs/server)。
 
 ## 一台主机不应答了 [#when-a-host-stops-answering]
 
-从外往里查——先 `ssh`，再 daemon，最后 Termio：
+从外往里查——先 `ssh`，再 daemon，最后 Fyolo：
 
 ```bash
 ssh mybox true                 # SSH 本身通不通？
-termiod list --host mybox      # 那边的 server 在应答吗？
-termiod deploy --host mybox    # 重装并校验一遍
+fyolod list --host mybox      # 那边的 server 在应答吗？
+fyolod deploy --host mybox    # 重装并校验一遍
 ```
 
 连接断了只是把你脱离，不会杀掉任何东西。会话在那台机器上、在它的 daemon 里，重新附着会
 恢复屏幕——参见[什么会留下来](/zh-CN/docs/persistence)。如果重启之后它们是真的没了，那台
-机器缺的是一个服务：`termiod service install`。
+机器缺的是一个服务：`fyolod service install`。
 
 设备切换器会用 `ssh` 自己的话来报告一台连不上的机器，而不是默不作声，所以你读到的失败就是
 `ssh` 遇到的失败。更多症状和对应的检查在[问题排查](/zh-CN/docs/troubleshooting)里。
@@ -155,8 +155,8 @@ termiod deploy --host mybox    # 重装并校验一遍
   <Card href="/zh-CN/docs/devices" title="设备">
     模型：一台机器是什么，以及有什么能连过去。
   </Card>
-  <Card href="/zh-CN/docs/server" title="Termio server">
-    `termiod` 本身——怎么装、怎么让它一直活着、怎么看它。
+  <Card href="/zh-CN/docs/server" title="Fyolo server">
+    `fyolod` 本身——怎么装、怎么让它一直活着、怎么看它。
   </Card>
   <Card href="/zh-CN/docs/session-control" title="状态 hooks 与会话控制">
     这两个开关的文件会落到你设置过的每一台机器上。

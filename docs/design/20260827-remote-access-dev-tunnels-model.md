@@ -1,21 +1,21 @@
 ---
-title: 零前置远程访问：把 dev tunnels 的形状搬到 termio
+title: 零前置远程访问：把 dev tunnels 的形状搬到 fyolo
 status: draft
 type: rfc
 created: 2026-08-27
 updated: 2026-08-30
 related:
   - 20260705-remote-access-relay-strategy.md
-  - 20260827-termiod-lifecycle-reconcile.md
-  - 20260730-termiod-session-protocol.md
+  - 20260827-fyolod-lifecycle-reconcile.md
+  - 20260730-fyolod-session-protocol.md
   - 20260814-remote-to-device.md
 ---
 
-# 零前置远程访问：把 dev tunnels 的形状搬到 termio
+# 零前置远程访问：把 dev tunnels 的形状搬到 fyolo
 
 > 手机扫码连上一台 Linux，用户在那台机器上**不需要预先有任何东西** —— 没有域名、
 > 没有反向代理、没有 root、没有开放端口。这份 RFC 记录 VS Code dev tunnels 的做法、
-> 哪些能搬哪些搬不了、termio 的具体形态、relay 部署在哪，以及公开之前必须先修的东西。
+> 哪些能搬哪些搬不了、fyolo 的具体形态、relay 部署在哪，以及公开之前必须先修的东西。
 
 ## 0. 动笔前核对过什么
 
@@ -24,8 +24,8 @@ related:
 
 | 结论 | 出处 |
 | --- | --- |
-| termiod 拒绝一切非环回绑定，在解析 flag 时就拒 | `wss.rs` `parse_bind` |
-| termiod 整个 crate 没有 TLS，依赖层面就排除了 | `termiod/Cargo.toml:32`（"No `connect`, no `native-tls`, no `rustls`"） |
+| fyolod 拒绝一切非环回绑定，在解析 flag 时就拒 | `wss.rs` `parse_bind` |
+| fyolod 整个 crate 没有 TLS，依赖层面就排除了 | `fyolod/Cargo.toml:32`（"No `connect`, no `native-tls`, no `rustls`"） |
 | 任何 TLS 终结器前面，同源回退必然拒绝 | `wss.rs` `origin_worked_examples` 第二条断言 |
 | `pair` 从不接触守护进程，也不检查监听器 | `wss.rs` `run_pair` —— 只读 token 和 origin 文件 |
 | 手机把 `https://h/p/` 转成 `wss://h/p/ws`，origin 取 `scheme://host[:port]` 不带路径 | `ios/Sources/Models.swift` `websocketURL` / `originValue` |
@@ -46,51 +46,51 @@ related:
 | §4.3「三处必须逐字节相同」靠人守 | 地址由 Mac 从隧道日志**读回**再写进守护进程，`RemotePairing.invite` 的 `--url` 参数已删除 | 同上 |
 | `pair` 成功 ≠ 可达（§0 已列）——但没人管 | 画二维码之前先按手机的规则拨一次号，比对 `host_id`；不通就退回「尚未发布」 | `RemoteTunnelService.handshake` |
 | §6.1 tunelo 需要 0.3.0 `--identity` | 已满足，稳定子域名跨重启与 `kill -9` 复核过 | `4a6c5284842fef36.tunelo.net` |
-| §6.5 Linux systemd user unit「lifecycle RFC 明确 defer 了」 | **已发布**（`a1a8cdc` / PR #522），且 app 侧那份重复的 unit 也已经拆掉（PR #530） | `termiod/src/service.rs` `systemd::unit`；`RemoteTunnel.swift` `arm` |
+| §6.5 Linux systemd user unit「lifecycle RFC 明确 defer 了」 | **已发布**（`a1a8cdc` / PR #522），且 app 侧那份重复的 unit 也已经拆掉（PR #530） | `fyolod/src/service.rs` `systemd::unit`；`RemoteTunnel.swift` `arm` |
 
 ### 一个必须记下来的冲突（已修，保留经过）
 
-`termiod.service` 现在有**两个写者**，策略不同：
+`fyolod.service` 现在有**两个写者**，策略不同：
 
-| | `termiod service install`（#522） | `RemoteTunnel.swift`（本 RFC 这条线） |
+| | `fyolod service install`（#522） | `RemoteTunnel.swift`（本 RFC 这条线） |
 | --- | --- | --- |
-| `ExecStart` | `termiod serve` | `termiod serve --wss … --wss-origin …` |
+| `ExecStart` | `fyolod serve` | `fyolod serve --wss … --wss-origin …` |
 | 重启 | `Restart=on-failure` | `Restart=always` + `StartLimitIntervalSec=0` |
-| WSS 从哪来 | 磁盘上的 `wss.bind`，或 `TERMIOD_WSS` drop-in | 焊在命令行里 |
+| WSS 从哪来 | 磁盘上的 `wss.bind`，或 `FYOLOD_WSS` drop-in | 焊在命令行里 |
 
 后写的覆盖先写的。`ukvps` 上现在是 app 写的那份，而客户端 autostart 起来的
-`termiod serve` 占着 socket，于是 unit 每 3 秒起一次、每次绑不上就退出 ——
-**`NRestarts=74377`**，`termiod status` 报 `service: none`。
+`fyolod serve` 占着 socket，于是 unit 每 3 秒起一次、每次绑不上就退出 ——
+**`NRestarts=74377`**，`fyolod status` 报 `service: none`。
 
 盒子今天仍然可达，但**不是靠这个 unit**：`wss.bind` / `wss.origin` 在磁盘上，
 autostart 起来的那个守护进程从磁盘把自己武装好了。也就是说这条线目前**没有**在
 兑现它自己写下的「扛重启」。
 
 `service.rs` 的注释已经把出口指明了：*"WSS is deliberately not on the command
-line: the bind survives in `wss.bind` beside the socket, or in a `TERMIOD_WSS`
+line: the bind survives in `wss.bind` beside the socket, or in a `FYOLOD_WSS`
 drop-in."* 守护进程侧把 `Restart=on-failure` 的理由也写清楚了 ——
-`termiod stop` 发 `SIGTERM` 后要等 socket 排空，`always` 会和那次排空抢。
+`fyolod stop` 发 `SIGTERM` 后要等 socket 排空，`always` 会和那次排空抢。
 
-**已收敛（2026-08-30，PR #530 `614a00c`）。** app 不再自己写 `termiod.service`，
+**已收敛（2026-08-30，PR #530 `614a00c`）。** app 不再自己写 `fyolod.service`，
 `arm` 改成四步：停掉命令行里带 `--wss` 的旧 unit（那是 app 写的标志，`service
 install` 写的从不带）→ 写
-`~/.config/systemd/user/termiod.service.d/override.conf`，只有
-`Environment="TERMIOD_WSS=…"` / `TERMIOD_WSS_ORIGIN=…` → `termiod stop --force`
-→ `termiod service install`。`Restart` 策略回到守护进程自己说了算。
+`~/.config/systemd/user/fyolod.service.d/override.conf`，只有
+`Environment="FYOLOD_WSS=…"` / `FYOLOD_WSS_ORIGIN=…` → `fyolod stop --force`
+→ `fyolod service install`。`Restart` 策略回到守护进程自己说了算。
 
 **为什么是 drop-in 而不是 `wss.bind`。** `wss.bind` / `wss.origin` / `pair.token`
-都在 `state_dir()` = `$XDG_RUNTIME_DIR/termiod/`，那是 tmpfs —— 重启就没了。而
+都在 `state_dir()` = `$XDG_RUNTIME_DIR/fyolod/`，那是 tmpfs —— 重启就没了。而
 `service install` 只覆盖 unit 文件，不动 `.d/`。守护进程每次启动都读环境变量
-（`wss.rs` 的优先级：`--wss` > `TERMIOD_WSS` > `wss.bind`），所以 drop-in 是唯一
+（`wss.rs` 的优先级：`--wss` > `FYOLOD_WSS` > `wss.bind`），所以 drop-in 是唯一
 一份跨重启还在、又不会被 `service install` 冲掉的武装记录。
 
 **代价记一笔**：环境变量武装起来的监听器**不会**把 origin 回写到 `wss.origin`，
 而 `pair` 是另一个进程 —— 所以 `RemotePairing.invite` 现在得先
-`systemctl --user show termiod -p Environment` 把 origin 读回来，再用
-`TERMIOD_WSS_ORIGIN='…' termiod pair --json` 出邀请。§4.3「三处逐字节相同」这条
+`systemctl --user show fyolod -p Environment` 把 origin 读回来，再用
+`FYOLOD_WSS_ORIGIN='…' fyolod pair --json` 出邀请。§4.3「三处逐字节相同」这条
 约束因此多了一个必须对齐的地方，不是少了一个。
 
-隧道那个 unit（`termio-tunnel.service`）没有第二个写者，保持现状 —— 它的
+隧道那个 unit（`fyolo-tunnel.service`）没有第二个写者，保持现状 —— 它的
 `Restart=always` + `StartLimitIntervalSec=0` 是对的：隧道掉了就该一直重连。
 
 ## 1. 问题
@@ -122,7 +122,7 @@ root。这三样任何一样缺失，流程就断在一句无法执行的错误�
 
 ### 能搬，而且我们已经在半路上
 
-**出站-only 的 host。** termiod 的 `parse_bind` 已经拒绝一切非环回地址 —— 最难的
+**出站-only 的 host。** fyolod 的 `parse_bind` 已经拒绝一切非环回地址 —— 最难的
 那一半（"绝不开放端口"）不是要做的事，是**已经做完的事**。
 
 **host token 与 client token 分离。** 这正是 `20260705` 那份 doc 里"防白嫖 = 只
@@ -146,7 +146,7 @@ gate `Register`"的工业级写法：承载隧道要 host token，连接隧道�
 顶在 `CLAUDE.md` 的另一句上 —— "The code never leaves hardware the user controls"。
 处理方式是 §7 的两条：如实披露 + 逃生口必须一样好用。
 
-**账号身份。** dev tunnels 靠 GitHub / Microsoft 登录。termio 没有账号体系，也不
+**账号身份。** dev tunnels 靠 GitHub / Microsoft 登录。fyolo 没有账号体系，也不
 打算有。替代方案在 `20260705` 已经定过：**Ed25519 设备密钥对**，
 `subdomain = base32(SHA-256(pubkey))`（Syncthing 同款），归属靠 relay 发 challenge、
 客户端私钥签名自证。理由是身份与证明合一、纯 Rust 跨平台、避开硬件指纹的隐私雷。
@@ -154,7 +154,7 @@ gate `Register`"的工业级写法：承载隧道要 host token，连接隧道�
 **注意这条推翻了一个更早的想法**：用 `host_id` 做路由键是错的。`host_id` 是无证明的
 bearer 标识，谁报谁就是 —— 那正是下面 §6 抢注 bug 的成因。
 
-## 3.5 关键修正：termio 要的是 rendezvous，不是 tunnel
+## 3.5 关键修正：fyolo 要的是 rendezvous，不是 tunnel
 
 看过 [getpaseo/paseo-relay](https://github.com/getpaseo/paseo-relay)（Elixir/OTP，
 Syn 做分布式所有权注册）之后，上面 §6 的блок清单有一半是**自找的**。
@@ -182,7 +182,7 @@ paseo 的路由键**是查询参数，不是主机名**：客户端带 `serverId
 ### 为什么会绕这一圈
 
 因为 tunelo 是**通用隧道**（把任意本地端口发布成一个公网 URL，ngrok 那类），而
-termio 需要的是**会合**（把两条已经认识彼此的连接接起来）。前者是后者的超集，
+fyolo 需要的是**会合**（把两条已经认识彼此的连接接起来）。前者是后者的超集，
 多出来的那部分 —— 公网 HTTP 端点、子域名、通配证书 —— 正是六条阻塞项的全部来源。
 
 **用手上有的工具，不等于用对了工具。**
@@ -190,7 +190,7 @@ termio 需要的是**会合**（把两条已经认识彼此的连接接起来）
 ### 落地取舍
 
 - **偷设计，不偷依赖。** paseo-relay 是 Elixir，而且它的契约是"protocol-compatible
-  with Paseo"；照抄会让 termio 去适配别人的 v2 query contract。会合本身很小 ——
+  with Paseo"；照抄会让 fyolo 去适配别人的 v2 query contract。会合本身很小 ——
   Rust 里用 axum + tungstenite 大约几百行，还能继续用 `tunelo-protocol` 那套共享类型。
 - **BEAM 的集群和分区处理是真本事**（Syn 收敛后败方 WebSocket 以 `1012` 关闭）。
   真到多节点再考虑是不是值得换语言，单节点阶段不需要。
@@ -205,7 +205,7 @@ termio 需要的是**会合**（把两条已经认识彼此的连接接起来）
 ### 4.1 组件
 
 ```
-手机 ──wss──▶ relay(你的) ◀──出站 QUIC/wss── tunelo client ──▶ 127.0.0.1:8790 termiod
+手机 ──wss──▶ relay(你的) ◀──出站 QUIC/wss── tunelo client ──▶ 127.0.0.1:8790 fyolod
                                                 （同一台用户机器）
 Mac ──ssh──▶ 用户机器            控制面：部署、配对、验证
 ```
@@ -214,18 +214,18 @@ Mac ──ssh──▶ 用户机器            控制面：部署、配对、验
 
 ### 4.2 零前置安装
 
-"Set Up this device" 现在已经在 scp `termiod`。扩成：
+"Set Up this device" 现在已经在 scp `fyolod`。扩成：
 
-1. 部署 `termiod`（已有）
+1. 部署 `fyolod`（已有）
 2. 部署 `tunelo` 客户端（同一机制，多一个静态二进制）
-3. termiod 绑 loopback 起 `--wss 127.0.0.1:8790`
+3. fyolod 绑 loopback 起 `--wss 127.0.0.1:8790`
 4. tunelo 出站连 relay，拿到**稳定**子域名
-5. origin 钉住该子域名 → `termiod pair --json` → 二维码
+5. origin 钉住该子域名 → `fyolod pair --json` → 二维码
 6. 两者都挂 `systemctl --user`，配 `loginctl enable-linger`
 
 用户做的事：点一下。**1–6 已经实现**（`RemoteTunnel.swift`），但第 6 步的守护进程
-那一半写法是错的 —— 见 §0.1 的冲突：隧道 unit 归 app 写，`termiod.service` 应该归
-`termiod service install` 写。
+那一半写法是错的 —— 见 §0.1 的冲突：隧道 unit 归 app 写，`fyolod.service` 应该归
+`fyolod service install` 写。
 
 **全程不需要 root。** `~/.local/bin` + `systemctl --user` + linger。nginx 那条路必须
 sudo，而很多人的 VPS 账号没有 sudo，或不愿在安装流程里交出去。这一条本身就足以
@@ -238,7 +238,7 @@ sudo，而很多人的 VPS 账号没有 sudo，或不愿在安装流程里交出
 - 邀请 `url` = `https://d.relay.example`
 - 手机拨 `wss://d.relay.example/ws`（`websocketURL` 在路径后接 `/ws`）
 - 手机发 `Origin: https://d.relay.example`（`originValue`，不带路径）
-- termiod 侧 `--wss-origin https://d.relay.example`
+- fyolod 侧 `--wss-origin https://d.relay.example`
 
 三处必须**逐字节相同**，否则 403。所以 URL 只能有一个来源：**Mac 把 origin 写到机器上，
 `pair` 从机器自己的 `wss.origin` 派生邀请** —— 绝不在配对时传 `--url`。
@@ -261,11 +261,11 @@ sudo，而很多人的 VPS 账号没有 sudo，或不愿在安装流程里交出
 | Tailscale | tailnet + 手机装 App | 一条命令 |
 
 后三条不是装饰，是 §3 那条"relay 看得见明文"的对价。它们必须和默认路径**一样好用**，
-否则 `termio is FREE` 这句话就站不住。
+否则 `fyolo is FREE` 这句话就站不住。
 
 ## 5. Relay 部署在哪
 
-**不要放在 `ukvps`。** 那台机器同时是 tunelo.net 的生产宿主、手工起的 termiod 实验场。
+**不要放在 `ukvps`。** 那台机器同时是 tunelo.net 的生产宿主、手工起的 fyolod 实验场。
 给付费用户做中转的机器，不该是开发箱。
 
 **一台独立 VPS 起步，不要 nginx，也不要 Traefik。** relay 已经直接依赖 `rustls` 和
@@ -301,7 +301,7 @@ tunelo 的 QUIC**（它讲 HTTP/3，tunelo 是 quinn 上的自定义协议）。
    也没验证客户端被 relay 切断时是**退出**还是**挂在一条死连接上**。后者的话重启永远
    不触发。
 5. ~~**Linux systemd user unit。**~~ **已发布**（2026-08-29，`a1a8cdc` / PR #522）：
-   `termiod service install` 在 Linux 上写 `termiod.service`，`Restart=on-failure`，
+   `fyolod service install` 在 Linux 上写 `fyolod.service`，`Restart=on-failure`，
    `spawn_daemon` 在 unit 持有 socket 时改走 `systemctl --user start`。
    app 侧一度又写了一份同名 unit，两个写者策略不同，在 `ukvps` 上空转了
    `NRestarts≈74000` 次；PR #530 已收敛成 drop-in（见 §0.1）。
@@ -313,37 +313,37 @@ tunelo 的 QUIC**（它讲 HTTP/3，tunelo 是 quinn 上的自定义协议）。
 
 - **v1 不做端到端加密。** 见 §3。以后要做，路径是 WebSocket 里加一层 Noise/X25519 —— 那
   需要对非谈判项 #3 开一个有意识的例外，不能顺手做。
-- **不做 P2P / STUN / ICE。** `20260705` 已经算过：termio 只传终端帧、不传视频，纯中转
+- **不做 P2P / STUN / ICE。** `20260705` 已经算过：fyolo 只传终端帧、不传视频，纯中转
   完全够用，不必上打洞那套复杂度。
 - **不做账号体系。** 身份是设备密钥对，准入是签名 token。
 - **不取代 BYO / nginx / Tailscale。** 它们从"兜底"升格为"逃生口"，地位反而更重要。
 
-## 7.1 备选方案：把 tunelo 作为 crate 嵌进 termiod
+## 7.1 备选方案：把 tunelo 作为 crate 嵌进 fyolod
 
 **方案**：不再部署独立的 tunelo 客户端进程，而是把 `tunelo-client` 作为 crate 编进
-termiod，由 termiod 自己出站连官方 relay，直接在那条连接上跑会话协议。
+fyolod，由 fyolod 自己出站连官方 relay，直接在那条连接上跑会话协议。
 
 **它确实更干净，四条都是真的好处：**
 
 1. **一个进程、一个 unit、一个产物。** 部署就是 scp 一个二进制。
-2. **消掉 loopback 那一跳。** 现在是 relay → tunelo → TCP 127.0.0.1:8790 → termiod；
-   嵌进去就是 relay → termiod。少一次拷贝、少一条 TCP 连接。
+2. **消掉 loopback 那一跳。** 现在是 relay → tunelo → TCP 127.0.0.1:8790 → fyolod；
+   嵌进去就是 relay → fyolod。少一次拷贝、少一条 TCP 连接。
 3. **`--wss` 监听器可能整个不需要了。** 出站建连就没有端口要绑，`wss.bind` 这个文件、
    "监听器起没起"这个状态、以及本地端口暴露面，一并消失。
-4. **origin 自己钉自己。** termiod 注册时就知道自己的子域名，`--wss-origin` 不再是
+4. **origin 自己钉自己。** fyolod 注册时就知道自己的子域名，`--wss-origin` 不再是
    一个人要手填、填错就 403 的值。**整条链路里最容易错的一步被消灭了**，而不是被
    文档绕过去。
 
 **但它撞的是非谈判项 #3，而且撞在记录这条规则的那个文件上。**
 
-`termiod/Cargo.toml:32` 白纸黑字：*"No `connect`, no `native-tls`, no `rustls`"*。
+`fyolod/Cargo.toml:32` 白纸黑字：*"No `connect`, no `native-tls`, no `rustls`"*。
 嵌 tunelo 就是把 `quinn` + `rustls` + `ed25519-dalek` 拉进 **持有用户 shell 的那个
-进程**。termiod 今天连一次出站 TLS 都不发起 —— 这个极小的攻击面是刻意的，不是疏忽。
+进程**。fyolod 今天连一次出站 TLS 都不发起 —— 这个极小的攻击面是刻意的，不是疏忽。
 
 还有三条次级代价：
 
 - **版本被焊死。** 今天 tunelo 能独立升级（现场 0.2.0 → 需要 0.3.0）；嵌进去之后，
-  relay 协议每动一次就要发一次 termiod。
+  relay 协议每动一次就要发一次 fyolod。
 - **逃生口被削弱。** 走 nginx / Tailscale / cloudflared 的用户，本来只要"不跑那个进程"；
   嵌进去之后，那些代码在他们的守护进程里永远存在。
 - **"一个产物"的收益大半是幻觉。** 第二个二进制是 **Mac 替用户装的**，用户那边仍然
@@ -367,13 +367,13 @@ termiod，由 termiod 自己出站连官方 relay，直接在那条连接上跑�
 
 1. **免费层拿不拿得到托管 relay？** 若是，白嫖防护就必须先到位（§6.3）；若否，免费层
    的默认路径退回 BYO cloudflared named tunnel（免费、稳定域名、零服务器），而
-   `termio is FREE` 的成色取决于那条路有多好用。
+   `fyolo is FREE` 的成色取决于那条路有多好用。
 2. **明文这件事写在哪、怎么写。** 代码里 `tunnelFootnote` 已有"说清楚手机流量过谁的
    服务器"的先例。托管 relay 是我们自己的服务器，措辞不能比说 cloudflared 时更含糊。
-3. **配对由谁经手。** 现在是 Mac 通过 SSH 代跑 `termiod pair --json`（控制面在 Mac）。
+3. **配对由谁经手。** 现在是 Mac 通过 SSH 代跑 `fyolod pair --json`（控制面在 Mac）。
    要不要允许手机直接向 relay 报到？前者不需要新协议，后者能去掉"必须有一台 Mac"。
 4. **`upgrading` 与本 RFC 的耦合。** 武装监听器和钉 origin 都需要重启守护进程，也就是
-   lifecycle RFC §5.2 的 `stop --if-idle`。实现时走的是 `termiod stop --force`，并在
+   lifecycle RFC §5.2 的 `stop --if-idle`。实现时走的是 `fyolod stop --force`，并在
    点下去之前把会被结束的会话**按命令行逐条列出来**让人确认 —— 「是不是该结束」取决于
    那是个跑到一半的 agent 还是一个停在提示符的登录 shell，只报个数字答不了这个问题。
    `--if-idle` 落地后这里可以退回到「空闲就不问」。

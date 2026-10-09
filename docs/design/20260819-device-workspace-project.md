@@ -5,7 +5,7 @@ type: design
 created: 2026-08-19
 updated: 2026-08-22
 related:
-  - 20260805-termiod-device-architecture.md
+  - 20260805-fyolod-device-architecture.md
   - 20260819-workspace-switch-latency.md
 ---
 
@@ -21,8 +21,8 @@ between these definitions without saying so.
 
 | Source | "Workspace" means | Owned by |
 | --- | --- | --- |
-| `20260805-termiod-device-architecture.md` §2.2 | *"a directory root on a device — what the UI calls a project"*, i.e. `(device, path)` | the device's `termiod`, as an enumerable object |
-| `design/20260814-remote-to-device.md` §3 ownership table | listed beside sessions and processes: *"the device's `termiod` / on the device / viewers cache, never own"* | the device |
+| `20260805-fyolod-device-architecture.md` §2.2 | *"a directory root on a device — what the UI calls a project"*, i.e. `(device, path)` | the device's `fyolod`, as an enumerable object |
+| `design/20260814-remote-to-device.md` §3 ownership table | listed beside sessions and processes: *"the device's `fyolod` / on the device / viewers cache, never own"* | the device |
 | Shipped code (#345) | a **named scope in the sidebar** holding projects and loose sessions — not a directory at all | the Mac's `state.json` |
 
 The shipped meaning is the newest and the one users see, and #346 already
@@ -30,7 +30,7 @@ conceded the collision when it picked `Checkout` for "a repo on a machine"
 because *"#345 gives Workspace to the sidebar scope."*
 
 So the conflict is not really "should a workspace live on a device". It is that
-the architecture doc's workspace **is termio's project**, and a genuinely new
+the architecture doc's workspace **is fyolo's project**, and a genuinely new
 grouping concept took its name afterwards.
 
 ## 2. The model
@@ -41,7 +41,7 @@ Four levels, each owned by exactly one of the level above:
 Device        a machine, identified by host_id, reached by ≥1 ~/.ssh/config alias
   └ Workspace a named scope in the sidebar; holds projects and loose sessions
       └ Project    a checkout: a directory root on that device
-          └ Session a PTY in that device's termiod
+          └ Session a PTY in that device's fyolod
 ```
 
 **A workspace belongs to exactly one device.** This Mac is a device like any
@@ -88,7 +88,7 @@ the state lives**, and the two have been conflated:
 - **Viewer-owned** (today): workspaces are in the Mac's `state.json`. Works
   offline, needs no protocol, but the organization does not survive losing that
   file and is not visible to another viewer.
-- **Device-owned** (the architecture doc's rule): `termiod` gains a workspace
+- **Device-owned** (the architecture doc's rule): `fyolod` gains a workspace
   registry. Durable and shared, but it needs create/rename/delete/list messages,
   a sync story, conflict handling when two viewers rename, and it cannot be read
   while the device is unreachable.
@@ -127,7 +127,7 @@ Two consequences, and they point in opposite directions:
   artifact is a name prefix and a routing token, both cheap to replace. So this
   decision is not being locked in by existing clients.
 - **A directly-attached viewer would be blind above the session level.**
-  `termiod`'s `Control` enum has no message enumerating projects or roots, and
+  `fyolod`'s `Control` enum has no message enumerating projects or roots, and
   the gap is one field wide: `WorkstreamSpec` already carries `project`
   (`protocol.rs:333`), the daemon stores it (`session.rs:302`), and
   `Session::info()` reads back only `agent_id` (`session.rs:335`). A client can
@@ -165,13 +165,13 @@ fallbacks with one. Both must land on a device:
 
 `WorkspaceMigration.swift` and its 13 tests are the place this goes —
 specifically `reconcile(_:_:)`, which runs on **every** load
-(`TermioStore.swift:1075`), not `migrate(_:)`, which runs once.
+(`FyoloStore.swift:1075`), not `migrate(_:)`, which runs once.
 
 ### 7.1 The decode trap
 
 **The on-disk format must not change.** A `Snapshot` decode failure is swallowed
-by `try?` (`StateFile.swift:108`), so `TermioStore.restored` sees `nil` and seeds
-`Workspace.firstRun()` (`TermioStore.swift:1298`) — the user's entire sidebar
+by `try?` (`StateFile.swift:108`), so `FyoloStore.restored` sees `nil` and seeds
+`Workspace.firstRun()` (`FyoloStore.swift:1298`) — the user's entire sidebar
 replaced by a fresh install, silently, with no error anywhere.
 
 So `Workspace.deviceAlias` stays `String?` and stays `decodeIfPresent`
@@ -184,7 +184,7 @@ tidiest and is most destructive.
 A workspace's UUID is not private to the state file. `looseWireID` builds
 `"<workspace-uuid>-terminals"`, which the phone sends back to start a session
 (`CompanionServer.swift:1313`, `:1221`), and `ControlScope.id` keys the
-`termio sessions watch` streams (`TermioStore+SessionControl.swift:908`).
+`fyolo sessions watch` streams (`FyoloStore+SessionControl.swift:908`).
 
 Splitting must therefore keep the original id on one half — the `.thisMac` half
 where there is one, else the largest — and mint a new id only for the others.
@@ -193,7 +193,7 @@ Two fresh ids breaks both the phone's ＋ and any live `watch`.
 ### 7.3 Confirmed reachable
 
 The mixed-device workspace is not hypothetical. `addRemoteProject` is called
-with `workspace: currentWorkspace.id` (`TermioStore+ProjectActions.swift:651`),
+with `workspace: currentWorkspace.id` (`FyoloStore+ProjectActions.swift:651`),
 so `Open Project ▸ ukvps` while sitting in a local workspace files a remote
 project beside local ones; and `addProject(at:)` (`:546`) files a **local**
 folder into whatever workspace is current, including a device's. Both are
@@ -261,7 +261,7 @@ have to wait for §2.
 ## 9. Open questions
 
 1. When the phone attaches directly to a device, does the workspace registry move
-   to `termiod`? (§5. The architecture doc says yes; this doc defers rather than
+   to `fyolod`? (§5. The architecture doc says yes; this doc defers rather than
    disagrees. **Answered enough to proceed**: no viewer knows what a workspace is
    today, so the hierarchy can be adopted without settling this. The smallest
    first step, when it is settled, is surfacing `WorkstreamSpec.project` in
@@ -269,7 +269,7 @@ have to wait for §2.
 2. Does `moveProject(_:toWorkspace:)` refuse a cross-device target, or move the
    checkout? Refusing is correct today; moving means a clone, which is a
    different verb. (Today it has no device predicate at all —
-   `TermioStore+Workspaces.swift:382`.)
+   `FyoloStore+Workspaces.swift:382`.)
 3. Does the workspace switcher group by device once there are several, or stay
    one flat list with a device mark per row?
 
@@ -277,16 +277,16 @@ The audit of 2026-08-19 raised three more, each a product decision rather than a
 mechanical one. **Stage 1 of the implementation deliberately does none of them.**
 
 4. **Does a device get one default workspace, or one per alias?**
-   `deviceWorkspace(for:)` keys by **alias** (`TermioStore+Workspaces.swift:471`),
+   `deviceWorkspace(for:)` keys by **alias** (`FyoloStore+Workspaces.swift:471`),
    so `vps-lan` and `vps-wan` already produce two workspaces sharing one
-   `host_id` — and `TermiodDeviceAdoptionTests.swift:104` pins that they must
+   `host_id` — and `FyolodDeviceAdoptionTests.swift:104` pins that they must
    *not* merge, citing the cloned-VM duplicate-`host_id` hazard in device
    architecture §9.5. So "a workspace belongs to one device" holds trivially,
    but "a device has one workspace" is false, and making it true *is* the §9.5
    merge that is deliberately deferred. §2 should not be read as deciding it.
 
 5. **What replaces drop-when-empty?** `pruneEmptyDeviceWorkspaces`
-   (`TermioStore+ProjectActions.swift:827`) is the only thing stopping the
+   (`FyoloStore+ProjectActions.swift:827`) is the only thing stopping the
    switcher accumulating a permanent row for every box the user ever opened one
    terminal on. §3 lists the rule as a casualty of the hybrid and supplies no
    successor. Deleting it without one is a visible regression.
@@ -294,7 +294,7 @@ mechanical one. **Stage 1 of the implementation deliberately does none of them.*
 6. **Does `Project` keep a derived device accessor?** This is the real cost of
    §3's headline deletion. `Project.isOnAnotherDevice` is a *local-disk gate*,
    not a display flag — it decides recents exclusion (`WelcomeView.swift:114`),
-   duplicate detection (`TermioStore+ProjectActions.swift:551`), and which agent
+   duplicate detection (`FyoloStore+ProjectActions.swift:551`), and which agent
    presets and context menu a row offers (`SidebarView.swift:653`, `:676`) — and
    `Project` is exercised as a pure value with no store at all in
    `RemoteProjectTests`. Moving the field to the workspace turns each read into a
@@ -324,15 +324,15 @@ mechanical one. **Stage 1 of the implementation deliberately does none of them.*
   decides which verbs keep a device submenu.
 - **Every workspace switch starts paying an SSH roster round trip.**
   `finishArriving` calls `switchToDevice` only when the workspace has an alias
-  (`TermioStore+Workspaces.swift:284`); making that unconditional costs the
-  216–292 ms cold roster measured at `TermioStore+Termiod.swift:258`.
+  (`FyoloStore+Workspaces.swift:284`); making that unconditional costs the
+  216–292 ms cold roster measured at `FyoloStore+Fyolod.swift:258`.
   `20260819-workspace-switch-latency.md` was written when user-made workspaces
   never paid this.
 - **⌘1…9 reshuffle once.** `orderedWorkspaces` is also the shortcut order
   (`WorkspaceMenu.rows`); dropping the fallback-last rule moves them. The comment
   on `KeybindingStore.workspaceShortcuts` already accepts positional instability.
 - **`Session.deviceID` is the small half.** Every "which machine is this
-  session on" read is `session.termiodRemoteHost ?? session.sshHost`
-  (`DeviceContext.swift:181`, `TermioStore.swift:494`, and four more).
+  session on" read is `session.fyolodRemoteHost ?? session.sshHost`
+  (`DeviceContext.swift:181`, `FyoloStore.swift:494`, and four more).
   `Session.inheritDevice` names the endgame itself (`Models.swift:441`).
   §3's line about `Session.deviceID` understates the work.

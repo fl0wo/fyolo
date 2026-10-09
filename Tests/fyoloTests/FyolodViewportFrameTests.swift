@@ -1,0 +1,65 @@
+import XCTest
+import FyoloShared
+@testable import fyolo
+
+/// The `R` frame, which stopped meaning "set the PTY size" and started meaning
+/// "this attachment's viewport is now N×M"
+/// (`docs/design/20260901-pty-size-is-not-the-write-token.md`).
+///
+/// The payload's layout is the compatibility story, so it is the thing worth
+/// pinning: a rendering attachment writes v0's exact four bytes, and only the
+/// one state v0 has no policy for — an attachment that has stopped rendering —
+/// costs a fifth. A daemon that predates the flags byte reads a payload of any
+/// other length as a malformed frame and drops the connection, which is why the
+/// five-byte form is gated on the host offering `viewport`.
+final class FyolodViewportFrameTests: XCTestCase {
+    func testARenderingViewportIsBytewiseTheOldResizeFrame() {
+        XCTAssertEqual(
+            Array(Fyolod.viewportPayload(rows: 40, cols: 120)),
+            [0, 40, 0, 120])
+    }
+
+    func testStoppingRenderingCostsOneFlagsByte() {
+        XCTAssertEqual(
+            Array(Fyolod.viewportPayload(rows: 40, cols: 120, rendering: false)),
+            [0, 40, 0, 120, 0])
+    }
+
+    /// Zero in either dimension is how a window that has not laid out yet says
+    /// it has no viewport at all — counted by nobody, rather than squeezing
+    /// every other viewer to a stand-in grid until the first layout pass lands.
+    func testAnUnlaidOutWindowDeclaresZero() {
+        XCTAssertEqual(
+            Array(Fyolod.viewportPayload(rows: 0, cols: 0)),
+            [0, 0, 0, 0])
+    }
+
+    /// The capability is what tells the two forms apart on the wire, so an
+    /// attach channel has to actually ask for it.
+    func testTheAttachChannelAsksForTheSizePolicy() {
+        XCTAssertTrue(Fyolod.attachCapabilities.contains(Fyolod.viewportCapability))
+    }
+
+    /// `attach` carries the same two facts `R` does. It used to carry only the
+    /// viewport, and a host read every arrival as one somebody was looking at —
+    /// so a surface made for a pane with no screen behind it took the session's
+    /// size until a correction a round trip later gave it back.
+    func testAnAttachSaysWhetherAnyoneIsLookingAtIt() throws {
+        let showing = try attachFields(rendering: true)
+        XCTAssertNil(
+            showing["rendering"],
+            "the common case writes what every client before the size policy wrote")
+        XCTAssertEqual(showing["rows"] as? Int, 40)
+        XCTAssertEqual(showing["cols"] as? Int, 120)
+
+        let hidden = try attachFields(rendering: false)
+        XCTAssertEqual(hidden["rendering"] as? Bool, false)
+    }
+
+    private func attachFields(rendering: Bool) throws -> [String: Any] {
+        let payload = try Fyolod.attachPayload(
+            target: "a-session", specification: nil, rows: 40, cols: 120,
+            rendering: rendering)
+        return try XCTUnwrap(JSONSerialization.jsonObject(with: payload) as? [String: Any])
+    }
+}

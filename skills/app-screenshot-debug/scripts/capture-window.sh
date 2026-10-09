@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Screenshot just the frontmost termio window, pixel-accurate.
+# Screenshot just the frontmost fyolo window, pixel-accurate.
 #
 # Reads the window's live position/size (so it works no matter where the window
 # is or which display it's on), then `screencapture -o -x -R` that region.
@@ -8,11 +8,11 @@
 # Pair with click-in-window.sh, which adds the live origin back.
 #
 # Usage: capture-window.sh [out.png]
-#   TERMIO_APP_NAME  process name (default: termio)
+#   FYOLO_APP_NAME  process name (default: fyolo)
 set -euo pipefail
 
-APP="${TERMIO_APP_NAME:-termio}"
-OUT="${1:-/tmp/termio-shot.png}"
+APP="${FYOLO_APP_NAME:-fyolo}"
+OUT="${1:-/tmp/fyolo-shot.png}"
 
 BOUNDS=$(osascript <<EOF
 tell application "System Events" to tell process "$APP"

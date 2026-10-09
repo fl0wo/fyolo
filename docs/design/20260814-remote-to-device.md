@@ -5,9 +5,9 @@ type: rfc
 created: 2026-08-14
 updated: 2026-08-19
 related:
-  - 20260805-termiod-device-architecture.md
-  - 20260730-termiod-session-protocol.md
-  - 20260805-termiod-hot-path-and-client-classes.md
+  - 20260805-fyolod-device-architecture.md
+  - 20260730-fyolod-session-protocol.md
+  - 20260805-fyolod-hot-path-and-client-classes.md
   - 20260814-remote-to-device.decisions.md
   - 20260819-device-workspace-project.md
 ---
@@ -36,11 +36,11 @@ Every load-bearing claim in both reviews was verified against `main` at
 | Claim | Verdict |
 | --- | --- |
 | Four SSH surfaces are missing from the draft: `New SSH Connection` (File + `+` + palette), `New SSH Shell`, Settings ▸ SSH, palette `New SSH Connection…` | **True** — `App.swift:1471`, `SidebarView.swift:613`, `SSHSettingsTab.swift`, `CommandPalette.swift:342` |
-| PR #177 has merged; the staging paragraph blocking on it is false | **True** — `66b1722` on `main`; `termiod/` and `Sources/termio/Terminal/Termiod/` both present |
-| `Session.sshHost` is a plain `ssh` in a *local* PTY; `termiodRemoteHost` is the durable path; the distinction is load-bearing in shipped code | **True** — `Models.swift:298,311`; `TermioStore+ProjectActions.swift:434-437` |
+| PR #177 has merged; the staging paragraph blocking on it is false | **True** — `66b1722` on `main`; `fyolod/` and `Sources/fyolo/Terminal/Fyolod/` both present |
+| `Session.sshHost` is a plain `ssh` in a *local* PTY; `fyolodRemoteHost` is the durable path; the distinction is load-bearing in shipped code | **True** — `Models.swift:298,311`; `FyoloStore+ProjectActions.swift:434-437` |
 | `AddSSHHostSheet` already writes real `Host` blocks to `~/.ssh/config`, so "Add Device implies a second roster" is a strawman | **True** — `SSHSettingsTab.swift:279-282` |
-| `closeConfirmationReason` gates on `ptyProcesses[session.id]`, so retiring `TERMIO_TERMIOD` silently deletes the running-command confirmation on *every* device | **True** — `TermioStore+ProjectActions.swift:684-692`; `hasForegroundJob` exists only on `PTYProcess`, with no counterpart in `termiod/src` |
-| `ensureRemoteReady` deploys by cross-compiling a musl binary with `cargo` on the user's Mac | **True** — `termiod/src/remote.rs:236-275`, down to the `brew install …musl-cross` hint |
+| `closeConfirmationReason` gates on `ptyProcesses[session.id]`, so retiring `FYOLO_FYOLOD` silently deletes the running-command confirmation on *every* device | **True** — `FyoloStore+ProjectActions.swift:684-692`; `hasForegroundJob` exists only on `PTYProcess`, with no counterpart in `fyolod/src` |
+| `ensureRemoteReady` deploys by cross-compiling a musl binary with `cargo` on the user's Mac | **True** — `fyolod/src/remote.rs:236-275`, down to the `brew install …musl-cross` hint |
 | Colour is already spent in the sidebar (orange = needs you, green = done) and in the SSH tab's badge | **True** — `SidebarView.swift:1393-1395`, `SSHSettingsTab.swift:263-268` |
 | `New Remote Terminal` and `Clone on Remote` are unlocalized bare strings; `New Terminal at Home` / `New SSH Connection` are in the catalogue | **True** — zero hits in `Localizable.xcstrings` for the first two, one each for the last two |
 | `New SSH Connection ▸` ends in `Add Host…`; `New Remote Terminal ▸` dead-ends on a disabled row | **True** — `App.swift:1639` vs `App.swift:1650-1655`, `SidebarView.swift:797` |
@@ -58,7 +58,7 @@ this RFC retires, and the draft did not mention it.
 
 | Decision | Where |
 | --- | --- |
-| A device's identity is its `termiod` `host_id`, not an SSH alias | device architecture §0.2 |
+| A device's identity is its `fyolod` `host_id`, not an SSH alias | device architecture §0.2 |
 | Alias and `deviceID` **coexist**; the alias is the bootstrap identity, the device id the stable one, backfilled on first `hello_ok` | device architecture §9.5 |
 | Workspaces belong to the device, not to a viewer | device architecture §2.2 |
 | The host describes state; it never decides presentation | device architecture §4 |
@@ -84,7 +84,7 @@ naming them the same forces the interface to expose the storage layer.
 because keying by alias silently splits the day the user changes networks:
 `vps-lan`, `vps-wan`, and a tailnet name are three names for one machine
 (architecture §2). Nothing in this plane is negotiable; it is already built
-(`TermiodDeviceRegistry`, `devices.json`).
+(`FyolodDeviceRegistry`, `devices.json`).
 
 **Above, the first-class noun is the project.** A project is a workspace —
 `(device, path)` — because the unit of work is a repository, not a machine.
@@ -147,17 +147,17 @@ The reviews are right that the fork is `Models.swift:298` vs `Models.swift:311`,
 and that the draft's six-word disposal of it ("**removed**; such a session is a
 device session") deleted a working feature by accident.
 
-| | `Session.sshHost` | `Session.termiodRemoteHost` |
+| | `Session.sshHost` | `Session.fyolodRemoteHost` |
 | --- | --- | --- |
-| What runs | `ssh <host>` in a **local** PTY | a session inside the **remote** `termiod` |
+| What runs | `ssh <host>` in a **local** PTY | a session inside the **remote** `fyolod` |
 | Survives detach | no | yes |
-| Needs `termiod` on the box | **no** | yes |
+| Needs `fyolod` on the box | **no** | yes |
 | Verbs today | `New SSH Connection`, `New SSH Shell` | `New Remote Terminal` |
 
 The draft treated these as two roads to one place. They are not. Keeping both as
 named verbs makes the fork *less* legible after the rename (`New Terminal` vs
 `New SSH Shell`, with nothing in either name saying which survives a detach).
-Deleting `sshHost` walls off every machine where `termiod` cannot be installed —
+Deleting `sshHost` walls off every machine where `fyolod` cannot be installed —
 no write access, an unsupported arch, a container, a router, a colleague's box.
 
 **Both horns are avoidable, because the second field is not a location at all.**
@@ -173,7 +173,7 @@ correctly collapses the fork with nothing deleted:
 
 - **One field answers "where does this run": `deviceID`.** For an `ssh` shell,
   that is this Mac. For a durable session, it is the box.
-- **`termiodRemoteHost` is demoted to a route hint** — the alias used to reach
+- **`fyolodRemoteHost` is demoted to a route hint** — the alias used to reach
   the device before the handshake named it. `deviceID` is the truth (§9.5's
   bootstrap-vs-stable identity, unchanged).
 - **The escape hatch survives.** A machine that cannot run the daemon is still
@@ -190,16 +190,16 @@ correctly collapses the fork with nothing deleted:
 | `Session.deviceID` | backfilled on first handshake | **the** location field, for every session including local ones |
 | `Session.sshHost` | implies "this session is elsewhere" | kept, demoted to a spawn spec: argv is `ssh <value>`; `deviceID` is this Mac |
 | `Session.isSSH` (`sshHost != nil`) | used as "is remote" | removed. Nothing may branch on it; the durability question is answered by the device's daemon, not by argv |
-| `Session.termiodRemoteHost` | source of truth for where a session runs | route hint only; removed once `deviceID` is populated for every persisted session |
+| `Session.fyolodRemoteHost` | source of truth for where a session runs | route hint only; removed once `deviceID` is populated for every persisted session |
 | `Project.kind == .host` | a machine container in the sidebar | retired (§1.1). Its projects become workspaces with a `deviceID`; its bare shells become Terminals entries with a `deviceID` |
 | `Project.deviceID` / `remoteCheckouts` | device-keyed already | unchanged |
 
 **Migration of saved state**, because tolerant decoding is not a migration
 policy (review-codex §4):
 
-1. A session with `termiodRemoteHost` and no `deviceID` keeps working: the alias
+1. A session with `fyolodRemoteHost` and no `deviceID` keeps working: the alias
    is a route, `deviceID` backfills on the next handshake, exactly as today.
-2. A session with `sshHost` and no `termiodRemoteHost` is assigned this Mac's
+2. A session with `sshHost` and no `fyolodRemoteHost` is assigned this Mac's
    `deviceID`, and its title changes from `SSH Shell` to `ssh <alias>` — which is
    what it is, and what the user would have typed. **It is never silently
    upgraded** to a durable session: that would install software on a box the user
@@ -213,20 +213,20 @@ policy (review-codex §4):
 
 ## 3. Authorities, not provenance
 
-The draft's ownership test — *did termio produce this state itself?* — was
+The draft's ownership test — *did fyolo produce this state itself?* — was
 attacked from both sides and does not survive. It cannot classify its own table
-(a probe *observes* readiness rather than producing it; the user, not termio,
+(a probe *observes* readiness rather than producing it; the user, not fyolo,
 produces a typed target), and it was used to reject `Add Device…` on a ground the
 codebase disproves. Replace it with explicit authorities:
 
 | State | Authority | Where it lives | Rule |
 | --- | --- | --- | --- |
-| SSH route configuration | `~/.ssh/config` | the user's file | termio reads it and never overrides it. `Add Host` appends a real `Host` block, indistinguishable from a hand-written one — that is not a second roster, it is a write to the authoritative file, and it is already shipped |
-| Which device a route reached | termio's registry | `devices.json` | An **observation cache**, never a route source. Every route is re-resolved against the live config before it is offered or dialled; an alias no longer in the file is not offered |
+| SSH route configuration | `~/.ssh/config` | the user's file | fyolo reads it and never overrides it. `Add Host` appends a real `Host` block, indistinguishable from a hand-written one — that is not a second roster, it is a write to the authoritative file, and it is already shipped |
+| Which device a route reached | fyolo's registry | `devices.json` | An **observation cache**, never a route source. Every route is re-resolved against the live config before it is offered or dialled; an alias no longer in the file is not offered |
 | Readiness (reachable / version / daemon present) | runtime probe | memory only | Never persisted. Already true — `lastSeen` is deliberately excluded from `Codable` |
 | A typed `user@host` | the user | **ephemeral** | Used for the connection at hand and not persisted. If the user wants it back, `Add Host…` writes it to `~/.ssh/config`, which is the only place a route may live |
 | Display name of a machine | the viewer | client state | The host never supplies a display name (§4 presentation boundary) |
-| Sessions, processes, workstream status | the device's `termiod` | on the device | Viewers cache, never own |
+| Sessions, processes, workstream status | the device's `fyolod` | on the device | Viewers cache, never own |
 | Workspaces (the sidebar scope) | the viewer | the Mac's `state.json` | **Corrected 2026-08-19** — this row previously listed workspaces as device-owned, conflating the sidebar scope with a directory root. A workspace *belongs to* one device but its state is viewer-owned; see `design/20260819-device-workspace-project.md` §5 |
 
 Two corrections follow directly:
@@ -236,7 +236,7 @@ Two corrections follow directly:
   user asked for is not overriding anything; overriding would be injecting `-o`
   options that outrank their config, which the ControlMaster injection already
   guards against by probing `ssh -G` first (protocol §D).
-- Persisting a typed `user@host` in termio state is the one genuine second-copy
+- Persisting a typed `user@host` in fyolo state is the one genuine second-copy
   violation the draft contained. It is removed above.
 
 ---
@@ -285,7 +285,7 @@ Two properties this must state rather than imply:
   not set a mode, and there is no mode for it to set (§1.1).
 
 **Prebuilt binaries are a hard prerequisite for this verb.** Today a machine
-without the daemon triggers `termiod remote deploy`, which cross-compiles with
+without the daemon triggers `fyolod remote deploy`, which cross-compiles with
 `cargo` on the user's Mac and tells them to `brew install musl-cross` when the
 linker is missing. For a shipped `.app` that is not an install path; it moves the
 draft's own "dead end at the moment a new user arrives" one click later.
@@ -303,8 +303,8 @@ being split across two tabs:
 | Name | user-set, else the most recently used alias |
 | Routes | `~/.ssh/config` (live), ordered most recently used first |
 | Readiness | runtime probe, on demand (§5) |
-| `termiod` version | `hello_ok` |
-| Actions | Connect · Open SSH shell · Install / upgrade `termiod` · Forget · Merge (§9.5) · Edit `~/.ssh/config` · Add Host |
+| `fyolod` version | `hello_ok` |
+| Actions | Connect · Open SSH shell · Install / upgrade `fyolod` · Forget · Merge (§9.5) · Edit `~/.ssh/config` · Add Host |
 
 The tab is shown when there is more than one machine or when the local daemon is
 unhealthy. It is **never hidden by an error** — codex is right that the
@@ -319,7 +319,7 @@ literal absence.
 > `Settings ▸ SSH` owns **routes** — anything meaningful *before* `hello_ok`,
 > keyed by an SSH alias, or affecting how OpenSSH resolves and authenticates.
 > `Settings ▸ Devices` owns **identities** — anything learned *after*
-> `hello_ok`, keyed by `host_id`, or describing termiod, device lifecycle and
+> `hello_ok`, keyed by `host_id`, or describing fyolod, device lifecycle and
 > device preferences. A value is never persisted in both.
 
 Its argument is that an alias can exist before any device is known and one
@@ -358,14 +358,14 @@ the draft had none. Name them here and reuse the shipped copy and tints
 | `reachable` | handshake completed | "Reachable" |
 | `authFailed` | SSH refused the identity | "Auth failed" |
 | `unreachable` | no route answered; carries ssh's own last stderr line | the reason itself |
-| `degraded` | connected, but the link is repairing or the daemon is a version behind | "Reconnecting" / "Older termiod" |
+| `degraded` | connected, but the link is repairing or the daemon is a version behind | "Reconnecting" / "Older fyolod" |
 
 Rules:
 
 - **No eager probing.** Reaching every known route at launch puts 216–292 ms of
   cold SSH per machine on the startup path. Twenty machines start at
   `notChecked`, and that state is rendered honestly rather than as an absence.
-- **Readiness has exactly one owner: the device's `TermiodConnection`**
+- **Readiness has exactly one owner: the device's `FyolodConnection`**
   (architecture §5.1 / §8.4b). This is why that step is a prerequisite and not a
   parallel track — two connections reporting independently is the shape of the
   companion bug in §0.
@@ -382,13 +382,13 @@ non-local device. Wrong question, and it has the polarity backwards.
 
 `closeConfirmationReason` confirms on exactly one condition: a plain shell with a
 live foreground job, because that command exists nowhere else. It reads
-`ptyProcesses[session.id]` — the **in-process** PTY handle. A termiod session has
+`ptyProcesses[session.id]` — the **in-process** PTY handle. A fyolod session has
 no entry there. So **today a session with a build running on another machine
 closes silently, and a local one asks.**
 
 Two consequences, both scheduled:
 
-1. **`termiod` must report the foreground job** — one `tcgetpgrp` on the PTY
+1. **`fyolod` must report the foreground job** — one `tcgetpgrp` on the PTY
    master, one field on the `list` reply. Then the rule the product already
    believes in works on every device, which is this RFC's whole thesis applied to
    a guardrail.
@@ -406,7 +406,7 @@ Two consequences, both scheduled:
    vocabulary-and-UI RFC into a shipped Rust/Swift protocol change carrying
    version-skew semantics. Splitting it out would not remove the dependency, only
    let the convergence plan claim a parity it does not have.
-2. **That field is a precondition for deleting `TERMIO_TERMIOD`.** Retiring the
+2. **That field is a precondition for deleting `FYOLO_FYOLOD`.** Retiring the
    flag deletes the in-process path, `ptyProcesses` becomes permanently empty,
    and the confirmation silently disappears **for every session on every device,
    including purely local ones** — with no code change at the call site to catch
@@ -415,9 +415,9 @@ Two consequences, both scheduled:
 
 **Confirmation is keyed on irreversibility and blast radius, never on locality.**
 "Not this machine" is a Mac-centric predicate that fails on iOS, where every
-session host is another machine. Forget Machine and Uninstall `termiod` with live
+session host is another machine. Forget Machine and Uninstall `fyolod` with live
 sessions confirm because they are irreversible and device-wide; they name the
-machine in the message. termio never interposes on ordinary shell commands.
+machine in the message. fyolo never interposes on ordinary shell commands.
 
 ---
 
@@ -442,16 +442,16 @@ layer is OpenSSH; on iOS it is the tailnet's WireGuard, or the system TLS stack.
 
 ### 7.2 Preferred: bind to the tailnet
 
-`termiod` gains a bind option that accepts a specific interface, and the
+`fyolod` gains a bind option that accepts a specific interface, and the
 recommended configuration is **the tailscale interface only**.
 
-- Encryption and node identity are WireGuard's. termio writes no cryptography and
+- Encryption and node identity are WireGuard's. fyolo writes no cryptography and
   ships no PKI.
 - No public port exists. The daemon is unreachable from the internet at all;
   reachability is the tailnet ACL, which the user already administers.
 - The phone dials `100.x` directly. One hop, no Mac.
 - Roaming may come free: WireGuard peers are keyed by public key, not endpoint,
-  so a TCP connection carrying `termiod stdio` should survive Wi-Fi → 5G with the
+  so a TCP connection carrying `fyolod stdio` should survive Wi-Fi → 5G with the
   overlay address unchanged. Protocol §D.1 already flags this as the experiment
   that decides whether QUIC is a roadmap item or a someday item; it is the same
   experiment. **Verify before relying on it.**
@@ -492,7 +492,7 @@ action, not a data path** — it does not put the Mac between the phone and the
 device, and therefore does not violate §2.1.
 
 ```
-Mac ──ssh──▶ device : termiod pair issue
+Mac ──ssh──▶ device : fyolod pair issue
              device ──▶ token + cert SPKI fingerprint + reachable addresses
 Mac  renders QR  ──▶  iPhone  ──▶  Keychain
 iPhone ──────────────── direct ────────────────▶ device
@@ -505,7 +505,7 @@ re-scan — the failure the companion tunnel produces on every cloudflared resta
 today.
 
 Listeners are **off by default**. A device accepts nothing on any network
-interface until a pairing explicitly turns one on, and `termiod pair revoke`
+interface until a pairing explicitly turns one on, and `fyolod pair revoke`
 turns it back off.
 
 ### 7.5 The §H #4 amendment, written out
@@ -520,7 +520,7 @@ it forbids §7.3. It must be **amended explicitly**, not quietly worked around:
 > stack; and the trust anchor MUST be borrowed — a tailnet's node identity, or a
 > self-signed certificate pinned during an out-of-band pairing, as SSH's
 > `known_hosts` does. No certificate authority, no key exchange, and no cipher
-> code is written or vendored by termio. Any listener is off until a pairing
+> code is written or vendored by fyolo. Any listener is off until a pairing
 > enables it and off again when that pairing is revoked.
 
 What stays forbidden is unchanged: wildcard binds, hand-rolled TLS, invented key
@@ -549,7 +549,7 @@ promotes two things from polish to prerequisite:
 push, which is why the companion has no answer there, but a suspended iPhone can
 be. A `needs-you` workstream on a device the phone has paired with is the event
 worth waking for. One question is open and named in §10: a push needs an
-Apple-issued credential, and termio runs no hosted control plane, so *who signs
+Apple-issued credential, and fyolo runs no hosted control plane, so *who signs
 the push* is unresolved. Everything above works without it; APNs only decides
 whether the phone learns about `needs-you` while closed.
 
@@ -575,16 +575,16 @@ as an exception.
 The draft's ordering was reversed against architecture §8. Corrected: the fork
 dies before the vocabulary changes, and the connection object comes before both.
 The architecture doc orders the work — own the connection → delete the fork,
-including `TERMIO_TERMIOD` → device switcher — and marks the switcher *"Only
+including `FYOLO_FYOLOD` → device switcher — and marks the switcher *"Only
 meaningful after step 5 — before it, local is still a special case"*
-(`20260805-termiod-device-architecture.md:513-531`). That document is listed
+(`20260805-fyolod-device-architecture.md:513-531`). That document is listed
 above under "do not reopen", so the RFC cannot contradict its ordering.
 
-The reversal is not academic. `Termiod.isEnabled` reads the flag
-(`TermiodClient.swift:17-20`) and surface creation still chooses between termiod
-and an in-process `PTYProcess` (`TermioStore+TerminalSurface.swift:214-231`), so
+The reversal is not academic. `Fyolod.isEnabled` reads the flag
+(`FyolodClient.swift:17-20`) and surface creation still chooses between fyolod
+and an in-process `PTYProcess` (`FyoloStore+TerminalSurface.swift:214-231`), so
 with the flag off, opening on a non-local device stops at an alert reading *"Set
-TERMIO_TERMIOD=1 and relaunch termio"* (`TermioStore+Termiod.swift:468-476`). Any
+FYOLO_FYOLOD=1 and relaunch fyolo"* (`FyoloStore+Fyolod.swift:468-476`). Any
 device-naming surface above that fork names a machine the product cannot open a
 session on.
 
@@ -592,14 +592,14 @@ session on.
 
 | Step | Verification |
 | --- | --- |
-| **0a.** Prebuilt per-arch `termiod` binaries, content-addressed install (arch §6, §8.8) | From a packaged `.app` on a Mac with no `cargo` and no `musl-cross`, add a fresh Linux box and reach a prompt. A local dev build is not evidence |
+| **0a.** Prebuilt per-arch `fyolod` binaries, content-addressed install (arch §6, §8.8) | From a packaged `.app` on a Mac with no `cargo` and no `musl-cross`, add a fresh Linux box and reach a prompt. A local dev build is not evidence |
 | **0b.** ControlMaster options on the app's own ssh invocation, plus `BatchMode` / `ConnectTimeout` (arch §8.4a) | Cold vs warm connect timings on one box; an unloaded key must produce a named error instead of a silent hang |
-| **0c.** `TermiodConnection` per device owning health and reconnect (arch §8.4b) | Pull the network with a session attached: the pane shows `degraded`, never `exited`, and recovers without losing scrollback |
+| **0c.** `FyolodConnection` per device owning health and reconnect (arch §8.4b) | Pull the network with a session attached: the pane shows `degraded`, never `exited`, and recovers without losing scrollback |
 | **0d.** Foreground-job field on the `list` reply (§6) | Start `sleep 60` in a session on another machine, close it: the confirmation appears with the same copy as a local one |
 
 ### Stage 1 — delete the fork
 
-Remove `TERMIO_TERMIOD`, the in-process `PTYProcess` path, and the alert that
+Remove `FYOLO_FYOLOD`, the in-process `PTYProcess` path, and the alert that
 today stands in for a remote terminal when the flag is off (arch §8.5).
 
 *Verification:* every session on this Mac survives quitting and relaunching the
@@ -610,7 +610,7 @@ destructive).
 ### Stage 2 — data model
 
 `deviceID` as the single location field; `sshHost` demoted to a spawn spec;
-`termiodRemoteHost` demoted to a route hint; `.host` containers dissolved; the
+`fyolodRemoteHost` demoted to a route hint; `.host` containers dissolved; the
 `isSSH` branch deleted (§2.1).
 
 *Verification:* a state file written by the current release loads with every
@@ -624,7 +624,7 @@ against a real pre-migration `state.json`, not a synthesized one.
 the retired `"Remote"` section header, the machine annotation on project and
 terminal rows.
 
-*Verification:* `grep -ri "remote" Sources/termio --include=*.swift` returns only
+*Verification:* `grep -ri "remote" Sources/fyolo --include=*.swift` returns only
 `remoteCheckouts` and comparable identifiers — no user-visible string. Every new
 or changed string is in `Localizable.xcstrings` and in the zh-Hans catalogue; the
 three strings this touches were never localized, so this stage carries l10n work
@@ -673,8 +673,8 @@ route, and no alias left in `~/.ssh/config` does not count toward "more than one
 
 ## 10. Open questions
 
-1. **Who signs the APNs push** (§7.6). termio runs no hosted control plane and an
-   Apple key cannot ship inside `termiod`. The narrowest shape that might fit is a
+1. **Who signs the APNs push** (§7.6). fyolo runs no hosted control plane and an
+   Apple key cannot ship inside `fyolod`. The narrowest shape that might fit is a
    stateless forwarder that sees an opaque device token and a wake flag and stores
    nothing — which is still a service, and must be argued on its own terms rather
    than smuggled in here.
@@ -702,7 +702,7 @@ The pre-rewrite draft carried seven. None is silently dropped; two were settled 
 | 4. Does `Connect to…` belong in the `+` menu | **Answered by §4.1.** There is no `Connect to…`; `New Terminal on…` takes the slot `New Remote Terminal` occupies today, and the dead-end `(No SSH hosts in ~/.ssh/config)` row it complained about is replaced by `Add Host…` and `Other…` |
 | 5. Does `Settings ▸ Devices` subsume `Settings ▸ SSH` | **Decided coexist** in `20260814-remote-to-device.decisions.md` §1; §4.2 keeps that decision's key rule as a field-placement test and argues one tab instead of two, with the divergence and the Add Host reversal recorded there |
 | 6. Does foreground-job parity belong in this RFC | **Decided yes** in `20260814-remote-to-device.decisions.md` §2, and it gates the fork deletion. Carried as stage 0d (§8) with the additive-field and skew rules in §6 |
-| 7. What does an unreachable device look like | **Answered by §5.** Five named states with shipped copy, no eager probing, and one owner — the device's `TermiodConnection` |
+| 7. What does an unreachable device look like | **Answered by §5.** Five named states with shipped copy, no eager probing, and one owner — the device's `FyolodConnection` |
 
 ---
 

@@ -6,7 +6,7 @@ created: 2026-08-19
 updated: 2026-08-19
 related:
   - 20260724-sidebar-scroll-performance.md
-  - 20260805-termiod-device-architecture.md
+  - 20260805-fyolod-device-architecture.md
 ---
 
 # Design: Instant view switching
@@ -16,20 +16,20 @@ related:
 ## The question
 
 Switching a session, a workspace, or an inspector tab should feel like the new
-view was always there. Today it does not, and a profile of Termio's main thread
+view was always there. Today it does not, and a profile of Fyolo's main thread
 puts ~4.9s of a 20-second window inside `stepTransactionFlush` →
 `NSDisplayCycleFlush` → `NSView.layoutSubtreeIfNeeded` → `NSHostingView.layout()`
-→ `NSAnimationContext.runAnimationGroup`, with no Termio symbols underneath. The
-cost is SwiftUI laying out the hosted tree inside an animation, not Termio's own
+→ `NSAnimationContext.runAnimationGroup`, with no Fyolo symbols underneath. The
+cost is SwiftUI laying out the hosted tree inside an animation, not Fyolo's own
 body code.
 
 That framing rules out most of the usual advice. You cannot make a switch fast by
 writing a faster `body` if `body` is not where the time goes. This document
 establishes what SwiftUI actually skips, reads how three comparable projects
-solve the same problem, and says which shape Termio should adopt — and, at
+solve the same problem, and says which shape Fyolo should adopt — and, at
 length, which shapes it should not.
 
-A sibling effort is profiling Termio's own switch path. This document
+A sibling effort is profiling Fyolo's own switch path. This document
 deliberately stays off that ground: everything below is either a measurement of
 the framework in isolation, or something read in another project's source.
 
@@ -117,7 +117,7 @@ that pumped the runloop for a fixed number of turns reported `withAnimation` as
 the sampling window. Any measurement of an animated transition has to run to
 quiescence, and any *profile* of one will attribute the work to whatever runs it
 later — which is exactly the shape of the `NSAnimationContext.runAnimationGroup`
-frame in Termio's profile.
+frame in Fyolo's profile.
 
 ## Part 2 — Prior art
 
@@ -126,7 +126,7 @@ frame in Termio's profile.
 `unpeel-com/unpeel` is Swift + AppKit over libghostty, 293 Swift files under
 `apps/native/UnpeelNative`. The public repository 404s as of 2026-08-19; the
 reading below is from a clone taken on 2026-08-18 at `d017f75`. It has no file
-browser, so it says nothing about the file-tree half of a Termio switch.
+browser, so it says nothing about the file-tree half of a Fyolo switch.
 
 Its switch architecture, in the order the cost shows up:
 
@@ -161,7 +161,7 @@ frame.
 exists, the same method paints the terminal background in the current
 transaction, records a pending session id, and creates the expensive pane on the
 next main-loop turn — with a guard that drops the deferred work if selection
-moved on. Termio's own "defer the session/inspector half one runloop turn behind
+moved on. Fyolo's own "defer the session/inspector half one runloop turn behind
 the column paint" is the same move, arrived at independently.
 
 **Nothing about the swap animates, on purpose.** `ContentArea` uses
@@ -203,7 +203,7 @@ publish re-ran each visible project's body, which asked for both lists —
 (`UnpeelStore.swift:11965-11994`).
 
 **Workspace switching is a two-page carousel with no cover.** This is the part
-Termio has not built, and it is the most interesting thing in the repository.
+Fyolo has not built, and it is the most interesting thing in the repository.
 `Views/SidebarWorkspaceDots.swift` (1830 lines) turns a two-finger swipe into an
 interactive pager: one fixed-size clipped container holds two materialized pages
 of the same list component — the live page driven by the store, the neighbor
@@ -271,7 +271,7 @@ Model-side retention with view-side rebuild works for codex because rebuilding a
 libghostty pane, where "the view" owns a PTY, a Metal surface, and a scrollback
 that no snapshot reconstructs in a frame.
 
-## Part 3 — What Termio's architecture should be
+## Part 3 — What Fyolo's architecture should be
 
 **The rule: state that is expensive to rebuild lives outside the SwiftUI tree,
 and the SwiftUI subtree is removed when it is not shown.**
@@ -286,7 +286,7 @@ Three tiers, by what the thing costs to rebuild:
 else owning a PTY, a Metal layer, or a child process. These are AppKit `NSView`s
 held by a cache keyed on session id, attached to and detached from a swap
 container by an `NSViewRepresentable`. They are never a SwiftUI subtree, so
-SwiftUI's removal of the container costs nothing and destroys nothing. Termio
+SwiftUI's removal of the container costs nothing and destroys nothing. Fyolo
 already does this. What the prior art adds is the discipline around it: teardown
 deferred off the layout pass and revocable by token, a synchronous focus-and-draw
 inside the swap so the first committed frame is correct, and a cap of one new
@@ -296,7 +296,7 @@ surface creation per update pass.
 tree, a device roster, per-project session orderings. These live in a plain
 non-`@Published` cache keyed by root or scope, and the view rebuilds from the
 cached value on demand. `FileTreeCache` (capacity 8, LRU) is already this shape.
-The gap is the sidebar's own row lists, which unpeel memoizes and Termio derives
+The gap is the sidebar's own row lists, which unpeel memoizes and Fyolo derives
 per render pass — and the `feat/workspaces` branch multiplies that cost by the
 number of workspaces in flight.
 
@@ -313,7 +313,7 @@ On top of the tiers, four rules about the switch itself:
    what stops a *different* mutation from animating the same tree later.
 2. **Paint the cheap half in the current transaction; defer the expensive half
    one runloop turn, guarded by a re-check that the target is still selected.**
-   Termio ships this and unpeel converged on it independently, which is about as
+   Fyolo ships this and unpeel converged on it independently, which is about as
    strong a signal as prior art gets.
 3. **For Metal-backed panes, force a synchronous draw inside the swap.** The
    switch was never the slow part; the stale drawable and the hollow cursor for
@@ -337,7 +337,7 @@ The obvious idea, and the measured trap. It buys a 3.1ms switch instead of a
 31.5ms one, and charges 36.7ms instead of 19.7ms for every unrelated update
 afterwards, scaling linearly with the number of retained columns. For an app
 whose whole job is to sit there while several agents write output, that is a bad
-trade in the direction Termio cares least about. It is also the mechanism that
+trade in the direction Fyolo cares least about. It is also the mechanism that
 would produce a mysterious idle CPU floor, so it is worth grepping for before
 theorising further.
 
@@ -379,7 +379,7 @@ track between an old session's scrollback and a new one's.
 Correct for a `ratatui` widget, wrong here. A libghostty pane owns a PTY, a
 GPU surface, and scrollback. Reconstructing that from a snapshot within a frame
 would need a per-frame grid encoder between the PTY and the renderer, which is
-the exact thing `20260730-termiod-session-protocol.md` §A rejects as the tmux
+the exact thing `20260730-fyolod-session-protocol.md` §A rejects as the tmux
 tax. Worth stealing from codex instead: caching *measurement* per width, and
 capturing the small pieces of view state that must survive a rebuild
 (composer text, scroll position) explicitly rather than hoping identity holds.
@@ -390,7 +390,7 @@ Relevant to `feat/workspaces`. unpeel considered and rejected them: restoring a
 pixel offset needs the macOS 15 `ScrollPosition` API, and id-based `scrollTo`
 restoration is approximate under lazy layout, so the two pages of a switch would
 not agree. Their replacement is to make *every* page land at the top, so both
-sides of a switch agree by construction. Termio should adopt the same default —
+sides of a switch agree by construction. Fyolo should adopt the same default —
 top-landing, unanimated, in the same commit as the scope change — before
 considering offset restoration.
 

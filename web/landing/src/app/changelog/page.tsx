@@ -8,14 +8,14 @@ import { changelog, type ChangeKind } from "@/data/changelog";
 export const metadata: Metadata = {
   title: "Changelog",
   description:
-    "What's new in Termio — new features, improvements and fixes, shipped to every Mac through built-in auto-updates.",
+    "What's new in Fyolo — new features, improvements and fixes, shipped to every Mac through built-in auto-updates.",
   alternates: {
     canonical: "/changelog",
   },
   openGraph: {
-    title: "Termio changelog",
+    title: "Fyolo changelog",
     description:
-      "What's new in Termio — new features, improvements and fixes, shipped to every Mac through built-in auto-updates.",
+      "What's new in Fyolo — new features, improvements and fixes, shipped to every Mac through built-in auto-updates.",
     url: "/changelog",
   },
 };
@@ -59,7 +59,7 @@ export default function ChangelogPage() {
             <Reveal className="mx-auto mb-14 w-full max-w-[680px] text-center sm:mb-20">
               <SectionLabel accent="muted">Changelog</SectionLabel>
               <h1 className="mt-4 text-balance text-4xl font-medium leading-[1.1] tracking-tight text-foreground sm:text-5xl">
-                What&apos;s new in Termio
+                What&apos;s new in Fyolo
               </h1>
               <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
                 Every release ships to your Mac through built-in auto-updates —

@@ -8,7 +8,7 @@ updated: 2026-07-02
 
 # Unpeel
 
-> Termio's **design prototype** and direct benchmark. Complete philosophy, all
+> Fyolo's **design prototype** and direct benchmark. Complete philosophy, all
 > four differentiators present; closed-source, single maintainer.
 
 ## One-line positioning
@@ -27,7 +27,7 @@ another agent's session.
 
 ## Tech stack & form factor
 
-- **Swift + libghostty** (same terminal core lineage as Termio and cmux), Metal
+- **Swift + libghostty** (same terminal core lineage as Fyolo and cmux), Metal
   rendering, native — not Electron.
 - Apple Silicon only, native macOS app; local-first, **no telemetry, no cloud,
   no account**.
@@ -58,7 +58,7 @@ another agent's session.
 - Complete philosophy: never-die / status dashboard / Sessions MCP / worktrees
   — all four pillars present, positioning is crisp.
 - Local-first and privacy-friendly; one-time purchase, restrained pricing.
-- Highly aligned with Termio's philosophy — Termio's best "north star".
+- Highly aligned with Fyolo's philosophy — Fyolo's best "north star".
 
 ## Weaknesses
 
@@ -67,20 +67,20 @@ another agent's session.
 - Far less mindshare and community than the open-source cmux (see
   [02](02-cmux.md)).
 
-## vs. Termio / takeaways
+## vs. Fyolo / takeaways
 
 - **Same lineage, same philosophy**: Swift + libghostty, project/session
-  sidebar, menu-bar pulse, worktrees, no diff, local-first. Termio is
+  sidebar, menu-bar pulse, worktrees, no diff, local-first. Fyolo is
   essentially an "open-source, customizable" re-implementation of Unpeel.
-- **Already matched by Termio**: the status dashboard (zero-config, and less
-  fragile than a bolt-on because Termio owns the PTY), worktrees, the menu-bar
+- **Already matched by Fyolo**: the status dashboard (zero-config, and less
+  fragile than a bolt-on because Fyolo owns the PTY), worktrees, the menu-bar
   tray, settings.
 - **Two remaining moats**:
   1. **Sessions MCP** — high value, medium cost (the official
      `modelcontextprotocol/swift-sdk` exists); should be the next-phase P0;
   2. **Never-die host processes** — highest value but the biggest rework;
      tackle it after MCP is stable.
-- **Where Termio can surpass Unpeel**: open source / customizable, a broader
+- **Where Fyolo can surpass Unpeel**: open source / customizable, a broader
   agent-preset surface (OpenCode / Pi / …).
 
 ## References

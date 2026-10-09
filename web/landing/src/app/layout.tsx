@@ -4,17 +4,17 @@ import "./globals.css";
 import { DocsThemeScript } from "@/components/docs/theme-script";
 
 const siteDescription =
-  "Termio is the Terminal-first Agentic Development Environment — a native Mac app for your AI coding agents: Claude Code, Codex, OpenCode, Pi Agent and more. Run them side by side, each in a real terminal, switch between them instantly, and nothing ever leaves your machine.";
+  "Fyolo is the Terminal-first Agentic Development Environment — a native Mac app for your AI coding agents: Claude Code, Codex, OpenCode, Pi Agent and more. Run them side by side, each in a real terminal, switch between them instantly, and nothing ever leaves your machine.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.termio.sh"),
+  metadataBase: new URL("https://www.fyolo.sh"),
   title: {
-    default: "Termio — the Terminal-first Agentic Development Environment",
-    template: "%s — Termio",
+    default: "Fyolo — the Terminal-first Agentic Development Environment",
+    template: "%s — Fyolo",
   },
   description: siteDescription,
   keywords: [
-    "Termio",
+    "Fyolo",
     "AI coding agents",
     "terminal",
     "macOS terminal",
@@ -24,15 +24,15 @@ export const metadata: Metadata = {
     "Apple Silicon",
     "Intel Mac",
   ],
-  applicationName: "Termio",
+  applicationName: "Fyolo",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Termio — the Terminal-first Agentic Development Environment",
+    title: "Fyolo — the Terminal-first Agentic Development Environment",
     description: siteDescription,
     type: "website",
-    siteName: "Termio",
+    siteName: "Fyolo",
     url: "/",
     images: [
       {
@@ -40,13 +40,13 @@ export const metadata: Metadata = {
         type: "image/webp",
         width: 2400,
         height: 1260,
-        alt: "Termio — orchestrate your fleet of agents. A real Termio window with a sidebar of agent sessions beside a live Codex session.",
+        alt: "Fyolo — orchestrate your fleet of agents. A real Fyolo window with a sidebar of agent sessions beside a live Codex session.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Termio — the Terminal-first Agentic Development Environment",
+    title: "Fyolo — the Terminal-first Agentic Development Environment",
     description: siteDescription,
     images: ["/og.webp"],
   },

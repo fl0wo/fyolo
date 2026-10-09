@@ -1,17 +1,17 @@
 ---
 name: check-ghostty-update
-description: "Check whether ghostty (the terminal core termio embeds via the termio-sh/libghostty-swift fork) has shipped anything worth pulling since the binary termio is currently pinned to. Resolves the pinned ghostty sha, diffs it against ghostty main, filters the gap for changes that actually reach termio's embedded VT/terminal core (dropping app-chrome / packaging / i18n noise), and gives a keep-waiting-or-pull-now verdict. Invoke when the user says 'check ghostty update', 'is ghostty out of date', 'did ghostty ship anything major', 'should I bump ghostty/libghostty', '看看 ghostty 有没有更新', '检查 ghostty 更新', 'ghostty 有什么重大更新', or '要不要更新 libghostty'."
+description: "Check whether ghostty (the terminal core fyolo embeds via the termio-sh/libghostty-swift fork) has shipped anything worth pulling since the binary fyolo is currently pinned to. Resolves the pinned ghostty sha, diffs it against ghostty main, filters the gap for changes that actually reach fyolo's embedded VT/terminal core (dropping app-chrome / packaging / i18n noise), and gives a keep-waiting-or-pull-now verdict. Invoke when the user says 'check ghostty update', 'is ghostty out of date', 'did ghostty ship anything major', 'should I bump ghostty/libghostty', '看看 ghostty 有没有更新', '检查 ghostty 更新', 'ghostty 有什么重大更新', or '要不要更新 libghostty'."
 ---
 
 # Check ghostty update
 
-termio does **not** build ghostty itself — it embeds ghostty's terminal core through
+fyolo does **not** build ghostty itself — it embeds ghostty's terminal core through
 the **`termio-sh/libghostty-swift`** fork, whose weekly CI rebuilds `GhosttyKit.xcframework`
-against ghostty `main` and publishes it as a `storage.X.Y.Z` release ([[termio-libghostty-swift]]).
+against ghostty `main` and publishes it as a `storage.X.Y.Z` release ([[fyolo-libghostty-swift]]).
 So "is ghostty up to date" really means: **how far is ghostty `main` ahead of the sha baked
-into the binary termio is pinned to, and is anything in that gap relevant to termio?**
+into the binary fyolo is pinned to, and is anything in that gap relevant to fyolo?**
 
-termio is an **embedder**, so only a slice of ghostty's changes matter. Weight the diff
+fyolo is an **embedder**, so only a slice of ghostty's changes matter. Weight the diff
 accordingly — see *Signal vs. noise* below. Local self-build is impossible on this Mac
 (Tahoe/zig deadlock); updating the binary always goes through the fork's CI.
 
@@ -24,9 +24,9 @@ follow-up the verdict points to (and separate skills / explicit asks).
 
 Run these steps and report; everything is read-only `gh` + `grep`.
 
-### 1. Resolve the ghostty sha termio is currently on
+### 1. Resolve the ghostty sha fyolo is currently on
 
-The pin chain is: termio `Package.resolved` → fork version tag → that tag's `Package.swift`
+The pin chain is: fyolo `Package.resolved` → fork version tag → that tag's `Package.swift`
 names a `storage.X.Y.Z` binary → that storage release's **title** carries the ghostty sha
 (format `... · ghostty v1.3.1-<N>-g<sha>`).
 
@@ -41,7 +41,7 @@ STORAGE=$(gh api "repos/$FORK/contents/Package.swift?ref=$VER" --jq '.content' \
       | base64 -d | grep -oE 'storage\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 NAME=$(gh release view "$STORAGE" --repo "$FORK" --json name --jq '.name')
 CUR=$(echo "$NAME" | grep -oE 'g[0-9a-f]{7,}' | sed 's/^g//')
-echo "termio pin: fork $VER → $STORAGE → ghostty $NAME (sha $CUR)"
+echo "fyolo pin: fork $VER → $STORAGE → ghostty $NAME (sha $CUR)"
 ```
 
 If any of these come back empty, fall back: the fork's **latest** `storage.*` release is
@@ -66,12 +66,12 @@ gh api "repos/$GHOSTTY/compare/$CUR...main" \
 wc -l /tmp/ghostty_gap.txt
 ```
 
-**Signal — changes that reach termio's embedded core (surface these):**
+**Signal — changes that reach fyolo's embedded core (surface these):**
 prefixes `lib-vt:`, `terminal:`, `terminal/…:`, `renderer:`, `font:`, `kitty` (graphics /
 keyboard / protocol), `osc`, `selection`, `sixel`, `hyperlink`, `unicode`, `perf` /
 `throughput`, scrollback, resize/reflow, mode/DEC private modes.
 
-**Noise — termio host-manages IO and ships its own AppKit/SwiftUI chrome, so ignore:**
+**Noise — fyolo host-manages IO and ships its own AppKit/SwiftUI chrome, so ignore:**
 `macOS:` (splits, tabs, title bar, NSScrollPocket, HIG), `gtk`/`gnome`, `pkg/…` /
 `apple-sdk` / build.zig, `i18n`/translation, `nushell`/shell-integration, `docs`,
 `ci`, `gitignore`, VOUCHED/changelog.
@@ -83,7 +83,7 @@ grep -iE 'lib-vt|terminal[:/]|renderer|kitty|osc|selection|sixel|hyperlink|unico
 ```
 
 Read the survivors yourself — the grep is a first pass, not the judgement. For any that
-look big (memory/perf wins, a new VT/embedder API termio could use, a protocol termio
+look big (memory/perf wins, a new VT/embedder API fyolo could use, a protocol fyolo
 renders like kitty graphics), confirm it isn't *already* in the pinned binary by date
 (a commit older than the binary's build date is already in) or with a compare:
 `gh api repos/$GHOSTTY/compare/<that-sha>...$CUR --jq .status` → `ahead`/`identical` = already have it.
@@ -97,8 +97,8 @@ Give a short, honest call:
   high-velocity but most of it is app-layer.
 - **Something relevant but minor** → name it, say it'll arrive with the next weekly build,
   no rush.
-- **Something genuinely major** (big perf/memory win, a VT/embedder API termio wants, a
-  correctness fix in a path termio exercises) → name it with its PR #, and offer the
+- **Something genuinely major** (big perf/memory win, a VT/embedder API fyolo wants, a
+  correctness fix in a path fyolo exercises) → name it with its PR #, and offer the
   pull-now path.
 
 ### Pull-now path (only when the verdict warrants it)
@@ -108,15 +108,15 @@ The binary can't be built locally. To pull ghostty early:
    `.github/workflows/build.yml` takes a `ghostty_ref` input (default builds `main` HEAD):
    `gh workflow run build.yml --repo termio-sh/libghostty-swift -f ghostty_ref=main`
    (or pin an exact sha). It publishes a new `storage.X.Y.Z` + `X.Y.Z` tag (~30 min).
-2. Bump termio's pin (`Package.swift` `from:` + re-resolve `Package.resolved`), and the
-   iOS `TermioMobile.xcodeproj` pin if the phone should get it too (it pins the fork
-   separately — see [[termio-libghostty-swift]]).
+2. Bump fyolo's pin (`Package.swift` `from:` + re-resolve `Package.resolved`), and the
+   iOS `FyoloMobile.xcodeproj` pin if the phone should get it too (it pins the fork
+   separately — see [[fyolo-libghostty-swift]]).
 3. `macos-rebuild-dev` and verify.
 
 ## Notes
 
 - ghostty cuts stable tags rarely (last was `v1.3.1`, 2026-03), and the fork tracks
-  `main`, so termio typically rides **~1400+ commits ahead of ghostty's newest stable
+  `main`, so fyolo typically rides **~1400+ commits ahead of ghostty's newest stable
   tag**. "No new ghostty release" ≠ "nothing new" — always compare against `main`, never
   against tags.
 - The fork's own semver (`1.0.x`) is the *wrapper* version and is decoupled from ghostty's

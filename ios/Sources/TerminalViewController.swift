@@ -2,7 +2,7 @@ import GhosttyTerminal
 import GhosttyTheme
 import PhotosUI
 import ShellCraftKit
-import TermioShared
+import FyoloShared
 import UIKit
 import UniformTypeIdentifiers
 
@@ -1403,7 +1403,7 @@ extension TerminalViewController: UIEditMenuInteractionDelegate {
     /// TUI's own copy affordances cover reading.
     private func presentPasteMenu(at point: CGPoint) {
         let config = UIEditMenuConfiguration(
-            identifier: "termio.terminal.paste", sourcePoint: point
+            identifier: "fyolo.terminal.paste", sourcePoint: point
         )
         // Deterministically above the finger: at the raw touch point the
         // balloon can flip below it — under the hand — and "when the menu
@@ -1513,7 +1513,7 @@ extension TerminalViewController: TerminalSurfaceRendererHealthDelegate {
 /// QWERTY lacks (esc, sticky ctrl/alt, arrows, the configured control keys)
 /// and the attach (+), whose uploaded Mac paths are typed into the TUI.
 private final class DisplayTerminalView: UITerminalView {
-    /// termio's own key bar replaces the wrapper's bundled accessory — the
+    /// fyolo's own key bar replaces the wrapper's bundled accessory — the
     /// sticky ctrl/alt state machine stays the view's (via the public sticky
     /// API), the bar only reflects it.
     let keyBar = TerminalAccessoryBar()
@@ -1906,8 +1906,8 @@ private final class DisplayTerminalView: UITerminalView {
     /// on the vsync-aligned call path instead of a deferred main-queue block.
     private func drawScrollFrameNow() {
         guard let handle = scrollSurfaceHandle ?? ghosttySurfaceHandle() else { return }
-        termio_ghostty_surface_refresh(handle)
-        termio_ghostty_surface_draw(handle)
+        fyolo_ghostty_surface_refresh(handle)
+        fyolo_ghostty_surface_draw(handle)
     }
 
     private func startScrollPump() {
@@ -1941,7 +1941,7 @@ private final class DisplayTerminalView: UITerminalView {
         scrollSurfaceHandle = nil
     }
 
-    /// Raw bytes straight to the PTY — every termio backend is in-memory.
+    /// Raw bytes straight to the PTY — every fyolo backend is in-memory.
     /// Prompts and terminal keys are whole writes, the same delivery a
     /// keyboard's keys would use.
     func send(_ data: Data) {
@@ -1962,7 +1962,7 @@ private final class DisplayTerminalView: UITerminalView {
         if hasDirectTouch, let touch = touches.first(where: { $0.type == .direct }),
            let handle = ghosttySurfaceHandle() {
             let location = touch.location(in: self)
-            termio_ghostty_surface_mouse_pos(handle, location.x, location.y, 0)
+            fyolo_ghostty_surface_mouse_pos(handle, location.x, location.y, 0)
         }
         if hasDirectTouch {
             // A finger that lands while the fling pump is alive is stopping or
@@ -2044,7 +2044,7 @@ private final class DisplayTerminalView: UITerminalView {
 /// by symbol name because the package neither re-exports the C module to app
 /// targets nor wraps this call in public API.
 @_silgen_name("ghostty_surface_mouse_pos")
-private func termio_ghostty_surface_mouse_pos(
+private func fyolo_ghostty_surface_mouse_pos(
     _ surface: UnsafeMutableRawPointer, _ x: Double, _ y: Double, _ mods: Int32
 )
 
@@ -2052,10 +2052,10 @@ private func termio_ghostty_surface_mouse_pos(
 /// render pair the coordinator runs each tick, bound by symbol so the scroll
 /// path can present a frame at vsync instead of on a deferred main-queue block.
 @_silgen_name("ghostty_surface_refresh")
-private func termio_ghostty_surface_refresh(_ surface: UnsafeMutableRawPointer)
+private func fyolo_ghostty_surface_refresh(_ surface: UnsafeMutableRawPointer)
 
 @_silgen_name("ghostty_surface_draw")
-private func termio_ghostty_surface_draw(_ surface: UnsafeMutableRawPointer)
+private func fyolo_ghostty_surface_draw(_ surface: UnsafeMutableRawPointer)
 
 /// Tracks whether the app behind the PTY holds the alternate screen, by
 /// watching the output stream for DECSET/DECRST of modes 1049/1047/47 (and

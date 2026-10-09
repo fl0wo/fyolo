@@ -108,7 +108,7 @@ jobs:
 
       - name: Verify the built binary is x86_64
         run: |
-          binary="$(swift build --show-bin-path)/termio"
+          binary="$(swift build --show-bin-path)/fyolo"
           archs="$(lipo -archs "$binary")"
           echo "built architectures: $archs"
           [[ "$archs" == *x86_64* ]]

@@ -34,7 +34,7 @@ export default function OgCardPage() {
           style={{ width: 88, height: 88, borderRadius: 20 }}
         />
         <span style={{ fontSize: 60, fontWeight: 600, letterSpacing: "-0.01em" }}>
-          Termio
+          Fyolo
         </span>
       </div>
 

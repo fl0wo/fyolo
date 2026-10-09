@@ -8,7 +8,7 @@
 /.build/
 /.swiftpm/
 /.claude/
-/.termio/
+/.fyolo/
 /.wrangler/
 /.agents/
 /Sources/
@@ -17,8 +17,8 @@
 /companion/
 /ios/
 /plans/
-/termio.app/
-/termio-dev.app/
+/fyolo.app/
+/fyolo-dev.app/
 /packaging/
 /scripts/
 /tools/

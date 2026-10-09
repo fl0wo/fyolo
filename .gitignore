@@ -3,8 +3,8 @@
 *.xcodeproj/xcuserdata/
 DerivedData/
 .DS_Store
-termio.app/
-termio-dev.app/
+fyolo.app/
+fyolo-dev.app/
 .claude/settings.local.json
 .claude/worktrees/
 .claude/scheduled_tasks.lock
@@ -19,7 +19,7 @@ termio-dev.app/
 /.pi/
 
 packaging/.cache/
-/termio.app/
+/fyolo.app/
 sandbox-helper/.build/
 
 # Build artifacts inside vendored packages
@@ -31,11 +31,11 @@ sandbox-helper/.build/
 ios/build/
 ios/build-sim/
 
-# Per-project termio session state
-/.termio/
+# Per-project fyolo session state
+/.fyolo/
 
 # Python bytecode caches left by the repo's own scripts (download stats, icon
-# generation, the termiod smoke tests and bench).
+# generation, the fyolod smoke tests and bench).
 __pycache__/
 
 # LaTeX build intermediates (talk decks under docs/talks/)

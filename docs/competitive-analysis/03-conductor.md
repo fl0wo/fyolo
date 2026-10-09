@@ -8,7 +8,7 @@ updated: 2026-08-24
 
 # Conductor
 
-> The representative of the **opposite philosophy** to Termio: Mac-native,
+> The representative of the **opposite philosophy** to Fyolo: Mac-native,
 > worktree parallelism, but **diff-heavy / in-app review**.
 
 ## One-line positioning
@@ -39,13 +39,13 @@ worktrees and **reviews diffs and merges inside the app**.
 
 ## Weaknesses
 
-- Opposite philosophy to Termio — **heavy diff/review panels**, large surface
+- Opposite philosophy to Fyolo — **heavy diff/review panels**, large surface
   area.
 - Closed-source, details opaque.
 
-## vs. Termio / takeaways
+## vs. Fyolo / takeaways
 
-- This is the watershed on "**should we build diff?**". Termio should stick to
+- This is the watershed on "**should we build diff?**". Fyolo should stick to
   **no code panels** (betting on "the agent lives in the code + humans review
   with git/IDE") and use clear copy to redirect users who want in-app review,
   rather than bolting on a panel mid-course and breaking the positioning.
@@ -78,18 +78,18 @@ worktrees and **reviews diffs and merges inside the app**.
   | Enterprise | Custom | DPA, PO billing, SAML SSO, SCIM, dedicated support |
 
 - **Where the paywall sits**: cloud workspaces **and** the 6th person. Conductor
-  charges individuals and sells compute — both of which Termio has excluded.
+  charges individuals and sells compute — both of which Fyolo has excluded.
 
-### vs. Termio's pricing
+### vs. Fyolo's pricing
 
-Termio's decided shape is Free (one person, everything, forever) → Team
+Fyolo's decided shape is Free (one person, everything, forever) → Team
 $20/seat, with the second person as the only wall and no Enterprise tier.
 
-- Conductor charges a solo developer **$50/mo**; Termio charges them nothing.
-- **For a 5-person team Termio is more expensive**: Conductor bundles up to 5
+- Conductor charges a solo developer **$50/mo**; Fyolo charges them nothing.
+- **For a 5-person team Fyolo is more expensive**: Conductor bundles up to 5
   collaborators into the $50 flat Pro plan, so 5 people cost $50/mo there versus
-  5 × $20 = $100/mo on Termio. Worth knowing before the price is public.
-- Part of Conductor's $50 is real machine cost (cloud workspaces). Termio's $20
+  5 × $20 = $100/mo on Fyolo. Worth knowing before the price is public.
+- Part of Conductor's $50 is real machine cost (cloud workspaces). Fyolo's $20
   is pure software value, since non-negotiable #3 rules out selling compute.
 
 ### The fundraising read

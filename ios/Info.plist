@@ -9,21 +9,21 @@
 	  direct-LAN connections need this exception.
 	-->
 	<key>CFBundleDisplayName</key>
-	<string>Termio</string>
+	<string>Fyolo</string>
 	<!-- Standard TLS only — exempt from export-compliance docs, and this key
 	     skips the per-build compliance questionnaire on App Store Connect. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Termio connects to the companion server running on your Mac over the local network.</string>
+	<string>Fyolo connects to the companion server running on your Mac over the local network.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Termio uses the camera to scan the pairing QR code on your Mac and to attach photos you capture to your prompt.</string>
+	<string>Fyolo uses the camera to scan the pairing QR code on your Mac and to attach photos you capture to your prompt.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Termio records your voice when you use dictation so it can transcribe your prompt.</string>
+	<string>Fyolo records your voice when you use dictation so it can transcribe your prompt.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Termio can transcribe your recording on this device when cloud transcription is unavailable.</string>
+	<string>Fyolo can transcribe your recording on this device when cloud transcription is unavailable.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Termio shows your recent photos in the attachment sheet so you can pick them quickly.</string>
+	<string>Fyolo shows your recent photos in the attachment sheet so you can pick them quickly.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

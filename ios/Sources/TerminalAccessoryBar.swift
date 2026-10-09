@@ -1,4 +1,4 @@
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// One configurable control key: what Settings shows and what the key sends.
@@ -400,7 +400,7 @@ final class TerminalAccessoryBar: UIInputView {
         glass.layer.cornerRadius = 26
         glass.layer.cornerCurve = .continuous
 
-        // Deliberately NOT iMessage's rainbow chips: termio stays monochrome,
+        // Deliberately NOT iMessage's rainbow chips: fyolo stays monochrome,
         // so each source is one neutral chip with a thin outline glyph — the
         // Hugeicons look, done natively in SF Symbols (see makeMenuRow).
         let rows = UIStackView(arrangedSubviews: [

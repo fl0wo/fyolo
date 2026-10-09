@@ -6,18 +6,18 @@ description: The two opt-in switches behind the sidebar’s live statuses — ho
 Two related, opt-in switches sit behind the live statuses you see in the sidebar:
 **status hooks** that let agents report what they’re doing, and the **session
 control** skill that teaches them to drive sibling sessions. Neither is required
-to use Termio; both make a fleet of agents easier to run. The commands they
+to use Fyolo; both make a fleet of agents easier to run. The commands they
 expose are documented in [Command-line tool](/docs/cli).
 
 ## Live agent status
 
-Termio can install small **status hooks** into your agents’ own config files
+Fyolo can install small **status hooks** into your agents’ own config files
 (Claude Code, Codex, Cursor, and the plugin-based agents). When an agent starts
-working, finishes, or stops to ask a question, the hook reports that to Termio, so
+working, finishes, or stops to ask a question, the hook reports that to Fyolo, so
 the sidebar’s [status dots](/docs/sidebar#status) reflect exactly what’s happening
 instead of being guessed from output.
 
-Turn it on from **Settings ▸ Agents ▸ Live agent status** (Termio also offers it
+Turn it on from **Settings ▸ Agents ▸ Live agent status** (Fyolo also offers it
 once on first launch). Toggling it off removes the hooks again, leaving any hooks
 you added yourself untouched.
 
@@ -29,31 +29,31 @@ an agent running on a VPS the same status dots as one running here. See
 
 ## Session control
 
-**Settings ▸ Agents ▸ Session control** turns on the `termio sessions`
+**Settings ▸ Agents ▸ Session control** turns on the `fyolo sessions`
 orchestration API below, and teaches your agents it exists by installing a
-`termio` **agent skill** into each agent’s skills folder (`~/.claude/skills`,
+`fyolo` **agent skill** into each agent’s skills folder (`~/.claude/skills`,
 `~/.codex/skills`). The skill loads on demand — an agent carries only its
 one-line description until a task actually involves driving sibling sessions —
-and Termio re-asserts it on every launch, so app updates propagate and
+and Fyolo re-asserts it on every launch, so app updates propagate and
 hand-edits heal automatically. Toggling it off removes the skill again.
 
 <DocsImage
   src="/screenshots/docs/25-session-control-settings.png"
-  alt="Termio settings with Command-line tool, Session control, and Live agent status enabled"
+  alt="Fyolo settings with Command-line tool, Session control, and Live agent status enabled"
   width={1664}
   height={1288}
 />
 
-Running an agent Termio doesn’t auto-configure? The same skill is published at
-[termio.sh/skill.md](https://termio.sh/skill.md) and installable straight from
+Running an agent Fyolo doesn’t auto-configure? The same skill is published at
+[fyolo.sh/skill.md](https://fyolo.sh/skill.md) and installable straight from
 the repo:
 
 ```bash
-npx skills add termio-sh/termio --skill termio
+npx skills add fl0wo/fyolo --skill fyolo
 ```
 
 <Callout type="note">
   Both toggles only write files on your Mac — hook entries in agent configs and
   the skill file. Nothing leaves your machine: status reports and session
-  commands travel over a local socket to the Termio app, and nowhere else.
+  commands travel over a local socket to the Fyolo app, and nowhere else.
 </Callout>

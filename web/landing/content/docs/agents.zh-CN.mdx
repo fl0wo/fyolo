@@ -7,13 +7,13 @@ x-i18n:
   generated_at: 2026-10-09
 ---
 
-Termio 就是为同时运行多个 Agent 造的。侧栏是你的控制台：每个会话是一行，每一行都汇报
+Fyolo 就是为同时运行多个 Agent 造的。侧栏是你的控制台：每个会话是一行，每一行都汇报
 它的 Agent 此刻在做什么。任何终端都能让你同时开好几个 Agent；这里换来的是你不必盯着
 它们。
 
 ## 内置的 Agent
 
-Termio 开箱即认常见的编程 Agent：
+Fyolo 开箱即认常见的编程 Agent：
 
 | Agent | 命令行 |
 | --- | --- |
@@ -38,20 +38,20 @@ Termio 开箱即认常见的编程 Agent：
 别的工具？任何命令行工具都能成为一等 Agent——参见
 [自定义 Agent](/zh-CN/docs/custom-agents)。
 
-这里的 `PATH` 指那台机器自己的 `PATH`：Termio 会去工作区所在的机器上找它们，所以一台
+这里的 `PATH` 指那台机器自己的 `PATH`：Fyolo 会去工作区所在的机器上找它们，所以一台
 VPS 提供的是装在它上面的那些。**设置 ▸ Agent** 会直接在那一行里说出来——*未安装在
 `devbox` 上*——而不是把它藏在一个设备选择器后面。
 
 <DocsImage
   src="/screenshots/docs/17-agents-settings.png"
-  alt="Termio 的 Agent 设置显示完整内置目录，并选中 Claude Code"
+  alt="Fyolo 的 Agent 设置显示完整内置目录，并选中 Claude Code"
   width={1664}
   height={1288}
 />
 
-Termio 通过你真正的登录 shell 启动每个 Agent，所以你的 shell 配置准备的一切——版本管理器、
+Fyolo 通过你真正的登录 shell 启动每个 Agent，所以你的 shell 配置准备的一切——版本管理器、
 往 `PATH` 里加的路径、凭据——都和在 iTerm 里一模一样地在那儿。如果一个 Agent 明明装了，
-Termio 却说找不到，那几乎总是 `PATH` 的问题；Agent 页会把这件事说出来，并且命令字段接受
+Fyolo 却说找不到，那几乎总是 `PATH` 的问题；Agent 页会把这件事说出来，并且命令字段接受
 绝对路径。
 
 ## 每个 Agent 汇报什么 [#what-each-agent-reports]
@@ -102,12 +102,12 @@ program status 需要 Claude Code 2.1.295 或 Pi 1.1.0 及更新版本。Claude 
 
 真正重要的区别是**完成**和**需要你**。一轮跑完是*完成*——一个平静的提示，告诉你有活儿在
 你不在的时候落地了。*需要你*留给那种确实无法继续的 Agent：一个权限提示、一个问题、一个
-选择。把这两者混为一谈，正是让一支队伍变成一堆警报的原因，所以 Termio 让「好了」保持安静，
+选择。把这两者混为一谈，正是让一支队伍变成一堆警报的原因，所以 Fyolo 让「好了」保持安静，
 把响亮的那个状态留给唯一那种走开就要赔上时间的情况。
 
 <DocsImage
   src="/screenshots/docs/05-session-statuses.png"
-  alt="Termio 侧栏和 termio sessions list 输出显示空闲、工作中、完成和需要你状态"
+  alt="Fyolo 侧栏和 fyolo sessions list 输出显示空闲、工作中、完成和需要你状态"
   width={2424}
   height={1664}
 />
@@ -117,14 +117,14 @@ program status 需要 Claude Code 2.1.295 或 Pi 1.1.0 及更新版本。Claude 
 
 ## 跳过权限提示
 
-不少 Agent 都带一个让它不再每次调用工具前都问的标志。只要有，Termio 就把它接到一个开关上，
-而不是让你去记它怎么拼：在**设置 ▸ Agent** 里为某个 Agent 打开，Termio 就会在启动时追加
+不少 Agent 都带一个让它不再每次调用工具前都问的标志。只要有，Fyolo 就把它接到一个开关上，
+而不是让你去记它怎么拼：在**设置 ▸ Agent** 里为某个 Agent 打开，Fyolo 就会在启动时追加
 那个 Agent 自己的标志。
 
 这是关于这个 Agent 的一个长期决定，所以和它的命令路径不同，它**不是**按设备的——这个标志
 会跟着这个 Agent 的每一次启动，在每一台机器上。打开开关之前先看清那个标志：它们是厂商自己
 的逃生口，有些交出去的东西不止是提示。Codex 的是
-`--dangerously-bypass-approvals-and-sandbox`，在放弃审批的同时也放弃了它的沙箱。Termio
+`--dangerously-bypass-approvals-and-sandbox`，在放弃审批的同时也放弃了它的沙箱。Fyolo
 只追加厂商写明的东西；它自己不加任何沙箱。
 
 <Callout type="note">
@@ -144,20 +144,20 @@ program status 需要 Claude Code 2.1.295 或 Pi 1.1.0 及更新版本。Claude 
 ## 让两个 Agent 别动同一批文件
 
 两个 Agent 在同一个检出里一定会撞车：同一个工作树、同一个索引、同一个分支。解法不是协调，
-而是分开——给每条线一个自己的 Git worktree，各指一个 Agent 过去。Termio 直接从 Git 读
+而是分开——给每条线一个自己的 Git worktree，各指一个 Agent 过去。Fyolo 直接从 Git 读
 worktree 并把它们嵌在项目下面，所以这是一次右键，而不是一步配置。参见
 [Git worktree](/zh-CN/docs/worktrees)。
 
 ## 让 Agent 互相驱动
 
-一旦一支队伍变成常态，你接下来想要的就是让一个 Agent 来管这支队伍。`termio sessions` 就是
+一旦一支队伍变成常态，你接下来想要的就是让一个 Agent 来管这支队伍。`fyolo sessions` 就是
 这套 API：一个 Agent 可以列出它的同级、按一个提示词开出新的、回答一个卡住的会话，以及阻塞
 到某一轮结束——全都走一个本地 socket，并限定在它自己的项目里。
 
 ```bash
-termio sessions list
-termio sessions spawn "update the changelog for 0.54" --agent codex
-termio sessions watch
+fyolo sessions list
+fyolo sessions spawn "update the changelog for 0.54" --agent codex
+fyolo sessions watch
 ```
 
 它是可选的，打开它的同时还会安装一个小技能，让你的 Agent 知道这些命令存在。完整的动词参考
@@ -165,12 +165,12 @@ termio sessions watch
 
 <Cards>
   <Card href="/zh-CN/docs/custom-agents" title="自定义 Agent">
-    用一份小小的 JSON 清单教会 Termio 任何命令行工具。
+    用一份小小的 JSON 清单教会 Fyolo 任何命令行工具。
   </Card>
   <Card href="/zh-CN/docs/persistence" title="什么会留下来">
     你关闭、退出或重启时，正在跑的 Agent 会怎么样。
   </Card>
   <Card href="/zh-CN/docs/cli" title="命令行工具">
-    `termio sessions` 编排 API，一个动词一个动词地讲。
+    `fyolo sessions` 编排 API，一个动词一个动词地讲。
   </Card>
 </Cards>

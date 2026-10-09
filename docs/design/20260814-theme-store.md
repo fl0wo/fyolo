@@ -23,10 +23,10 @@ resolve are dropped or substituted.
 
 ## Problem
 
-termio treats "theme" as one flat catalog. Settings ▸ Appearance, the command
+fyolo treats "theme" as one flat catalog. Settings ▸ Appearance, the command
 palette's **Change Theme…**, and the iOS picker all list `GhosttyThemeCatalog`
 (~485 iTerm2-Color-Schemes names) plus whatever the user dropped in
-`~/Library/Application Support/termio/Themes`. A "Popular" group sits on top;
+`~/Library/Application Support/fyolo/Themes`. A "Popular" group sits on top;
 everything else is still one scroll away.
 
 That catalog is a warehouse of ANSI palettes compiled into the
@@ -51,9 +51,9 @@ The Settings window does not; that is not this RFC.
 | Piece | Where | What it does |
 | --- | --- | --- |
 | `GhosttyThemeCatalog` | `GhosttyTheme` product in libghostty-swift | ~485 compiled `GhosttyThemeDefinition`s. Warehouse only |
-| `ThemeLibrary` | `Sources/termio/Theme/ThemeLibrary.swift` | Resolves user files first, then the catalog. Parses Ghostty `key = value` text. Partitions popular / all-dark / all-light |
-| `ChromeTheme` | `Sources/termio/Theme/ChromeTheme.swift` | Derives tokens from one definition. Already consumed by the main window |
-| Light / dark slots | `AppSettings.lightThemeName` / `darkThemeName` | Independent names. Empty = termio canvas |
+| `ThemeLibrary` | `Sources/fyolo/Theme/ThemeLibrary.swift` | Resolves user files first, then the catalog. Parses Ghostty `key = value` text. Partitions popular / all-dark / all-light |
+| `ChromeTheme` | `Sources/fyolo/Theme/ChromeTheme.swift` | Derives tokens from one definition. Already consumed by the main window |
+| Light / dark slots | `AppSettings.lightThemeName` / `darkThemeName` | Independent names. Empty = fyolo canvas |
 | Mac picker | `ThemePickerField` | Popular + **All Dark/Light Themes** (the 485) + Custom |
 | Palette | `CommandPalette.themeItems` | Popular first, then the rest of the slot's catalog. `beginThemeBrowsing` seeds `highlighted` with `?? 0` |
 | Main window chrome | sidebar, editor, git, issues, files, trace | Follows the selected theme |
@@ -63,7 +63,7 @@ The Settings window does not; that is not this RFC.
 `ThemeLibrary.directory` is already the VS Code / Zed install location.
 The store is that folder plus a browse UI, not a new persistence scheme.
 
-Theme stays a **client** concern. `termiod` never sees a palette.
+Theme stays a **client** concern. `fyolod` never sees a palette.
 
 ## Design invariants
 
@@ -107,14 +107,14 @@ Theme stays a **client** concern. `termiod` never sees a palette.
                            │ (refuse if that name exists)
                            ▼
 ┌─────────────────────────────────────────────────────────┐
-│  Library  ~/Library/Application Support/termio/Themes   │
+│  Library  ~/Library/Application Support/fyolo/Themes   │
 │  + files the user dropped in themselves                 │
 │  + at most two materialized slot files on upgrade       │
 └──────────────────────────┬──────────────────────────────┘
                            │ selected name → file only
                            ▼
 ┌─────────────────────────────────────────────────────────┐
-│  Default  empty slot → termio canvas                    │
+│  Default  empty slot → fyolo canvas                    │
 │  (no file; not Alabaster / Afterglow as named themes)   │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -349,9 +349,9 @@ resolved from `GhosttyThemeCatalog` — resolve-only, no files written.
 
 - A marketplace, an account, or a paid theme.
 - A remote fetch, now or later in this RFC.
-- 41 original termio-named palettes.
+- 41 original fyolo-named palettes.
 - Settings-window chrome (cut).
-- Pushing theme through `termiod` or the companion wire.
+- Pushing theme through `fyolod` or the companion wire.
 - Replacing the native sidebar material.
 - A silent catalog fallback that leaves a selected name off the picker
   list (that is how `?? 0` overwrites the theme).

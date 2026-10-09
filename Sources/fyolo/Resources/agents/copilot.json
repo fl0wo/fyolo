@@ -1,0 +1,27 @@
+{
+  "id": "copilot",
+  "order": 65,
+  "name": "Copilot",
+  "wire": "copilot",
+  "command": "copilot",
+  "permissionBypassFlag": "--allow-all-tools",
+  "icon": { "asset": "copilot-favicon" },
+  "install": "https://docs.github.com/en/copilot/how-tos/copilot-cli/set-up-copilot-cli/install-copilot-cli",
+  "configHome": { "env": "COPILOT_HOME", "path": "~/.copilot" },
+  "skills": { "dir": "~/.copilot/skills" },
+  "hooks": {
+    "type": "json",
+    "file": "~/.copilot/hooks/fyolo.json",
+    "dialect": "copilot",
+    "conversation": "session_id",
+    "tool": "tool_name",
+    "promptTitle": "prompt",
+    "events": [
+      { "on": "SessionStart", "state": "idle" },
+      { "on": "UserPromptSubmit", "state": "working" },
+      { "on": "PreToolUse", "state": "working" },
+      { "on": "PostToolUse", "state": "working" },
+      { "on": "Stop", "state": "done" }
+    ]
+  }
+}

@@ -1,11 +1,11 @@
 ---
 name: app-screenshot-debug
-description: "Drive the running termio app via AppleScript / System Events to reach a UI state (focus the window, click a sidebar project, a terminal pane, a control), capture a pixel-accurate screenshot of just that window, and read it back for visual analysis — for diagnosing layout / spacing / alignment / 'this looks ugly' issues that can't be judged from code alone. Invoke when the user says 'screenshot the app', 'take a screenshot', 'show me what it looks like', 'what does X look like', 'debug this visually', 'verify the UI change', '截图看看', '看看长什么样', '帮我截个图分析'. Pairs with `macos-rebuild-dev` — rebuild first if code changed, then capture."
+description: "Drive the running fyolo app via AppleScript / System Events to reach a UI state (focus the window, click a sidebar project, a terminal pane, a control), capture a pixel-accurate screenshot of just that window, and read it back for visual analysis — for diagnosing layout / spacing / alignment / 'this looks ugly' issues that can't be judged from code alone. Invoke when the user says 'screenshot the app', 'take a screenshot', 'show me what it looks like', 'what does X look like', 'debug this visually', 'verify the UI change', '截图看看', '看看长什么样', '帮我截个图分析'. Pairs with `macos-rebuild-dev` — rebuild first if code changed, then capture."
 ---
 
 # Screenshot-driven UI debugging (AppleScript + screencapture)
 
-The loop for *seeing* a termio UI change instead of guessing from code:
+The loop for *seeing* a fyolo UI change instead of guessing from code:
 
 ```
 (rebuild if code changed)  →  drive app into the target state  →  capture the window  →  Read the PNG  →  judge / iterate
@@ -18,20 +18,20 @@ from source. Get a real screenshot, Read it, then decide.
 
 - The app must be **running** and built. If you just changed code, run the
   `macos-rebuild-dev` skill first. The process name for System Events is
-  `termio` and the main window's title is `termio`.
+  `fyolo` and the main window's title is `fyolo`.
 - These calls need macOS **Accessibility** + **Screen Recording** permission for
   the terminal / Claude Code host. If `System Events` errors with `-25211` or the
   capture is black, that permission is missing — tell the user to grant it in
   System Settings → Privacy & Security.
-- termio is a single-window app (sidebar + terminal panes); there is **no Settings
+- fyolo is a single-window app (sidebar + terminal panes); there is **no Settings
   window**. Everything you need is in `window 1`.
 
 ## The two helper scripts (in `scripts/`)
 
-Run them with bash; they take the app name from `$TERMIO_APP_NAME` (default
-`termio`).
+Run them with bash; they take the app name from `$FYOLO_APP_NAME` (default
+`fyolo`).
 
-1. **`capture-window.sh [out.png]`** — screenshot *just* the frontmost termio
+1. **`capture-window.sh [out.png]`** — screenshot *just* the frontmost fyolo
    window (`-o` no shadow, `-x` silent), reading its live bounds first. Prints the
    window origin + size. Captures the region 1:1 in points, so **a point you read
    off the resulting image is window-relative**: image (dx,dy) == screen
@@ -47,7 +47,7 @@ Run them with bash; they take the app name from `$TERMIO_APP_NAME` (default
 ```bash
 SK=skills/app-screenshot-debug/scripts
 
-osascript -e 'tell application "System Events" to tell process "termio" to set frontmost to true'
+osascript -e 'tell application "System Events" to tell process "fyolo" to set frontmost to true'
 bash $SK/capture-window.sh /tmp/shot.png
 # → Read /tmp/shot.png with the Read tool, find the control you want at (dx,dy)
 bash $SK/click-in-window.sh 120 180   # e.g. click a sidebar project row
@@ -59,8 +59,8 @@ honest before/after.
 
 ## Driving the UI — patterns that actually work
 
-- **Focus the window:** `tell application "System Events" to tell process "termio" to set frontmost to true`
-  (or `tell application "termio" to activate`).
+- **Focus the window:** `tell application "System Events" to tell process "fyolo" to set frontmost to true`
+  (or `tell application "fyolo" to activate`).
 - **Click a control:** prefer `click-in-window.sh` with coords read off the
   screenshot. `click at {x,y}` (global points) conveniently **returns the AX
   element path it hit** — use that to confirm you hit the right thing.

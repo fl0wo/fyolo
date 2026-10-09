@@ -1,6 +1,6 @@
 ---
 name: review-copy
-description: Review and fix user-facing copy against termio's voice guide (VOICE.md), scoring each pass and iterating until it holds. Covers UI strings, landing site, docs, release notes, and PR or issue text. Use when the user says 'review this copy', 'does this sound like us', 'check the wording', 'audit the settings text', 'fix this copy', '这段文案看一下', '读起来像不像我们写的', '改改措辞'.
+description: Review and fix user-facing copy against fyolo's voice guide (VOICE.md), scoring each pass and iterating until it holds. Covers UI strings, landing site, docs, release notes, and PR or issue text. Use when the user says 'review this copy', 'does this sound like us', 'check the wording', 'audit the settings text', 'fix this copy', '这段文案看一下', '读起来像不像我们写的', '改改措辞'.
 ---
 
 # Review copy
@@ -20,7 +20,7 @@ loop that applies it. If the two ever disagree, `VOICE.md` wins.
 **Never calibrate against neighbouring strings in this repo.** Most of them were
 written with AI assistance, so "it matches the file around it" is evidence of
 nothing. For UI copy, the reference is the macOS System Settings pane that does
-the same job — read Apple's wording, then write termio's.
+the same job — read Apple's wording, then write fyolo's.
 
 ## The loop
 
@@ -96,16 +96,16 @@ because the result reads fine.
 4. Honest: says what the control won't do or what it costs
 5. Empty states and errors name the next action
 6. Rhythm: do the sentences vary in length, or all run the same?
-7. Fixed vocabulary (Group with / Ungroup / Close Session, lowercase `termio`)
+7. Fixed vocabulary (Group with / Ungroup / Close Session, lowercase `fyolo`)
 8. Sentence case for sentences, Title Case for feature names; curly
    apostrophes; `Couldn't` over `Could not`
 9. Remaining AI tells (hollow importance, rule of three, promotional
    adjectives, negation parallelism, emoji), no AI attribution
-10. Nothing implying termio is paid
+10. Nothing implying fyolo is paid
 
 **ACCURACY** — is it true?
 
-This is the dimension that matters most for termio and the one a style pass
+This is the dimension that matters most for fyolo and the one a style pass
 skips. A subtext that describes behavior is a claim about the code.
 
 - Read the code behind the string. Does the control do what the string says?
@@ -113,7 +113,7 @@ skips. A subtext that describes behavior is a claim about the code.
 - Is a capability described as shipped actually shipped, and on the release
   channel rather than only on dev?
 - Do landing-site claims match `Sources/`? (Recurring failure — see the
-  `termio-capabilities` history: copy outran the code twice.)
+  `fyolo-capabilities` history: copy outran the code twice.)
 
 For a wide sweep (a whole settings tab, the landing site), score VOICE and
 ACCURACY in separate passes rather than one — a single pass reading for both
@@ -165,8 +165,8 @@ that reads well in source can still wrap to three lines in the pane.
 
 ## Notes
 
-- Swift UI strings live mostly in `Sources/termio/Settings/`,
-  `Sources/termio/Welcome/`, and each feature's views. Menu labels are in the
+- Swift UI strings live mostly in `Sources/fyolo/Settings/`,
+  `Sources/fyolo/Welcome/`, and each feature's views. Menu labels are in the
   feature that owns them plus `App/MenuBarController.swift`.
 - Landing copy is in `web/landing/src/`; the download URL and product strings
   are centralized in `src/lib/site.ts`.

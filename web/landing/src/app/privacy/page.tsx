@@ -7,14 +7,14 @@ import { Reveal } from "@/components/reveal";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "Termio is local-first by design: no accounts, no analytics, no telemetry. This policy explains the little that ever touches the network — and why we can't see any of it.",
+    "Fyolo is local-first by design: no accounts, no analytics, no telemetry. This policy explains the little that ever touches the network — and why we can't see any of it.",
   alternates: {
     canonical: "/privacy",
   },
   openGraph: {
-    title: "Termio privacy policy",
+    title: "Fyolo privacy policy",
     description:
-      "Termio is local-first by design: no accounts, no analytics, no telemetry.",
+      "Fyolo is local-first by design: no accounts, no analytics, no telemetry.",
     url: "/privacy",
   },
 };
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
             <article className="prose-legal mx-auto w-full max-w-[640px]">
               <h2>Overview</h2>
               <p>
-                Termio is local-first by design. There is no account, no
+                Fyolo is local-first by design. There is no account, no
                 sign-in, no analytics SDK and no telemetry. Your terminals, your
                 code and your agent conversations run and stay on your own Mac —
                 they never pass through servers of ours, because there are none
@@ -57,20 +57,20 @@ export default function PrivacyPage() {
                 <li>Crash reports or device fingerprints</li>
               </ul>
 
-              <h2>What Termio stores</h2>
+              <h2>What Fyolo stores</h2>
               <p>
                 Settings and session metadata are stored locally on your Mac,
                 in your user library. They stay on your device and are removed
                 when you delete the app and its data.
               </p>
 
-              <h2>When Termio touches the network</h2>
+              <h2>When Fyolo touches the network</h2>
               <p>
                 The Mac app makes exactly two kinds of connections of its own:
               </p>
               <ul>
                 <li>
-                  <strong>Auto-updates.</strong> Termio periodically checks our
+                  <strong>Auto-updates.</strong> Fyolo periodically checks our
                   download server for a newer version (powered by Sparkle). The
                   check carries no account or device identifier — like any
                   HTTPS request, the server sees an IP address and the app
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
                 </li>
                 <li>
                   <strong>Your own usage dashboards.</strong> If you open the
-                  Usage view, Termio reads the credentials your agent CLIs
+                  Usage view, Fyolo reads the credentials your agent CLIs
                   already keep on your Mac and queries the provider&apos;s own
                   usage endpoint directly from your machine. Those credentials
                   go only where they already go — to their own provider — and
@@ -86,15 +86,15 @@ export default function PrivacyPage() {
                 </li>
               </ul>
               <p>
-                The coding agents you run inside Termio (Claude Code, Codex and
+                The coding agents you run inside Fyolo (Claude Code, Codex and
                 friends) talk to their own providers under your own accounts
-                and their own privacy policies. Termio does not proxy,
+                and their own privacy policies. Fyolo does not proxy,
                 intercept or store that traffic.
               </p>
 
               <h2>The iOS app</h2>
               <p>
-                Termio for iPhone connects to exactly one place: the Termio app
+                Fyolo for iPhone connects to exactly one place: the Fyolo app
                 on your own Mac, over your local network or a tunnel you
                 configure. There is no relay service in between. The camera is
                 used only to scan the pairing QR code shown on your Mac;
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
 
               <h2>Website &amp; cookies</h2>
               <p>
-                termio.sh uses no analytics, no tracking pixels and sets no
+                fyolo.sh uses no analytics, no tracking pixels and sets no
                 cookies. That is also why you don&apos;t see a cookie banner.
                 Our hosting provider keeps standard, short-lived server logs
                 (IP address, user agent) to operate the service, as any web
@@ -118,7 +118,7 @@ export default function PrivacyPage() {
               <h2>Your rights</h2>
               <p>
                 Regulations like the GDPR and CCPA give you rights over data a
-                company holds about you. Termio&apos;s answer is structural:
+                company holds about you. Fyolo&apos;s answer is structural:
                 since we collect nothing, there is nothing to request, export
                 or delete on our side. Everything lives on your devices, under
                 your control.
@@ -134,11 +134,11 @@ export default function PrivacyPage() {
               <p>
                 Questions or concerns? Open an issue at{" "}
                 <a
-                  href="https://github.com/termio-sh/termio/issues"
+                  href="https://github.com/fl0wo/fyolo/issues"
                   target="_blank"
                   rel="noreferrer"
                 >
-                  github.com/termio-sh/termio
+                  github.com/fl0wo/fyolo
                 </a>
                 .
               </p>

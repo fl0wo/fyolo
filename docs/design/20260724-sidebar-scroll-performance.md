@@ -21,8 +21,8 @@ Not the `List` control. `List(.sidebar)` is backed by `NSTableView` and already
 virtualizes rows; painting a hundred rows is not the problem.
 
 The problem is **observation granularity**. `SidebarView`, `SessionRow`, and
-`ProjectHeader` all hold `@EnvironmentObject var store: TermioStore`, and
-`TermioStore` is an `ObservableObject`. `ObservableObject` invalidation is
+`ProjectHeader` all hold `@EnvironmentObject var store: FyoloStore`, and
+`FyoloStore` is an `ObservableObject`. `ObservableObject` invalidation is
 *object-level*: any `@Published` change fires one `objectWillChange`, which
 re-runs **every** view that observes the store — the whole sidebar tree.
 
@@ -67,7 +67,7 @@ and nothing else: not the container, not sibling rows.
 The public accessors (`status(for:)`, `statusDescription(for:)`,
 `displayTitle(for:)`, plus a new `workingDirectory(for:)`) keep their signatures
 and are reimplemented over `runtimes`, so the non-SwiftUI readers (companion
-server, `termio sessions` CLI, menu-bar tray) are unaffected. Writes go through
+server, `fyolo sessions` CLI, menu-bar tray) are unaffected. Writes go through
 no-op-guarded setters (`setStatus`, `setCurrentTool`, `setLiveTitle`,
 `setWorkingDirectory`) so a redundant same-value write neither re-renders a row
 nor pings observers.

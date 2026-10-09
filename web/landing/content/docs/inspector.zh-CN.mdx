@@ -7,11 +7,11 @@ x-i18n:
   generated_at: 2026-08-30
 ---
 
-检查器是 Termio 用来处理终端*周边*一切的侧面板：文件、更改和搜索。它就在会话旁边，
+检查器是 Fyolo 用来处理终端*周边*一切的侧面板：文件、更改和搜索。它就在会话旁边，
 让你不必切换应用也能看代码。
 
 每个面板读的都是当前选中会话所在那台机器上的项目。指向一个跑在 VPS 上的会话，文件树、
-搜索和差异就都是那台机器的——通过 Termio server 读取，而不是把东西拷回本地。
+搜索和差异就都是那台机器的——通过 Fyolo server 读取，而不是把东西拷回本地。
 
 ## 文件
 
@@ -30,14 +30,14 @@ HTML 则用「快速查看」预览。
 
 <DocsImage
   src="/screenshots/docs/06-files-editor.png"
-  alt="Termio 文件检查器选中一个 Swift 文件，并在终端旁的语法高亮编辑器中打开"
+  alt="Fyolo 文件检查器选中一个 Swift 文件，并在终端旁的语法高亮编辑器中打开"
   width={2424}
   height={1664}
 />
 
 <DocsImage
   src="/screenshots/docs/23-quick-look.png"
-  alt="Termio 文件检查器选中一个文件，并在只读的「快速查看」中打开其图片预览"
+  alt="Fyolo 文件检查器选中一个文件，并在只读的「快速查看」中打开其图片预览"
   width={2424}
   height={1664}
 />
@@ -53,14 +53,14 @@ git 面板有三个只读标签：
 
 <DocsImage
   src="/screenshots/docs/07-changes-diff.png"
-  alt="Termio「更改」标签选中 build-app.sh，并在终端旁显示红绿统一差异"
+  alt="Fyolo「更改」标签选中 build-app.sh，并在终端旁显示红绿统一差异"
   width={2424}
   height={1664}
 />
 
 <DocsImage
   src="/screenshots/docs/08-commit-history.png"
-  alt="Termio「历史」标签同时显示一个提交、其中一个文件，以及该文件在这次提交中的差异"
+  alt="Fyolo「历史」标签同时显示一个提交、其中一个文件，以及该文件在这次提交中的差异"
   width={2424}
   height={1664}
 />
@@ -78,7 +78,7 @@ git 面板有三个只读标签：
 
 <DocsImage
   src="/screenshots/docs/09-project-search.png"
-  alt="Termio 搜索检查器显示 DiffGapText 查询、按文件分组的结果和高亮的匹配文字"
+  alt="Fyolo 搜索检查器显示 DiffGapText 查询、按文件分组的结果和高亮的匹配文字"
   width={2424}
   height={1664}
 />
@@ -88,12 +88,12 @@ git 面板有三个只读标签：
 
 ## 从终端里打开文件
 
-在终端输出里按住 Cmd 点击文件路径——即使在 Agent 的 TUI 里也行——Termio 会在编辑器里打开它。
+在终端输出里按住 Cmd 点击文件路径——即使在 Agent 的 TUI 里也行——Fyolo 会在编辑器里打开它。
 Cmd 点击网址会用浏览器打开，`file://` 链接则打开一个只读预览浮层。
 
 <DocsImage
   src="/screenshots/docs/22-open-terminal-path.png"
-  alt="Termio 终端中的相对 Swift 文件路径在旁边的内置只读编辑器中打开"
+  alt="Fyolo 终端中的相对 Swift 文件路径在旁边的内置只读编辑器中打开"
   width={2424}
   height={1664}
 />

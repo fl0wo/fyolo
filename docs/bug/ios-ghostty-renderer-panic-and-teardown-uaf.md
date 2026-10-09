@@ -96,7 +96,7 @@ on the embedded path — ghostty ignores it and drops its own sublayer on top.
 Which means the wrapper's `removeFromSuperlayer` cleanup is **not a hack** — given
 ghostty's design it is the *correct* fix. The only real improvement is making that
 cleanup cover **every** teardown path. (The wrapper also nils the sublayer's
-`delegate`, but that turns out not to be load-bearing — see "Should Termio follow
+`delegate`, but that turns out not to be load-bearing — see "Should Fyolo follow
 ghostty's iOS practices?" below for the actual crash mechanism.)
 
 ## What actually shipped (Bug B — the crash)
@@ -174,7 +174,7 @@ fi
 - The true prevention is upstream (Ghostty): the iOS kqueue backend shouldn't
   error under wakeup flood in the first place.
 
-## Should Termio follow ghostty's iOS practices?
+## Should Fyolo follow ghostty's iOS practices?
 
 We read the official ghostty iOS integration (commit `0535770`, 2026-07-06) to
 decide. The short answer: **adopt the lifecycle *discipline*, not the
@@ -196,14 +196,14 @@ or impossible on our path.
 - **Why ghostty never hits our crash — and why we must.** The official view is
   strictly 1:1 with its surface and thrown away together, so it frees the surface
   synchronously in the view's own `deinit` and lets the whole view+layer tree die
-  at once — no manual sublayer teardown anywhere. Termio deliberately does the
+  at once — no manual sublayer teardown anywhere. Fyolo deliberately does the
   opposite: it **keeps surfaces alive and reloads them in place** so a phone
   session survives reconnects/evictions. That capability is the *reason* we
   inherit the orphaned-layer teardown that ghostty gets for free. So the crash
   isn't "we diverged from ghostty" — it's the tax for a feature ghostty doesn't
-  have, and the fix is necessarily termio-specific (the teardown hook above).
+  have, and the fix is necessarily fyolo-specific (the teardown hook above).
 - **The official integration is exec/PTY-only** (no host-managed backend in the
-  Swift layer). Termio *must* keep the wrapper. Switching is off the table.
+  Swift layer). Fyolo *must* keep the wrapper. Switching is off the table.
 - **Adoptable practices we already meet or now meet:** free the surface exactly
   once, on the main actor (`TerminalSurface.free` guards `hasBeenFreed`, is
   `@MainActor`); hand libghostty an unretained view pointer and free the surface
@@ -211,11 +211,11 @@ or impossible on our path.
   the render thread; our only display links are for scroll coalescing); create
   surfaces only at non-zero size (`rebuildIfReady` guards `hasValidViewSize`).
 - **Intrinsic-to-official, not cherry-pickable:** the "free in deinit and let CA
-  ordering protect you" trick works only with 1:1 throwaway views. Because Termio
+  ordering protect you" trick works only with 1:1 throwaway views. Because Fyolo
   moves/reuses surfaces, it must sequence teardown explicitly — which is exactly
   what the `onSurfaceLayersOrphaned` hook now enforces on every path.
 
-**Verdict:** Termio's design is already converging on ghostty's actual principle
+**Verdict:** Fyolo's design is already converging on ghostty's actual principle
 (deterministic single-owner surface lifetime); this change closes the last gap.
 No re-architecture toward the official integration is warranted or possible.
 

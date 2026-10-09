@@ -6,7 +6,7 @@ created: 2026-08-15
 updated: 2026-08-31
 related:
   - 20260814-remote-to-device.md
-  - 20260805-termiod-device-architecture.md
+  - 20260805-fyolod-device-architecture.md
 ---
 
 # Adversarial review — "Retire remote"
@@ -17,7 +17,7 @@ decision is wrong.
 
 **Verdict up front.** The thesis is right and the RFC does not deliver it. It
 retires the *word* "remote" while leaving the *fork* — which lives in
-`sshHost` vs `termiodRemoteHost`, not in menu titles — intact and, after the
+`sshHost` vs `fyolodRemoteHost`, not in menu titles — intact and, after the
 rename, harder to name. Four shipped surfaces that this work must absorb are
 missing from the document entirely: `New SSH Connection`, `New SSH Shell`,
 **Settings ▸ SSH**, and the command palette's `New SSH Connection…`. Two of the
@@ -39,27 +39,27 @@ This is the central claim, so it gets the most space.
 There are two ways to reach a machine today, and they are not "a verb and its
 remote twin" — they are genuinely different products:
 
-| | `Session.sshHost` (`Models.swift:298`) | `Session.termiodRemoteHost` (`Models.swift:311`) |
+| | `Session.sshHost` (`Models.swift:298`) | `Session.fyolodRemoteHost` (`Models.swift:311`) |
 | --- | --- | --- |
-| What runs | `ssh <host>` in a **local** PTY | a session inside the **remote** `termiod` |
+| What runs | `ssh <host>` in a **local** PTY | a session inside the **remote** `fyolod` |
 | Survives detach | no | yes |
-| Needs `termiod` on the box | **no** | yes |
+| Needs `fyolod` on the box | **no** | yes |
 | Verb | `New SSH Connection` / `New SSH Shell` | `New Remote Terminal` |
 
 The shipped code states the distinction as load-bearing, not vestigial —
-`TermioStore+ProjectActions.swift:434-437`:
+`FyoloStore+ProjectActions.swift:434-437`:
 
 > the distinction matters inside a host block: an "SSH Shell" dies with the
-> connection, while the numbered rows beside it are durable termiod sessions that
+> connection, while the numbered rows beside it are durable fyolod sessions that
 > survive a detach.
 
 The RFC's data-model table disposes of this in six words: `Session.sshHost` →
 "**removed**; such a session is a device session." That is not a rename. It
-deletes the only path that reaches a box where `termiod` cannot be installed —
+deletes the only path that reaches a box where `fyolod` cannot be installed —
 no write access, an unsupported arch, a jump host, a router, a container, a
 colleague's machine, a box you are touching once. After it, "device" means "a
 machine running our daemon", and every machine that isn't one becomes
-unreachable from termio. The word "remote" disappears; the *capability* fork
+unreachable from fyolo. The word "remote" disappears; the *capability* fork
 becomes a hard wall.
 
 Either outcome is a two-copies regression:
@@ -83,7 +83,7 @@ session really is nothing but an ssh road in a local PTY.
 
 The ownership table's second row — "The list of reachable machines | the user's
 `~/.ssh/config` | **read-only; no Settings entry**" — is false today.
-`Sources/termio/Settings/SSHSettingsTab.swift` is a shipped settings tab
+`Sources/fyolo/Settings/SSHSettingsTab.swift` is a shipped settings tab
 (`SettingsTab.swift:10`, subtitle "Your ~/.ssh/config hosts, one click away")
 that lists every alias, tests reachability per host, opens the raw config in the
 editor, and **appends `Host` blocks via Add Host** (`SSHSettingsTab.swift:279-282`).
@@ -94,12 +94,12 @@ mentions the collision. That is the two-copies problem instantiated *inside the
 Settings window* by the document that exists to delete it. Whatever lands must
 either subsume the SSH tab into Devices or say precisely which machine facts live
 in which tab — and the ownership rule as written cannot decide it, because
-"reachability" is produced by termio's own probe (`SSHSettingsTab.swift:241-247`)
-and therefore qualifies as "termio produced this state itself".
+"reachability" is produced by fyolo's own probe (`SSHSettingsTab.swift:241-247`)
+and therefore qualifies as "fyolo produced this state itself".
 
 ### 1.3 The argument against `Add Device…` is a strawman that shipped code refutes
 
-> it implies a termio-owned roster, which would immediately fork from the
+> it implies a fyolo-owned roster, which would immediately fork from the
 > `~/.ssh/config` it was copied from
 
 `AddSSHHostSheet` already solves this and has for releases: it appends a real
@@ -119,7 +119,7 @@ one in the file it cites.
 
 `Project.kind == .host` containers already exist and already group both session
 kinds under one machine (`hostContainer(for:)`,
-`TermioStore+ProjectActions.swift:398-420`; header menu at `SidebarView.swift:608`).
+`FyoloStore+ProjectActions.swift:398-420`; header menu at `SidebarView.swift:608`).
 The RFC adds (a) an always-visible indicator with a switcher, and (b) a device
 column on the cross-device session list — without retiring (c) the host container
 that is the sidebar's current answer to "which machine is this".
@@ -135,7 +135,7 @@ adds a layer and deletes none.
 The vocabulary table lists `Connect to…` as "— (new)". It is `New SSH Connection`,
 shipped, in the File menu, the `+` pull-down and the command palette, complete
 with the free-form `user@host` entry the RFC asks for
-(`presentSSHConnectPanel`, `TermioStore+ProjectActions.swift:447-469`) and the
+(`presentSSHConnectPanel`, `FyoloStore+ProjectActions.swift:447-469`) and the
 "not in the config yet" escape (`addSSHHost`, `App.swift:926-935`). Presenting it
 as new is how the third connect verb gets added without anyone noticing.
 
@@ -169,7 +169,7 @@ competitor's binary with no label and no way for a reader to check any of it.
 Same repo, same subject, weaker standard.
 
 **Localization.** `New Remote Terminal` appears zero times in
-`Sources/termio/Resources/Localizable.xcstrings` while `New Terminal` and
+`Sources/fyolo/Resources/Localizable.xcstrings` while `New Terminal` and
 `New SSH Connection` are both there, and the sidebar/menu sites pass bare strings
 (`SidebarView.swift:797`, `App.swift:1457`, `SidebarView.swift:610-618`). So
 stage 1 is not "client-only, no persistence change" — it is also the zh-Hans work
@@ -205,8 +205,8 @@ where the inconsistency is visible. You are trading a real, common failure
 switch measured in minutes.
 
 If cross-Mac stability matters to you, it is a *sync* problem, and you already
-have the place for it — `devices.json` is termio-produced state
-(`TermiodDevice.swift:94-110`), so the colour belongs there and travels the same
+have the place for it — `devices.json` is fyolo-produced state
+(`FyolodDevice.swift:94-110`), so the colour belongs there and travels the same
 way any other device fact would. Hashing is not the cheap way to get sync; it is
 a way to get collisions and call them consistency.
 
@@ -232,7 +232,7 @@ answer: indicator + sidebar header only.
 ### Q3 — No device-scoped guardrail: **survives, and the RFC asked the wrong question**
 
 Your argument is right and the shipped rule is stronger than the one you made.
-`closeConfirmationReason` (`TermioStore+ProjectActions.swift:684-692`) confirms on
+`closeConfirmationReason` (`FyoloStore+ProjectActions.swift:684-692`) confirms on
 exactly one condition — a shell with a live foreground job, because that command
 "exists nowhere else" — and explicitly refuses to confirm for agent sessions
 because taxing every close to protect a resumable conversation was not worth it.
@@ -243,21 +243,21 @@ fails that test on both halves.
 
 But the interesting part is that the RFC has the polarity backwards. The
 confirmation reads `ptyProcesses[session.id]` — the **in-process** PTY handle. A
-termiod-backed session has no entry there (it lives in `termiodLinks`), and
+fyolod-backed session has no entry there (it lives in `fyolodLinks`), and
 `hasForegroundJob` exists only on `PTYProcess` (`PTYProcess.swift:923`), with no
-counterpart anywhere in `termiod/src`. So **today a remote session with a build
+counterpart anywhere in `fyolod/src`. So **today a remote session with a build
 running closes silently, and a local one asks.** Non-local sessions have *less*
 protection, not more.
 
 So the real work item is not "how heavy should the extra dialog be" — it is
-*port the existing rule across the wire*: `termiod` needs to report whether a
+*port the existing rule across the wire*: `fyolod` needs to report whether a
 session has a foreground job (a `tcgetpgrp` on the PTY master, one field on the
 `list`/`kill` path), so the one confirmation the product already believes in
 works on every device. That is the same rule everywhere, which is the RFC's whole
 thesis; the RFC's three options are all the local/remote fork wearing a warning
 triangle.
 
-Keep your carve-out for Forget device / uninstall termiod. Those are
+Keep your carve-out for Forget device / uninstall fyolod. Those are
 device-scoped irreversible actions, not command execution, and Apple confirms
 those too.
 
@@ -286,7 +286,7 @@ Two problems with converting *that* item:
 is `Connect to Server` — the noun is what makes it legible. And `Connect` is
 already spent in this product on the transient act: the Settings ▸ SSH row button
 (`SSHSettingsTab.swift:10-12`) and the connect panel's default button
-(`TermioStore+ProjectActions.swift:450`) both mean "open a plain ssh shell now",
+(`FyoloStore+ProjectActions.swift:450`) both mean "open a plain ssh shell now",
 whereas the RFC's `Connect to…` means "install a daemon and open a durable
 session." Same word, opposite weight.
 
@@ -309,20 +309,20 @@ device is gone. But you are being slightly unfair to the codebase — the vocabu
 exists, in the tab the RFC doesn't cite: `reachable / authFailed / unreachable`
 with per-state copy and tint (`SSHSettingsTab.swift:251-275`), and
 `ensureRemoteReady` already produces a specific human-readable cause, including
-ssh's own last stderr line (`TermioStore+Termiod.swift:386-394`). The gap is that
+ssh's own last stderr line (`FyoloStore+Fyolod.swift:386-394`). The gap is that
 none of it reaches the indicator, and that the architecture doc's §8.6 promises a
 **third** state — *degraded* — that has no representation anywhere. Three states
 in the settings tab, four in the architecture, zero in the RFC. Name them once,
 in the RFC, and reuse the shipped ones.
 
-**`TERMIO_TERMIOD` retirement missing from Staging — real, and it is the most
+**`FYOLO_FYOLOD` retirement missing from Staging — real, and it is the most
 dangerous omission in the document.** Confirmed absent; the architecture doc
 claims it (§0, §8.5) and the RFC's four stages never mention it. And it is worse
 than "its own risk profile":
 
 Retiring the flag deletes the in-process `PTYProcess` path. `ptyProcesses` becomes
 permanently empty. `closeConfirmationReason` gates on
-`ptyProcesses[session.id]` (`TermioStore+ProjectActions.swift:690`). Therefore
+`ptyProcesses[session.id]` (`FyoloStore+ProjectActions.swift:690`). Therefore
 **retiring the flag silently deletes the "a command is still running" confirmation
 for every session on every device, including purely local ones**, with no code
 change at the call site and nothing in any staging list that would catch it. It is
@@ -335,22 +335,22 @@ protocol before the flag goes away — not a guardrail *added* for remote device
 but an existing guardrail *rescued* before the fork deletion takes it out.
 
 **Stale PR #177 paragraph — confirmed, worse than stale.** PR #177
-("termiod: durable PTY session host (Rust POC)") merged to `main` at
+("fyolod: durable PTY session host (Rust POC)") merged to `main` at
 2026-08-15T13:07:15Z, commit `66b1722`. Every factual claim in that paragraph is
 now false: it is not a draft, it is not 73 commits ahead, and `main` has both
-`termiod/` and `Sources/termio/Terminal/Termiod/`. Stage 1 is unblocked. Delete
+`fyolod/` and `Sources/fyolo/Terminal/Fyolod/`. Stage 1 is unblocked. Delete
 the paragraph rather than updating it — the reasoning it contains ("renaming now
 enlarges a hard merge") has no successor.
 
 ### A fourth gap: `Connect to…` promises an install that most users cannot run
 
-The RFC's switcher entry says "First use installs `termiod`
+The RFC's switcher entry says "First use installs `fyolod`
 (`ensureRemoteReady` already does this)." What `ensureRemoteReady` actually does
-when the binary is absent is shell out to `termiod remote deploy <host>`, which
+when the binary is absent is shell out to `fyolod remote deploy <host>`, which
 **cross-compiles a musl binary with `cargo` on the user's Mac**
-(`termiod/src/remote.rs:211-280`), and whose failure message tells the user to
+(`fyolod/src/remote.rs:211-280`), and whose failure message tells the user to
 `brew install FiloSottile/musl-cross/musl-cross`
-(`termiod/src/remote.rs:271-275`).
+(`fyolod/src/remote.rs:271-275`).
 
 For a shipped `.app`, that is not an install path — it is a toolchain
 prerequisite that approximately no user of a native Mac terminal has. The
@@ -433,10 +433,10 @@ forgot to list.
 
 ## 8. What I would change before this is implementable
 
-1. **Decide `sshHost`'s fate explicitly** and say which machines termio can still
-   reach without `termiod` (§1.1). This is the RFC's real subject.
+1. **Decide `sshHost`'s fate explicitly** and say which machines fyolo can still
+   reach without `fyolod` (§1.1). This is the RFC's real subject.
 2. **Fold Settings ▸ SSH into the Devices design** or state the split (§1.2).
-3. **Schedule the `TERMIO_TERMIOD` retirement**, with the foreground-job probe as
+3. **Schedule the `FYOLO_FYOLOD` retirement**, with the foreground-job probe as
    its precondition (§4 gap 2). Without it, deleting the fork deletes a shipped
    confirmation on every device.
 4. **Make prebuilt per-arch binaries (architecture §8.8) a stage-1 prerequisite**,

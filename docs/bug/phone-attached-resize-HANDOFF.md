@@ -7,14 +7,14 @@ updated: 2026-09-02
 related:
   - window-drag-resize-artifacts-HANDOFF.md
   - ../design/20260901-pty-size-is-not-the-write-token.md
-  - ../design/20260730-termiod-session-protocol.md
+  - ../design/20260730-fyolod-session-protocol.md
 ---
 
 # HANDOFF — a pane renders at the wrong grid while a phone is attached
 
 > **CLOSED.** The mechanism is measured and the causes are fixed. The reported
 > pane was never on this branch: the dev app was bound to the **release** daemon
-> through a leaked `TERMIOD_SOCK`, and that daemon (v0.48.0, build 1713) has no
+> through a leaked `FYOLOD_SOCK`, and that daemon (v0.48.0, build 1713) has no
 > size policy at all — PTY size *is* the write token there, so the phone dragged
 > the grid and the Mac's resize was refused. §2 below was measured against a
 > daemon nobody was attached to and is **not a finding**. See §8.
@@ -29,7 +29,7 @@ same problem"*.
 Their screenshot of the dev Mac shows a Claude Code session in the
 `/tmp/DEV-MAC-TEST` project whose composer box is drawn narrower than the pane
 that holds it, with the banner and box left-inset rather than filling the width.
-A phone screenshot of a `~/.termio/chats` Claude Code session shows the composer
+A phone screenshot of a `~/.fyolo/chats` Claude Code session shows the composer
 box torn open and `Image in clipboard · ctrl+v to pas…` broken across rows —
 the §3 artifact family from the sibling handoff (content wrapped for width A,
 shown at width B).
@@ -37,16 +37,16 @@ shown at width B).
 ## 1. Environment when the evidence below was taken
 
 - Mac app: dev channel, built from this branch. Bundle
-  `sh.termio.app.dev`, state `~/.termio-dev`, companion port 8788, daemon socket
-  `$TMPDIR/termiod-501-dev`.
-- iPhone: `TermioMobile` Debug, installed 2026-09-02, reaching the Mac through
+  `sh.fyolo.app.dev`, state `~/.fyolo-dev`, companion port 8788, daemon socket
+  `$TMPDIR/fyolod-501-dev`.
+- iPhone: `FyoloMobile` Debug, installed 2026-09-02, reaching the Mac through
   `tunelo port 8788`. **6 established sockets** to 8788 at the time of measuring.
-- A separate release `termio.app` (build **0.48.0+1713**) is running on the same
+- A separate release `fyolo.app` (build **0.48.0+1713**) is running on the same
   machine on port 8787. It predates the size policy (build 1826) and the
   focus-report fix (build 1796) by ~120 commits, so **nothing observed against
   the release app is evidence about this branch.** The first two rounds of this
   investigation were wasted on exactly that confusion — both Macs are the same
-  hostname and both have a `~/.termio/chats` Claude Code session.
+  hostname and both have a `~/.fyolo/chats` Claude Code session.
 
 ## 2. ~~Measured, and unexplained: attachments report nobody attached~~ — NOT A FINDING
 
@@ -56,14 +56,14 @@ of them **and** a phone is connected:
 ```
 9b7f8681  45x68  clients=0 attached=0 writer=None  '✳ Claude Code'   ~/GitHub/hispeaking
 130736ea  45x21  clients=0 attached=0 writer=None                    ~/GitHub/hispeaking
-994bb289  45x46  clients=0 attached=0 writer=None  '✳ Claude Code'   ~/Documents/GitHub/termio
-95518409  45x65  clients=0 attached=0 writer=None  '✳ Claude Code'   ~/.termio/chats
-1966684a  45x86  clients=0 attached=0 writer=None  '✳ Claude Code'   ~/.termio/chats
+994bb289  45x46  clients=0 attached=0 writer=None  '✳ Claude Code'   ~/Documents/GitHub/fyolo
+95518409  45x65  clients=0 attached=0 writer=None  '✳ Claude Code'   ~/.fyolo/chats
+1966684a  45x86  clients=0 attached=0 writer=None  '✳ Claude Code'   ~/.fyolo/chats
 e1d0c2c3  24x80  clients=0 attached=0 writer=None                    /tmp/DEV-MAC-TEST
 ```
 
-**Both of these are artifacts of reading the wrong daemon.** `TERMIO_CHANNEL=dev
-termiod list` reached the `-dev` daemon, which no app was attached to — hence
+**Both of these are artifacts of reading the wrong daemon.** `FYOLO_CHANNEL=dev
+fyolod list` reached the `-dev` daemon, which no app was attached to — hence
 `clients=0` everywhere, and hence the screenshot's session missing from the
 roster: it was on the *release* daemon, where the app actually was. Kept only so
 nobody re-derives it. The original text follows:
@@ -81,20 +81,20 @@ nobody re-derives it. The original text follows:
    the daemon does not have, or the CLI and the app are talking to different
    daemons.
 
-**Confounder that must be ruled out first.** Three `termiod serve` processes from
+**Confounder that must be ruled out first.** Three `fyolod serve` processes from
 the dev bundle are alive, started 17:36, 20:00 and 21:03 on 2026-09-01 — the last
-matching a `TERMIO_CHANNEL=dragprobe` app launched during the sibling
+matching a `FYOLO_CHANNEL=dragprobe` app launched during the sibling
 investigation. `lsof` did not resolve which socket each holds. If the CLI used
-for the table above (`TERMIO_CHANNEL=dev termiod list`) reached a different
+for the table above (`FYOLO_CHANNEL=dev fyolod list`) reached a different
 daemon than the app, **the whole table is about the wrong process** and §2 is not
 a finding at all. Settle this before anything else:
 
 ```sh
 # which pid is actually bound to the dev channel's socket
-lsof -U | grep termiod-501-dev
+lsof -U | grep fyolod-501-dev
 # and what each dev-bundle daemon was launched with
-for p in $(pgrep -f "termio-dev.app/Contents/Resources/termiod"); do
-  ps eww -p $p | tr ' ' '\n' | grep -E '^TERMIOD_SOCK=|^TERMIO_CHANNEL='
+for p in $(pgrep -f "fyolo-dev.app/Contents/Resources/fyolod"); do
+  ps eww -p $p | tr ' ' '\n' | grep -E '^FYOLOD_SOCK=|^FYOLO_CHANNEL='
 done
 ```
 
@@ -112,7 +112,7 @@ draws the wrong conclusion.
 ## 4. How to reproduce
 
 1. Build and run the dev app from this branch
-   (`TERMIO_CHANNEL=dev ./scripts/build-app.sh`, then `open ./termio-dev.app`).
+   (`FYOLO_CHANNEL=dev ./scripts/build-app.sh`, then `open ./fyolo-dev.app`).
    Make sure **no other dev-channel app is running** — they share a bundle id, a
    state dir and a daemon, and System Events cannot tell them apart.
 2. Turn the companion tunnel on in Settings ▸ Companion (dev ships with
@@ -126,11 +126,11 @@ Evidence to collect while it happens:
 
 ```sh
 # the client's own trace: declare → session-is → surface-at, per session
-log stream --predicate 'subsystem == "sh.termio.app.dev"' --debug --style compact \
+log stream --predicate 'subsystem == "sh.fyolo.app.dev"' --debug --style compact \
   | grep resize-trace
 
 # what the daemon believes, and who it thinks is attached
-env -u TERMIOD_SOCK TERMIO_CHANNEL=dev termiod list --json
+env -u FYOLOD_SOCK FYOLO_CHANNEL=dev fyolod list --json
 
 # what the kernel holds — the child reflows from this, not from us
 python3 -c 'import os,fcntl,termios,struct
@@ -138,9 +138,9 @@ fd=os.open("/dev/ttysNNN", os.O_RDONLY|os.O_NOCTTY|os.O_NONBLOCK)
 print(struct.unpack("HHHH", fcntl.ioctl(fd, termios.TIOCGWINSZ, b"\0"*8))[:2])'
 ```
 
-**`TERMIOD_SOCK` leaks.** Any shell inside Termio carries it, it overrides
-`TERMIO_CHANNEL`, and `open` passes it to the app — so a dev build launched from
-a Termio terminal attaches to the *release* daemon. Always `env -u TERMIOD_SOCK`.
+**`FYOLOD_SOCK` leaks.** Any shell inside Fyolo carries it, it overrides
+`FYOLO_CHANNEL`, and `open` passes it to the app — so a dev build launched from
+a Fyolo terminal attaches to the *release* daemon. Always `env -u FYOLOD_SOCK`.
 
 ## 5. Already fixed — do not redo any of this
 
@@ -150,7 +150,7 @@ this branch. Four things in particular are settled, with tests that fail without
 them:
 
 - **The barrier's keyframe is held** until libghostty reports the grid it
-  describes (`TerminalKeyframeHold` in `TermiodClient.swift`). The daemon sends
+  describes (`TerminalKeyframeHold` in `FyolodClient.swift`). The daemon sends
   `S` before `E resized` by construction, so no client-side ordering wins that
   race — **do not reintroduce "let the surface lead its declaration"**, it was
   tried and it cannot work.
@@ -165,7 +165,7 @@ them:
 
 Also unfixed and known, so don't be surprised by it:
 
-- **iOS still paints keyframes immediately** (`ios/Sources/TermiodSession.swift`
+- **iOS still paints keyframes immediately** (`ios/Sources/FyolodSession.swift`
   `repaint`). The hold was never ported to the phone. It gets the mangled frame
   and a repair one round trip later — which at least now arrives.
 - **The 45↔46 row oscillation** (§8.4 of the sibling handoff):
@@ -186,7 +186,7 @@ Also unfixed and known, so don't be surprised by it:
    varied, and every `grid=` followed `pane=` exactly.
 4. ~~**The phone's own viewport**~~ — already correct, and
    `MobileViewportFitGeometry.swift` is **cmux's** file, not ours; it was cited
-   from cmux in the sibling §7 and does not exist in this repo. termio's phone
+   from cmux in the sibling §7 and does not exist in this repo. fyolo's phone
    declares `hostGrid`, measured from `terminalHost.bounds`, never read back off
    its surface — `ios/Sources/TerminalViewController.swift:326` names the §6.1
    trap in its own comment.

@@ -1,5 +1,5 @@
 import SwiftUI
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// One project's page: its sessions as a plain list, with the ＋ (new session
@@ -173,7 +173,7 @@ final class ProjectDetailViewController: UIViewController {
         ])
     }
 
-    /// "~/Documents/GitHub/termio" — home-relative, like the Mac's chrome.
+    /// "~/Documents/GitHub/fyolo" — home-relative, like the Mac's chrome.
     private var abbreviatedPath: String {
         let path = project.path
         guard !path.isEmpty else { return "" }

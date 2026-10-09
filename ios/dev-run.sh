@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Build TermioMobile, install it on the first connected iPhone, and launch it
+# Build FyoloMobile, install it on the first connected iPhone, and launch it
 # pointed at this Mac's companion server. Usage: ./dev-run.sh [roster-url]
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -21,13 +21,13 @@ echo "Device: ${DEVICE}"
 MAC_IP=$(ipconfig getifaddr en0 || ipconfig getifaddr en1)
 # The companion server refuses unauthenticated sockets; the pairing token
 # lives in the Mac app's defaults (deliberately, so this script can read it).
-TOKEN=$(defaults read sh.termio.app companion.pairingToken 2>/dev/null || true)
+TOKEN=$(defaults read sh.fyolo.app companion.pairingToken 2>/dev/null || true)
 ROSTER_URL="${1:-ws://${MAC_IP}:8787${TOKEN:+/?t=${TOKEN}}}"
 echo "Roster URL: ${ROSTER_URL}"
 
 xcodebuild \
-    -project TermioMobile.xcodeproj \
-    -scheme TermioMobile \
+    -project FyoloMobile.xcodeproj \
+    -scheme FyoloMobile \
     -configuration Debug \
     -destination "id=${DEVICE}" \
     -derivedDataPath build \
@@ -35,7 +35,7 @@ xcodebuild \
     -allowProvisioningDeviceRegistration \
     build
 
-APP="build/Build/Products/Debug-iphoneos/TermioMobile.app"
+APP="build/Build/Products/Debug-iphoneos/FyoloMobile.app"
 xcrun devicectl device install app --device "${DEVICE}" "${APP}"
 xcrun devicectl device process launch --terminate-existing --device "${DEVICE}" \
-    sh.termio.mobile -- -roster-url "${ROSTER_URL}"
+    sh.fyolo.mobile -- -roster-url "${ROSTER_URL}"

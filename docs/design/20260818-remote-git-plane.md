@@ -8,8 +8,8 @@ related:
   - 20260818-one-workspace-source.md
   - 20260818-one-workspace-source.review-codex.md
   - 20260803-agent-permission-questions.md
-  - 20260805-termiod-device-architecture.md
-  - 20260730-termiod-session-protocol.md
+  - 20260805-fyolod-device-architecture.md
+  - 20260730-fyolod-session-protocol.md
 ---
 
 # Remote git — the pane's verbs run on the device
@@ -17,18 +17,18 @@ related:
 > Give the Changes pane a full git plane on another machine, following Zed's
 > remote-server design: git runs on the box with that box's credentials and
 > config, and the prompts it raises are forwarded to the client rather than
-> answered by termio.
+> answered by fyolo.
 
 ## 1. Decision
 
-The git plane stops being read-only. `termiod/src/git.rs:5-7` currently states
+The git plane stops being read-only. `fyolod/src/git.rs:5-7` currently states
 the opposite — "Read-only by design: no stage/commit/push verbs, the user
 commits in the terminal, which is the same app" — and this RFC retires that
 sentence.
 
 The argument that retired it: the objection to remote write verbs was that
 `push`, `pull`, and `commit` need credentials and signing keys, and routing
-those through termio would brush non-negotiable 3. **Zed already solved this,
+those through fyolo would brush non-negotiable 3. **Zed already solved this,
 and the solution embeds nothing.** §3 is the mechanism. Once prompt-forwarding
 is the design, the credential objection does not survive, and what remains is a
 pure product question — which the project rule about the git pane already
@@ -93,7 +93,7 @@ Zed also sets `GIT_ASKPASS=false` for operations that must never block
 (`repository.rs:4290`), so a non-interactive path fails fast instead of hanging.
 Adopt that too.
 
-**Why this does not violate non-negotiable 3.** termio implements no
+**Why this does not violate non-negotiable 3.** fyolo implements no
 authentication, stores no credential, and reads no key. It transports a question
 and an answer. This is the posture the project already takes for ssh itself, and
 Zed's remote docs state the same: SSH's prompts are shown in the UI.
@@ -233,9 +233,9 @@ commit error.
 ### 7.4 The prompt text is untrusted input
 
 The prompt string originates on the remote box. A compromised or hostile host
-could craft text that reads like a termio system dialog and phish a credential.
+could craft text that reads like a fyolo system dialog and phish a credential.
 The client must render it as remote, attributed, untrusted text — never as
-chrome that looks like termio asking.
+chrome that looks like fyolo asking.
 
 ### 7.5 Secret handling
 
@@ -246,7 +246,7 @@ Never log it, never persist it, never include it in an error or a trace.
 ### 7.6 Multi-repo workspaces
 
 Zed carries `UpdateRepository` / `RemoveRepository` because a project may hold
-several repositories. termio's pane assumes one `repoRoot`. This RFC assumes one
+several repositories. fyolo's pane assumes one `repoRoot`. This RFC assumes one
 repository per workspace and says so; multi-repo is out of scope.
 
 ## 8. Prerequisites
@@ -275,7 +275,7 @@ repository per workspace and says so; multi-repo is out of scope.
    stating here.
 4. Does Compare need `branchCompare` device-side, or can it be composed from
    `git.log` plus `git.diff` without a new verb?
-5. Blame is editor-adjacent and termio's editor is a preview. Does it belong in
+5. Blame is editor-adjacent and fyolo's editor is a preview. Does it belong in
    Stage 1 at all, or wait for a real editor surface?
 
 ## 10. Non-goals

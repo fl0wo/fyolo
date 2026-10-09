@@ -1,5 +1,5 @@
 import Foundation
-import TermioShared
+import FyoloShared
 
 /// The port the app's screens talk to, so they render *a machine* rather than a
 /// transport. `CompanionBackend` implements it over the Mac companion wire; the
@@ -140,7 +140,7 @@ enum DeviceBackends {
     static func client(for endpoint: DeviceEndpoint, sessionID: String? = nil) -> DeviceClient {
         switch endpoint.kind {
         case .companion: CompanionBackend(url: endpoint.url)
-        case .termiod: TermiodBackend(endpoint: endpoint, sessionID: sessionID)
+        case .fyolod: FyolodBackend(endpoint: endpoint, sessionID: sessionID)
         }
     }
 
@@ -150,11 +150,11 @@ enum DeviceBackends {
         switch endpoint.kind {
         case .companion:
             return CompanionDeviceSession(url: endpoint.url, attachSessionID: sessionID)
-        case .termiod:
+        case .fyolod:
             // A device attaches to a session by name, and there is no
             // sessionless stream to fall back to.
             guard let sessionID else { return nil }
-            return TermiodSession(endpoint: endpoint, sessionName: sessionID)
+            return FyolodSession(endpoint: endpoint, sessionName: sessionID)
         }
     }
 }

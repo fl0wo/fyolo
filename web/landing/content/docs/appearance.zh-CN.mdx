@@ -1,6 +1,6 @@
 ---
 title: 外观
-description: 设置终端主题与字体、调整光标和窗口，并找到 Termio 其余的设置项——全都在一个熟悉的 macOS 设置窗口里。
+description: 设置终端主题与字体、调整光标和窗口，并找到 Fyolo 其余的设置项——全都在一个熟悉的 macOS 设置窗口里。
 x-i18n:
   source_path: appearance.mdx
   source_hash: 961f2be1158bbfa1b56806d5663c4057890b28086a5f53d6827cdb3a625b37d0
@@ -12,20 +12,20 @@ x-i18n:
 
 ## 主题
 
-Termio 使用 Ghostty 格式的主题，所以 Ghostty 主题生态里的东西都能用。在
-**设置 ▸ 外观** 里各选一个浅色和深色主题，Termio 会跟随系统在两者之间切换。
+Fyolo 使用 Ghostty 格式的主题，所以 Ghostty 主题生态里的东西都能用。在
+**设置 ▸ 外观** 里各选一个浅色和深色主题，Fyolo 会跟随系统在两者之间切换。
 
-两个槽位列出的是你手上有的主题——Termio 自带的画布，加上你主题文件夹里的东西——
+两个槽位列出的是你手上有的主题——Fyolo 自带的画布，加上你主题文件夹里的东西——
 而不是几百个你从没挑过的配色。
 
 <DocsImage
   src="/screenshots/docs/15-appearance-settings.png"
-  alt="Termio 外观设置显示「系统」「浅色」「深色」模式，以及独立的浅色和深色终端主题槽位"
+  alt="Fyolo 外观设置显示「系统」「浅色」「深色」模式，以及独立的浅色和深色终端主题槽位"
   width={1664}
   height={1288}
 />
 
-如果你本来就在用 Ghostty，全新安装时其实不用挑：Termio 首次启动会读取你的
+如果你本来就在用 Ghostty，全新安装时其实不用挑：Fyolo 首次启动会读取你的
 `~/.config/ghostty/config`，直接沿用你在那里选好的字体和主题。
 
 ## 获取更多主题 [#getting-more-themes]
@@ -34,7 +34,7 @@ Termio 使用 Ghostty 格式的主题，所以 Ghostty 主题生态里的东西�
 Rose Pine、Solarized 等等——每一款都挑得住一整天的阅读，而且没有两款不相干的配色近到
 会以两个名字重复出现。同一系列的风味是例外：四款 Catppuccin 全在，因为风味名恰恰就是
 它的用户要在其中挑的东西。**安装** 会把那款主题写进你的主题文件夹，并放进它该在的浅色
-或深色槽位。全程不联网：这些配色本来就在 Termio 里面。
+或深色槽位。全程不联网：这些配色本来就在 Fyolo 里面。
 
 如果主题文件夹里已经有同名文件，安装会先停下来问你要不要替换——你自己放进去的主题是
 你的东西。**移除** 会删掉那个文件；如果你改过它，也会先问一句。
@@ -44,7 +44,7 @@ Rose Pine、Solarized 等等——每一款都挑得住一整天的阅读，而�
 
 <DocsImage
   src="/screenshots/docs/14-change-theme.png"
-  alt="「更改主题」面板覆盖在 Termio 终端上，Catppuccin Latte 已选中并应用"
+  alt="「更改主题」面板覆盖在 Fyolo 终端上，Catppuccin Latte 已选中并应用"
   width={2424}
   height={1664}
 />
@@ -52,7 +52,7 @@ Rose Pine、Solarized 等等——每一款都挑得住一整天的阅读，而�
 要加入商店里没有的主题，把 Ghostty 格式的主题文件放进：
 
 ```
-~/Library/Application Support/termio/Themes/
+~/Library/Application Support/fyolo/Themes/
 ```
 
 **打开主题文件夹** 按钮会直接带你过去，**重新加载** 会在不重启的情况下识别新文件。
@@ -75,10 +75,10 @@ Rose Pine、Solarized 等等——每一款都挑得住一整天的阅读，而�
 - **通用** —— 语言、检查器 Issues 面板背后的 GitHub 集成，以及一个用于匿名每日使用统计
   的隐私开关。
 - **终端** —— 回滚历史与文本选择。
-- **Termio server** —— 本机自己的 Termio server，以及 `termio`
-  [命令行工具](/zh-CN/docs/cli)的开关。见 [Termio server](/zh-CN/docs/server)。
+- **Fyolo server** —— 本机自己的 Fyolo server，以及 `fyolo`
+  [命令行工具](/zh-CN/docs/cli)的开关。见 [Fyolo server](/zh-CN/docs/server)。
 - **远程主机** —— 你从这儿能连上的每一台机器，一台一行，点进去是它的连接方式和
-  Termio 在它上面装了什么。见 [设备](/zh-CN/docs/devices)。
+  Fyolo 在它上面装了什么。见 [设备](/zh-CN/docs/devices)。
 - **工作区** —— 每个工作区连同它所在的设备，也是重命名和移除工作区的地方。见
   [工作区](/zh-CN/docs/workspaces)。
 - **键盘** —— 重新绑定任意快捷键；参见 [键盘快捷键](/zh-CN/docs/keyboard)。
@@ -86,7 +86,7 @@ Rose Pine、Solarized 等等——每一款都挑得住一整天的阅读，而�
   [会话控制](/zh-CN/docs/session-control)，以及设置任务完成通知。按设备不同的那些值——
   CLI 装在哪儿、在不在——会在这个 Agent 自己的页面上每台设备一行地列出来，而不是藏在一个
   选择器后面。
-- **用量** —— 你已登录的 Agent（Claude Code、Codex）的 token 用量。Termio 复用各个命令行
+- **用量** —— 你已登录的 Agent（Claude Code、Codex）的 token 用量。Fyolo 复用各个命令行
   工具自己的凭据，告诉你离额度还有多远；它本身不存任何东西。
 - **手机** —— 把 iPhone 和某台机器配对，并发布一个它能连上的地址。见
   [iOS 应用](/zh-CN/docs/iphone)。
@@ -94,4 +94,4 @@ Rose Pine、Solarized 等等——每一款都挑得住一整天的阅读，而�
 
 设备是一行一行列出来的，从来不是一个选择器。一个按设备不同的设置，会在它该在的地方每台
 设备一行地列出来——命令路径就在那个 Agent 自己的页面上——而一台设备的完整情况是靠导航到达
-的：本机用 **Termio server**，其他设备用**远程主机**下的一行。
+的：本机用 **Fyolo server**，其他设备用**远程主机**下的一行。

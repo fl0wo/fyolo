@@ -24,7 +24,7 @@
       "titleRules": null,
       "wireName": "terminal"
     },
-    "file": "Sources/termio/Resources/terminal.json",
+    "file": "Sources/fyolo/Resources/terminal.json",
     "result": "ok"
   },
   {
@@ -73,7 +73,7 @@
       "titleRules": null,
       "wireName": "amp"
     },
-    "file": "Sources/termio/Resources/agents/amp.json",
+    "file": "Sources/fyolo/Resources/agents/amp.json",
     "result": "ok"
   },
   {
@@ -101,7 +101,7 @@
       "titleRules": null,
       "wireName": "antigravity"
     },
-    "file": "Sources/termio/Resources/agents/antigravity.json",
+    "file": "Sources/fyolo/Resources/agents/antigravity.json",
     "result": "ok"
   },
   {
@@ -158,7 +158,7 @@
       },
       "wireName": "claude"
     },
-    "file": "Sources/termio/Resources/agents/claude.json",
+    "file": "Sources/fyolo/Resources/agents/claude.json",
     "result": "ok"
   },
   {
@@ -232,7 +232,7 @@
       "titleRules": null,
       "wireName": "cline"
     },
-    "file": "Sources/termio/Resources/agents/cline.json",
+    "file": "Sources/fyolo/Resources/agents/cline.json",
     "result": "ok"
   },
   {
@@ -316,7 +316,7 @@
       },
       "wireName": "codex"
     },
-    "file": "Sources/termio/Resources/agents/codex.json",
+    "file": "Sources/fyolo/Resources/agents/codex.json",
     "result": "ok"
   },
   {
@@ -360,7 +360,7 @@
             "state": "done"
           }
         ],
-        "file": "~/.copilot/hooks/termio.json",
+        "file": "~/.copilot/hooks/fyolo.json",
         "promptTitle": "prompt",
         "tool": "tool_name",
         "type": "json"
@@ -383,7 +383,7 @@
       "titleRules": null,
       "wireName": "copilot"
     },
-    "file": "Sources/termio/Resources/agents/copilot.json",
+    "file": "Sources/fyolo/Resources/agents/copilot.json",
     "result": "ok"
   },
   {
@@ -424,7 +424,7 @@
       "titleRules": null,
       "wireName": "crush"
     },
-    "file": "Sources/termio/Resources/agents/crush.json",
+    "file": "Sources/fyolo/Resources/agents/crush.json",
     "result": "ok"
   },
   {
@@ -488,7 +488,7 @@
       "titleRules": null,
       "wireName": "cursor"
     },
-    "file": "Sources/termio/Resources/agents/cursor.json",
+    "file": "Sources/fyolo/Resources/agents/cursor.json",
     "result": "ok"
   },
   {
@@ -552,7 +552,7 @@
       "titleRules": null,
       "wireName": "droid"
     },
-    "file": "Sources/termio/Resources/agents/droid.json",
+    "file": "Sources/fyolo/Resources/agents/droid.json",
     "result": "ok"
   },
   {
@@ -596,7 +596,7 @@
             "state": "done"
           }
         ],
-        "file": "~/.grok/hooks/termio.json",
+        "file": "~/.grok/hooks/fyolo.json",
         "promptTitle": null,
         "tool": null,
         "type": "json"
@@ -629,7 +629,7 @@
       },
       "wireName": "grok"
     },
-    "file": "Sources/termio/Resources/agents/grok.json",
+    "file": "Sources/fyolo/Resources/agents/grok.json",
     "result": "ok"
   },
   {
@@ -660,7 +660,7 @@
       "titleRules": null,
       "wireName": "hermes"
     },
-    "file": "Sources/termio/Resources/agents/hermes.json",
+    "file": "Sources/fyolo/Resources/agents/hermes.json",
     "result": "ok"
   },
   {
@@ -717,7 +717,7 @@
       "titleRules": null,
       "wireName": "kimi"
     },
-    "file": "Sources/termio/Resources/agents/kimi.json",
+    "file": "Sources/fyolo/Resources/agents/kimi.json",
     "result": "ok"
   },
   {
@@ -776,7 +776,7 @@
       "titleRules": null,
       "wireName": "opencode"
     },
-    "file": "Sources/termio/Resources/agents/opencode.json",
+    "file": "Sources/fyolo/Resources/agents/opencode.json",
     "result": "ok"
   },
   {
@@ -830,7 +830,7 @@
       "titleRules": null,
       "wireName": "opencode2"
     },
-    "file": "Sources/termio/Resources/agents/opencode2.json",
+    "file": "Sources/fyolo/Resources/agents/opencode2.json",
     "result": "ok"
   },
   {
@@ -873,7 +873,7 @@
       "titleRules": null,
       "wireName": "pi"
     },
-    "file": "Sources/termio/Resources/agents/pi.json",
+    "file": "Sources/fyolo/Resources/agents/pi.json",
     "result": "ok"
   },
   {
@@ -949,7 +949,7 @@
       },
       "wireName": "qwen"
     },
-    "file": "Sources/termio/Resources/agents/qwen.json",
+    "file": "Sources/fyolo/Resources/agents/qwen.json",
     "result": "ok"
   },
   {
@@ -1107,7 +1107,7 @@
             "state": "done"
           }
         ],
-        "file": "~/.full/hooks/termio.json",
+        "file": "~/.full/hooks/fyolo.json",
         "promptTitle": "prompt",
         "tool": "tool_name",
         "type": "json"

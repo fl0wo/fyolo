@@ -8,17 +8,17 @@ x-i18n:
 ---
 
 你在侧栏看到的实时状态背后，是两个相关的可选开关：让 Agent 汇报自己在做什么的**状态
-hooks**，以及教它们驱动兄弟会话的**会话控制**技能。用 Termio 并不需要它们；但它们让一支
+hooks**，以及教它们驱动兄弟会话的**会话控制**技能。用 Fyolo 并不需要它们；但它们让一支
 Agent 队伍好带得多。它们暴露出来的命令，记在[命令行工具](/docs/cli)。
 
 ## Agent 实时状态
 
-Termio 可以把小小的**状态 hooks** 装进你的 Agent 自己的配置文件里（Claude Code、Codex、
+Fyolo 可以把小小的**状态 hooks** 装进你的 Agent 自己的配置文件里（Claude Code、Codex、
 Cursor 以及基于插件的那些）。当 Agent 开始工作、完成，或者停下来提问时，hook 会把这件事
-汇报给 Termio，于是侧栏的 [状态点](/zh-CN/docs/sidebar#status) 反映的就是实际发生的事，
+汇报给 Fyolo，于是侧栏的 [状态点](/zh-CN/docs/sidebar#status) 反映的就是实际发生的事，
 而不是从输出里猜出来的。
 
-在 **设置 ▸ Agents ▸ Agent 实时状态** 里打开（Termio 也会在首次启动时问你一次）。关掉它会
+在 **设置 ▸ Agents ▸ Agent 实时状态** 里打开（Fyolo 也会在首次启动时问你一次）。关掉它会
 把这些 hooks 移除，同时不动你自己加的任何 hook。
 
 这个开关只决定你是否需要这个功能；安装则由每台设备各自完成。在 **设置 ▸ 远程主机** 中打开一台
@@ -27,27 +27,27 @@ Cursor 以及基于插件的那些）。当 Agent 开始工作、完成，或者
 
 ## 会话控制
 
-**设置 ▸ Agents ▸ 会话控制** 打开下面这套 `termio sessions` 编排 API，并通过往每个 Agent 的
-技能文件夹（`~/.claude/skills`、`~/.codex/skills`）里安装一个 `termio` **Agent 技能**，
+**设置 ▸ Agents ▸ 会话控制** 打开下面这套 `fyolo sessions` 编排 API，并通过往每个 Agent 的
+技能文件夹（`~/.claude/skills`、`~/.codex/skills`）里安装一个 `fyolo` **Agent 技能**，
 来告诉你的 Agent 它存在。技能按需加载——Agent 平时只带着那一行描述，直到某个任务真的需要
-驱动同伴会话——而 Termio 每次启动都会重新确认它，因此应用更新会自动传播，手改过的内容也会
+驱动同伴会话——而 Fyolo 每次启动都会重新确认它，因此应用更新会自动传播，手改过的内容也会
 自愈。关掉它会把技能移除。
 
 <DocsImage
   src="/screenshots/docs/25-session-control-settings.png"
-  alt="Termio 设置中开启了命令行工具、会话控制和 Agent 实时状态"
+  alt="Fyolo 设置中开启了命令行工具、会话控制和 Agent 实时状态"
   width={1664}
   height={1288}
 />
 
-在跑 Termio 没有自动配置的 Agent？同一个技能发布在
-[termio.sh/skill.md](https://termio.sh/skill.md)，也可以直接从仓库安装：
+在跑 Fyolo 没有自动配置的 Agent？同一个技能发布在
+[fyolo.sh/skill.md](https://fyolo.sh/skill.md)，也可以直接从仓库安装：
 
 ```bash
-npx skills add termio-sh/termio --skill termio
+npx skills add fl0wo/fyolo --skill fyolo
 ```
 
 <Callout type="note">
   这两个开关只在你的 Mac 上写文件——Agent 配置里的 hook 条目，以及技能文件。没有任何东西
-  离开你的机器：状态汇报和会话命令都通过本地套接字发给 Termio 应用，仅此而已。
+  离开你的机器：状态汇报和会话命令都通过本地套接字发给 Fyolo 应用，仅此而已。
 </Callout>

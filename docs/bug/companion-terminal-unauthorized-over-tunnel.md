@@ -74,7 +74,7 @@ Both are created from the **same** `companionURL` (the saved roster URL, carryin
 
 ## Server refusal paths (which "unauthorized" is this?)
 
-`Sources/termio/CompanionServer.swift`:
+`Sources/fyolo/CompanionServer.swift`:
 
 - **Bad token** (`handle`, ~L233): `"unauthorized — re-scan the QR code on your Mac"`.
 - **Unauthed control** (`handle`, ~L241): an `attach`/`resize` arrived on a
@@ -146,8 +146,8 @@ to read the JSON, or just count/size the client frames: `auth`≈50B, `attach`�
 
 ```sh
 # Current pairing token and tunnel URL (values rotate on each app relaunch):
-defaults read sh.termio.app companion.pairingToken
-grep -iE "\[tunnel\] up at" /tmp/termio-dev.log | tail -1
+defaults read sh.fyolo.app companion.pairingToken
+grep -iE "\[tunnel\] up at" /tmp/fyolo-dev.log | tail -1
 
 # Live connections to the companion port (roster vs terminal vs tunnel vs sim):
 lsof -nP -iTCP:8787
@@ -161,7 +161,7 @@ lsof -nP -iTCP:8787
 # iOS device log (needs the device "configured"/reachable; failed here):
 xcrun devicectl list devices           # get the iPhone UDID
 sudo log collect --device-udid <UDID> --last 10m --output /tmp/iphone.logarchive
-log show /tmp/iphone.logarchive --predicate 'process CONTAINS[c] "Termio"' --info \
+log show /tmp/iphone.logarchive --predicate 'process CONTAINS[c] "Fyolo"' --info \
   | grep -iE "companion|pairing token|unauthor|attach|auth"
 ```
 

@@ -7,14 +7,14 @@ import { Reveal } from "@/components/reveal";
 export const metadata: Metadata = {
   title: "Terms of Use",
   description:
-    "The terms for using Termio — the native Mac workspace for AI coding agents and its iPhone companion.",
+    "The terms for using Fyolo — the native Mac workspace for AI coding agents and its iPhone companion.",
   alternates: {
     canonical: "/terms",
   },
   openGraph: {
-    title: "Termio terms of use",
+    title: "Fyolo terms of use",
     description:
-      "The terms for using Termio — the native Mac workspace for AI coding agents and its iPhone companion.",
+      "The terms for using Fyolo — the native Mac workspace for AI coding agents and its iPhone companion.",
     url: "/terms",
   },
 };
@@ -39,14 +39,14 @@ export default function TermsPage() {
             <article className="prose-legal mx-auto w-full max-w-[640px]">
               <h2>Acceptance of terms</h2>
               <p>
-                By downloading, installing or using Termio — the Mac app or its
+                By downloading, installing or using Fyolo — the Mac app or its
                 iPhone companion — you agree to these Terms of Use. If you do
-                not agree, do not use Termio.
+                not agree, do not use Fyolo.
               </p>
 
-              <h2>About Termio</h2>
+              <h2>About Fyolo</h2>
               <p>
-                Termio is a native Mac workspace for running AI coding agents,
+                Fyolo is a native Mac workspace for running AI coding agents,
                 with an iPhone companion app for controlling sessions on your
                 own Mac. It is free to use and provided as-is, without
                 warranties or guarantees of any kind.
@@ -54,24 +54,24 @@ export default function TermsPage() {
 
               <h2>Acceptable use</h2>
               <p>
-                You agree to use Termio responsibly and in compliance with
+                You agree to use Fyolo responsibly and in compliance with
                 applicable laws. You must not:
               </p>
               <ul>
-                <li>Use Termio for any illegal or unauthorized purpose</li>
+                <li>Use Fyolo for any illegal or unauthorized purpose</li>
                 <li>
-                  Attempt to harm, disable or impair Termio or the systems it
+                  Attempt to harm, disable or impair Fyolo or the systems it
                   connects to
                 </li>
                 <li>
                   Violate the terms of service of any AI provider you use
-                  through Termio
+                  through Fyolo
                 </li>
               </ul>
 
               <h2>Third-party services</h2>
               <p>
-                The coding agents you run inside Termio (such as Claude Code or
+                The coding agents you run inside Fyolo (such as Claude Code or
                 Codex) are third-party tools that connect to their own
                 providers. You acknowledge that:
               </p>
@@ -89,14 +89,14 @@ export default function TermsPage() {
                   responsibility
                 </li>
                 <li>
-                  Termio is not responsible for their availability or
+                  Fyolo is not responsible for their availability or
                   performance
                 </li>
               </ul>
 
               <h2>Independence</h2>
               <p>
-                Termio is an independent project. It is not affiliated with,
+                Fyolo is an independent project. It is not affiliated with,
                 endorsed by or connected to Anthropic, OpenAI, Google or any
                 other AI service provider. All product names and trademarks
                 belong to their respective owners.
@@ -110,12 +110,12 @@ export default function TermsPage() {
 
               <h2>Limitation of liability</h2>
               <p>
-                Termio is provided <strong>&quot;as is&quot;</strong> without
+                Fyolo is provided <strong>&quot;as is&quot;</strong> without
                 warranty of any kind. To the maximum extent permitted by law,
-                the developers and distributors of Termio shall not be liable
+                the developers and distributors of Fyolo shall not be liable
                 for any direct, indirect, incidental or consequential damages —
                 including data loss, lost profits or business interruption —
-                arising from your use of Termio. You run AI agents on your own
+                arising from your use of Fyolo. You run AI agents on your own
                 machine at your own discretion; review what they do before
                 trusting the result.
               </p>
@@ -123,7 +123,7 @@ export default function TermsPage() {
               <h2>Changes to these terms</h2>
               <p>
                 We may update these terms from time to time. Continued use of
-                Termio after changes constitutes acceptance of the new terms.
+                Fyolo after changes constitutes acceptance of the new terms.
               </p>
 
               <h2>Governing law</h2>
@@ -144,11 +144,11 @@ export default function TermsPage() {
               <p>
                 Questions about these terms? Open an issue at{" "}
                 <a
-                  href="https://github.com/termio-sh/termio/issues"
+                  href="https://github.com/fl0wo/fyolo/issues"
                   target="_blank"
                   rel="noreferrer"
                 >
-                  github.com/termio-sh/termio
+                  github.com/fl0wo/fyolo
                 </a>
                 .
               </p>

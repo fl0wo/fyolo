@@ -8,7 +8,7 @@ updated: 2026-06-28
 # 设计：分享 Agent 会话（带密码的实时分享链接）
 
 > 目标：在标题栏加一个 **Share** 按钮，把当前 pane 的 Agent 对话导出成一条
-> 可分享链接（`https://termio.app/s/<slug>`）。链接本身不可枚举、可选密码保护、
+> 可分享链接（`https://fyolo.app/s/<slug>`）。链接本身不可枚举、可选密码保护、
 > **实时同步**（Agent 继续干活时观看者能看到更新）。后端落在现有 `web/server`。
 >
 > 竞品参考：opencode 的 share（`docs/competitive-analysis` 未单列，结论见下文「四」）。
@@ -26,15 +26,15 @@ updated: 2026-06-28
 | Claude Code | `~/.claude/projects/<dashified-cwd>/<sessionId>.jsonl` | 目录名 = cwd 把 `/` 换 `-` |
 | 普通终端 | 无 transcript | 退化为 scrollback 文本，或禁用按钮 |
 
-**Termio 的结构性优势**：每个 session 有唯一 `cwd`（每会话 worktree，见
+**Fyolo 的结构性优势**：每个 session 有唯一 `cwd`（每会话 worktree，见
 `Session.worktreePath` `Models.swift:204`）。所以「这个 pane ↔ 哪个 transcript 文件」
 是确定可解的——这就是你问的 *"check the session id"*：用 `cwd` 反查 transcript，
 再在该 cwd 下取**最新**的 rollout / `.jsonl`。已实地验证（2026-06-27）：
 
 ```
 ~/.codex/sessions/2026/06/27/rollout-...-019f0989-...jsonl
-  → line 1: {"type":"session_meta","payload":{"session_id":"019f0989...","cwd":"/Users/yuanjiwei/Documents/GitHub/termio", ...}}
-~/.claude/projects/-Users-yuanjiwei-Documents-GitHub-termio/50a328ae-....jsonl
+  → line 1: {"type":"session_meta","payload":{"session_id":"019f0989...","cwd":"/Users/yuanjiwei/Documents/GitHub/fyolo", ...}}
+~/.claude/projects/-Users-yuanjiwei-Documents-GitHub-fyolo/50a328ae-....jsonl
   → {"type":"...","sessionId":"50a328ae-..."}
 ```
 
@@ -56,7 +56,7 @@ updated: 2026-06-28
 - 默认 `share: "manual"`（opt-in），文档只有一句「公开，别分享敏感信息」的**advisory**
   警告，无自动脱敏。
 
-**结论**：opencode 的「隐私」只是一个短而弱的 slug，**没有密码**。Termio 要做的是
+**结论**：opencode 的「隐私」只是一个短而弱的 slug，**没有密码**。Fyolo 要做的是
 **取它实时同步的优点 + 把 slug 改成不可枚举 + 补上你要的密码层**。
 
 来源：`packages/opencode/src/share/share-next.ts`、`packages/enterprise/src/core/share.ts`、
@@ -64,7 +64,7 @@ updated: 2026-06-28
 
 ---
 
-## 三、Termio 的安全模型（最终决策）
+## 三、Fyolo 的安全模型（最终决策）
 
 opencode 的**超集**，三层清晰分开：
 
@@ -85,10 +85,10 @@ opencode 的**超集**，三层清晰分开：
 
 ---
 
-## 四、实时同步：Termio 用「tail JSONL」而非「订阅内部事件」
+## 四、实时同步：Fyolo 用「tail JSONL」而非「订阅内部事件」
 
-opencode 能订阅自己进程的内部事件；Termio 是**外部**观察 Codex/Claude 进程，拿不到
-它们的事件总线。但 Termio 有它们的 transcript 文件——所以 Termio 的实时同步 = **tail
+opencode 能订阅自己进程的内部事件；Fyolo 是**外部**观察 Codex/Claude 进程，拿不到
+它们的事件总线。但 Fyolo 有它们的 transcript 文件——所以 Fyolo 的实时同步 = **tail
 那个 JSONL 文件**（正是 `docs/competitive-analysis/07-vibe-island.md` 提到的 `claude-watch`
 「无 hook 直接 tail JSONL」路子）。
 
@@ -224,9 +224,9 @@ app.route("/api/share", shareRoutes);
 
 | 动作 | 剪贴板内容 | 后端 | 给谁 | 说明 |
 | --- | --- | --- | --- | --- |
-| **Copy for agent**（默认） | `~/.termio/shares/<slug>.md` 绝对路径 | ❌ 无 | 本机另一个 agent | 渲染过的干净 Markdown 文件，watcher 持续重写 → 始终最新 |
+| **Copy for agent**（默认） | `~/.fyolo/shares/<slug>.md` 绝对路径 | ❌ 无 | 本机另一个 agent | 渲染过的干净 Markdown 文件，watcher 持续重写 → 始终最新 |
 | Copy raw transcript path | `~/.codex/.../rollout-*.jsonl` 原始路径 | ❌ 无 | 本机全保真交接 | 不经渲染，全字节；含 agent 的 base_instructions/sandbox 前言 |
-| Share link… | `https://termio.app/s/<slug>` 或 `…/s/<slug>.md` | ✅ 上传 | 人 / 远端 agent | 渲染页给人；`.md` 给远端 agent fetch |
+| Share link… | `https://fyolo.app/s/<slug>` 或 `…/s/<slug>.md` | ✅ 上传 | 人 / 远端 agent | 渲染页给人；`.md` 给远端 agent fetch |
 
 ### 为什么默认是「本地 `.md` 路径」而非原始 JSONL
 
@@ -242,15 +242,15 @@ transcript path」副选项。
 
 ### 本地文件落在哪
 
-`~/.termio/shares/<slug>.md`（Termio 自管目录，不污染用户 repo）。watcher 把解析出的 part
+`~/.fyolo/shares/<slug>.md`（Fyolo 自管目录，不污染用户 repo）。watcher 把解析出的 part
 增量重写进这个文件；unshare / 退出后文件保留，下次可复用或清理。
 
 ### Share link…（远端）仍是两条链接
 
 | 形态 | URL | Content-Type | 给谁 |
 | --- | --- | --- | --- |
-| Human 链接 | `https://termio.app/s/<slug>` | `text/html` | 人看，带实时徽标/高亮/diff |
-| Agent 链接 | `https://termio.app/s/<slug>.md` | `text/markdown` | 远端 agent `WebFetch`/`curl` |
+| Human 链接 | `https://fyolo.app/s/<slug>` | `text/html` | 人看，带实时徽标/高亮/diff |
+| Agent 链接 | `https://fyolo.app/s/<slug>.md` | `text/markdown` | 远端 agent `WebFetch`/`curl` |
 
 有密码时 `.md` 自动带 `?key=<view-token>`（HMAC，免交互输入密码），复制时提示「此链接含
 访问密钥」；无密码则裸 `.md`（slug 自鉴权）。
@@ -259,20 +259,20 @@ transcript path」副选项。
 
 ## 八、App 端（Swift）
 
-新文件 `Sources/termio/SessionShare.swift`，含三块：
+新文件 `Sources/fyolo/SessionShare.swift`，含三块：
 
 1. **`TranscriptLocator`** — 由 session 的 `cwd` 解析 transcript 路径（Codex / Claude
    两套规则），取最新文件。
 2. **`TranscriptParser`** — JSONL 行 → 统一 `SharePart`（按 agent 分支）。
 3. **`SessionShareWatcher`** — FSEvents 监听该文件，维护读偏移，debounce 后调用
-   后端 `sync`。一个 `@Published var activeShare: ShareHandle?` 挂在 `TermioStore`
+   后端 `sync`。一个 `@Published var activeShare: ShareHandle?` 挂在 `FyoloStore`
    上，使按钮能反映「已分享 / 同步中」状态，并支持 Unshare。
 
 UI：
 - `TerminalPane.titleToolbar` 增加 **trailing** `ToolbarItem`（截图里框住的右上角位置），
   图标 `square.and.arrow.up`。当前 session 无 transcript（普通终端）时 disabled。
 - **按钮主点击 = 默认动作「Copy for agent」**：渲染 transcript → 写
-  `~/.termio/shares/<slug>.md` → 复制该绝对路径到剪贴板，**不开 sheet、不连后端**。
+  `~/.fyolo/shares/<slug>.md` → 复制该绝对路径到剪贴板，**不开 sheet、不连后端**。
   与你「default copy 就是 file address」的诉求一致——一下就能粘进另一个 agent session。
 - 按钮的下拉菜单（或 sheet）给其余目标（见 §七·五）：
   - 「Copy raw transcript path」— 复制原始 JSONL 路径（全保真，本机）。
@@ -290,7 +290,7 @@ UI：
 把**本机文件交接**排在最前——它是主用途，且完全不依赖后端，能最快交付价值：
 
 1. **App：定位 + 解析 + 本地 `.md`**（`TranscriptLocator` + `TranscriptParser` →
-   写 `~/.termio/shares/<slug>.md` → 复制路径）。**无后端**即可端到端可用：在另一个
+   写 `~/.fyolo/shares/<slug>.md` → 复制路径）。**无后端**即可端到端可用：在另一个
    pane `@` 这个文件验证。
 2. **App：FSEvents 让本地 `.md` 保持更新**（watcher 增量重写；本地「实时」到此完成）。
 3. **后端 schema + 路由**（`curl` 跑通 create/sync/unlock/stream/raw）。

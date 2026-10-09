@@ -1,18 +1,18 @@
 ---
-title: The Termio server
-description: What runs on a machine so sessions outlive the app — how termiod is installed, kept alive, updated in place, and inspected when something looks wrong.
+title: The Fyolo server
+description: What runs on a machine so sessions outlive the app — how fyolod is installed, kept alive, updated in place, and inspected when something looks wrong.
 ---
 
-Every session runs inside `termiod`, the Termio server, on the machine that owns
+Every session runs inside `fyolod`, the Fyolo server, on the machine that owns
 it — including the ones on this Mac. The Mac app, the iOS app and the CLI
 are all *viewers*: they attach to a session and detach from it. Nothing about a
 session belongs to the window you were looking at.
 
-That is the whole reason quitting Termio does not kill your agents.
+That is the whole reason quitting Fyolo does not kill your agents.
 
 ## What it is
 
-`termiod` is a session host, not a window manager. It owns the PTY, keeps the
+`fyolod` is a session host, not a window manager. It owns the PTY, keeps the
 scrollback, and hands a viewer a snapshot when one attaches. Locally a viewer
 reaches it over a Unix socket; remotely the app opens an SSH pipe to the same
 binary on the far box. One protocol, both ways — which is why a session on a VPS
@@ -27,19 +27,19 @@ binary into `~/.local/bin` over SSH and starts it. There is no package to
 install and no root involved.
 
 ```bash
-termiod deploy                      # install or update it here, then verify
-termiod deploy --host mybox         # same, over your own SSH config
+fyolod deploy                      # install or update it here, then verify
+fyolod deploy --host mybox         # same, over your own SSH config
 ```
 
 `deploy` is the only install path, and it is a reconcile: run it against a box
-in any state and it ends in the same one. Termio reads `~/.ssh/config` to find
+in any state and it ends in the same one. Fyolo reads `~/.ssh/config` to find
 the host, so a machine you can already `ssh` to needs nothing new. See
 [Devices](/docs/devices).
 
 ## Keeping it running
 
 ```bash
-termiod service install    # launchd on macOS, systemd --user on Linux
+fyolod service install    # launchd on macOS, systemd --user on Linux
 ```
 
 Without a service the server lives as long as your login session. With one it
@@ -52,35 +52,35 @@ A new build replaces the running one **in place**: the process keeps its id and
 its PTYs, and the sessions never notice.
 
 ```bash
-termiod handoff
+fyolod handoff
 ```
 
-That is also what happens when the app updates itself — the reason a Termio
+That is also what happens when the app updates itself — the reason a Fyolo
 update does not cost you your running agents. See [What
 survives](/docs/persistence) for every case, including the ones a handoff cannot
 cover.
 
 ## Looking at it
 
-Three commands answer nearly every "is it me or is it Termio" question:
+Three commands answer nearly every "is it me or is it Fyolo" question:
 
 | Command | What it tells you |
 | --- | --- |
-| `termiod status` | What this machine has: the binary, its version, and whether a daemon is answering on the socket. |
-| `termiod list` | The sessions the host is holding — add `--host <box>` to ask another machine. |
-| `termiod logs` | What the server recorded while nobody was attached. `-f` follows it; `--path` prints the file for a bug report. |
+| `fyolod status` | What this machine has: the binary, its version, and whether a daemon is answering on the socket. |
+| `fyolod list` | The sessions the host is holding — add `--host <box>` to ask another machine. |
+| `fyolod logs` | What the server recorded while nobody was attached. `-f` follows it; `--path` prints the file for a bug report. |
 
 <Callout type="note">
-  `termiod` is the server's own command, and separate from the
-  [`termio` command-line tool](/docs/cli) the app installs for you. You rarely
-  need `termiod` by hand — the app runs these for you — but it is there when a
+  `fyolod` is the server's own command, and separate from the
+  [`fyolo` command-line tool](/docs/cli) the app installs for you. You rarely
+  need `fyolod` by hand — the app runs these for you — but it is there when a
   box is misbehaving and you want to look rather than guess.
 </Callout>
 
 ## Stopping it
 
 ```bash
-termiod stop
+fyolod stop
 ```
 
 It declines while a command is still running or a viewer is attached, so a stray

@@ -18,7 +18,7 @@ export function SiteFooter() {
     <footer className="px-5 pb-8 pt-16 sm:px-8 sm:pb-14">
       <div className="mx-auto flex w-full max-w-[960px] flex-col items-center justify-center gap-2.5 text-sm leading-5 text-muted-foreground">
         <div className="flex w-full flex-col items-center justify-center gap-2.5 sm:flex-row sm:gap-4">
-          <span>© {new Date().getFullYear()} Termio</span>
+          <span>© {new Date().getFullYear()} Fyolo</span>
           <nav
             className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2"
             aria-label="Footer"

@@ -1,16 +1,16 @@
 ---
 title: Concepts
-description: The nouns Termio is built from — device, workspace, project, session, pane, and worktree — plus the status model that tells you which agent needs you.
+description: The nouns Fyolo is built from — device, workspace, project, session, pane, and worktree — plus the status model that tells you which agent needs you.
 ---
 
-Termio is a terminal for running several coding agents at once. Everything in the
+Fyolo is a terminal for running several coding agents at once. Everything in the
 app is built from six nouns and one status model. Learn these and the rest of the
 docs read quickly.
 
 ## Device
 
 A device is a machine you can reach: this Mac, the Mac mini on the same desk, a VPS.
-Termio reads `~/.ssh/config` to find them and shells out to the system `ssh` to
+Fyolo reads `~/.ssh/config` to find them and shells out to the system `ssh` to
 get there — it never provisions a machine and never routes your traffic.
 
 This Mac is a machine like any other, so the level stays invisible until you add
@@ -31,14 +31,14 @@ question gets answered once, at the top, instead of again for every project.
 A project is a folder on a machine — usually a repository. It’s the unit the
 sidebar groups by, and the working directory every session inside it starts in.
 
-Opening a project doesn’t copy or index anything. Termio remembers the path and
+Opening a project doesn’t copy or index anything. Fyolo remembers the path and
 reads git for the rest.
 
 ## Session
 
 A session is one real terminal running one thing: an agent, a dev server, or a
 plain shell. Each session owns a PTY — the same kind of terminal `ssh` or
-Terminal.app gives a process — and Termio renders it with
+Terminal.app gives a process — and Fyolo renders it with
 [libghostty](https://ghostty.org), Ghostty’s terminal core.
 
 Three properties matter:
@@ -47,14 +47,14 @@ Three properties matter:
   the window, or use another app; the agent keeps working. Its output is buffered
   and repainted when you come back.
 - **A session lives on its machine, not in the app.** Every session — including
-  the ones on this Mac — runs inside `termiod`, the session host, and the app is
+  the ones on this Mac — runs inside `fyolod`, the session host, and the app is
   a viewer that attaches to it. Closing the window leaves the agent working, and
   a dropped SSH connection detaches you rather than killing anything. Only
   **Close Session** ends one on purpose. [What survives](/docs/persistence) is
   the full table.
 - **A session is addressable.** Every session has a stable URL,
-  `termio://session/<uuid>`, which is what the menu-bar tray, a notification, and
-  the `termio` CLI all use to bring one to the front.
+  `fyolo://session/<uuid>`, which is what the menu-bar tray, a notification, and
+  the `fyolo` CLI all use to bring one to the front.
 
 ## Pane
 
@@ -69,7 +69,7 @@ changes how sessions are arranged, not what they are.
 
 <DocsImage
   src="/screenshots/docs/03-grouped-panes.png"
-  alt="A Termio project with three grouped panes showing an agent, split-tree tests, and a documentation preview"
+  alt="A Fyolo project with three grouped panes showing an agent, split-tree tests, and a documentation preview"
   width={2424}
   height={1664}
 />
@@ -82,7 +82,7 @@ A git worktree is a second checkout of the same repository on its own branch. Wh
 two agents work one repo at once, worktrees are what keep them out of each other’s
 files.
 
-Termio reads them from git (`git worktree list`) rather than tracking its own copy,
+Fyolo reads them from git (`git worktree list`) rather than tracking its own copy,
 and shows each one as a nested folder under the project. Create one in the app or
 with `git worktree add` on the command line — either way both agree, because git
 is the source of truth. See [Git worktrees](/docs/worktrees).
@@ -107,7 +107,7 @@ distinction between the last two is the point of the whole model:
 
 A finished turn is `done`, never `needs-you`. Conflating the two is what makes a
 fleet of agents feel like a pile of alarms: if everything demands attention,
-nothing does. Termio keeps “ready” calm and reserves the loud state for an agent
+nothing does. Fyolo keeps “ready” calm and reserves the loud state for an agent
 that genuinely cannot continue without you.
 
 These statuses roll up: a project’s row summarizes its sessions, and the menu-bar
@@ -115,14 +115,14 @@ tray summarizes everything, so you can watch a fleet from another app.
 
 ### Where the signal comes from
 
-Termio doesn’t guess from pixels where it doesn’t have to. It reads, in order of
+Fyolo doesn’t guess from pixels where it doesn’t have to. It reads, in order of
 authority:
 
 1. **The program’s own status report.** A program that speaks the
-   [program status protocol](https://mitchellh.com/writing/program-status-osc7501) (`OSC 7501`) tells Termio what it is doing
+   [program status protocol](https://mitchellh.com/writing/program-status-osc7501) (`OSC 7501`) tells Fyolo what it is doing
    over the terminal itself — Claude Code from 2.1.295 and Pi from 1.1.0 do.
    Nothing is installed, and it works the same on a remote machine.
-2. **The agent’s own hooks.** On first run Termio writes its status hooks into the
+2. **The agent’s own hooks.** On first run Fyolo writes its status hooks into the
    config of each agent that supports them, so the agent reports its own turns.
    While a program reports its own status, its hooks only add detail, such as
    the tool it is running. Nothing for you to configure. See
@@ -130,7 +130,7 @@ authority:
 3. **In-band terminal signals.** Progress and title sequences an agent already
    emits (`OSC 9;4`, `OSC 777`) are read straight off the stream — that’s how Grok
    reports busy and idle without hooks.
-4. **The screen, as a last resort.** For an agent with neither, Termio watches the
+4. **The screen, as a last resort.** For an agent with neither, Fyolo watches the
    pane for the shape of a prompt waiting on input, and promotes a status only
    after the reading holds.
 

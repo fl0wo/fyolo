@@ -1,12 +1,12 @@
 ---
 name: dia-source-analysis
-description: "Analyze / reverse-engineer the locally installed Dia Browser mac app (The Browser Company; bundle id company.thebrowser.dia; shares ArcCore with Arc). Inspect its app bundle, extract its Bun/TypeScript agent-server source from shipped source maps, fingerprint the runtime, read native-Swift symbols, and map its AI-agent / sandbox / on-device-ML architecture. Invoke when the user wants to study how Dia works internally, extract Dia's agent code, or compare Dia's agent/terminal approach against termio. (User sometimes voice-types the name as 'DotBrowser' — same app.)"
+description: "Analyze / reverse-engineer the locally installed Dia Browser mac app (The Browser Company; bundle id company.thebrowser.dia; shares ArcCore with Arc). Inspect its app bundle, extract its Bun/TypeScript agent-server source from shipped source maps, fingerprint the runtime, read native-Swift symbols, and map its AI-agent / sandbox / on-device-ML architecture. Invoke when the user wants to study how Dia works internally, extract Dia's agent code, or compare Dia's agent/terminal approach against fyolo. (User sometimes voice-types the name as 'DotBrowser' — same app.)"
 ---
 
 # Analyze Dia Browser source
 
 Dia (`/Applications/Dia.app`, The Browser Company, `company.thebrowser.dia`) is a
-WebKit-based browser (~1.4 GB) that shares `ArcCore.framework` with Arc. termio uses
+WebKit-based browser (~1.4 GB) that shares `ArcCore.framework` with Arc. fyolo uses
 it as a reference for how a shipping product **drives AI coding agents as sandboxed
 child processes** (Dia shells to the real Claude Code CLI under Seatbelt) and for its
 agent-server / IPC architecture. This skill captures how to dig into it and what's
@@ -40,7 +40,7 @@ Agent-server `info.json` (1.34.2): version 1.0.0, buildDate 2026-06-10, commit `
   (`sandbox-exec -f agent.sb` / `agent-claude-code.sb`, params via `-D DATA_DIR=…`), talking
   to the native UI over SSE/IPC (`transport/sse.ts`, `ipc-gateway.ts`). Per-context workspace
   at `data/contexts/{contextId}` with resumable disk buffers (`session/buffer.ts`, JSONL). **This
-  is the part most relevant to termio** — termio runs agents in real PTYs (`.exec`) instead, but
+  is the part most relevant to fyolo** — fyolo runs agents in real PTYs (`.exec`) instead, but
   the child-process-under-sandbox + resumable-buffer + IPC design is the directly comparable bit.
 - **Streaming smoothness** comes from native rendering + `session/update-batcher.ts`: deltas are
   coalesced and flushed only on **≥256 B** OR **250 ms idle** OR completion — so the UI updates a
@@ -122,7 +122,7 @@ cat "$B/config.json"; ls -lhS "$B"/*.safetensors
 strings -a /Applications/Dia.app/Contents/Frameworks/libAIInfra.dylib | grep -iE "cmd_t|router|sensitive|skills_|distilbert|lora" | sort -u | head
 ```
 
-### 5. Sandbox profiles (most relevant to termio)
+### 5. Sandbox profiles (most relevant to fyolo)
 ```bash
 cat /Applications/Dia.app/Contents/Resources/agent-server-resources/dist/agent.sb
 cat /Applications/Dia.app/Contents/Resources/agent-server-resources/dist/agent-claude-code.sb
@@ -130,21 +130,21 @@ cat /Applications/Dia.app/Contents/Resources/agent-server-resources/dist/agent-c
 These are Seatbelt (`sandbox-exec`) profiles — read them to see exactly what the agent / Claude
 Code subprocess may touch.
 
-## Relevance to termio
+## Relevance to fyolo
 
-termio is a **native Swift + libghostty terminal for AI coding agents** (unpeel-style): it runs
+fyolo is a **native Swift + libghostty terminal for AI coding agents** (unpeel-style): it runs
 each agent/session in a real PTY (`.exec`) via a libghostty surface, unsandboxed. Dia solves an
 adjacent problem — driving the same Claude Code CLI — but from a browser, sandboxed, over IPC.
-When comparing, borrow narrowly (termio is deliberately simple/minimal — do **not** import Dia's
+When comparing, borrow narrowly (fyolo is deliberately simple/minimal — do **not** import Dia's
 ~370 M Bun agent-server, on-device ML stack, or browser surface):
 
-- **Sandbox profiles (§5)** are the highest-value takeaway: if termio ever wants to constrain
+- **Sandbox profiles (§5)** are the highest-value takeaway: if fyolo ever wants to constrain
   what an agent session can touch beyond the PTY, Dia's `agent.sb` / `agent-claude-code.sb`
   Seatbelt profiles are a concrete, shipping reference for `sandbox-exec`.
 - **Child-process + resumable buffer + IPC design** (`session/buffer.ts` JSONL, per-context
-  workspace) is the architecture analog to termio keeping a `TerminalController` alive per
+  workspace) is the architecture analog to fyolo keeping a `TerminalController` alive per
   session in the SurfaceCache — same goal (survive view rebuilds / resume), different mechanism.
 - **Delta coalescing** (`update-batcher.ts`: flush on ≥256 B / 250 ms idle / completion) is a
-  generic perf lesson if termio ever renders agent output outside the raw terminal grid.
-- **Skip:** the native AssistantPanel renderer and on-device LoRA classifiers — termio shows a
+  generic perf lesson if fyolo ever renders agent output outside the raw terminal grid.
+- **Skip:** the native AssistantPanel renderer and on-device LoRA classifiers — fyolo shows a
   real terminal, not a native chat surface, so those don't map.

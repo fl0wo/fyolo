@@ -5,11 +5,11 @@ type: design
 created: 2026-08-18
 updated: 2026-08-24
 related:
-  - 20260818-termiod-web-client-ghostty-wasm.md
-  - 20260730-termiod-session-protocol.md
+  - 20260818-fyolod-web-client-ghostty-wasm.md
+  - 20260730-fyolod-session-protocol.md
   - 20260628-session-share.md
-  - 20260805-termiod-device-architecture.md
-  - 20260805-termiod-hot-path-and-client-classes.md
+  - 20260805-fyolod-device-architecture.md
+  - 20260805-fyolod-hot-path-and-client-classes.md
 ---
 
 # Session guests — three deltas, not a sharing subsystem
@@ -23,9 +23,9 @@ related:
 
 ## What this decides
 
-[Session protocol](20260730-termiod-session-protocol.md) §F #3 says sharing with an external identity is out of protocol v1 and "needs a pairing/ACL design that must not be improvised." This is that design, and its main finding is a subtraction: **there is no sharing subsystem to build.**
+[Session protocol](20260730-fyolod-session-protocol.md) §F #3 says sharing with an external identity is out of protocol v1 and "needs a pairing/ACL design that must not be improvised." This is that design, and its main finding is a subtraction: **there is no sharing subsystem to build.**
 
-The reason is the model, not luck. Every UI is a client of the device that owns the session ([device architecture](20260805-termiod-device-architecture.md) §2.1): web to `termiod` on Linux, web to `termiod` on a Mac, iOS the same, **never through another viewer**. The current iOS path — the phone mirroring a Mac viewer that holds a `PTYProcess`, over `CompanionServer` + `WireProtocol` (2,092 lines) — is the shape §H #9 condemns as "a second protocol for the phone," and it is the thing being retired, not the pattern a guest should copy. Once a guest's browser is a direct client, sharing is mostly a matter of *which* client is allowed to say what.
+The reason is the model, not luck. Every UI is a client of the device that owns the session ([device architecture](20260805-fyolod-device-architecture.md) §2.1): web to `fyolod` on Linux, web to `fyolod` on a Mac, iOS the same, **never through another viewer**. The current iOS path — the phone mirroring a Mac viewer that holds a `PTYProcess`, over `CompanionServer` + `WireProtocol` (2,092 lines) — is the shape §H #9 condemns as "a second protocol for the phone," and it is the thing being retired, not the pattern a guest should copy. Once a guest's browser is a direct client, sharing is mostly a matter of *which* client is allowed to say what.
 
 So this doc is structured as: what already carries sharing, then the three deltas, then the fourth thing that hides inside delta one.
 
@@ -42,7 +42,7 @@ Every row here is shipped mechanism. None of it is re-designed below.
 | The guest's window is a different size than the owner's | Authoritative `rows`/`cols` on `Attached` and `Resized`; the client letterboxes and never reparses at its own size | §C.5 |
 | The guest sees the current screen, not a torn replay | The JOIN barrier: one `S` at an exact boundary, then live `D` | §C.5 |
 | The guest's theme is the guest's | `palette: false` on `S`; the renderer resolves tagged colours from the viewer's palette | web-client RFC, Goal 4 |
-| The guest reaches the box over a browser-compatible pipe | Loopback WSS inside `termiod`, TLS in Tailscale Serve or Caddy, Origin allowlist | web-client RFC |
+| The guest reaches the box over a browser-compatible pipe | Loopback WSS inside `fyolod`, TLS in Tailscale Serve or Caddy, Origin allowlist | web-client RFC |
 | Guest joins and leaves without touching the session | Detach ≠ kill; channel death is detach | §C.5 |
 | The owner refuses an operation | `ErrorCode::Denied` is already in the closed vocabulary | §C.7 |
 | Multiple viewers cost the host nothing structural | Raw `D` fan-out; the VT sidecar is not per-viewer | §A anti-100× invariant |
@@ -54,7 +54,7 @@ That is the feature. What is missing is who is allowed to hold it.
 
 ## Delta 1 — a guest credential, scoped to one session
 
-The owner's `pair.token` is the wrong credential and not by a small margin: it is per-device, minted only by `termiod pair`, and scoped to **the whole daemon**. Handing a colleague a copy is not a share, it is a giveaway.
+The owner's `pair.token` is the wrong credential and not by a small margin: it is per-device, minted only by `fyolod pair`, and scoped to **the whole daemon**. Handing a colleague a copy is not a share, it is a giveaway.
 
 A guest grant is a second credential class:
 
@@ -71,13 +71,13 @@ state_dir()/guests/<sha256(token)>.json      mode 0600, dir 0700
 ```
 
 - **24 random bytes, base64url** — same shape and generator as `pair.token`. Only the hash is stored, so a `tar` of the state dir is not a pile of live shells. The cost is that a link **cannot be re-displayed**, which is correct behaviour and matches every credential UI worth copying.
-- **Presented exactly like the owner's token:** `Sec-WebSocket-Protocol: termiod.<token>`. The accept path hashes what it was given, checks `pair.token`, then the guest directory. No wire change. The page bootstraps from `https://<box>/termio/#g=<token>` (a distinct hash key so the page can render guest chrome before any frame), reads it once into `sessionStorage`, clears the hash. `?t=` / `?g=` on `/ws` stay refused.
+- **Presented exactly like the owner's token:** `Sec-WebSocket-Protocol: fyolod.<token>`. The accept path hashes what it was given, checks `pair.token`, then the guest directory. No wire change. The page bootstraps from `https://<box>/fyolo/#g=<token>` (a distinct hash key so the page can render guest chrome before any frame), reads it once into `sessionStorage`, clears the hash. `?t=` / `?g=` on `/ws` stay refused.
 - **Expiry is absolute and short.** Default 1 hour; the UI offers 1 / 8 / 24 and nothing longer. There is no "never expires".
-- **Four ways a grant dies:** expiry; the owner ends it; the session exits (the record is unlinked with the tombstone); `termiod share revoke --all`.
+- **Four ways a grant dies:** expiry; the owner ends it; the session exits (the record is unlinked with the tombstone); `fyolod share revoke --all`.
 - **Revocation is the `notify` watch the RFC already specifies** for `pair.token` rotation, pointed at `guests/` as well: on change, every splice carrying that grant closes. Detach, not kill — the session is untouched.
 - **`max_attachments` defaults to 2**, not 1. One is too strict (a reloading browser races its own closing socket); two lets the colleague reload and makes a third viewer visible as an anomaly rather than invisible as noise.
 
-`termiod share <session> [--type] [--for 1h] [--label TEXT]` mints and prints the URL once. `share list` shows label / session / may-type / expiry / live attachments, never the token. `share revoke <id> | --all` unlinks. `pair --rotate` gains one line — how many guest grants are live — because rotating the owner's token does **not** revoke guests and an operator will assume it did.
+`fyolod share <session> [--type] [--for 1h] [--label TEXT]` mints and prints the URL once. `share list` shows label / session / may-type / expiry / live attachments, never the token. `share revoke <id> | --all` unlinks. `pair --rotate` gains one line — how many guest grants are live — because rotating the owner's token does **not** revoke guests and an operator will assume it did.
 
 ## The fourth thing, and why the existing mechanism cannot carry it
 
@@ -157,7 +157,7 @@ What does **not** constrain it, so nobody plans around it: command filtering, a 
 **Recommended: Tailscale Funnel.** Tailscale's own documentation is explicit that the ingress does not decrypt: *"The Tailscale server running on your device receives the encrypted request from the TCP proxy. It then terminates the TLS connection and passes the decrypted request to the local service"*, and *"Funnel relay servers do not decrypt the traffic between public devices and your device. This ensures that Tailscale cannot access or read any content."* That is §F #4's blind pipe, built, and audited by someone else.
 
 ```sh
-tailscale funnel --bg --set-path=/termio http://127.0.0.1:8790
+tailscale funnel --bg --set-path=/fyolo http://127.0.0.1:8790
 ```
 
 Funnel listens only on 443, 8443, and 10000, and must be enabled for the tailnet in the admin console — real friction for a colleague-sharing feature inside a company, and it belongs in the docs rather than in a support thread.
@@ -169,15 +169,15 @@ Which legs see plaintext, for every option:
 | Tailscale Funnel | `tailscaled` on the box | The box and the browser only | **Recommended** |
 | The operator's own Caddy / nginx, same box | That process, same uid | The box and the browser only | Fine |
 | The operator's own `cloudflared` / tunnel | Cloudflare's edge | **Cloudflare sees plaintext** | Allowed, must be labelled |
-| A relay Termio runs | Us | **We would see plaintext** | Rejected — not built, not planned |
+| A relay Fyolo runs | Us | **We would see plaintext** | Rejected — not built, not planned |
 
 `CreateSpec.env`, `argv`, and `D` may not cross a third-party relay in the clear (§C.8). Funnel and a same-box proxy satisfy that; the `cloudflared` path does not, so the docs name it and the UI does not recommend it.
 
-**When would we actually build a relay?** Only for a user with no tailnet, no domain, and no admin rights — and only as a blind TCP pipe with a named trigger, not as part of this work. If that case gets built, the rule is fixed in advance: it forwards bytes, terminates no `hello`, holds no session state, and its existence is documented as "Termio's relay sees ciphertext only." Anything more is a control plane and is refused.
+**When would we actually build a relay?** Only for a user with no tailnet, no domain, and no admin rights — and only as a blind TCP pipe with a named trigger, not as part of this work. If that case gets built, the rule is fixed in advance: it forwards bytes, terminates no `hello`, holds no session state, and its existence is documented as "Fyolo's relay sees ciphertext only." Anything more is a control plane and is refused.
 
-**Minting a grant is not the same as making the box reachable, and the UI must never blur the two.** The daemon already knows its public origin because the operator had to declare it (`--wss-origin` / `TERMIOD_WSS_ORIGIN` is required behind any terminator), so the link's base URL **is** `--wss-origin`. No probing, no `tailscale status` shell-out, no new config. With no public origin, the sheet says so instead of handing out a `127.0.0.1` URL.
+**Minting a grant is not the same as making the box reachable, and the UI must never blur the two.** The daemon already knows its public origin because the operator had to declare it (`--wss-origin` / `FYOLOD_WSS_ORIGIN` is required behind any terminator), so the link's base URL **is** `--wss-origin`. No probing, no `tailscale status` shell-out, no new config. With no public origin, the sheet says so instead of handing out a `127.0.0.1` URL.
 
-**The page comes from the box. Always.** `index.html`, the bundle, and `ghostty-vt.wasm` are served from the box's `--web-root` or the operator's proxy in front of it. Hosting the app on termio.sh would mean whoever controls termio.sh controls the code inside every shared session — a supply-chain hole for a shorter URL. termio.sh documents the feature; it never serves it.
+**The page comes from the box. Always.** `index.html`, the bundle, and `ghostty-vt.wasm` are served from the box's `--web-root` or the operator's proxy in front of it. Hosting the app on fyolo.sh would mean whoever controls fyolo.sh controls the code inside every shared session — a supply-chain hole for a shorter URL. fyolo.sh documents the feature; it never serves it.
 
 **Funnel publishes the box's `ts.net` hostname**, including into certificate-transparency logs. Anyone who reaches the URL gets the static page and never a session (an unauthenticated Upgrade gets silence and a short close). Name that before someone finds it in a CT feed.
 
@@ -205,7 +205,7 @@ Close Session
 
 `Group with`, `Ungroup`, and `Close Session` keep their exact wording. "Close Pane" and "Unsplit" stay dead.
 
-**The item exists only for a termiod-hosted session** (`Session.termiodRemoteHost`, or a local termiod host). A grant is minted and enforced by a daemon; an in-app PTY has no daemon and nothing to mint. That is a real limit of the feature, not a temporary gap.
+**The item exists only for a fyolod-hosted session** (`Session.fyolodRemoteHost`, or a local fyolod host). A grant is minted and enforced by a daemon; an in-app PTY has no daemon and nothing to mint. That is a real limit of the feature, not a temporary gap.
 
 ### The sheet
 
@@ -224,7 +224,7 @@ One sheet, two controls, one button. The subtext says what the control does; the
 
 After minting:
 
-> **Copy Link** — `https://box.tailnet.ts.net/termio/#g=…`
+> **Copy Link** — `https://box.tailnet.ts.net/fyolo/#g=…`
 >
 > This link is shown once. If you lose it, create a new one — the old link stops working.
 
@@ -252,7 +252,7 @@ Three of the four things an owner wants are already on the wire:
 
 - **How many attachments** — `SessionInfo.attached_clients`.
 - **Who holds input** — `SessionInfo.writer_client_id`, plus `Event::WriterChanged` on every handover.
-- **What the client says it is** — `Hello.client`, the string every client already sends (`"termio-web/0.1.0"`); the guest page can carry the grant's label there so the row reads as the invitation.
+- **What the client says it is** — `Hello.client`, the string every client already sends (`"fyolo-web/0.1.0"`); the guest page can carry the grant's label there so the row reads as the invitation.
 
 **The fourth — "who is attached, from where, and when they left" — the wire cannot answer today, and this is a correction to the premise.** `attached_clients` is a **count**: `session.rs:337` computes it as `self.clients.len()`. `ClientEntry` (`session.rs:227`) stores no name, no attach time, and no peer address. And there is no `client_name` field — `Control::Hello` carries `client: String`, a user-agent string. So the wire can say "2 attached, `c_41` can type" and cannot say "joined 14:02 from 203.0.113.4".
 
@@ -267,7 +267,7 @@ Recommendation: ship (2), and do not add a per-attachment identity list until so
 
 ## The strategic payoff — does it hold?
 
-The claim: making the browser a direct client of `termiod` is what lets the companion wire be deleted, because the phone then takes the same path.
+The claim: making the browser a direct client of `fyolod` is what lets the companion wire be deleted, because the phone then takes the same path.
 
 **It holds, with one correction and one addition.**
 
@@ -275,7 +275,7 @@ The claim: making the browser a direct client of `termiod` is what lets the comp
 
 **The addition: what is left over is not the panes.** Mapping `WireProtocol.swift`'s vocabulary against `protocol.rs`:
 
-| Companion wire | termiod equivalent | Carried? |
+| Companion wire | fyolod equivalent | Carried? |
 | --- | --- | --- |
 | `auth(token, wire)` | `hello` + `pair.token` | ✅ |
 | `attach`, `resize`, `stop`, `exit` | `attach`, `R`, `kill`, `Event::SessionExited` | ✅ |
@@ -290,7 +290,7 @@ The claim: making the browser a direct client of `termiod` is what lets the comp
 
 So ~90% of the companion wire is already redundant. What blocks deletion is device-level, not pane-level:
 
-1. **Discovery** — "which `termiod`, at what address?" The phone currently reads the Mac's `~/.ssh/config` through the wire. The session protocol deliberately has no opinion about this; device architecture parks it under discovery providers. A phone that dials boxes directly needs it.
+1. **Discovery** — "which `fyolod`, at what address?" The phone currently reads the Mac's `~/.ssh/config` through the wire. The session protocol deliberately has no opinion about this; device architecture parks it under discovery providers. A phone that dials boxes directly needs it.
 2. **Per-device credentials and reachability on the phone.** Today there is one pairing and one tunnel, both Mac-shaped. Direct means N boxes, N credentials, N reachability stories — and a box behind a NAT with no tailnet is the same problem as delta 2, for the owner instead of a guest.
 3. **Two presentation-boundary violations to unwind** — `readFile(dark:)` and `trace → traceHTML`. Both must become client-side rendering, which is work in the iOS app, not in the protocol.
 
@@ -326,17 +326,17 @@ For "look at what my agent did," the transcript is the *better* answer — no sh
 
 ## Alternatives considered
 
-**A. `termiod pair --guest` — just mint another pairing token.** Rejected: a pairing token's scope is the whole daemon, so this is a shell on every session plus the file and git planes. The scope is the entire feature.
+**A. `fyolod pair --guest` — just mint another pairing token.** Rejected: a pairing token's scope is the whole daemon, so this is a shell on every session plus the file and git planes. The scope is the entire feature.
 
 **B. Share a workspace instead of a session.** Rejected for v1: multiplies the blast radius by the session count and pulls the file and git planes into the guest ACL. If ever wanted, it is a second grant kind with its own ACL row, not a widening of this one.
 
 **C. Enforce the ACL in the WSS splice.** Rejected: puts session semantics in the pipe the RFC keeps dumb and duplicates the op vocabulary where it will drift.
 
-**D. A relay Termio runs.** Rejected: a hosted control plane, plaintext `D` and `env` on our machines, and the end of the only trust story that survives giving an agent shell access to a private repo. Funnel already does the blind-pipe job.
+**D. A relay Fyolo runs.** Rejected: a hosted control plane, plaintext `D` and `env` on our machines, and the end of the only trust story that survives giving an agent shell access to a private repo. Funnel already does the blind-pipe job.
 
-**E. Host the guest page on termio.sh.** Rejected: whoever controls termio.sh would control the code inside every shared session.
+**E. Host the guest page on fyolo.sh.** Rejected: whoever controls fyolo.sh would control the code inside every shared session.
 
-**F. A time-limited SSH credential for the colleague.** Genuinely secure and genuinely standard, and rejected as *the product* because it requires the colleague to have a key, a client, and the willingness to use them — the audience this feature does not have. It also means Termio touching key material, next door to the custody line §F #2(b) refuses. An owner who *can* do this should, and the docs say so.
+**F. A time-limited SSH credential for the colleague.** Genuinely secure and genuinely standard, and rejected as *the product* because it requires the colleague to have a key, a client, and the willingness to use them — the audience this feature does not have. It also means Fyolo touching key material, next door to the custody line §F #2(b) refuses. An owner who *can* do this should, and the docs say so.
 
 **G. CRDT or multi-caret typing.** Rejected in §H #5, not reopened.
 
@@ -357,7 +357,7 @@ For "look at what my agent did," the transcript is the *better* answer — no sh
 | Revoked guest reconnects in a loop | Low | Rejected Upgrade is a terminal state in the page, distinct from a transport retry |
 | Guest token in a proxy log | High | Subprotocol only, never a query string; `#g=` read once and cleared; hours, not months |
 | Grant leaks from the state dir | Medium | Only `sha256(token)` stored; `0600` in a `0700` dir |
-| Third-party relay reads `D` / `env` | High | Funnel does not decrypt (vendor-documented); same-box proxy is user-owned; `cloudflared` labelled; no Termio relay exists |
+| Third-party relay reads `D` / `env` | High | Funnel does not decrypt (vendor-documented); same-box proxy is user-owned; `cloudflared` labelled; no Fyolo relay exists |
 | Funnel publishes the box's hostname | Low | Named. Unauthenticated Upgrades get silence; the static page carries no secret |
 | Owner assumes `pair --rotate` revoked the guests | Medium | It does not. `pair --rotate` prints the live grant count; `share revoke --all` is the verb |
 | A daemon without the guest gate honours a grant | High | Impossible by construction: one process reads and enforces, and a build without the gate refuses to mint |
@@ -368,12 +368,12 @@ Threat model in one sentence: **possession of a guest link is, for its lifetime,
 
 ## PR plan
 
-Nothing starts before the web-client RFC's PR 1–4 are in. Each PR leaves `termiod` useful if the next never lands.
+Nothing starts before the web-client RFC's PR 1–4 are in. Each PR leaves `fyolod` useful if the next never lands.
 
 | # | PR | What lands | Done when |
 | --- | --- | --- | --- |
 | 1 | **`AuthContext` seam** (the fourth thing) | `handle_conn` takes a stream generically plus an `AuthContext`; Unix, SSH, and owner-token WSS all pass `Owner`; no behaviour change | `stdio_bridge.rs`, `wss_bridge.rs`, `join_invariant.rs` green with no edits beyond the call signature |
-| 2 | **Grants + the guest gate** | `guests/` directory, `termiod share` / `list` / `revoke`, hash lookup in the accept path, `notify` watch, default-deny op match, `scrollback` refused, `max_attachments` | A guest attaches observe and nothing else: another session, `fs_read`, `git_diff`, `create`, `send` all answer `denied`; no `H` arrives; revoke closes the splice; an expired grant is refused at Upgrade |
+| 2 | **Grants + the guest gate** | `guests/` directory, `fyolod share` / `list` / `revoke`, hash lookup in the accept path, `notify` watch, default-deny op match, `scrollback` refused, `max_attachments` | A guest attaches observe and nothing else: another session, `fs_read`, `git_diff`, `create`, `send` all answer `denied`; no `H` arrives; revoke closes the splice; an expired grant is refused at Upgrade |
 | 3 | **Typing grants** | `may_type`, `interact` gated on it, live demotion when the flag clears | Guest claims the token and `writer_changed` reaches the owner; the owner's re-claim takes it back; clearing the flag demotes a live guest |
 | 4 | **Guest chrome in the web client** | `#g=` bootstrap, no session list, Take input only when granted, two distinct end-states | A revoked grant shows the ended state and does not retry; a transport drop does |
 | 5 | **The Mac sidebar** | Row menu item, sheet, one-time link display, guest badge, *Take Input Back*, *End Guest Access* | Minting from the sidebar produces a link that opens on another machine; the badge appears and clears; `review-copy` passes on every string |
@@ -426,16 +426,16 @@ Not in scope, named so nobody re-derives them: a workspace-level grant, guest ac
 
 ## References
 
-- [Termiod web client on official Ghostty WASM](20260818-termiod-web-client-ghostty-wasm.md) — the WSS binding, the pairing token, the Origin algorithm, observe/interact attach, `--web-root`, the renderer and theme rules the guest page inherits
-- [termiod Session Protocol](20260730-termiod-session-protocol.md) — §C.5 writer policy, JOIN barrier, authoritative dims; §C.7 `denied`; §C.8 security-sensitive fields; §C.12 file plane; §C.13 `git:` resource; §F #3 sharing ACL; §F #4 relay-as-blind-pipe; §H #5 no CRDT; §H #8 no embedded crypto; §H #9 no second protocol for the phone; Top-5 #2 the sharing product call
-- [Device architecture](20260805-termiod-device-architecture.md) §2.1 — every UI is a client of the device that owns the session; the presentation boundary
+- [Fyolod web client on official Ghostty WASM](20260818-fyolod-web-client-ghostty-wasm.md) — the WSS binding, the pairing token, the Origin algorithm, observe/interact attach, `--web-root`, the renderer and theme rules the guest page inherits
+- [fyolod Session Protocol](20260730-fyolod-session-protocol.md) — §C.5 writer policy, JOIN barrier, authoritative dims; §C.7 `denied`; §C.8 security-sensitive fields; §C.12 file plane; §C.13 `git:` resource; §F #3 sharing ACL; §F #4 relay-as-blind-pipe; §H #5 no CRDT; §H #8 no embedded crypto; §H #9 no second protocol for the phone; Top-5 #2 the sharing product call
+- [Device architecture](20260805-fyolod-device-architecture.md) §2.1 — every UI is a client of the device that owns the session; the presentation boundary
 - [Share an agent session (transcript link)](20260628-session-share.md) — the other "share": a rendered transcript on a server we would run, read-only, not this
-- `termiod/src/protocol.rs` — `Control::Hello { client }` (no `client_name`), `Attach { mode }`, `SessionInfo { attached_clients, writer_client_id }`, `Event::WriterChanged`, `ErrorCode::Denied`, `FsList` / `GitDiff` / `UploadOpen`
-- `termiod/src/session.rs` — `info()` (`attached_clients` is `clients.len()`), `ClientEntry` (no name, no attach time, no peer), `recompute_writer`, `emit_writer_changed`, `SCROLLBACK_STAGE_MAX_BYTES`
-- `termiod/src/daemon.rs` — `serve`, `handle_conn`, `run_attach`
-- `Shared/Sources/TermioShared/WireProtocol.swift` (747 lines) + `Sources/termio/Companion/CompanionServer.swift` (1,345) — the second protocol this work retires; op-by-op mapping above
-- `Sources/termio/Sidebar/SidebarView.swift` — `SessionRow.menuItems`, the row menu this feature joins
-- `Sources/termio/App/Models.swift` — `Session.termiodRemoteHost`, `termiodSessionName`
+- `fyolod/src/protocol.rs` — `Control::Hello { client }` (no `client_name`), `Attach { mode }`, `SessionInfo { attached_clients, writer_client_id }`, `Event::WriterChanged`, `ErrorCode::Denied`, `FsList` / `GitDiff` / `UploadOpen`
+- `fyolod/src/session.rs` — `info()` (`attached_clients` is `clients.len()`), `ClientEntry` (no name, no attach time, no peer), `recompute_writer`, `emit_writer_changed`, `SCROLLBACK_STAGE_MAX_BYTES`
+- `fyolod/src/daemon.rs` — `serve`, `handle_conn`, `run_attach`
+- `Shared/Sources/FyoloShared/WireProtocol.swift` (747 lines) + `Sources/fyolo/Companion/CompanionServer.swift` (1,345) — the second protocol this work retires; op-by-op mapping above
+- `Sources/fyolo/Sidebar/SidebarView.swift` — `SessionRow.menuItems`, the row menu this feature joins
+- `Sources/fyolo/App/Models.swift` — `Session.fyolodRemoteHost`, `fyolodSessionName`
 - [Tailscale Funnel](https://tailscale.com/kb/1223/funnel) — TLS terminated on the node, relay servers do not decrypt, ports 443 / 8443 / 10000
 - [tmate](https://tmate.io) — read-only and read-write session URLs; vendor-run relay, self-hostable
 - `VOICE.md` — the register for every string above; run `review-copy` before shipping any of them

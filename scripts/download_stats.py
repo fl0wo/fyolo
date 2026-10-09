@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Daily termio download / active-user stats from Cloudflare + Telegram digest.
+"""Daily fyolo download / active-user stats from Cloudflare + Telegram digest.
 
-Pulls yesterday's numbers for downloads.termio.sh straight from Cloudflare's
+Pulls yesterday's numbers for downloads.fyolo.sh straight from Cloudflare's
 GraphQL Analytics API (no third-party analytics, no in-app SDK), appends them to
 a CSV ledger, and posts a digest to Telegram.
 
@@ -10,8 +10,8 @@ so "total downloads since launch" can't be fetched retroactively — it has to b
 accumulated one day at a time from the day tracking starts.
 
 Env:
-  CF_ANALYTICS_TOKEN  Cloudflare API token with Zone > Analytics > Read on termio.sh
-  CF_ZONE_ID          termio.sh zone id
+  CF_ANALYTICS_TOKEN  Cloudflare API token with Zone > Analytics > Read on fyolo.sh
+  CF_ZONE_ID          fyolo.sh zone id
   TELEGRAM_BOT_TOKEN  bot token from @BotFather   (optional; skips send if unset)
   TELEGRAM_CHAT_ID    chat id to post to          (optional; skips send if unset)
 
@@ -26,7 +26,7 @@ import os
 import sys
 import urllib.request
 
-HOST = "downloads.termio.sh"
+HOST = "downloads.fyolo.sh"
 GRAPHQL = "https://api.cloudflare.com/client/v4/graphql"
 
 
@@ -80,7 +80,7 @@ def collect(token, zone, date):
 
     dmg_rows = gql(
         token, zone, since, until,
-        {"clientRequestPath_like": "%termio.dmg", "edgeResponseStatus": 200},
+        {"clientRequestPath_like": "%fyolo.dmg", "edgeResponseStatus": 200},
         "count",
     )
     dmg = dmg_rows[0]["count"] if dmg_rows else 0
@@ -169,7 +169,7 @@ def main():
     total, days = upsert_csv(args.csv, row)
 
     msg = (
-        f"📊 *termio* — {date} (UTC)\n"
+        f"📊 *fyolo* — {date} (UTC)\n"
         f"⬇️ Downloads: *{row['dmg_downloads']}*  ·  总计 *{total}* ({days}d)\n"
         f"👥 Active Macs: *{row['active_macs_day']}* today · "
         f"*{row['active_macs_week']}* this week\n"

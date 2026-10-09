@@ -4,7 +4,7 @@ import { OrchestrationDemo } from "@/components/sections/orchestration-demo";
 
 // The orchestration API — the machinery behind the hero's "orchestrate your
 // fleet" claim. Copy and the terminal transcript mirror the real CLI surface
-// (scripts/termio + /docs/session-control); nothing here is aspirational.
+// (scripts/fyolo + /docs/session-control); nothing here is aspirational.
 //
 // Layout: one bg-card article holding heading, demo, and docs link — the same
 // single-surface shape as the agent showcase, so adjacent sections match.
@@ -18,7 +18,7 @@ export function Orchestration() {
               Agents driving agents
             </h2>
             <p className="mt-5 max-w-lg text-balance text-base leading-relaxed text-muted-foreground">
-              The <code className="font-mono text-[0.92em]">termio sessions</code>{" "}
+              The <code className="font-mono text-[0.92em]">fyolo sessions</code>{" "}
               CLI turns the fleet into an API: any agent — or your own scripts —
               can start siblings, answer their prompts, and supervise the whole
               project without touching a GUI.

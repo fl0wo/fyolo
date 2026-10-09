@@ -11,18 +11,18 @@ updated: 2026-07-03
 > **BACKLOG（暂不实现）**：方向已认可，但短期不做。这里是已对齐的设计存档，
 > 待日后排期再启动。当前主线是 `20260628-session-share.md`。
 >
-> 目标：把 Termio 从「一次性终端」升级成「有记忆的 agent 工作台」。
+> 目标：把 Fyolo 从「一次性终端」升级成「有记忆的 agent 工作台」。
 > 用户能**搜索自己跑过的会话** →**点击** →在**新 pane 里恢复**接着聊。
 >
-> 竞品参考：`jazzyalex/agent-sessions`（只读事后查看器）。Termio 拥有 PTY，
+> 竞品参考：`jazzyalex/agent-sessions`（只读事后查看器）。Fyolo 拥有 PTY，
 > 所以 resume 是原生开 pane，且会话↔文件映射可做到**精确**而非启发式。
 
 ---
 
-## 一、定位：Termio 不做档案馆，只做「自己会话的记忆」
+## 一、定位：Fyolo 不做档案馆，只做「自己会话的记忆」
 
 agent-sessions 一半的功能（跨 10+ agent 统一库、归档抢救、iTerm2 探测、图片库、
-活动热力图）来自「它不拥有终端、只能事后扒陌生文件」。Termio 拥有 PTY，**只索引自己
+活动热力图）来自「它不拥有终端、只能事后扒陌生文件」。Fyolo 拥有 PTY，**只索引自己
 启动的会话**——语料小、映射准、不漂移成另一个产品。
 
 **明确不做**：跨 agent 统一浏览器、归档抢救、boolean/`repo:`/`path:` 搜索引擎、
@@ -32,8 +32,8 @@ agent-sessions 一半的功能（跨 10+ agent 统一库、归档抢救、iTerm2
 
 ## 二、地基：spawn 时就记下 `session_id`（四个功能共用）
 
-这是 Termio 相对 agent-sessions 的**结构性王牌**。对方只能按「cwd + 最新文件」逆向猜，
-会猜错；Termio 是自己 spawn 的 agent，应在**启动那一刻**把 agent 的 session id 绑死到
+这是 Fyolo 相对 agent-sessions 的**结构性王牌**。对方只能按「cwd + 最新文件」逆向猜，
+会猜错；Fyolo 是自己 spawn 的 agent，应在**启动那一刻**把 agent 的 session id 绑死到
 `Session` 上。
 
 - `Models.swift` 的 `Session`（`Models.swift:193`）加字段：
@@ -44,7 +44,7 @@ agent-sessions 一半的功能（跨 10+ agent 统一库、归档抢救、iTerm2
   /// Nil for a plain shell, or before the agent has written its first line.
   var agentSessionID: String?
   ```
-- 回填机制（`TermioStore`）：agent pane 启动后，在该 agent 目录下找「cwd 匹配本 session
+- 回填机制（`FyoloStore`）：agent pane 启动后，在该 agent 目录下找「cwd 匹配本 session
   且创建时间晚于本 pane 启动」的最新 transcript，读出 id：
   - Codex：`~/.codex/sessions/**/rollout-*.jsonl` 首行 `session_meta.payload.session_id`。
   - Claude：`~/.claude/projects/<dashified-cwd>/<sessionId>.jsonl` 的 `sessionId`。
@@ -70,7 +70,7 @@ agent-sessions 一半的功能（跨 10+ agent 统一库、归档抢救、iTerm2
 ## 四、搜索：substring + 三个 filter，别造引擎
 
 - **不**照抄 agent-sessions 的两阶段渐进引擎 / 15min 渲染缓存 / 操作符语法——那是为
-  「海量陌生历史」造的。Termio 语料小。
+  「海量陌生历史」造的。Fyolo 语料小。
 - 搜索对象：把 transcript 经**与 Share 同一套 parser** 渲成纯文本后做大小写不敏感
   substring（避免在原始 JSON 上误命中 markup）。
 - filter：project / agent / 日期范围。就这三个。
@@ -81,7 +81,7 @@ agent-sessions 一半的功能（跨 10+ agent 统一库、归档抢救、iTerm2
 
 ## 五、恢复：原生开 pane，自动尝试 + 失败兜底复制命令
 
-Termio 的优势：不需要把命令塞进外挂终端，**直接在 Termio 里新开一个 pane** 跑恢复命令
+Fyolo 的优势：不需要把命令塞进外挂终端，**直接在 Fyolo 里新开一个 pane** 跑恢复命令
 （复用 `TerminalController` builder 的 `command` 注入，见 `CLAUDE.md` 的 libghostty 说明）。
 
 ### 5.1 每 agent 的 resume 命令（`ResumeCommandBuilder`）
@@ -137,7 +137,7 @@ Codex + Claude。
 
 ## 八、落地顺序
 
-1. **`agentSessionID` 采集**（`Session` 加字段 + `TermioStore` 回填）——所有功能的地基，
+1. **`agentSessionID` 采集**（`Session` 加字段 + `FyoloStore` 回填）——所有功能的地基，
    先做，且 Share 也立刻受益。
 2. **ResumeCommandBuilder + 新 pane 恢复 + 兜底复制命令**（先 Codex + Claude）。
 3. **SessionHistoryIndex + 侧栏 History 分组**（先列表、点击恢复）。
@@ -147,7 +147,7 @@ Codex + Claude。
 
 ## 九、明确不做（与 §一呼应，落到清单）
 
-- ❌ 扫描 / 索引 Termio 之外跑的历史会话（不全盘扫 `~/.codex`、`~/.claude`）。
+- ❌ 扫描 / 索引 Fyolo 之外跑的历史会话（不全盘扫 `~/.codex`、`~/.claude`）。
 - ❌ boolean / 字段操作符 / 渐进搜索引擎。
 - ❌ 跨 10+ agent 统一库、归档抢救、图片库、活动分析、git inspector。
-- ❌ 在外挂终端（iTerm2/Warp）里恢复——Termio 自己就是终端。
+- ❌ 在外挂终端（iTerm2/Warp）里恢复——Fyolo 自己就是终端。

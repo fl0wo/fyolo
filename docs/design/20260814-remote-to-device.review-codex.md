@@ -21,8 +21,8 @@ unresolved choice between plain SSH and device sessions. Those are the same
 two-copies failure at different layers.
 
 The most serious defect is staging. The settled architecture requires a durable
-connection object, deletion of the `TERMIO_TERMIOD` fork, and only then a device
-switcher (`20260805-termiod-device-architecture.md:513-531`). This RFC
+connection object, deletion of the `FYOLO_FYOLOD` fork, and only then a device
+switcher (`20260805-fyolod-device-architecture.md:513-531`). This RFC
 starts with the switcher, calls that stage client-only, and omits deletion of the
 flag (`docs/design/20260814-remote-to-device.md:163-176`). That ordering cannot produce a
 truthful current-device UI.
@@ -31,10 +31,10 @@ truthful current-device UI.
 
 | First copy | Second copy | Failure |
 | --- | --- | --- |
-| Live SSH routes from `~/.ssh/config` | Typed `user@host` targets persisted under Settings ▸ Devices | A port, jump host, username, or removal can change in the authoritative file while termio keeps using its own target. |
+| Live SSH routes from `~/.ssh/config` | Typed `user@host` targets persisted under Settings ▸ Devices | A port, jump host, username, or removal can change in the authoritative file while fyolo keeps using its own target. |
 | The selected/focused session | An independent “current device” | The terminal can be on device B while the panels, title bar, and creation commands still claim device A. |
 | The sidebar switcher | A device submenu under New Terminal | There are two places to choose the target, and no rule says which choice updates the other. |
-| `New SSH Connection` and saved `Session.sshHost` state | `Connect to…` and a durable termiod device session | The same machine still has two terminal products unless the RFC explicitly removes, converts, or scopes plain SSH. |
+| `New SSH Connection` and saved `Session.sshHost` state | `Connect to…` and a durable fyolod device session | The same machine still has two terminal products unless the RFC explicitly removes, converts, or scopes plain SSH. |
 | A learned device row | An unresolved SSH alias row | A second alias for an already-known device appears as another machine until its first handshake. That temporary ambiguity is inherent in the settled bootstrap identity, but the UI currently pretends the two lists are disjoint. |
 
 The alias plus `deviceID` model is not the problem; that coexistence is settled.
@@ -44,31 +44,31 @@ The problem is promoting both sides into independent user-facing authorities.
 
 ### 1. The ownership test is false, and it selects the wrong authority
 
-“Did termio produce this state itself?” (`docs/design/20260814-remote-to-device.md:53-63`)
+“Did fyolo produce this state itself?” (`docs/design/20260814-remote-to-device.md:53-63`)
 does not classify the RFC’s own table:
 
 - The user produces a display name and colour choice.
-- `termiod` produces its version.
+- `fyolod` produces its version.
 - The user produces a typed `user@host` target.
 - A probe observes readiness; it does not produce it.
 
 Provenance is not authority. The useful split is narrower: SSH route
 configuration belongs to `~/.ssh/config`; handshake observations belong to the
 device registry; viewer presentation preferences belong to the viewer; device
-state belongs to `termiod`.
+state belongs to `fyolod`.
 
 The typed-target row is therefore an architectural violation, not an exception.
 A `user@host` value is an SSH route. Persisting it in Settings creates the host
 database that `CLAUDE.md:42-44` forbids. “It cannot be written to
-`~/.ssh/config`” does not make termio its owner (`docs/design/20260814-remote-to-device.md:71`);
+`~/.ssh/config`” does not make fyolo its owner (`docs/design/20260814-remote-to-device.md:71`);
 it means the target must remain ephemeral or the design needs an explicit,
 user-authored route mechanism consistent with the settled read-only rule.
 
-There is already a second-copy hazard in the learned map. A `TermiodDevice`
+There is already a second-copy hazard in the learned map. A `FyolodDevice`
 persists routes while deliberately refusing to persist reachability
-(`Sources/termio/Terminal/Termiod/TermiodDevice.swift:71-79`), and the registry
+(`Sources/fyolo/Terminal/Fyolod/FyolodDevice.swift:71-79`), and the registry
 loads those routes back as candidates
-(`Sources/termio/Terminal/Termiod/TermiodDevice.swift:167-203`). That observation
+(`Sources/fyolo/Terminal/Fyolod/FyolodDevice.swift:167-203`). That observation
 cache is valid. Treating a cached alias as an actionable route after it has been
 removed or changed in `~/.ssh/config` is not. The RFC must say that every SSH
 route is revalidated against the live config before selection or connection.
@@ -85,9 +85,9 @@ defines what happens when the user clicks a session on another device.
 
 Today there is one focus authority. Changing `selectedSessionID` saves and
 restores that session’s inspector state
-(`Sources/termio/TermioStore/TermioStore.swift:22-49`), and the file, search, and
+(`Sources/fyolo/FyoloStore/FyoloStore.swift:22-49`), and the file, search, and
 git root derives from the selected session
-(`Sources/termio/TermioStore/TermioStore.swift:391-410`). The proposed model has
+(`Sources/fyolo/FyoloStore/FyoloStore.swift:391-410`). The proposed model has
 two incompatible outcomes:
 
 - If selecting a session on device B leaves current device A unchanged, the
@@ -115,30 +115,30 @@ cross-device list with a device column, then says the attention badge avoids
 The companion design deliberately orders the work as:
 
 1. own connection health and reconnect per device;
-2. delete the backend fork, including `TERMIO_TERMIOD`;
+2. delete the backend fork, including `FYOLO_FYOLOD`;
 3. add the switcher, reading readiness from that connection object.
 
 That order is explicit at
-`20260805-termiod-device-architecture.md:513-531`. The RFC reverses
+`20260805-fyolod-device-architecture.md:513-531`. The RFC reverses
 it. Stage 1 adds the switcher and single-device collapse as a client-only change;
 the flag is absent from every stage (`docs/design/20260814-remote-to-device.md:163-176`).
 
-The current source still has two execution paths. `Termiod.isEnabled` reads
-`TERMIO_TERMIOD` (`Sources/termio/Terminal/Termiod/TermiodClient.swift:17-20`),
-and surface creation chooses termiod or an in-process `PTYProcess`
-(`Sources/termio/TermioStore/TermioStore+TerminalSurface.swift:214-231`). With
+The current source still has two execution paths. `Fyolod.isEnabled` reads
+`FYOLO_FYOLOD` (`Sources/fyolo/Terminal/Fyolod/FyolodClient.swift:17-20`),
+and surface creation chooses fyolod or an in-process `PTYProcess`
+(`Sources/fyolo/FyoloStore/FyoloStore+TerminalSurface.swift:214-231`). With
 the flag off, `New Terminal` cannot open on a non-local current device at all;
 the durable-device action currently stops with an alert
-(`Sources/termio/Terminal/Termiod/TermioStore+Termiod.swift:205-241`). A switcher
+(`Sources/fyolo/Terminal/Fyolod/FyoloStore+Fyolod.swift:205-241`). A switcher
 above that fork is cosmetic fiction.
 
 Retiring the flag is not a rename. It changes the execution path of every
 session and makes the daemon a release-critical dependency. The current fallback
 daemon path points into the working tree unless an environment variable overrides
-it (`Sources/termio/Terminal/Termiod/TermiodClient.swift:55-63`), while the
+it (`Sources/fyolo/Terminal/Fyolod/FyolodClient.swift:55-63`), while the
 architecture records that the launchd service is never installed automatically
 and that Linux lifecycle work is incomplete
-(`20260805-termiod-device-architecture.md:502-512`). Packaging,
+(`20260805-fyolod-device-architecture.md:502-512`). Packaging,
 installation, startup failure, upgrade rollback, old-session adoption, and the
 removal of the in-process fallback need their own stage and release criteria
 before the UI claims there is one path.
@@ -148,17 +148,17 @@ before the UI claims there is one path.
 The data-model table says `Session.sshHost` is removed and “such a session is a
 device session” (`docs/design/20260814-remote-to-device.md:153-161`). The vocabulary and
 staging sections never say what happens to the shipped `New SSH Connection`
-command. Today that command is separate from the durable termiod action
-(`Sources/termio/App/App.swift:2127-2133`), and `Session.sshHost` specifically
+command. Today that command is separate from the durable fyolod action
+(`Sources/fyolo/App/App.swift:2127-2133`), and `Session.sshHost` specifically
 means a local PTY running plain `ssh`
-(`Sources/termio/App/Models.swift:290-311`).
+(`Sources/fyolo/App/Models.swift:290-311`).
 
 Every outcome has a product consequence that needs a decision:
 
-- Keep it: the local/device fork survives as plain SSH versus termiod.
+- Keep it: the local/device fork survives as plain SSH versus fyolod.
 - Convert it: clicking a familiar SSH verb can now install software and create a
   durable server-side session.
-- Remove it: termio loses the escape hatch for a machine where `termiod` cannot
+- Remove it: fyolo loses the escape hatch for a machine where `fyolod` cannot
   be installed or negotiated.
 
 Tolerant decoding only keeps old JSON readable. It does not define what a saved
@@ -172,15 +172,15 @@ have no valid route, an SSH alias can fail before handshake, an existing
 connection can be reconnecting, and a daemon can be incompatible or absent.
 Those states have different safe actions.
 
-The architecture already requires a `TermiodConnection` that owns a coherent
+The architecture already requires a `FyolodConnection` that owns a coherent
 “reachable / degraded / gone” state
-(`20260805-termiod-device-architecture.md:395-411`) and says the
+(`20260805-fyolod-device-architecture.md:395-411`) and says the
 switcher must consume it. The current registry cannot substitute: `lastSeen` is
 intentionally cleared on launch so persisted data never claims current
-reachability (`Sources/termio/Terminal/Termiod/TermiodDevice.swift:71-79`). The
+reachability (`Sources/fyolo/Terminal/Fyolod/FyolodDevice.swift:71-79`). The
 current startup check also probes only this Mac, specifically to avoid an SSH
 round trip to every known route
-(`Sources/termio/Terminal/Termiod/TermioStore+Termiod.swift:155-164`).
+(`Sources/fyolo/Terminal/Fyolod/FyoloStore+Fyolod.swift:155-164`).
 
 The RFC must define at least what the user sees and can do when the current
 device becomes unreachable, what happens to already-visible sessions and panels,
@@ -201,7 +201,7 @@ switcher.
 ### 6. Literal single-device collapse hides the only recovery surface
 
 “No indicator, no submenu, no Settings tab”
-(`docs/design/20260814-remote-to-device.md:108-112`) is too strong once termiod is the only
+(`docs/design/20260814-remote-to-device.md:108-112`) is too strong once fyolod is the only
 PTY owner. A one-device user is the user most likely to have no alternative when
 the local daemon fails. Hiding Devices also hides the RFC’s only home for install
 status, version, and device-scoped maintenance
@@ -223,7 +223,7 @@ stated guarantee that the same machine keeps the same colour. The settled
 architecture says the identifier belongs to one daemon installation/socket:
 the dev and release channels on one Mac are two devices, and a changed `TMPDIR`
 can mint a new identity
-(`20260805-termiod-device-architecture.md:561-576`). A reinstallation
+(`20260805-fyolod-device-architecture.md:561-576`). A reinstallation
 can therefore change the colour of the same hardware; a cloned identifier gives
 two machines the same colour at exactly the moment they most need distinction.
 That follows from the settled identity decision and does not reopen it.
@@ -248,13 +248,13 @@ remain authoritative.
 
 The presentation boundary says the host cannot resolve viewer presentation. It
 does not say which parts of a viewer may use colour
-(`20260805-termiod-device-architecture.md:272-309`). “Chrome only” is
+(`20260805-fyolod-device-architecture.md:272-309`). “Chrome only” is
 a client design choice, not an architectural consequence.
 
 Keeping device colour out of the terminal grid is still correct. The terminal
 palette belongs to the selected theme, and the existing title bar is deliberately
 the terminal background so it joins the grid without a seam
-(`Sources/termio/App/App.swift:629-657`). The title bar is therefore not a free
+(`Sources/fyolo/App/App.swift:629-657`). The title bar is therefore not a free
 piece of chrome to tint. A device-coloured title bar would either break that
 shipped convention or mislabel a focused session when current device and focus
 diverge. A global sidebar tint is also wrong because the sidebar remains
@@ -263,7 +263,7 @@ cross-device.
 The claimed repo-wide ban on accent-coloured control backgrounds is not an
 invariant. The app strips AppKit’s saturated blue selection, but its themed
 sidebar intentionally uses an accent-tinted selected-row fill
-(`Sources/termio/Sidebar/SidebarView.swift:1318-1371`). The “neutral rather than
+(`Sources/fyolo/Sidebar/SidebarView.swift:1318-1371`). The “neutral rather than
 accent-coloured controls” sentence in `20260812-agent-plugins.md:176-187` is
 the grammar of that Settings tab, not a global rule.
 
@@ -280,12 +280,12 @@ whether to confirm from the action’s reversibility and scope. Network location
 can correlate with risk: a local delete goes to Trash, while a device request may
 have no recoverable trash operation.
 
-The `rm -rf` comparison misses the RFC’s examples. termio cannot interpret every
+The `rm -rf` comparison misses the RFC’s examples. fyolo cannot interpret every
 shell command, but it does own Close Session and file deletion. The shipped local
 file action already confirms and moves the item to Trash
-(`Sources/termio/FileBrowser/FileBrowserView.swift:578-593`). Close Session also
+(`Sources/fyolo/FileBrowser/FileBrowserView.swift:578-593`). Close Session also
 confirms when a plain shell has a foreground job
-(`Sources/termio/TermioStore/TermioStore+ProjectActions.swift:658-691`). The
+(`Sources/fyolo/FyoloStore/FyoloStore+ProjectActions.swift:658-691`). The
 existing convention is “confirm known loss,” not “never confirm local actions.”
 
 Your rejection does survive in two narrower forms:
@@ -300,7 +300,7 @@ Your rejection does survive in two narrower forms:
 Typed device names are especially weak because names are mutable and need not be
 unique; hold-to-confirm is undiscoverable and input-device-dependent. A normal
 confirmation that names the device and the irreversible consequence remains
-defensible for Forget Device, uninstalling termiod with live sessions, permanent
+defensible for Forget Device, uninstalling fyolod with live sessions, permanent
 file deletion, and other device-scoped destruction. Colour is a cue, not a
 guardrail: palette collisions, colour-vision differences, and ambiguous chrome
 make it incapable of carrying that burden alone.
@@ -309,7 +309,7 @@ make it incapable of carrying that burden alone.
 
 Replacing the existing dead `New Remote Terminal` row is the best use of the
 slot. The `+` menu already puts that row directly below New Terminal at Home
-(`Sources/termio/App/App.swift:1784-1808`), so this adds no new weight for a
+(`Sources/fyolo/App/App.swift:1784-1808`), so this adds no new weight for a
 one-device user and fixes the empty-config dead end instead of adding another
 item.
 
@@ -319,7 +319,7 @@ Two ambiguities remain:
    The former does not replace the old creation action; the latter hides a
    session-creation side effect behind a connection verb.
 2. What happens to the adjacent `New SSH Connection` command, which already has
-   its own Add Host path (`Sources/termio/App/App.swift:1621-1644`)? Shipping both
+   its own Add Host path (`Sources/fyolo/App/App.swift:1621-1644`)? Shipping both
    during stage 1 presents two ways to reach the same machine before the data
    model resolves their semantics.
 
@@ -331,15 +331,15 @@ decided.
 | Suspected gap | Verdict |
 | --- | --- |
 | Unreachable-device presentation | Correct and blocking. The prior bug supports the need for one connection truth, but stale tunnel URL was not its confirmed root cause. |
-| `TERMIO_TERMIOD` absent from staging | Correct and the largest omitted risk. The settled architecture places deletion of the flag before the switcher. |
-| PR #177 paragraph is stale | Correct. [PR #177](https://github.com/termio-sh/termio/pull/177) merged into `main` on 2026-08-15 at 13:07 UTC as `66b1722`; it is no longer a draft or a blocker. |
+| `FYOLO_FYOLOD` absent from staging | Correct and the largest omitted risk. The settled architecture places deletion of the flag before the switcher. |
+| PR #177 paragraph is stale | Correct. [PR #177](https://github.com/fl0wo/fyolo/pull/177) merged into `main` on 2026-08-15 at 13:07 UTC as `66b1722`; it is no longer a draft or a blocker. |
 
 ## Scale tests
 
 ### One device
 
 - Healthy steady state can collapse completely. That part of the promise holds.
-- Failure cannot collapse. With termiod as the only PTY owner, daemon failure
+- Failure cannot collapse. With fyolod as the only PTY owner, daemon failure
   needs an error and recovery action even when no device indicator or Settings
   tab is normally shown.
 - “One” must ignore stale learned devices that have no sessions, no live route,
@@ -356,17 +356,17 @@ decided.
 - A fixed colour palette repeats and cannot serve as identity.
 - A flat switcher needs search, recent ordering, or another bounded selection
   rule. The current registry’s stable order is opaque `host_id` order
-  (`Sources/termio/Terminal/Termiod/TermiodDevice.swift:167-172`), which is unusable
+  (`Sources/fyolo/Terminal/Fyolod/FyolodDevice.swift:167-172`), which is unusable
   as presentation order.
 - Eager reachability probing is not acceptable, but no probing leaves 20 devices
   in an unknown state after launch. The RFC needs a lazy status model tied to
-  actual `TermiodConnection` objects, plus explicit “not checked” presentation.
+  actual `FyolodConnection` objects, plus explicit “not checked” presentation.
 - A single badge saying another device needs attention loses which device and how
   many. With several devices in `needs-you`, it becomes a generic alarm rather
   than navigation.
 - A “device column” does not fit the shipped hierarchical source-list model
   without a layout decision. The sidebar is constrained to 240–400 points
-  (`Sources/termio/App/App.swift:505-509`); 20 repeated device names on session
+  (`Sources/fyolo/App/App.swift:505-509`); 20 repeated device names on session
   rows will either dominate the agent/session labels or truncate into uselessness.
 - Multiple aliases per device make the switcher’s known-device and untried-alias
   sections duplicate entries until handshake. The design needs an explicit
@@ -377,24 +377,24 @@ decided.
 
 | Term | Problem |
 | --- | --- |
-| **Device** | In the architecture it means a machine running termiod. In the product it already naturally includes the iPhone viewer. Settings ▸ Devices will sound as if paired phones belong there even though the peer-client model says they do not. The UI needs a qualifier or copy that makes “session host” clear. |
-| **Connect to…** | It does not say whether the user is selecting a known device, entering an SSH route, installing termiod, switching context, or opening a terminal. Beside `New SSH Connection`, the ambiguity is worse. Finder’s full verb is “Connect to Server…”, which names the object. |
-| **Clone to <device>…** | “To” implies copying the current checkout, including local work. The shipped operation actually runs `git clone <origin>` on the target and excludes unpushed commits (`Sources/termio/Terminal/Termiod/TermioStore+Termiod.swift:489-520`). “Clone on <device>…” is more accurate without restoring the word remote. |
+| **Device** | In the architecture it means a machine running fyolod. In the product it already naturally includes the iPhone viewer. Settings ▸ Devices will sound as if paired phones belong there even though the peer-client model says they do not. The UI needs a qualifier or copy that makes “session host” clear. |
+| **Connect to…** | It does not say whether the user is selecting a known device, entering an SSH route, installing fyolod, switching context, or opening a terminal. Beside `New SSH Connection`, the ambiguity is worse. Finder’s full verb is “Connect to Server…”, which names the object. |
+| **Clone to <device>…** | “To” implies copying the current checkout, including local work. The shipped operation actually runs `git clone <origin>` on the target and excludes unpushed commits (`Sources/fyolo/Terminal/Fyolod/FyoloStore+Fyolod.swift:489-520`). “Clone on <device>…” is more accurate without restoring the word remote. |
 | **New Terminal** | A direct command with one device and a submenu with two changes both interaction shape and keyboard meaning at an arbitrary roster count. If a current device exists, New Terminal should have one target: that device. |
 | **Reachable machines** | `~/.ssh/config` contains candidate aliases and patterns, not proof of current reachability. Call them SSH routes or targets until a connection succeeds. |
-| **New Project** | This is not shipped vocabulary. The app uses `Open Project…` (`Sources/termio/App/App.swift:2134-2139`), and `VOICE.md:130-138` fixes “project” as the UI noun. The scoping table should use the real command. |
+| **New Project** | This is not shipped vocabulary. The app uses `Open Project…` (`Sources/fyolo/App/App.swift:2134-2139`), and `VOICE.md:130-138` fixes “project” as the UI noun. The scoping table should use the real command. |
 | **Retire remote** | Scope the retirement to execution-topology nouns and verbs. “Git remote”, Apple’s “Remote Management”, and remote access for the iPhone remain accurate domain terms; a lexical purge would make those strings worse. |
 
 ## Required changes before approval
 
 1. Replace the provenance-based ownership rule with explicit authorities for
    routes, observations, viewer preferences, and device state. Do not persist a
-   typed SSH target as a termio-owned route.
+   typed SSH target as a fyolo-owned route.
 2. Define one focus model with a transition table. It must be impossible for the
    indicator, focused terminal, panels, title bar, and creation commands to name
    different devices without an explicit split-state presentation.
 3. Rewrite staging to follow the settled dependency order: own connection health,
-   make termiod the default and remove the in-process fork, prove packaging and
+   make fyolod the default and remove the in-process fork, prove packaging and
    lifecycle, then expose the switcher.
 4. Specify unreachable, reconnecting, unverified, incompatible, and route-removed
    presentation, including recovery for the one-device case.

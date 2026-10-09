@@ -1,11 +1,11 @@
 ---
 name: bump-version
-description: "Cut a new termio macOS release by tagging main with the next version. Invoke when the user says 'bump version', 'bump the version', 'cut a release', 'ship a new version', 'release', '发版', '发布新版本', or '出个新版本'."
+description: "Cut a new fyolo macOS release by tagging main with the next version. Invoke when the user says 'bump version', 'bump the version', 'cut a release', 'ship a new version', 'release', '发版', '发布新版本', or '出个新版本'."
 ---
 
-# Bump version — cut a termio release
+# Bump version — cut a fyolo release
 
-termio is **trunk-based**: a release is nothing but a `vX.Y.Z` tag on `main`.
+fyolo is **trunk-based**: a release is nothing but a `vX.Y.Z` tag on `main`.
 Pushing the tag fires `.github/workflows/release.yml` (the **Release** workflow),
 which signs, notarizes, packages the DMG, updates the Sparkle appcast, and
 uploads to Cloudflare R2. There is no merge and no release branch.
@@ -40,7 +40,7 @@ Decide `X.Y.Z` (semver, no `v` when talking, `v` in the tag):
 - Explicit version from the user (e.g. "0.14.0") → use it verbatim.
 - A bump keyword → apply it to the latest tag: `patch` (`0.13.1`→`0.13.2`),
   `minor` (`0.13.1`→`0.14.0`), `major` (`0.13.1`→`1.0.0`).
-- Nothing specified → propose the bump you believe fits (termio has used `minor`
+- Nothing specified → propose the bump you believe fits (fyolo has used `minor`
   for features, `patch` for fixes) and confirm the number with the user before
   tagging.
 
@@ -81,8 +81,8 @@ the tag *is* the version.
 ## 5. Watch the Release workflow
 
 ```sh
-gh run watch --repo termio-sh/termio \
-  "$(gh run list --repo termio-sh/termio -w Release -L1 --json databaseId -q '.[0].databaseId')"
+gh run watch --repo fl0wo/fyolo \
+  "$(gh run list --repo fl0wo/fyolo -w Release -L1 --json databaseId -q '.[0].databaseId')"
 ```
 
 Report green/red to the user. If it fails, diagnose from the run log; the
@@ -92,9 +92,9 @@ troubleshooting table is in `docs/runbook/macos-release-runbook.md`.
 
 ```sh
 V=0.14.0
-curl -sI https://downloads.termio.sh/termio.dmg     | head -1   # 200
-curl -sI https://downloads.termio.sh/v$V/termio.dmg | head -1   # 200
-curl -s  https://downloads.termio.sh/appcast.xml | grep -i shortVersionString | head -1
+curl -sI https://downloads.fyolo.sh/fyolo.dmg     | head -1   # 200
+curl -sI https://downloads.fyolo.sh/v$V/fyolo.dmg | head -1   # 200
+curl -s  https://downloads.fyolo.sh/appcast.xml | grep -i shortVersionString | head -1
 ```
 
 The newest appcast item should advertise the new version. Full verification

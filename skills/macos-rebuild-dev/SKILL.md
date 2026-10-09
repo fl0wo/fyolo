@@ -1,38 +1,38 @@
 ---
 name: macos-rebuild-dev
-description: "Kill the running termio dev app, rebuild it with SwiftPM, and relaunch it as a foreground app. Invoke when the user says 'rebuild', 'rebuild app', 'restart app', 'relaunch', '重新编译', or '重启 app'."
+description: "Kill the running fyolo dev app, rebuild it with SwiftPM, and relaunch it as a foreground app. Invoke when the user says 'rebuild', 'rebuild app', 'restart app', 'relaunch', '重新编译', or '重启 app'."
 ---
 
 # Rebuild App (local development)
 
-Kill the running **dev** build, rebuild it as the isolated `termio-dev.app` bundle,
+Kill the running **dev** build, rebuild it as the isolated `fyolo-dev.app` bundle,
 and relaunch — so every rebuild reflects the current Dock icon and, crucially, does
 **not** disturb an installed release build you use daily.
 
 ## The dev channel
 
-termio ships a `TERMIO_CHANNEL=dev` build that is a fully separate app from the
+fyolo ships a `FYOLO_CHANNEL=dev` build that is a fully separate app from the
 release one, so both can run at the same time:
 
 | | release | dev (this skill) |
 | --- | --- | --- |
-| Bundle | `termio.app` (usually `/Applications`) | `termio-dev.app` (repo root) |
-| Bundle id | `sh.termio.app` | `sh.termio.app.dev` |
-| State + sockets | `~/Library/Application Support/termio` | `…/termio-dev` |
-| User config | `~/.termio` | `~/.termio-dev` |
-| Daemon socket | `$TMPDIR/termiod-<uid>` | `…-dev` |
-| Daemon launchd job | `sh.termio.termiod` | `sh.termio.termiod.dev` |
+| Bundle | `fyolo.app` (usually `/Applications`) | `fyolo-dev.app` (repo root) |
+| Bundle id | `sh.fyolo.app` | `sh.fyolo.app.dev` |
+| State + sockets | `~/Library/Application Support/fyolo` | `…/fyolo-dev` |
+| User config | `~/.fyolo` | `~/.fyolo-dev` |
+| Daemon socket | `$TMPDIR/fyolod-<uid>` | `…-dev` |
+| Daemon launchd job | `sh.fyolo.fyolod` | `sh.fyolo.fyolod.dev` |
 | Companion port | 8787 | 8788 |
-| CLI on PATH | `termio` | `termio-dev` |
+| CLI on PATH | `fyolo` | `fyolo-dev` |
 | Sparkle auto-update | on | **no update feed** (dev never self-updates) |
 
-All of this falls out of the `.dev` bundle-id suffix via `Sources/termio/Companion/AppChannel.swift`
+All of this falls out of the `.dev` bundle-id suffix via `Sources/fyolo/Companion/AppChannel.swift`
 (paths + port) and `scripts/build-app.sh` (id, name, `SUFeedURL` deletion, CLI rebind).
 Sparkle.framework itself is embedded on both channels — the binary links it either
 way — so a dev bundle still carries it; it just has nothing to check.
 
-termio is a plain SwiftPM executable (`Package.swift` → `executableTarget` named
-`termio`); `swift build` alone produces a bare binary with **no Dock icon**. So this
+fyolo is a plain SwiftPM executable (`Package.swift` → `executableTarget` named
+`fyolo`); `swift build` alone produces a bare binary with **no Dock icon**. So this
 skill builds the real bundle via `scripts/build-app.sh`. For a dev build the script
 auto-picks a real codesigning identity from **your own** keychain (any "Apple
 Development" / "Developer ID Application" cert — a free Apple ID gives you one) so the
@@ -43,19 +43,19 @@ notifications. Set `SIGN_IDENTITY=…` to force a specific one. The app runs
 unsandboxed with `.exec` PTYs — see `CLAUDE.md`. The icon is `packaging/icon-static.svg`,
 rasterized to `packaging/AppIcon.png` by `scripts/render-icon.sh` (needs headless
 Chrome). Note: dev and release currently share the same icon art and differ only by
-name ("termio dev") — a tinted dev icon is a possible follow-up.
+name ("fyolo dev") — a tinted dev icon is a possible follow-up.
 
 ## Instructions
 
 When invoked, execute these steps sequentially:
 
 1. **Kill only the running dev app + its tunnel.** Both channels' inner binary is
-   named `termio` (`CFBundleExecutable`), so `pkill -x termio` would kill the release
+   named `fyolo` (`CFBundleExecutable`), so `pkill -x fyolo` would kill the release
    app too. Match the dev bundle **path** instead. SIGKILL skips the app's
    `willTerminate` cleanup, so also reap the companion tunnel it spawned on the dev
    port (8788):
    ```bash
-   pkill -9 -f "termio-dev.app/Contents/MacOS/termio" || true
+   pkill -9 -f "fyolo-dev.app/Contents/MacOS/fyolo" || true
    pkill -9 -f "cloudflared tunnel --url http://127.0.0.1:8788" || true
    pkill -9 -f "tunelo port 8788" || true
    ```
@@ -64,49 +64,49 @@ When invoked, execute these steps sequentially:
    re-render the icon (see "Icons" below). Show the tail of the output; if the
    build fails, show the error and **stop — do NOT relaunch**:
    ```bash
-   TERMIO_CHANNEL=dev ./scripts/build-app.sh 2>&1 | tail -12
+   FYOLO_CHANNEL=dev ./scripts/build-app.sh 2>&1 | tail -12
    ```
 
 3. **Re-register the dev bundle with LaunchServices, then refresh the Dock cache.**
-   macOS resolves an app's icon by its bundle id (`sh.termio.app.dev`); `lsregister -f`
+   macOS resolves an app's icon by its bundle id (`sh.fyolo.app.dev`); `lsregister -f`
    forces our path to win and `killall Dock` drops the cached icon:
    ```bash
    LSREG="/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister"
-   "$LSREG" -f "$PWD/termio-dev.app"
-   touch ./termio-dev.app
+   "$LSREG" -f "$PWD/fyolo-dev.app"
+   touch ./fyolo-dev.app
    killall Dock 2>/dev/null || true
    ```
 
 4. **Relaunch via `open`** (NOT `nohup` on the inner binary — that bypasses
    LaunchServices). `open`'s `--stdout` / `--stderr` still capture logs:
    ```bash
-   open ./termio-dev.app --stdout /tmp/termio-dev.log --stderr /tmp/termio-dev.log
-   echo "launched ./termio-dev.app (logs: /tmp/termio-dev.log)"
+   open ./fyolo-dev.app --stdout /tmp/fyolo-dev.log --stderr /tmp/fyolo-dev.log
+   echo "launched ./fyolo-dev.app (logs: /tmp/fyolo-dev.log)"
    ```
 
 5. **Upgrade the running dev daemon.** `build-app.sh` already rebuilt the
-   daemon into `Resources/termiod`, but a **running** dev daemon keeps its old
+   daemon into `Resources/fyolod`, but a **running** dev daemon keeps its old
    image: a dev app's launch-time reconcile deliberately refuses to stage
    (its bundle stamp is a placeholder, and that guard is what keeps a dev
    build from ever deploying itself over a release daemon). Without this
-   step, a termiod-side change gets "verified" against the previous daemon.
+   step, a fyolod-side change gets "verified" against the previous daemon.
    The deploy is idempotent — same version reports `current` and does
    nothing, so it costs nothing on Swift-only rebuilds — and an execve
-   handoff keeps the pid and carries every live session. `TERMIOD_SOCK` must
-   be unset first: a shell inside a termio session carries it pointed at the
+   handoff keeps the pid and carries every live session. `FYOLOD_SOCK` must
+   be unset first: a shell inside a fyolo session carries it pointed at the
    *release* daemon, and it overrides the channel.
    ```bash
-   unset TERMIOD_SOCK
-   TERMIO_CHANNEL=dev ./termio-dev.app/Contents/Resources/termiod deploy --json 2>&1 | tail -3
+   unset FYOLOD_SOCK
+   FYOLO_CHANNEL=dev ./fyolo-dev.app/Contents/Resources/fyolod deploy --json 2>&1 | tail -3
    ```
    A daemon that isn't running needs nothing: the first pane starts it from
    the new bundle.
 
 6. **Report** the result: whether the build succeeded, the app relaunched, and
    the daemon version the deploy reported. If the window doesn't appear, check
-   `/tmp/termio-dev.log`.
+   `/tmp/fyolo-dev.log`.
 
-## Verifying a termiod-side change
+## Verifying a fyolod-side change
 
 Sessions carried across the handoff keep the environment and shell their
 **old** daemon spawned them with — a change to session spawning (env,
@@ -135,7 +135,7 @@ change:
 - This builds **release configuration** (via `build-app.sh`) into the dev *channel*
   bundle, so it's a few seconds slower than a bare `swift build`. For quick code-only
   iteration without a bundle, run `swift build` and launch
-  `"$(swift build --show-bin-path)/termio"` directly — but that has no Dock icon and,
+  `"$(swift build --show-bin-path)/fyolo"` directly — but that has no Dock icon and,
   running unbundled, uses `AppChannel.suffix == ""` (i.e. the *release* state dir and
   port 8787), so it is **not** isolated. Use the bundle when you need isolation.
 - A concurrent SwiftPM process holding the `.build` lock can make a build emit

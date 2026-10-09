@@ -5,11 +5,11 @@ type: design
 created: 2026-08-05
 updated: 2026-08-08
 related:
-  - 20260730-termiod-session-protocol.md
-  - 20260805-termiod-device-architecture.md
-  - 20260805-termiod-hot-path-and-client-classes.md
-  - 20260731-termiod-vt-sidecar-spike.md
-  - 20260730-termiod-session-mux.md
+  - 20260730-fyolod-session-protocol.md
+  - 20260805-fyolod-device-architecture.md
+  - 20260805-fyolod-hot-path-and-client-classes.md
+  - 20260731-fyolod-vt-sidecar-spike.md
+  - 20260730-fyolod-session-mux.md
 ---
 
 ## Superlogical facts (sourced)
@@ -77,9 +77,9 @@ related:
   - Superlogical receives no private libghostty entitlement: it will consume public MIT-licensed components and upstream generally useful terminal work.
   - libghostty is therefore shared infrastructure, not an exclusive Superlogical moat. [Mitchell’s announcement](https://mitchellh.com/writing/superlogical)
 
-## Competitive implications for Termio
+## Competitive implications for Fyolo
 
-- **Where Superlogical directly overlaps Termio**
+- **Where Superlogical directly overlaps Fyolo**
   - Durable terminal sessions surviving client closure and reconnection.
   - A daemon/server boundary separate from the viewing client.
   - Native macOS and iOS access to the same sessions.
@@ -91,32 +91,32 @@ related:
   - A future structured API through which software can inspect or drive sessions.
   - Native scrollback, selection, and terminal interaction rather than tmux-style nested terminal behavior.
 
-- **Competitive conclusion:** Superlogical should now be treated as a **direct competitor at Termio’s session-mux layer**, not merely a distant “platform peer.” Its broader platform ambition does not reduce the near-term overlap: its first product is almost exactly the durable, cross-device terminal foundation described in Termio’s design.
+- **Competitive conclusion:** Superlogical should now be treated as a **direct competitor at Fyolo’s session-mux layer**, not merely a distant “platform peer.” Its broader platform ambition does not reduce the near-term overlap: its first product is almost exactly the durable, cross-device terminal foundation described in Fyolo’s design.
 
 - **Where Superlogical deliberately does not position itself**
   - It is not presented as an agent-specific coding harness or agent-only IDE.
   - It does not currently describe first-class `working`, `idle`, `needs-you`, approval, or failure states for coding agents.
   - It does not announce opinionated worktree, repository, prompt, review, or pull-request workflows.
-  - It does not announce a multi-agent supervisory CLI comparable to `termio sessions`.
+  - It does not announce a multi-agent supervisory CLI comparable to `fyolo sessions`.
   - It is not commercializing or replacing the Ghostty terminal emulator.
   - These are current positioning differences, not durable guarantees; its composability goal could eventually support many of these workflows.
 
-- **Where Termio can still win**
+- **Where Fyolo can still win**
   - **Agent-native ADE:** Make the managed object an agent workstream with repository, branch/worktree, task, status, approvals, and artifacts—not just a terminal block.
   - **Reliable agent status:** Treat `working`, `idle`, `needs-you`, `failed`, and `done` as protocol-level state with explicit events and notifications. Avoid relying only on terminal-output heuristics.
-  - **Multi-agent CLI:** Keep `termio sessions` as a stable automation and delegation surface for humans and agents. Structured, scriptable supervision is a clearer wedge than terminal multiplexing alone.
+  - **Multi-agent CLI:** Keep `fyolo sessions` as a stable automation and delegation surface for humans and agents. Structured, scriptable supervision is a clearer wedge than terminal multiplexing alone.
   - **Local-first trust model:** Run the daemon and durable history on user-controlled machines by default; use existing system SSH or user-selected networks without requiring a hosted control plane.
   - **Mac+iOS ADE integration:** Native Apple clients are no longer differentiating by themselves. The defensible combination is native Apple UX plus agent state, approvals, project context, voice/mobile intervention, and fast handoff between observation and action.
-  - **Narrower scope and faster delivery:** Superlogical is pursuing terminals, automation, production systems, multiplayer work, and a general platform. Termio can make a smaller set of agent-development workflows excellent sooner.
+  - **Narrower scope and faster delivery:** Superlogical is pursuing terminals, automation, production systems, multiplayer work, and a general platform. Fyolo can make a smaller set of agent-development workflows excellent sooner.
   - **Interoperability:** Existing SSH configuration, keys, Tailscale/Headscale networks, shells, agents, and repositories can remain user-owned. Avoid forcing users into a proprietary execution environment.
-  - **Transparent protocol and self-hosting:** If termiod’s protocol and daemon are open and independently deployable, that can become a meaningful distinction. Superlogical has announced some OSS releases but not an open-source product.
-  - **Caveat:** Superlogical has an unusually experienced, funded infrastructure-and-design team. “Local-first” or “agent-native” will only differentiate Termio if they produce visibly better workflows and simpler trust boundaries, not merely different architecture labels.
+  - **Transparent protocol and self-hosting:** If fyolod’s protocol and daemon are open and independently deployable, that can become a meaningful distinction. Superlogical has announced some OSS releases but not an open-source product.
+  - **Caveat:** Superlogical has an unusually experienced, funded infrastructure-and-design team. “Local-first” or “agent-native” will only differentiate Fyolo if they produce visibly better workflows and simpler trust boundaries, not merely different architecture labels.
 
-## Suggested updates to docs/design/20260730-termiod-session-mux.md
+## Suggested updates to docs/design/20260730-fyolod-session-mux.md
 
 - **Replace the “Why we can beat Superlogical” premise.**
   - Remove or soften the characterization of Superlogical as merely a Go platform foundation whose “partners become remote.”
-  - Replace it with: Superlogical is a direct durable-session competitor with a broader long-term platform scope; Termio’s differentiation is an agent-native ADE, local-first ownership, and multi-agent supervision.
+  - Replace it with: Superlogical is a direct durable-session competitor with a broader long-term platform scope; Fyolo’s differentiation is an agent-native ADE, local-first ownership, and multi-agent supervision.
   - Rationale: the current wording understates the announced native Apple clients, remote discovery, sharing, libghostty use, and terminal-first product.
 
 - **Correct the competitive matrix.**
@@ -131,28 +131,28 @@ related:
 
 - **Change “platform peer, not product twin” to a more precise conclusion.**
   - Suggested claim: “Direct session-layer competitor; differentiated product thesis.”
-  - Rationale: the products overlap strongly at the mux layer even if Termio remains more opinionated about agent development.
+  - Rationale: the products overlap strongly at the mux layer even if Fyolo remains more opinionated about agent development.
 
 - **Define “agent-native” operationally.**
   - Add explicit protocol objects/events for agent identity, task, project, worktree, status, `needs-you`, approval requests, completion, errors, and notification routing.
   - Define which state comes from agent integrations and which may be inferred from PTY output.
-  - Rationale: this is Termio’s clearest remaining wedge and must be architectural, not a sidebar added to a generic mux.
+  - Rationale: this is Fyolo’s clearest remaining wedge and must be architectural, not a sidebar added to a generic mux.
 
 - **Revisit the raw-PTY-first protocol decision before freezing it. — SUPERSEDED 2026-08-08. Do not implement.**
   - *Original recommendation, kept for the record:* a raw byte stream is useful for bootstrap compatibility, but make terminal snapshots/diffs and authoritative reconnect state an early design decision rather than an optional distant optimization — because heterogeneous web/macOS/iOS clients, late attachment, native scrollback, sharing, and resynchronization get harder if the protocol assumes one continuously connected emulator.
   - **Why it is withdrawn.** It was inferred on launch day, before Superlogical described its architecture, and the primary sources invert it. **Announced:** *“we take the PTY bytes, we **tee them off to all the clients, and we send them raw like SSH**”*; and, asked directly whether the server parses too, *“Yes, the server parses too. But the teeing happens ahead of the server.”* On diffs specifically: *“The issue with the screen diffing is **less performance and more making it very difficult to allow native scrollback, selection**.”*
-  - Acting on this bullet would move termiod **away** from Superlogical's design and break the anti-100× invariant. The staged contract it asks for already exists: raw `D` is the transport, `S` is the attach/resync bootstrap, `G` is an opt-in pressure valve that MUST NOT be chosen by transport class. See [20260805-termiod-device-architecture.md](20260805-termiod-device-architecture.md) §3 and [20260805-termiod-hot-path-and-client-classes.md](20260805-termiod-hot-path-and-client-classes.md) §D.4.
+  - Acting on this bullet would move fyolod **away** from Superlogical's design and break the anti-100× invariant. The staged contract it asks for already exists: raw `D` is the transport, `S` is the attach/resync bootstrap, `G` is an opt-in pressure valve that MUST NOT be chosen by transport class. See [20260805-fyolod-device-architecture.md](20260805-fyolod-device-architecture.md) §3 and [20260805-fyolod-hot-path-and-client-classes.md](20260805-fyolod-hot-path-and-client-classes.md) §D.4.
   - What survives from the concern: late attachment and resync are real, and they are answered by the **JOIN** invariant and the `gap`/forced-resync path, not by changing what the transport carries.
 
 - **Reconcile this document with `20260708-session-daemon-architecture.md`. — RESOLVED 2026-08-08.**
   - The apparent contradiction was a false one: both are true at once, and the resolution is that the authoritative VT runs **in parallel with**, never **between**, the PTY and the clients. Raw bytes are the transport; server-side terminal state exists for snapshots, peek-without-attach, and catch-up.
-  - The staged contract is therefore: raw `D` always; `S` for attach and resync; `H` for scrollback, newest-first; `G` opt-in under pressure only. Recorded in [20260805-termiod-device-architecture.md](20260805-termiod-device-architecture.md) §3.
+  - The staged contract is therefore: raw `D` always; `S` for attach and resync; `H` for scrollback, newest-first; `G` opt-in under pressure only. Recorded in [20260805-fyolod-device-architecture.md](20260805-fyolod-device-architecture.md) §3.
 
 - **Clarify the SSH boundary.**
   - Replace “Superlogical owns SSH as product: yes” with a sourced, narrower statement: integrated SSH/remote connectivity is part of its mux architecture, but implementation and custody details are unpublished.
-  - Describe Termio’s use of system SSH as a deliberate trust and compatibility choice, not merely missing functionality.
+  - Describe Fyolo’s use of system SSH as a deliberate trust and compatibility choice, not merely missing functionality.
   - Rationale: system SSH reduces security scope and preserves user configuration, while integrated SSH may offer smoother discovery and reconnection. The trade-off should be explicit.
-  - **Added 2026-08-08 — the part of “the mux owns SSH” that is a real critique, and lands.** *Using* system SSH is the trust choice and stays. *Who owns the connection* is a separate question, and termio currently answers it the way Mitchell calls a dead end: the Mac client opens **one `ssh` process per session**, owned by that pane and killed with it (`TermiodClient.swift` `Transport.ssh`), plus one more for every `list`/`kill`/probe, with no `ControlMaster` on that path — so a dropped pipe reads as session death rather than a reconnect. Owning SSH means the **device connection** is the durable object: one link per device, N sessions as channels on it, health and reconnect at that layer, outliving any pane. That is already what [20260805-termiod-device-architecture.md](20260805-termiod-device-architecture.md) §5 describes and §8 now schedules; the gap is implementation, not direction.
+  - **Added 2026-08-08 — the part of “the mux owns SSH” that is a real critique, and lands.** *Using* system SSH is the trust choice and stays. *Who owns the connection* is a separate question, and fyolo currently answers it the way Mitchell calls a dead end: the Mac client opens **one `ssh` process per session**, owned by that pane and killed with it (`FyolodClient.swift` `Transport.ssh`), plus one more for every `list`/`kill`/probe, with no `ControlMaster` on that path — so a dropped pipe reads as session death rather than a reconnect. Owning SSH means the **device connection** is the durable object: one link per device, N sessions as channels on it, health and reconnect at that layer, outliving any pane. That is already what [20260805-fyolod-device-architecture.md](20260805-fyolod-device-architecture.md) §5 describes and §8 now schedules; the gap is implementation, not direction.
 
 - **Promote discovery to a first-class subsystem.**
   - Define a provider interface for static SSH config, Bonjour/local discovery, Tailscale, and future integrations.
@@ -167,7 +167,7 @@ related:
 
 - **Add a client-capability matrix.**
   - Cover macOS, iOS, CLI, and possible web clients across attach/control, read-only monitoring, input, scrollback, file links, approvals, notifications, background reconnect, and session creation.
-  - Rationale: “Mac+iOS support” is now table stakes against Superlogical; Termio should specify the ADE actions each client uniquely enables.
+  - Rationale: “Mac+iOS support” is now table stakes against Superlogical; Fyolo should specify the ADE actions each client uniquely enables.
 
 - **Make iOS intervention a product-level differentiator.**
   - Specify low-friction approval, `needs-you` response, voice input, safe command dispatch, reconnect, and read-only monitoring modes.
@@ -175,16 +175,16 @@ related:
 
 - **Add sharing and concurrent-control semantics to either scope or non-goals.**
   - Decide whether multiple clients may observe, type concurrently, request control, or share a session with another identity.
-  - Rationale: Superlogical says live sharing is built in from the start; termiod should not leave its concurrency semantics accidental.
+  - Rationale: Superlogical says live sharing is built in from the start; fyolod should not leave its concurrency semantics accidental.
 
 - **Avoid treating libghostty as a competitive moat.**
   - Reframe it as shared terminal infrastructure.
-  - Identify Termio’s moat as agent-aware state, workflow protocol, local-first deployment, Apple interaction design, and multi-agent automation.
+  - Identify Fyolo’s moat as agent-aware state, workflow protocol, local-first deployment, Apple interaction design, and multi-agent automation.
   - Rationale: Superlogical and other applications can consume the same library, and shared improvements may be upstreamed.
 
 - **Add explicit non-goals relative to Superlogical.**
-  - Unless Termio intends otherwise, list production application multiplexing, incident response, live production debugging, CI replacement, and a general “multiplexer for all work” as out of scope.
-  - Rationale: prevents Superlogical’s broader vision from pulling Termio away from its sharper ADE opportunity.
+  - Unless Fyolo intends otherwise, list production application multiplexing, incident response, live production debugging, CI replacement, and a general “multiplexer for all work” as out of scope.
+  - Rationale: prevents Superlogical’s broader vision from pulling Fyolo away from its sharper ADE opportunity.
 
 - **Add a competitive-evidence policy.**
   - Label statements as shipped, announced, inferred, or unknown.

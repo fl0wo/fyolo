@@ -1,5 +1,5 @@
 import SwiftUI
-import TermioShared
+import FyoloShared
 import UIKit
 
 /// The Terminals tab: the Mac's loose shell sessions (the `terminals`-kind

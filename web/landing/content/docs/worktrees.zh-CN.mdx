@@ -1,6 +1,6 @@
 ---
 title: Git worktree
-description: Termio 直接从 git 读取仓库的 worktree，并把它们显示为项目下嵌套的一层，让并行的 Agent 工作彼此隔离。
+description: Fyolo 直接从 git 读取仓库的 worktree，并把它们显示为项目下嵌套的一层，让并行的 Agent 工作彼此隔离。
 x-i18n:
   source_path: worktrees.mdx
   source_hash: aa8d93ccf1bffdaa01332ba685ea6f0e33887808a35a709ee8ea5685a399299a
@@ -8,15 +8,15 @@ x-i18n:
 ---
 
 当好几个 Agent 同时在一个仓库里干活时，你不希望它们互相踩文件。git worktree 给每条工作线
-一份自己的检出、自己的分支——而 Termio 原生把它们呈现出来。
+一份自己的检出、自己的分支——而 Fyolo 原生把它们呈现出来。
 
-## Termio 怎么看 worktree
+## Fyolo 怎么看 worktree
 
-Termio 直接从 git 推导 worktree（`git worktree list`），所以你创建的任何 worktree——用
+Fyolo 直接从 git 推导 worktree（`git worktree list`），所以你创建的任何 worktree——用
 命令行还是别的方式——都会自动出现在侧栏里。每个 worktree 显示为它所属项目下嵌套的文件夹，
 以分支名标注，形成三级树：项目 → worktree → 会话。
 
-这个列表会保持同步：项目加载时、应用重新获得焦点时，以及 git 目录发生变化时，Termio 都会
+这个列表会保持同步：项目加载时、应用重新获得焦点时，以及 git 目录发生变化时，Fyolo 都会
 重新对账。
 
 ## 在 worktree 里工作
@@ -30,7 +30,7 @@ Agent 对着你的 `main` 检出，另一个对着 `feat/…` worktree，它们�
 
 <DocsImage
   src="/screenshots/docs/12-worktree-hierarchy.png"
-  alt="Termio 项目展开 main 和 feature worktree，空 worktree 的上下文菜单提供「新建终端」与「新建 Agent 会话」"
+  alt="Fyolo 项目展开 main 和 feature worktree，空 worktree 的上下文菜单提供「新建终端」与「新建 Agent 会话」"
   width={2424}
   height={1664}
 />
@@ -43,7 +43,7 @@ Agent）本来就在那里——参见[检查器指南](/zh-CN/docs/inspector)�
 
 <DocsImage
   src="/screenshots/docs/13-review-worktree.png"
-  alt="Termio 侧栏选中一个 feature worktree，检查器显示其独立文件更改和统一差异"
+  alt="Fyolo 侧栏选中一个 feature worktree，检查器显示其独立文件更改和统一差异"
   width={2424}
   height={1664}
 />

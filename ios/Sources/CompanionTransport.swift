@@ -1,5 +1,5 @@
 import Foundation
-import TermioShared
+import FyoloShared
 
 /// v1 companion transport: a `WebSocketLink` to the Mac companion server
 /// (directly on LAN, or via a tunnel URL). Binary frames are raw PTY bytes;
@@ -182,7 +182,7 @@ final class CompanionTransport {
     /// the attach it gates, and the grid claim the Mac's repaint is driven by.
     ///
     /// Nothing resets the screen first. The daemon's attach snapshot carries its
-    /// own prologue (`SNAPSHOT_PROLOGUE` in `termiod/vt/src/lib.rs`), built to
+    /// own prologue (`SNAPSHOT_PROLOGUE` in `fyolod/vt/src/lib.rs`), built to
     /// land identically on a client in any prior state and deliberately stopping
     /// short of RIS — the palette, title and scrollback it would clear are the
     /// client's, not the host's. The `ESC c` that used to precede the old
@@ -216,7 +216,7 @@ final class CompanionTransport {
         if let roster = CompanionRoster.decode(text) {
             if roster.wire < Wire.minimumServer {
                 finish(
-                    .failed(localized("Update Termio on your Mac to connect this phone.")),
+                    .failed(localized("Update Fyolo on your Mac to connect this phone.")),
                     closeCode: .policyViolation
                 )
             } else {

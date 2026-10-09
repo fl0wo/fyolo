@@ -1,34 +1,34 @@
 ---
-title: Handoff — collapsing the two session paths into termiod
+title: Handoff — collapsing the two session paths into fyolod
 status: active
 type: design
 created: 2026-08-17
 updated: 2026-08-17
 related:
-  - ../design/20260817-one-path-local-through-termiod.md
+  - ../design/20260817-one-path-local-through-fyolod.md
   - ../design/20260814-remote-to-device.md
-  - ../design/20260805-termiod-device-architecture.md
+  - ../design/20260805-fyolod-device-architecture.md
 ---
 
-# Handoff — one path through termiod
+# Handoff — one path through fyolod
 
 > Pick this up cold. Everything below is verified state, not recollection.
 
 ## 1. The one idea that explains the rest
 
-termio runs sessions two ways: the Swift in-process `PTYProcess`, and the Rust
-`termiod` daemon behind `TERMIO_TERMIOD=1` (off by default). **Every bug this
+fyolo runs sessions two ways: the Swift in-process `PTYProcess`, and the Rust
+`fyolod` daemon behind `FYOLO_FYOLOD=1` (off by default). **Every bug this
 round was the same shape — the feature exists on the Swift path and has no
-counterpart on the termiod path:**
+counterpart on the fyolod path:**
 
 | # | Symptom | Cause |
 | --- | --- | --- |
-| 1 | Every local terminal silently became remote | `TERMIO_TERMIOD_REMOTE` fallback on the wrong path |
+| 1 | Every local terminal silently became remote | `FYOLO_FYOLOD_REMOTE` fallback on the wrong path |
 | 2 | Splitting a remote session gave a shell on the Mac | inheritance written on one path only |
 | 3 | Image paste did nothing remotely | local relies on the *agent* reading the Mac pasteboard |
 | 4 | File tree is SFTP, git shells out locally | `files`/`git` planes shipped daemon-side, never consumed |
-| 5 | Agent icon never changes on a remote session | `pty.foregroundProcessArguments()` is a local syscall; `pty == nil` under termiod |
-| 6 | `termio sessions send` cannot send a bare keypress | the CLI talks to the **Mac app**, not the daemon |
+| 5 | Agent icon never changes on a remote session | `pty.foregroundProcessArguments()` is a local syscall; `pty == nil` under fyolod |
+| 6 | `fyolo sessions send` cannot send a bare keypress | the CLI talks to the **Mac app**, not the daemon |
 
 All six become structurally impossible once there is one path. That is the
 whole justification; each individual fix is a patch on the mechanism that keeps
@@ -40,7 +40,7 @@ Rust daemon can.
 ## 2. State — verified 2026-08-17
 
 ### Landed on main
-`termiod` is not a skeleton. Ten capabilities, all implemented daemon-side with
+`fyolod` is not a skeleton. Ten capabilities, all implemented daemon-side with
 smoke coverage: `events, send_wait, snapshot, scrollback, grid_diff, resources,
 fs_watch, files, upload, git`. Baseline: **46 unit + 84 smoke + 8 remote smoke**,
 CI green on macos + linux.
@@ -49,7 +49,7 @@ Also landed this round: VT-sequence snapshots (client theme survives), the
 resource plane (§C.10 resumable subscriptions), fleet `list --host`,
 protocol-over-SSH `attach --host` with ControlMaster, launchd service, session
 tombstones, sidecar backpressure (#316), image-paste transfer plane (#308),
-device identity (`TermiodDevice`), and #314 which settled the RFC's two blocking
+device identity (`FyolodDevice`), and #314 which settled the RFC's two blocking
 questions.
 
 ### The gap that matters
@@ -75,7 +75,7 @@ The daemon ran ahead; the client never caught up.
 
 ## 3. The plan
 
-`docs/design/20260817-one-path-local-through-termiod.md` (869 lines). Verified: the
+`docs/design/20260817-one-path-local-through-fyolod.md` (869 lines). Verified: the
 inventory cites real file:line, not guessed names.
 
 Its most valuable finding, which no one anticipated: **deleting the in-process
@@ -95,7 +95,7 @@ CLI split is §7 + Stage 6, deliberately not entangled with the PTY work.
    stages around. Do not start implementing before reading it.
 3. **Commit `device-context`** and open a PR — it is finished and verified.
 4. **Clear the field (RFC Stage 0).** Every uncommitted worktree above touches
-   `TermioStore+TerminalSurface` / `PTYProcess` / `GitService` / `FileBrowser`,
+   `FyoloStore+TerminalSurface` / `PTYProcess` / `GitService` / `FileBrowser`,
    which is exactly what the refactor rewrites. Each one gets committed or
    discarded; none may stay.
 5. **Then implement**, stage by stage, verifying each against a criterion that
@@ -107,18 +107,18 @@ CLI split is §7 + Stage 6, deliberately not entangled with the PTY work.
 runs. Two of them shipped.
 
 **`swift test` cannot run at all** — 285 Swift 6 concurrency errors in
-`CompanionServer.swift` on `main` ([#311](https://github.com/termio-sh/termio/issues/311)).
-Every file under `Tests/termioTests/` compiles and never executes. Swift is only
-verifiable through `TERMIO_CHANNEL=dev ./scripts/build-app.sh`.
+`CompanionServer.swift` on `main` ([#311](https://github.com/fl0wo/fyolo/issues/311)).
+Every file under `Tests/fyoloTests/` compiles and never executes. Swift is only
+verifiable through `FYOLO_CHANNEL=dev ./scripts/build-app.sh`.
 
 **Do not set `DEVELOPER_DIR=…/CommandLineTools`** for that script — it dies on
 `xcstringstool not found`, which only ships with full Xcode.
 
 **`ZIG=…` as an environment variable does nothing.** `libghostty-vt-sys/build.rs`
 execs `zig` from `PATH`, and CI pins **0.16.0**:
-`export PATH=$HOME/.local/share/termiod-toolchains/zig-0.16.0:$PATH`
+`export PATH=$HOME/.local/share/fyolod-toolchains/zig-0.16.0:$PATH`
 
-**`termio sessions spawn` can silently drop the prompt** while still reporting
+**`fyolo sessions spawn` can silently drop the prompt** while still reporting
 `idle`/`done`. Confirm a transcript exists before believing an agent ran —
 `done` is not proof. One agent this round produced nothing and reported success.
 
@@ -127,7 +127,7 @@ execs `zig` from `PATH`, and CI pins **0.16.0**:
 The gate needs a bare `t` or `esc`, and `send` only emits text+Return. RFC §7
 fixes exactly this; until then a human has to press the key.
 
-**Concurrent smoke runs interfere** — they share `/tmp/termiod-smoke`. A lone
+**Concurrent smoke runs interfere** — they share `/tmp/fyolod-smoke`. A lone
 failure that passes on rerun is contention, not a regression.
 
 ## 6. Decided, do not reopen

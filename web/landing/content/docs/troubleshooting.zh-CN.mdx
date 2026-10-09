@@ -7,7 +7,7 @@ x-i18n:
   generated_at: 2026-09-19
 ---
 
-几乎所有看起来像 Termio bug 的东西，都是下面这些情况之一，而每一条都有一个去查而不是去猜的
+几乎所有看起来像 Fyolo bug 的东西，都是下面这些情况之一，而每一条都有一个去查而不是去猜的
 办法。在提任何问题之前，先从这里开始。
 
 ## 先跑这三条
@@ -15,20 +15,20 @@ x-i18n:
 在任何机器、任何状态下，这三条能回答掉大部分问题：
 
 ```bash
-termiod status                 # 这里装了什么，有没有 daemon 在应答？
-termiod list                   # 它手上有哪些会话？
-termiod logs -n 200            # 没人看着的时候发生了什么
+fyolod status                 # 这里装了什么，有没有 daemon 在应答？
+fyolod list                   # 它手上有哪些会话？
+fyolod logs -n 200            # 没人看着的时候发生了什么
 ```
 
-尤其是 `termiod status`，它终结了相当一部分「它坏了」的报告：它会说装的是哪个二进制、哪个
-版本，以及 socket 上到底有没有东西在听。想问另一台机器，`termiod list --host <box>` 会通过
+尤其是 `fyolod status`，它终结了相当一部分「它坏了」的报告：它会说装的是哪个二进制、哪个
+版本，以及 socket 上到底有没有东西在听。想问另一台机器，`fyolod list --host <box>` 会通过
 你自己的 SSH 配置去查那台机器上的 daemon。
 
 ## 状态点从来不变
 
 侧栏的[状态点](/zh-CN/docs/sidebar#status)来自装进每个 Agent 自己配置里的 hooks，而它们是
 **按设备**安装的。一台在你打开这个功能之前就设置好的机器上的 Agent 没有 hooks，所以它什么
-也不汇报，Termio 只能退回去读屏幕。
+也不汇报，Fyolo 只能退回去读屏幕。
 
 打开**设置 ▸ 远程主机**，选中那台机器，进入它的 **Agent** 页面，按**重新安装 Hooks 和技能**。
 本机上对应的修法是**设置 ▸ Agent** 里的**安装到本机**。参见
@@ -40,66 +40,66 @@ termiod logs -n 200            # 没人看着的时候发生了什么
 **Modified since last trusted** 然后停在那里等。这一条很难受，因为 hooks *就是*状态通道：
 在你回答之前，Agent 什么也不汇报，所以侧栏显示的是它最后知道的状态，而不是**需要你**。
 
-如果一个会话看起来空闲但什么也没发生，去看那个窗格本身。回答一次提示，状态就恢复了。Termio
+如果一个会话看起来空闲但什么也没发生，去看那个窗格本身。回答一次提示，状态就恢复了。Fyolo
 会在启动时重新写入自己的 hooks（正是这件事让别的工具没法悄悄替换掉它们），所以这个提示可能
 在一次更新之后再来一次。
 
 ## Agent 起不来，或者瞬间就退出
 
 一个窗格立刻死掉并显示「failed to launch」，几乎总是 `PATH` 的问题，而不是 Agent 的问题。
-Termio 通过你真正的登录 shell 启动 Agent，所以你的配置准备的一切都在——但一个装在你的配置
+Fyolo 通过你真正的登录 shell 启动 Agent，所以你的配置准备的一切都在——但一个装在你的配置
 没加进来的位置上的命令行工具，仍然是看不见的。
 
-打开**设置 ▸ Agents** 看那个 Agent 那一行：Termio 会解析你登录 shell 的 `PATH`，并把它找
+打开**设置 ▸ Agents** 看那个 Agent 那一行：Fyolo 会解析你登录 shell 的 `PATH`，并把它找
 不到的命令标出来。要么修你的 shell 配置，要么把绝对路径（`/opt/homebrew/bin/codex`）填进
 命令字段。这个字段是按设备的，所以要在出问题的那台机器上填。
 
 ## 状态 hooks 本来好好的，突然不工作了
 
 Agent 的配置文件是公共地盘——别的 Agent 管理工具也往同一个 `~/.claude/settings.json` 和
-`~/.codex/hooks.json` 里写，而有些是整块替换 hooks 而不是合并进去。发生这种事时，Termio
+`~/.codex/hooks.json` 里写，而有些是整块替换 hooks 而不是合并进去。发生这种事时，Fyolo
 收不到汇报，状态就退回去读屏幕。
 
-Termio 会在启动时、以及在你把它切回前台时重新写入自己的 hooks，所以在本机上这通常会自己
+Fyolo 会在启动时、以及在你把它切回前台时重新写入自己的 hooks，所以在本机上这通常会自己
 好。这一遍只扫本机：另一台机器上是什么样就一直是什么样，直到你去那边修——在那台机器的
 **Agent** 页面上按**重新安装 Hooks 和技能**。
 
-## `termio sessions` 说 `disabled`
+## `fyolo sessions` 说 `disabled`
 
-编排 API 是可选的。打开**设置 ▸ Agents ▸ 会话控制**，它同时会安装 `termio` 技能，让 Agent
+编排 API 是可选的。打开**设置 ▸ Agents ▸ 会话控制**，它同时会安装 `fyolo` 技能，让 Agent
 知道这些命令存在。
 
 每一个 CLI 错误都是同一个形状，并带一个非零退出码，所以脚本可以基于 `error` 分支而不用去解
 散文——错误码列在 [JSON 约定](/zh-CN/docs/cli#json-contract)里。
 
-## `termio: command not found`
+## `fyolo: command not found`
 
-这个命令是应用替你装的一个软链：**设置 ▸ Termio server ▸ 命令行 ▸ 命令行工具**，它把
-`termio` 链接到 `/usr/local/bin`（macOS 会问你一次）。如果开关本来就是开的，开一个新的
-shell——在软链存在之前就起的会话里，`PATH` 的缓存是旧的。`termiod` 是另一个命令，它住在
-每台机器上；参见 [Termio server](/zh-CN/docs/server)。
+这个命令是应用替你装的一个软链：**设置 ▸ Fyolo server ▸ 命令行 ▸ 命令行工具**，它把
+`fyolo` 链接到 `/usr/local/bin`（macOS 会问你一次）。如果开关本来就是开的，开一个新的
+shell——在软链存在之前就起的会话里，`PATH` 的缓存是旧的。`fyolod` 是另一个命令，它住在
+每台机器上；参见 [Fyolo server](/zh-CN/docs/server)。
 
 ## 重启之后会话不见了
 
 没有服务的话，server 只活到你这次登录会话结束为止。装一个，它就能扛过登出、崩溃和重启：
 
 ```bash
-termiod service install
-termiod service status
+fyolod service install
+fyolod service status
 ```
 
 这是远程机器上最常见的意外——那上面根本没人交互式登录过。参见
-[Termio server](/zh-CN/docs/server)和[什么会留下来](/zh-CN/docs/persistence)。
+[Fyolo server](/zh-CN/docs/server)和[什么会留下来](/zh-CN/docs/persistence)。
 
 ## 一台机器不应答了
 
-从外往里查。如果普通的 `ssh` 都失败，Termio 也一样会失败——它用的是你自己的
+从外往里查。如果普通的 `ssh` 都失败，Fyolo 也一样会失败——它用的是你自己的
 `~/.ssh/config`，从不携带自己的凭据。
 
 ```bash
 ssh mybox true                 # SSH 本身通不通？
-termiod list --host mybox      # 那边的 server 在应答吗？
-termiod deploy --host mybox    # 重装并校验一遍
+fyolod list --host mybox      # 那边的 server 在应答吗？
+fyolod deploy --host mybox    # 重装并校验一遍
 ```
 
 `deploy` 是一次对账，所以对一台状态糟糕的机器跑它是安全的。密钥是到处都能用的那种凭据，
@@ -124,10 +124,10 @@ termiod deploy --host mybox    # 重装并校验一遍
 ## 通知不出现
 
 任务通知和其他系统权限一样：macOS 只问一次，如果当时拒绝了，应用就没法再问。去
-**系统设置 ▸ 通知 ▸ Termio** 看一下，再确认**设置 ▸ Agent ▸ 通知**里的**任务完成**是
+**系统设置 ▸ 通知 ▸ Fyolo** 看一下，再确认**设置 ▸ Agent ▸ 通知**里的**任务完成**是
 开着的。
 
-它们也是有意安静的。一轮在 Termio 处于最前面的时候跑完，是不会通知的——你本来就在看着
+它们也是有意安静的。一轮在 Fyolo 处于最前面的时候跑完，是不会通知的——你本来就在看着
 它——只花了一瞬的一轮也不会。
 
 ## 有东西不对劲，而你想要证据
@@ -135,18 +135,18 @@ termiod deploy --host mybox    # 重装并校验一遍
 server 会记录没人附着时发生过什么——而那恰恰是 bug 最爱掉进去的那段窗口。
 
 ```bash
-termiod logs -n 200            # 最近的尾部
-termiod logs -f                # 实时跟着看
-termiod logs --path            # 文件本身，用来提 bug
+fyolod logs -n 200            # 最近的尾部
+fyolod logs -f                # 实时跟着看
+fyolod logs --path            # 文件本身，用来提 bug
 ```
 
 <Callout type="tip">
-  在复现一个时有时无的问题？让 `termiod logs -f` 自己占一个窗格跑着。这份日志是唯一一份
+  在复现一个时有时无的问题？让 `fyolod logs -f` 自己占一个窗格跑着。这份日志是唯一一份
   横跨了「你不在」那段时间的记录。
 </Callout>
 
 ## 还是卡住了
 
-去 [github.com/termio-sh/termio](https://github.com/termio-sh/termio/issues) 开一个
-issue，附上 `termiod status` 的输出和 `termiod logs` 的尾部。这两样回答了维护者本来要问的
-大部分问题。再加上 macOS 版本、Termio 版本，以及会话是在本机还是在另一台机器上。
+去 [github.com/fl0wo/fyolo](https://github.com/fl0wo/fyolo/issues) 开一个
+issue，附上 `fyolod status` 的输出和 `fyolod logs` 的尾部。这两样回答了维护者本来要问的
+大部分问题。再加上 macOS 版本、Fyolo 版本，以及会话是在本机还是在另一台机器上。

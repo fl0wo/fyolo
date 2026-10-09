@@ -24,7 +24,7 @@ svg="$repo_root/packaging/icon-static.svg"
 out="$repo_root/packaging/AppIcon.png"
 ios_out="$repo_root/ios/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
 chrome="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-fullbleed="$(mktemp -t termio-icon).png"
+fullbleed="$(mktemp -t fyolo-icon).png"
 
 if [[ -x "$chrome" ]]; then
     "$chrome" --headless=new --disable-gpu --force-device-scale-factor=1 \

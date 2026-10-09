@@ -1,23 +1,23 @@
 ---
-title: What ten years of docker/dockerd teach the termio/termiod split
+title: What ten years of docker/dockerd teach the fyolo/fyolod split
 status: active
 type: rfc
 created: 2026-08-31
 updated: 2026-09-09
 related:
-  - 20260730-termiod-session-protocol.md
+  - 20260730-fyolod-session-protocol.md
   - 20260819-unify-server-plane.md
-  - 20260817-one-path-local-through-termiod.md
-  - 20260827-termiod-lifecycle-reconcile.md
+  - 20260817-one-path-local-through-fyolod.md
+  - 20260827-fyolod-lifecycle-reconcile.md
   - 20260827-remote-access-dev-tunnels-model.md
 ---
 
-# What ten years of docker/dockerd teach the termio/termiod split
+# What ten years of docker/dockerd teach the fyolo/fyolod split
 
 > docker/dockerd is the longest-running client/daemon pair whose scars are
-> public. This RFC mines those scars for changes to the termio/termiod
+> public. This RFC mines those scars for changes to the fyolo/fyolod
 > architecture, and settles the one question the pair answers outright:
-> `termio` is the only command a person types; `termiod` is a daemon name,
+> `fyolo` is the only command a person types; `fyolod` is a daemon name,
 > like `dockerd`. Every claim here is written against the tree; the document
 > survived two rounds of adversarial review, recorded in §9.
 
@@ -27,16 +27,16 @@ related:
 
 The shapes map almost one to one:
 
-| docker | termio | state of the analogy |
+| docker | fyolo | state of the analogy |
 | --- | --- | --- |
-| `docker` CLI | `termio` (today: `scripts/termio`, 779-line shell) | this RFC, §1 |
-| `dockerd` | `termiod` | holds |
-| `docker.sock` | app control socket + termiod Unix socket | §5 |
+| `docker` CLI | `fyolo` (today: `scripts/fyolo`, 779-line shell) | this RFC, §1 |
+| `dockerd` | `fyolod` | holds |
+| `docker.sock` | app control socket + fyolod Unix socket | §5 |
 | Engine API version negotiation | `hello` `proto`/`min_proto` (§C.3) | mechanism shipped; the policy and tests around it are not, §2 |
 | Engine API support window | none stated | §2 |
-| `docker system dial-stdio` | `termiod stdio` | already identical |
+| `docker system dial-stdio` | `fyolod stdio` | already identical |
 | `docker context` | `~/.ssh/config` alias | ours is simpler; keep it |
-| containerd/runc extraction | the accretion risk on termiod | §6 |
+| containerd/runc extraction | the accretion risk on fyolod | §6 |
 | rootless mode (year ten) | systemd `--user` (day one) | already avoided |
 
 Four of their lessons we already banked without paying for them. This
@@ -44,10 +44,10 @@ document exists partly to say so, so nobody re-argues them:
 
 1. An API over an exec'd stdio pipe is the right remote transport.
    `docker -H ssh://` literally runs `docker system dial-stdio` on the far
-   end. `termiod stdio` is the same mechanism, validated by ten production
+   end. `fyolod stdio` is the same mechanism, validated by ten production
    years. (§H #3 stands: the pipe is OpenSSH's, never ours.)
 2. A root daemon is a decade-long regret. docker shipped rootless in year
-   ten. termiod was born user-scoped. No work here; just don't regress.
+   ten. fyolod was born user-scoped. No work here; just don't regress.
 3. A named-endpoint registry is overhead when ssh aliases exist.
    `docker context` reinvents `~/.ssh/config` because docker predates
    caring about it. We read the ssh config as authoritative (§A) and need
@@ -63,18 +63,18 @@ work. Each section ends with the change it proposes.
 ## 1. The decision this RFC records: one command, two binaries
 
 Nomad's answer (one binary, `nomad agent` mode) fits products where the
-daemon is the product on every node. termio's brain on a Mac is the app,
+daemon is the product on every node. fyolo's brain on a Mac is the app,
 and the CLI has a verb class (`open` via LaunchServices, `notify`,
 `focus`) that only means anything where the app lives. docker's answer
-fits us: `termio` is everything a person or an agent types on a machine
-that has the client; `termiod` is the daemon and the machine-invoked
+fits us: `fyolo` is everything a person or an agent types on a machine
+that has the client; `fyolod` is the daemon and the machine-invoked
 plumbing. `systemctl status` shows a thing named like `sshd`, because it
 is a thing like `sshd`.
 
 This is a naming and packaging decision, not a merge. The server-plane
 RFC's §7.8 rejection of a single binary stands and is not re-proposed
-here: a daemon named `termio` would land on the support-copy path every
-installed hook names absolutely, and a router named `termio` cannot
+here: a daemon named `fyolo` would land on the support-copy path every
+installed hook names absolutely, and a router named `fyolo` cannot
 dispatch to a binary with its own name. Two binaries, two names.
 
 ### 1.1 The surface being migrated, in full
@@ -82,30 +82,30 @@ dispatch to a binary with its own name. Two binaries, two names.
 The migration has to start from the whole person-facing surface, not one
 namespace. What people can type today:
 
-- `scripts/termio` (the shell client): `open`, `sessions
+- `scripts/fyolo` (the shell client): `open`, `sessions
   list/watch/spawn/run/send/read/close/focus`, `agent report`, `notify`.
-  `agent report` is not purely app-plane: with `TERMIOD_SESSION_ID` set it
-  execs `termiod set-status` (`scripts/termio:670-687`), so it already
+  `agent report` is not purely app-plane: with `FYOLOD_SESSION_ID` set it
+  execs `fyolod set-status` (`scripts/fyolo:670-687`), so it already
   straddles both planes.
-- `termiod`, top level: `logs`, `serve`, `pair`, `handoff`, `create`,
+- `fyolod`, top level: `logs`, `serve`, `pair`, `handoff`, `create`,
   `list`, `kill`, `send`, `set-status`, `agent` (`install`/`uninstall`),
   `attach`, `watch`, `stdio`, `status`, `stop`, `deploy`, `service`, plus
   `--host` variants of `deploy`/`list`/`attach` that duplicate the
   `remote` namespace (`main.rs:53-349`).
-- `termiod remote`: `deploy`, `list`, `attach`, `open`.
+- `fyolod remote`: `deploy`, `list`, `attach`, `open`.
 
 Every row above needs a destination, not just the `remote` namespace. The
 map this RFC proposes:
 
 | today | destination | notes |
 | --- | --- | --- |
-| `termio sessions …`, `open`, `notify`, `agent report` | stays `termio` | contract frozen; see §4 for which socket serves it when |
-| `termiod remote …` and top-level `--host` twins | `termio remote …`, one spelling | the duplicate top-level forms retire with a deprecation notice, not silently |
-| `termiod create/list/kill/send/attach/watch/status/logs` | `termio …` everywhere — boxes get the client too (§1.2, amended 2026-09-09); the `termiod` spellings keep working | see §1.2 |
-| `termiod pair/serve/service/deploy` | stays `termiod` | operator plumbing for the box itself |
-| `termiod stop` | stays `termiod`, on-box only | stops the daemon under it; destructive enough that it should require being on the box, like `systemctl stop` |
-| `termiod handoff`, `termiod stdio`, `termiod set-status` | stays `termiod`, frozen | machine-invoked: the upgrade path, the SSH exec target (its name is in the wire path), and the hook target (hooks exec it by absolute path) |
-| `termiod agent install/uninstall` | stays `termiod` | host integration, written by the deploy loop; a person runs it only to repair a box |
+| `fyolo sessions …`, `open`, `notify`, `agent report` | stays `fyolo` | contract frozen; see §4 for which socket serves it when |
+| `fyolod remote …` and top-level `--host` twins | `fyolo remote …`, one spelling | the duplicate top-level forms retire with a deprecation notice, not silently |
+| `fyolod create/list/kill/send/attach/watch/status/logs` | `fyolo …` everywhere — boxes get the client too (§1.2, amended 2026-09-09); the `fyolod` spellings keep working | see §1.2 |
+| `fyolod pair/serve/service/deploy` | stays `fyolod` | operator plumbing for the box itself |
+| `fyolod stop` | stays `fyolod`, on-box only | stops the daemon under it; destructive enough that it should require being on the box, like `systemctl stop` |
+| `fyolod handoff`, `fyolod stdio`, `fyolod set-status` | stays `fyolod`, frozen | machine-invoked: the upgrade path, the SSH exec target (its name is in the wire path), and the hook target (hooks exec it by absolute path) |
+| `fyolod agent install/uninstall` | stays `fyolod` | host integration, written by the deploy loop; a person runs it only to repair a box |
 
 ### 1.2 Where each command exists
 
@@ -113,33 +113,33 @@ Amended 2026-09-09; the original scoping and the evidence against it are
 recorded in §9. Tracked as issue #628.
 
 The client ships everywhere the daemon does. The reconcile loop installs
-`termio` beside `termiod` in the same pass, with the same
+`fyolo` beside `fyolod` in the same pass, with the same
 copy-beside-rename-over discipline, so a box's client and daemon are the
 same build and skew between them is structurally impossible — §3's
 lesson satisfied for free on boxes. The cost is roughly double the
-copied payload per deploy; the alternative — a person typing `termio`
+copied payload per deploy; the alternative — a person typing `fyolo`
 into a box session and reading `command not found` — was priced by
 watching it happen.
 
-PATH is the daemon's problem, not the dotfiles'. termiod already injects
-`TERMIOD_SESSION_ID` into the sessions it spawns; it additionally
+PATH is the daemon's problem, not the dotfiles'. fyolod already injects
+`FYOLOD_SESSION_ID` into the sessions it spawns; it additionally
 prepends its own binary's directory to those sessions' PATH. Every
-terminal opened through termio finds `termio` with zero host mutation —
+terminal opened through fyolo finds `fyolo` with zero host mutation —
 the same principle as never overriding `~/.ssh/config`. A bare SSH login
-outside termio keeps whatever the box's `~/.profile` does; that is not
+outside fyolo keeps whatever the box's `~/.profile` does; that is not
 our session, and DEPLOY.md keeps teaching the full
-`~/.local/bin/termiod` path for repairs made over plain SSH.
+`~/.local/bin/fyolod` path for repairs made over plain SSH.
 
-On a box, `termio` speaks the framed protocol to the local daemon
+On a box, `fyolo` speaks the framed protocol to the local daemon
 socket — §4's single-API policy applied to our own client. Session verbs
 (`sessions …`, `version`, `agent report`) route to the local channel;
-`agent report` already straddles, exec'ing `termiod set-status` when
-`TERMIOD_SESSION_ID` is present. App-plane verbs (`open`, `notify`,
+`agent report` already straddles, exec'ing `fyolod set-status` when
+`FYOLOD_SESSION_ID` is present. App-plane verbs (`open`, `notify`,
 `focus`) have no daemon meaning and fail with one line naming the
 reason — no app on this host — rather than pretending.
 
-Hooks are untouched: they keep exec'ing `termiod` by absolute path, the
-frozen machine contract in §1.1. `termiod pair/serve/handoff/stop` stay
+Hooks are untouched: they keep exec'ing `fyolod` by absolute path, the
+frozen machine contract in §1.1. `fyolod pair/serve/handoff/stop` stay
 daemon-spelled operator plumbing, exactly like `dockerd`. The curl
 installer stays deferred (§7): the Mac's reconcile loop reaches every
 box the user has, so no second install path exists and the single-writer
@@ -154,10 +154,10 @@ module tree, two thin `src/bin/` entries) — mechanical, but a refactor
 with a diff, not a one-line change.
 
 Channel binding: today `build-app.sh` rewrites three variables at the top
-of the shell script so `termio-dev` drives the dev app
+of the shell script so `fyolo-dev` drives the dev app
 (`scripts/build-app.sh:188-198`). The Rust client selects the channel
 from argv[0] instead: the dev bundle installs the same binary under the
-name `termio-dev`, which selects the `.dev` bundle id, `~/.termio-dev`,
+name `fyolo-dev`, which selects the `.dev` bundle id, `~/.fyolo-dev`,
 and the dev socket. Two paths must be pinned down before this ships,
 because installed hooks name the support-copy path absolutely and end
 `2>/dev/null || true`, so a path mistake fails silently: the release
@@ -167,18 +167,18 @@ existing paths or it does not land.
 
 ### 1.4 Migration order
 
-1. P1, verb collection in shell: `scripts/termio` gains `remote …` by
-   exec'ing the bundled `termiod`, and the Mac-side docs stop teaching
-   `termiod` as a typed command. One prerequisite the script lacks
+1. P1, verb collection in shell: `scripts/fyolo` gains `remote …` by
+   exec'ing the bundled `fyolod`, and the Mac-side docs stop teaching
+   `fyolod` as a typed command. One prerequisite the script lacks
    today: a bundled-daemon locator. Its only daemon lookup is `agent
-   report`'s `TERMIOD_BIN`, then `~/.local/bin/termiod`, then `PATH`
-   (`scripts/termio:670-677`), which on a machine with both channels can
+   report`'s `FYOLOD_BIN`, then `~/.local/bin/fyolod`, then `PATH`
+   (`scripts/fyolo:670-677`), which on a machine with both channels can
    select a daemon from a different bundle than the app the script
    drives. P1 adds one helper that resolves the daemon inside the same
-   bundle the script's channel bindings point at, with `TERMIOD_BIN`
+   bundle the script's channel bindings point at, with `FYOLOD_BIN`
    kept as the explicit override, and `remote …` and `agent report` both
    use it. With that, shippable now; touches no session backend.
-2. P2, the Rust `termio` client. **Scheduled by the server-plane RFC, not
+2. P2, the Rust `fyolo` client. **Scheduled by the server-plane RFC, not
    by this one.** Unify-server-plane Stage 10 moves the CLI verb by verb
    once there is one session backend to route to, precisely so no verb is
    ported twice; this RFC adds to that stage the lib extraction, the
@@ -252,25 +252,25 @@ the first line of every docker bug report and the cheapest support tool
 they built.
 
 Most of the data already exists: `hello_ok` returns the daemon's build
-(`version: <app version>+<build>`) exactly so "termiod 0.43 on ukvps;
-this app needs 0.44" can be said, and `termiod status --json` already
+(`version: <app version>+<build>`) exactly so "fyolod 0.43 on ukvps;
+this app needs 0.44" can be said, and `fyolod status --json` already
 reports local binary and daemon state. But the Mac's device registry
-keeps less than the handshake learns: `TermiodDevice` persists `id`,
+keeps less than the handshake learns: `FyolodDevice` persists `id`,
 `daemonVersion`, and routes, and the handshake path drops `proto` on the
-floor (`TermiodDevice.swift:62-80`, `TermiodClient.swift:615-634`). The
+floor (`FyolodDevice.swift:62-80`, `FyolodClient.swift:615-634`). The
 remote rows are the Mac client's last-handshake observations, not daemon
 history, and today they contain no protocol number.
 
 So the change is presentation plus one small persistence fix, still no
 new probe: the device registry also records the negotiated `proto` and
-the observation time at each handshake, and `termio version` wraps
-`termiod status` for the local rows and that registry for the remote
+the observation time at each handshake, and `fyolo version` wraps
+`fyolod status` for the local rows and that registry for the remote
 ones, printing one table:
 
 ```
-termio        0.34.0+912          (client, dev channel)
-termio.app    0.34.0+912          (running)
-termiod local 0.34.0+912          proto 1
+fyolo        0.34.0+912          (client, dev channel)
+fyolo.app    0.34.0+912          (running)
+fyolod local 0.34.0+912          proto 1
 ukvps         0.34.0+907          proto 1   ← behind, reconciles on next deploy
 ```
 
@@ -302,9 +302,9 @@ The policy, with its exceptions named so review can enforce it:
 - The framed protocol is the only surface third-party tools may target,
   and the only one the docs teach for programmatic use.
 - Two public contracts are temporarily served by the app socket and are
-  value-frozen while they migrate: `termio agent report` (already
-  straddling: it execs `termiod set-status` when a daemon session id is
-  present) and `termio sessions … --json` (agents script against it).
+  value-frozen while they migrate: `fyolo agent report` (already
+  straddling: it execs `fyolod set-status` when a daemon session id is
+  present) and `fyolo sessions … --json` (agents script against it).
   Their migration to protocol verbs is Stage 10's existing work; the
   freeze is on observable values, per Stage 10's own gate.
 - Permanently app-plane, by design: `open`, `notify`, `focus` (§4.1 of
@@ -333,7 +333,7 @@ and price the scoped tier as the protocol-and-daemon work it actually is
 
 - The Unix socket is full authority, by design: anything that can open it
   can inject keystrokes into any session, which is user-equivalent code
-  execution. That is the point (`termio sessions send` driving sibling
+  execution. That is the point (`fyolo sessions send` driving sibling
   agents is a feature), and AF_UNIX plus filesystem permissions is the
   right fence for same-user-same-box (§A: the OS is the security team).
   No per-verb ACL on the socket will ever be added; a caller you don't
@@ -375,7 +375,7 @@ industry extracted the part it actually needed (containerd/runc) behind a
 narrow interface and Kubernetes dropped dockerd entirely. The daemon was
 punished for being interesting.
 
-termiod will face a steady stream of "the daemon should also…" proposals,
+fyolod will face a steady stream of "the daemon should also…" proposals,
 and some are even right: the deciding rule from the device architecture
 (§4.1: would two people on two machines expect the same answer?) has
 already, correctly, moved git reads and agent integration server-side. So
@@ -386,8 +386,8 @@ contradict §4.1. The lesson is to keep the runtime core extractable:
   containerd of this system. It must never import from the planes. git,
   files, upload, and agents may depend on the core; the core compiles
   without them. Today this is a module-dependency discipline; if it ever
-  needs teeth, it becomes an internal crate boundary (`termiod-core`),
-  the same move as `termiod-vt`. The §1.3 lib extraction is the natural
+  needs teeth, it becomes an internal crate boundary (`fyolod-core`),
+  the same move as `fyolod-vt`. The §1.3 lib extraction is the natural
   moment to draw the line, since the module tree is being restated
   anyway.
 - Every plane admission answers both tests, in order: first §4.1 (does it
@@ -411,7 +411,7 @@ contradict §4.1. The lesson is to keep the runtime core extractable:
   Revisit when one exists.
 - A curl installer: separate discussion, gated on a topology (phone to
   box without a Mac) that doesn't exist yet. When it comes, the script
-  fetches a binary and execs `termiod service install`, so the reconcile
+  fetches a binary and execs `fyolod service install`, so the reconcile
   loop stays the single writer. (§1.2's client-on-a-box question no
   longer waits on it — the 2026-09-09 amendment ships the client through
   the reconcile loop.)
@@ -430,12 +430,12 @@ ahead of a stage that RFC already gates.
 
 | # | Change | Cost | When |
 | --- | --- | --- | --- |
-| 1 | `termio version`: persist `proto` + observation time in the device registry, wrap `termiod status` + registry rows (§3) | small | **shipped, PR #543** |
-| 2 | P1 verb collection: bundled-daemon locator, `termio remote …` in the script; Mac-side docs stop teaching `termiod`; deprecation notice on the top-level `--host` twins (§1.1, §1.4) | one to two days | **shipped, PR #543** |
+| 1 | `fyolo version`: persist `proto` + observation time in the device registry, wrap `fyolod status` + registry rows (§3) | small | **shipped, PR #543** |
+| 2 | P1 verb collection: bundled-daemon locator, `fyolo remote …` in the script; Mac-side docs stop teaching `fyolod`; deprecation notice on the top-level `--host` twins (§1.1, §1.4) | one to two days | **shipped, PR #543** |
 | 3 | §5.1 written into the protocol doc as the stated security model | prose only | **shipped, PR #543** |
 | 4 | §2 policy: payload support window amending §C.3, the skew test matrix in CI, both-ranges error, `hello_ok` range gap resolved | tests + small protocol additions | before the next payload-format change |
 | 5 | Core-vs-planes import discipline (§6) + single-API policy with its named exceptions (§4) | review discipline | standing, from now |
-| 6 | P2 Rust `termio` client: lib extraction, argv[0] channels, frozen contracts (§1.3) | the real port | **started 2026-08-31** — Stage 10 pulled forward after the one-backend gate was met early (unify-server-plane, restamp of that date); its gates unchanged |
+| 6 | P2 Rust `fyolo` client: lib extraction, argv[0] channels, frozen contracts (§1.3) | the real port | **started 2026-08-31** — Stage 10 pulled forward after the one-backend gate was met early (unify-server-plane, restamp of that date); its gates unchanged |
 | 7 | §5.2 scoped token tier | protocol + daemon + tests | when a non-owner token holder exists; not scheduled |
 | 8 | §1.2 amendment: client in the deploy payload + reconcile verification, daemon-injected PATH for spawned sessions, box-side routing to the local channel, DEPLOY.md flip | deploy + dispatcher; the routing rides Stage 10's verb ladder | issue #628 |
 
@@ -465,8 +465,8 @@ against-the-tree standard in four places, each now fixed in the body:
   no verb is ported twice. §1.4 and §8 now defer to that stage.
 - It called a second `[[bin]]` cheap; the modules are declared from the
   binary crate root, so the real cost is a lib extraction (§1.3). It
-  also treated `termiod remote …` as the whole person-facing surface and
-  assumed `termio` exists on the VPS; §1.1 now inventories every
+  also treated `fyolod remote …` as the whole person-facing surface and
+  assumed `fyolo` exists on the VPS; §1.1 now inventories every
   top-level verb and §1.2 separates Mac-side from on-box documentation.
 
 **Round 2 — three residual defects, all fixed in the body:**
@@ -480,9 +480,9 @@ against-the-tree standard in four places, each now fixed in the body:
   (`protocol.rs:528-550`), and the daemon accepts protocol 1 only. §2
   now records this as an implementation/document gap to resolve with the
   window work.
-- The `termio version` design claimed remote rows come from stored
-  `hello_ok` results, but `TermiodDevice` persists no protocol number
-  and the handshake path drops `proto` (`TermiodClient.swift:615-634`).
+- The `fyolo version` design claimed remote rows come from stored
+  `hello_ok` results, but `FyolodDevice` persists no protocol number
+  and the handshake path drops `proto` (`FyolodClient.swift:615-634`).
   §3 now includes the persistence fix and stamps every remote row with
   its observation time.
 
@@ -493,7 +493,7 @@ channel's daemon); §1.4 makes the locator P1's first deliverable.
 **Amendment 2026-09-09 — §1.2 reversed on the box client.** The original
 §1.2 deferred "client on a Linux box" to the curl-installer topology
 (§7). The deferral did not survive contact with use: the
-box-with-an-agent topology already exists, and a person typed `termio`
+box-with-an-agent topology already exists, and a person typed `fyolo`
 into a VPS session — the Mac-side docs and skills train exactly that
 muscle memory — and read `command not found`. §1.2 now ships the client
 through the reconcile loop with daemon-injected PATH for spawned

@@ -1,6 +1,6 @@
 ---
 title: Appearance
-description: Set your terminal theme and font, tune the cursor and window, and find the rest of Termio’s settings — all in a familiar macOS settings window.
+description: Set your terminal theme and font, tune the cursor and window, and find the rest of Fyolo’s settings — all in a familiar macOS settings window.
 ---
 
 Open **Settings** with `⌘,`. It’s a standard macOS settings window with a sidebar
@@ -8,21 +8,21 @@ of tabs; **Appearance** is where the terminal’s look lives.
 
 ## Theme
 
-Termio uses Ghostty-format themes, so anything from the wider Ghostty theme
+Fyolo uses Ghostty-format themes, so anything from the wider Ghostty theme
 ecosystem works. Pick a light and a dark theme from **Settings ▸ Appearance** and
-Termio follows the system between them.
+Fyolo follows the system between them.
 
-The two slots list the themes you have — Termio’s own canvas plus whatever is in
+The two slots list the themes you have — Fyolo’s own canvas plus whatever is in
 your Themes folder — not a catalog of hundreds you never chose.
 
 <DocsImage
   src="/screenshots/docs/15-appearance-settings.png"
-  alt="Termio Appearance settings with System, Light, and Dark modes and separate light and dark terminal theme slots"
+  alt="Fyolo Appearance settings with System, Light, and Dark modes and separate light and dark terminal theme slots"
   width={1664}
   height={1288}
 />
 
-If you already use Ghostty, there’s nothing to pick on a fresh install: Termio
+If you already use Ghostty, there’s nothing to pick on a fresh install: Fyolo
 reads your `~/.config/ghostty/config` on first launch and starts with the font and
 theme you chose there.
 
@@ -35,7 +35,7 @@ under different names. Flavors of one family are the exception: all four
 Catppuccins are there, because the flavor name is exactly what its users pick
 between. **Install** writes that theme into your Themes folder and selects it in
 the light or dark slot it belongs to. Nothing is downloaded: the schemes ship
-inside Termio.
+inside Fyolo.
 
 If a file of the same name is already in your Themes folder, Install stops and
 asks before replacing it — a theme you dropped in yourself is yours. **Remove**
@@ -48,7 +48,7 @@ back.
 
 <DocsImage
   src="/screenshots/docs/14-change-theme.png"
-  alt="The Change Theme palette over a Termio terminal with Catppuccin Latte selected and applied"
+  alt="The Change Theme palette over a Fyolo terminal with Catppuccin Latte selected and applied"
   width={2424}
   height={1664}
 />
@@ -56,7 +56,7 @@ back.
 To add a theme the store doesn’t carry, drop a Ghostty-format theme file into:
 
 ```
-~/Library/Application Support/termio/Themes/
+~/Library/Application Support/fyolo/Themes/
 ```
 
 The **Open Themes Folder** button takes you straight there, and **Reload** picks
@@ -82,10 +82,10 @@ The other tabs cover the rest of the app:
 - **General** — language, the GitHub integration behind the inspector’s Issues
   pane, and a Privacy switch for anonymous daily usage statistics.
 - **Terminal** — scrollback history and text selection.
-- **Server** — this Mac’s own session host, and the switches for the `termio`
-  [command-line tool](/docs/cli). See [The Termio server](/docs/server).
+- **Server** — this Mac’s own session host, and the switches for the `fyolo`
+  [command-line tool](/docs/cli). See [The Fyolo server](/docs/server).
 - **Remote Hosts** — every machine you reach from this Mac, one row each,
-  drilling into how that machine is reached and what Termio has installed on it.
+  drilling into how that machine is reached and what Fyolo has installed on it.
   See [Devices](/docs/devices).
 - **Workspaces** — every workspace with the machine it’s on, and the place to
   rename or remove one. See [Workspaces](/docs/workspaces).
@@ -94,7 +94,7 @@ The other tabs cover the rest of the app:
   control](/docs/session-control), and set task-completion notifications. Values
   that differ per machine — where a CLI lives, whether it’s there — appear as one
   row per machine on the agent’s own page, never behind a picker.
-- **Usage** — token usage for agents you sign in to (Claude Code, Codex). Termio
+- **Usage** — token usage for agents you sign in to (Claude Code, Codex). Fyolo
   reuses each CLI’s own credentials to show you where you stand against your
   limits; it stores nothing of its own.
 - **Mobile** — pair your iPhone with a machine, and publish an address it can

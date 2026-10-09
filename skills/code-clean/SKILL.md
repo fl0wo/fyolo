@@ -1,11 +1,11 @@
 ---
 name: code-clean
-description: "Cut dead code and over-long comments from termio's Swift, verifying every deletion against a build. Knows this repo's real failure mode (essay-length doc comments, not restated-code slop) and periphery's four known false-positive shapes. Invoke when the user says 'clean dead code', 'clean up the comments', 'the comments are too long', 'remove unused code', 'tighten this file', '清理死代码', '注释太啰嗦', '精简一下注释'."
+description: "Cut dead code and over-long comments from fyolo's Swift, verifying every deletion against a build. Knows this repo's real failure mode (essay-length doc comments, not restated-code slop) and periphery's four known false-positive shapes. Invoke when the user says 'clean dead code', 'clean up the comments', 'the comments are too long', 'remove unused code', 'tighten this file', '清理死代码', '注释太啰嗦', '精简一下注释'."
 ---
 
 # Code Clean
 
-Two passes over termio's Swift: **dead code** (symbols nothing reaches) and
+Two passes over fyolo's Swift: **dead code** (symbols nothing reaches) and
 **over-long comments** (prose that outgrew what it explains). Both end in a
 build. Neither is a refactor.
 
@@ -22,7 +22,7 @@ a standing request only — say so, and expect it to take real time.
 
 Never touch:
 
-- `Sources/termio/Editor/Highlightr/` — vendored; upstream API surface is kept
+- `Sources/fyolo/Editor/Highlightr/` — vendored; upstream API surface is kept
   intact on purpose (AGENTS.md).
 - Anything under `skills/` recorded in `skills-lock.json` — re-pull from
   upstream instead of hand-editing.
@@ -32,7 +32,7 @@ Never touch:
 
 ## 1. Dead code
 
-`periphery scan --targets termio` (SPM; no config file needed). It is installed
+`periphery scan --targets fyolo` (SPM; no config file needed). It is installed
 at `/opt/homebrew/bin/periphery`.
 
 **Roughly three of every four hits are false.** Four shapes account for nearly

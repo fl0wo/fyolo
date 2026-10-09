@@ -51,7 +51,7 @@ answering returns, it's semantic approval cards, not keys).
               → Data(contentsOf:) → upload(lastPathComponent)
 
 upload(name, data):  cap 8 MB → base64 over companion WS
-  .upload(projectID, name, base64) → Mac writes <root>/.termio/uploads/<ts>-<name>
+  .upload(projectID, name, base64) → Mac writes <root>/.fyolo/uploads/<ts>-<name>
   → .uploaded(path) → path inserted into draft (space-separated)
 ```
 
@@ -113,7 +113,7 @@ All six items below are implemented (`TerminalViewController.swift`,
 `ComposerBar.swift`, `Info.plist`) and the photo path is verified end-to-end
 in the simulator against a live companion: two photos multi-selected with
 numbered circles → sequential upload → both real-filename paths
-(`<ts>-IMG_0111.jpg`) in the draft and on disk under `.termio/uploads/`.
+(`<ts>-IMG_0111.jpg`) in the draft and on disk under `.fyolo/uploads/`.
 Smoke test: `testAttachPhotoBatchUploadsToCompanion` (skips without a live
 companion; drives PHPicker by normalized coordinates because XCUITest
 queries against the picker's remote a11y tree hang the runner). Camera
@@ -131,7 +131,7 @@ camera, so the Camera row shows there too.
    space-separated into the draft (already supported by `insertDraft`).
 3. **Real filenames.** Use `itemProvider.suggestedName` (fallback
    `photo-<n>.jpg`) instead of the constant `photo.jpg` — an agent reading
-   `~/.termio/uploads/` benefits from names, and multi-select makes the
+   `~/.fyolo/uploads/` benefits from names, and multi-select makes the
    constant name embarrassing.
 4. **Multi-select files.** `allowsMultipleSelection = true` on the document
    picker; keep `asCopy: true` — it sidesteps the entire security-scope /

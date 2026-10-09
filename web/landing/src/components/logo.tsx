@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-// The Termio wordmark: the real macOS app icon set next to the name.
+// The Fyolo wordmark: the real macOS app icon set next to the name.
 // Decorative — the surrounding link/anchor carries the accessible label.
 export function Logo({
   className,
@@ -28,7 +28,7 @@ export function Logo({
           lg ? "text-xl" : "text-lg",
         )}
       >
-        Termio
+        Fyolo
       </span>
     </span>
   );

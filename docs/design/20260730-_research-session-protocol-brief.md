@@ -1,29 +1,29 @@
 ---
-title: Research brief — termiod Session Protocol (for design agent)
+title: Research brief — fyolod Session Protocol (for design agent)
 status: active
 type: design
 created: 2026-07-30
 updated: 2026-07-30
 related:
-  - 20260730-termiod-session-mux.md
+  - 20260730-fyolod-session-mux.md
   - 20260708-session-daemon-architecture.md
 ---
 
-# Research brief: termiod Session Protocol (transport-agnostic)
+# Research brief: fyolod Session Protocol (transport-agnostic)
 
 > Hand this entire file to a design agent. Output should land at
-> `docs/design/20260730-termiod-session-protocol.md` (new design doc) unless the agent
+> `docs/design/20260730-fyolod-session-protocol.md` (new design doc) unless the agent
 > is told otherwise.
 
-You are a senior systems architect. Think deeply and write a **sharp design note** for Termio’s durable session host protocol. Do **not** implement code unless a tiny example clarifies a wire shape. Prefer clear decisions, tradeoffs, and a staged roadmap over vague vision.
+You are a senior systems architect. Think deeply and write a **sharp design note** for Fyolo’s durable session host protocol. Do **not** implement code unless a tiny example clarifies a wire shape. Prefer clear decisions, tradeoffs, and a staged roadmap over vague vision.
 
 ---
 
-## 1. Company / product context (Termio)
+## 1. Company / product context (Fyolo)
 
-**Termio** is a native macOS (and iOS) multi-agent terminal ADE: run many agent/shell sessions (Claude Code, Codex, etc.), status tray, worktrees, `termio sessions` CLI. Today PTYs largely live **inside the Mac app**, so sessions die when the GUI dies; remote is second-class (`ssh -tt` hacks / tmux wraps).
+**Fyolo** is a native macOS (and iOS) multi-agent terminal ADE: run many agent/shell sessions (Claude Code, Codex, etc.), status tray, worktrees, `fyolo sessions` CLI. Today PTYs largely live **inside the Mac app**, so sessions die when the GUI dies; remote is second-class (`ssh -tt` hacks / tmux wraps).
 
-**Goal:** introduce **`termiod`** — a long-lived **session host** on each machine (Mac and Linux VPS). Viewers (Mac app, iOS, CLI) only **attach/detach**. Detach ≠ kill.
+**Goal:** introduce **`fyolod`** — a long-lived **session host** on each machine (Mac and Linux VPS). Viewers (Mac app, iOS, CLI) only **attach/detach**. Detach ≠ kill.
 
 **Thesis (do not abandon):**
 
@@ -34,10 +34,10 @@ You are a senior systems architect. Think deeply and write a **sharp design note
 
 **In-repo design (source of truth — read these):**
 
-- `docs/design/20260730-termiod-session-mux.md`
+- `docs/design/20260730-fyolod-session-mux.md`
 - `docs/design/20260708-session-daemon-architecture.md`
-- POC crate: `termiod/` (branch `termiod/rust-poc`, draft PR #177)
-- Epic: https://github.com/termio-sh/termio/issues/164
+- POC crate: `fyolod/` (branch `fyolod/rust-poc`, draft PR #177)
+- Epic: https://github.com/fl0wo/fyolo/issues/164
 - Children: #170 (local host), #171 (SSH deploy), #172 (remote open)
 
 **POC already shipped (draft):**
@@ -89,22 +89,22 @@ Label every Superlogical claim you use as:
 
 Do **not** invent Superlogical’s wire protocol, RPC schema, or QUIC/SSH internals. They have not published a protocol spec.
 
-### 2.3 Overlap vs Termio (session layer)
+### 2.3 Overlap vs Fyolo (session layer)
 
 **Real overlap:** durable sessions, daemon ≠ viewer, Mac+iOS, remote reconnect, multi-client, libghostty fidelity, agents-in-terminals, software-driven control, native scrollback UX.
 
-**Termio differentiation (keep sharp):**
+**Fyolo differentiation (keep sharp):**
 
 - Agent workstream as first-class object (`working` / `idle` / `needs-you` / approvals)
 - Opinionated worktrees / ADE workflow
-- `termio sessions` multi-agent supervision CLI
+- `fyolo sessions` multi-agent supervision CLI
 - **Local-first:** no hosted control plane required for local or direct SSH/Tailscale
 - Deliberately **narrower** than “multiplexer for all work” (no CI/production fabric as v1 goal)
 
 **Architectural fork we already chose vs Superlogical’s announced SSH stance:**
 
 - Superlogical: mux “owns SSH” (details unknown).
-- Termio: **system OpenSSH / user Tailscale as transport** to a **user-run `termiod`**; keys stay in ssh-agent. Smaller security scope; may lag on seamless reconnect UX.
+- Fyolo: **system OpenSSH / user Tailscale as transport** to a **user-run `fyolod`**; keys stay in ssh-agent. Smaller security scope; may lag on seamless reconnect UX.
 
 ---
 
@@ -115,15 +115,15 @@ Do **not** invent Superlogical’s wire protocol, RPC schema, or QUIC/SSH intern
 | **neurosnap/zmx** (https://zmx.sh) | Session persist only; daemon + unix socket; VT as **sidecar** for reattach snapshot, not MITM on hot path; SSH first-class as *workflow*, not nested WM; no panes in the daemon |
 | **shpool** | Session pool + restore inspiration |
 | **abduco / dtach** | Minimal attach/detach |
-| **tmux / zellij** | Durable sessions but nested terminal / feature lag — Superlogical and Termio both want to escape this as the *foundation* |
+| **tmux / zellij** | Durable sessions but nested terminal / feature lag — Superlogical and Fyolo both want to escape this as the *foundation* |
 | **wezterm mux-server** | Multi-client mux patterns |
-| **Companion / Termio WireProtocol** | Existing iOS path: control text + raw PTY; promote carefully, don’t freeze raw-PTY forever |
+| **Companion / Fyolo WireProtocol** | Existing iOS path: control text + raw PTY; promote carefully, don’t freeze raw-PTY forever |
 
 ---
 
 ## 4. Design principles (non-negotiable)
 
-1. **Host ≠ viewer** — process lifetime lives in `termiod`.
+1. **Host ≠ viewer** — process lifetime lives in `fyolod`.
 2. **Local = remote to localhost** — same protocol; only the pipe changes.
 3. **PTY only on the host** — clients never allocate the agent’s TTY as the product path.
 4. **SSH is a pipe, not a session** — forbid productizing `ssh -tt host claude` as the long-term model.
@@ -177,7 +177,7 @@ Propose concrete criteria, e.g.:
 - What is frozen in v0 vs deliberately unstable
 - Test strategy (codec + state machine golden tests)
 
-**Powerful** (enough for Termio ADE — not Superlogical’s entire vision)
+**Powerful** (enough for Fyolo ADE — not Superlogical’s entire vision)
 
 - Durable multi-attach
 - Clean reconnect (snapshot)
@@ -224,11 +224,11 @@ Argue **SSH vs QUIC** explicitly: complementarity, not either/or religion.
 
 ### E. Comparison matrix
 
-Termio protocol vs: Superlogical (announced only), tmux, zmx, herdr-style remote, current Termio Companion wire.
+Fyolo protocol vs: Superlogical (announced only), tmux, zmx, herdr-style remote, current Fyolo Companion wire.
 
 ### F. Risks & open decisions
 
-Including: phone → Mac gateway vs phone-direct-to-remote-termiod; whether host “owns SSH” later; sharing ACL; relay threat model.
+Including: phone → Mac gateway vs phone-direct-to-remote-fyolod; whether host “owns SSH” later; sharing ACL; relay threat model.
 
 ### G. Phased roadmap
 
@@ -244,7 +244,7 @@ A short “beautiful ideas we will not do” list (e.g. gRPC for PTY hot path, p
 
 - Prefer **decisive** recommendations with tradeoffs over “it depends” without a default.
 - Cite Superlogical claims with **Announced / Inferred / Unknown**.
-- Keep Termio’s wedge: agent-native + local-first + direct; do not redesign Termio into Superlogical.
+- Keep Fyolo’s wedge: agent-native + local-first + direct; do not redesign Fyolo into Superlogical.
 - Write so an engineer can implement protocol v0.1 / v1 from your note without reading this brief again.
 - If you need a wire example, show 1–2 attach sequences end-to-end (local + remote-SSH + future-QUIC) with the **same** messages.
 
@@ -253,21 +253,21 @@ A short “beautiful ideas we will not do” list (e.g. gRPC for PTY hot path, p
 ## 9. Start here
 
 1. Open https://www.superlogical.com/ and Mitchell’s post; extract only load-bearing architectural claims.
-2. Read Termio design docs / `termiod` POC behavior in this workspace.
-3. Write the design note to **`docs/design/20260730-termiod-session-protocol.md`** with YAML front matter:
+2. Read Fyolo design docs / `fyolod` POC behavior in this workspace.
+3. Write the design note to **`docs/design/20260730-fyolod-session-protocol.md`** with YAML front matter:
    ```yaml
    ---
-   title: termiod Session Protocol
+   title: fyolod Session Protocol
    status: draft
    type: design
    created: YYYY-MM-DD
    updated: YYYY-MM-DD
    related:
-260730-termiod-session-mux.md
+260730-fyolod-session-mux.md
 260708-session-daemon-architecture.md
 260730-_research-session-protocol-brief.md
    ---
    ```
-4. Bump `related` in `20260730-termiod-session-mux.md` to include `20260730-termiod-session-protocol.md` if you edit that file.
+4. Bump `related` in `20260730-fyolod-session-mux.md` to include `20260730-fyolod-session-protocol.md` if you edit that file.
 5. End with: **top 5 decisions that need a human product call** (not engineering bikesheds).
 6. Comment a short summary on GitHub issue #164 when done (optional but preferred).

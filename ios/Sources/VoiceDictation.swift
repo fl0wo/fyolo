@@ -34,8 +34,8 @@ enum TranscriptionProvider: String, CaseIterable {
 
     fileprivate var keychainService: String {
         switch self {
-        case .openAI: "sh.termio.mobile.openai"
-        case .elevenLabs: "sh.termio.mobile.elevenlabs"
+        case .openAI: "sh.fyolo.mobile.openai"
+        case .elevenLabs: "sh.fyolo.mobile.elevenlabs"
         }
     }
 
@@ -155,7 +155,7 @@ final class VoiceDictation: NSObject {
         guard format.sampleRate > 0 else { throw Failure.recordingFailed }
 
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("termio-dictation-\(UUID().uuidString).wav")
+            .appendingPathComponent("fyolo-dictation-\(UUID().uuidString).wav")
         // 16-bit linear PCM in a WAV container (both providers accept it),
         // recorded at the mic's own rate/channels so the tap buffers need no
         // resampling on the way in.
@@ -469,7 +469,7 @@ private extension TranscriptionProvider {
     func makeRequest(apiKey: String, audioData: Data) -> URLRequest {
         var request = URLRequest(url: endpointURL)
         request.httpMethod = "POST"
-        let boundary = "termio-\(UUID().uuidString)"
+        let boundary = "fyolo-\(UUID().uuidString)"
         request.setValue(
             "multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type"
         )

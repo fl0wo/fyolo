@@ -34,7 +34,7 @@ connected complaints:
    targets. His fix suggestion: make `+` a dropdown (new terminal / open
    folder), which we adopt.
 
-An earlier Termio version *did* make cd-creates-a-project the model, and it was
+An earlier Fyolo version *did* make cd-creates-a-project the model, and it was
 deliberately backed out: it's too fluid — cd'ing around sprays project entries,
 and projects should be persistent, deliberately-created things. That decision
 stands. This RFC keeps the project entity exactly as it is and fixes the other
@@ -42,7 +42,7 @@ half of the model.
 
 ## Problem
 
-Termio today has one entity: **Project** (a path that owns sessions). Loose
+Fyolo today has one entity: **Project** (a path that owns sessions). Loose
 terminals are shoehorned into it via a synthetic project at `$HOME`
 (`addScratchSession`, `Project.firstRunProjects`). All three complaints above
 are downstream of that one lie:
@@ -64,7 +64,7 @@ Two entity kinds, with opposite ownership arrows:
 | **Loose terminal** | the session itself | a *mutable property* (live cwd) | one |
 
 This matches the two mental models users already have: iTerm2 (the tab is the
-entity, cwd is ephemeral state) and VS Code (the folder is the entity). Termio
+entity, cwd is ephemeral state) and VS Code (the folder is the entity). Fyolo
 needs both, as two honest kinds — not one kind simulating the other.
 
 ### Sidebar: a "Terminals" section
@@ -73,7 +73,7 @@ Loose terminals live in a flat **Terminals** section, pinned above the
 projects. It is not presented as a folder: terminal glyph instead of the folder
 mark, fixed "Terminals" label, no branch, no sandbox pill, no agent quick-add
 hover buttons (agents don't belong in `$HOME`; scratch agents keep their own
-`~/.termio/default` flow, unchanged). Each row's title is the **basename of its
+`~/.fyolo/default` flow, unchanged). Each row's title is the **basename of its
 live cwd** (`~` at home), so after `cd ~/code/foo` the row reads `foo` — the
 row itself becomes the answer to "where am I".
 
@@ -122,11 +122,11 @@ The bridge from loose terminal → project is an explicit action, not automatic
 mouse, the primary affordance is typed:
 
 ```
-termio open .        # promote this terminal's cwd to a project
+fyolo open .        # promote this terminal's cwd to a project
 ```
 
-delivered over the existing `termio sessions` control socket. The calling
-session (identified by `$TERMIO_SESSION`) is **re-parented in place** under the
+delivered over the existing `fyolo sessions` control socket. The calling
+session (identified by `$FYOLO_SESSION`) is **re-parented in place** under the
 new (or existing) project — the same PTY, same scrollback, new home in the
 sidebar. Mouse path: a context-menu "Open as Project" on the terminal row when
 its cwd isn't inside an existing project.
@@ -142,15 +142,15 @@ exclusion lists because its architecture never needs one):
 1. **Never recursively walk down from `$HOME`** — no indexing, no watchers, no
    full-tree scans rooted there. Enumerating `~` itself is TCC-free; descending
    into `~/Music`, `~/Desktop`, `~/Library/...` is what fires the Apple
-   Music/Photos/Contacts prompts, attributed to Termio as the responsible
+   Music/Photos/Contacts prompts, attributed to Fyolo as the responsible
    process.
 2. **Detect repos by walking *up*** from the reported cwd (`.git` parent
    lookup), never down. Cheap, TCC-free, and doubles as the promotion signal.
 3. **Lazy enumeration only** in the file tree — expanding a protected folder is
    the user's explicit intent, and the prompt is then expected.
-4. Agents are child processes Termio can't gate in-process the way Warp gates
+4. Agents are child processes Fyolo can't gate in-process the way Warp gates
    its in-process AI file reads; the equivalents are cwd scoping
-   (`~/.termio/default`) and the Seatbelt sandbox (a Seatbelt deny returns
+   (`~/.fyolo/default`) and the Seatbelt sandbox (a Seatbelt deny returns
    EPERM *before* tccd is consulted — no prompt at all).
 
 ## Non-goals
@@ -159,7 +159,7 @@ exclusion lists because its architecture never needs one):
 - **Unifying the two entities** (e.g. `Project.anchored: Bool`) — a project is
   one-path-many-sessions, a loose terminal is one-session-one-cwd; forcing one
   shape breaks on multi-session.
-- **Changing scratch agents** — `~/.termio/default` is a safety decision,
+- **Changing scratch agents** — `~/.fyolo/default` is a safety decision,
   untouched.
 - **cwd-following file tree inside real projects** — the stable anchor is the
   feature.
@@ -171,15 +171,15 @@ exclusion lists because its architecture never needs one):
 - `Models.swift` — `Project.kind: ProjectKind` (`.folder`/`.terminals`,
   decode-defaulted to `.folder`); `Session.lastWorkingDirectory: String?`;
   `firstRunProjects()` seeds a Terminals container instead of a "home" project.
-- `TermioStore.restored` — migrate any persisted project whose path is `$HOME`
+- `FyoloStore.restored` — migrate any persisted project whose path is `$HOME`
   to `kind: .terminals`.
-- `TermioStore+ProjectActions.swift` — `addScratchTerminal` finds the container
+- `FyoloStore+ProjectActions.swift` — `addScratchTerminal` finds the container
   by kind, not path; `orderedProjects` floats the Terminals section to the top.
-- `TermioStore+TerminalSurface.swift` — subscribe to
+- `FyoloStore+TerminalSurface.swift` — subscribe to
   `state.$workingDirectory` in `monitor(_:for:)` → publish
   `workingDirectories[id]` + persist `lastWorkingDirectory` for loose
   terminals; spawn loose terminals at `lastWorkingDirectory ?? $HOME`.
-- `TermioStore.displayTitle(for:)` — loose auto-named terminals display the
+- `FyoloStore.displayTitle(for:)` — loose auto-named terminals display the
   live cwd basename (`~` at home).
 - `SidebarView.swift` — `ProjectHeader` renders the Terminals section variant
   (terminal glyph, fixed label, trimmed menu, no agent hover buttons).
@@ -191,7 +191,7 @@ exclusion lists because its architecture never needs one):
 
 ### Phase 2
 
-`termio open .` promotion + row context-menu equivalent, with in-place session
+`fyolo open .` promotion + row context-menu equivalent, with in-place session
 re-parenting.
 
 ### Phase 3 (only if pressure appears)
@@ -204,7 +204,7 @@ Quiet "≙ project" marker when a loose terminal sits inside a known project;
 A self-contained prompt for executing Phase 1 in a fresh session:
 
 ```text
-In ~/Documents/GitHub/termio (native Swift/AppKit/SwiftUI Mac terminal app,
+In ~/Documents/GitHub/fyolo (native Swift/AppKit/SwiftUI Mac terminal app,
 SwiftPM, builds with `swift build`), implement Phase 1 of
 docs/design/20260713-loose-terminal-entity.md — read that RFC first; it is the spec.
 
@@ -217,22 +217,22 @@ Summary: loose scratch terminals currently masquerade as sessions of a fake
    pattern for `pinned`). Add `Session.lastWorkingDirectory: String?`
    (same decode-default pattern). Update `Project.firstRunProjects()` to seed
    name "Terminals", kind `.terminals`, path $HOME.
-2. TermioStore.restored (TermioStore.swift): after loading the snapshot,
+2. FyoloStore.restored (FyoloStore.swift): after loading the snapshot,
    migrate any project whose standardized path == $HOME to kind `.terminals`
    (idempotent).
-3. TermioStore+ProjectActions.swift: `addScratchSession(agent: .terminal)`
+3. FyoloStore+ProjectActions.swift: `addScratchSession(agent: .terminal)`
    must find/create the container by `kind == .terminals` (name "Terminals"),
    not by path. `orderedProjects` sorts `.terminals` ahead of everything
    (before pinned).
-4. TermioStore.swift: add `@Published var workingDirectories: [Session.ID:
-   String] = [:]`. In TermioStore+TerminalSurface.swift `monitor(_:for:)`,
+4. FyoloStore.swift: add `@Published var workingDirectories: [Session.ID:
+   String] = [:]`. In FyoloStore+TerminalSurface.swift `monitor(_:for:)`,
    append a sink on `state.$workingDirectory` (compactMap, removeDuplicates)
    that updates the map and, when the session lives in a `.terminals` project,
    writes `lastWorkingDirectory` back onto the persisted session (mirror how
    the `$title` sink writes `liveTitle`). In `surface(for:in:)`, when
    `project.kind == .terminals`, spawn at `session.lastWorkingDirectory ??
    project.path` (verify the directory still exists, else fall back).
-5. `displayTitle(for:)` (TermioStore.swift): for a `.terminals`-contained,
+5. `displayTitle(for:)` (FyoloStore.swift): for a `.terminals`-contained,
    auto-named ("Terminal N") plain terminal, return the basename of
    `workingDirectories[id] ?? lastWorkingDirectory`, with $HOME displayed as
    "~"; keep "Terminal" as the pre-first-report fallback. User-renamed
@@ -254,7 +254,7 @@ Summary: loose scratch terminals currently masquerade as sessions of a fake
    "New terminal or project".
 
 Constraints: match surrounding comment density/idiom; no new dependencies; do
-NOT touch the scratch-agent flow (~/.termio/default), worktrees, or split
+NOT touch the scratch-agent flow (~/.fyolo/default), worktrees, or split
 groups. Never add any code that recursively scans $HOME (RFC design rules).
 Build with `swift build`; then rebuild+relaunch the dev app via the
 macos-rebuild-dev skill and verify: fresh terminal shows under "Terminals",

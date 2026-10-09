@@ -8,9 +8,9 @@ updated: 2026-09-13
 
 # Input during a pending host resize
 
-> Historical investigation for [issue #633](https://github.com/termio-sh/termio/issues/633).
+> Historical investigation for [issue #633](https://github.com/fl0wo/fyolo/issues/633).
 > The affected Swift PTY implementation was removed before this patch reached
-> `main`, and the current `termiod` backend prevents the timing defect by
+> `main`, and the current `fyolod` backend prevents the timing defect by
 > construction (see "Resolution against main"). The reported visual symptom was
 > never reproduced, so its absence on the current backend cannot be proven, only
 > its known cause ruled out.
@@ -18,7 +18,7 @@ updated: 2026-09-13
 Reported September 13, 2026: Claude input and its cursor sometimes appear above
 the prompt line after switching away and back. The exact visual symptom has
 not yet been reproduced locally; the report does not establish whether the
-switch was between apps or between termio sessions.
+switch was between apps or between fyolo sessions.
 
 Investigation found a concrete timing defect: `resizeFromHost` records the
 surface's new grid immediately but coalesces the PTY update for 50 ms.
@@ -46,9 +46,9 @@ merged tree because it depends on the deleted `PTYProcess` class.
 
 ## Resolution against main
 
-`main` owns PTYs in `termiod/src/pty.rs`, and the resize-before-input ordering the
+`main` owns PTYs in `fyolod/src/pty.rs`, and the resize-before-input ordering the
 old patch had to restore now holds by construction. Input and viewport frames
-travel one connection in order (`TermiodClient.send`, `TermiodClient.swift`), and
+travel one connection in order (`FyolodClient.send`, `FyolodClient.swift`), and
 the daemon handles `Input` and `Viewport` in a single actor loop, so a frame is
 resolved before the one behind it (`session.rs`, `SessionMsg::Input` /
 `SessionMsg::Viewport`). The `Input` arm calls `apply_size_policy` immediately

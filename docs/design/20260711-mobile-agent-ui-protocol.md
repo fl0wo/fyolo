@@ -32,14 +32,14 @@ related:
 **没有人把 TUI 字节流转译成 GUI —— 都是绕过终端，去上游拿结构化数据**
 （JSONL transcript / stream-json / SDK），在 host 侧归一化成统一 schema，客户端原生渲染。
 
-Termio 与它们的差别：Termio 是终端产品，agent 的 TUI 本身就是产品承诺，
+Fyolo 与它们的差别：Fyolo 是终端产品，agent 的 TUI 本身就是产品承诺，
 所以不能走 headless/适配器路线 —— 结构面必须是 PTY 之上的**旁路**（sidecar），
 而不是替代运行时。
 
 ## 2. 核心原则（已定，不再重开）
 
 1. **PTY session 是唯一的 session 原语。** Mac = headless PTY host；
-   macOS 窗口、iOS、Android、`termio sessions` CLI 全部是对等的应用层客户端，
+   macOS 窗口、iOS、Android、`fyolo sessions` CLI 全部是对等的应用层客户端，
    谁都不拥有 session。
 2. **零行为改变。** agent 原样跑在 PTY 里（真 TUI，非 headless、非 ACP 适配器、非 SDK 包装）。
    结构面从 transcript + hooks **推导**，agent 感知不到自己被投影。
@@ -66,7 +66,7 @@ L2  应用层（全部对等，均为 L1 的订阅者）
     · macOS 窗口       进程内订阅（1 号客户端）
     · iOS app          companion WebSocket
     · Android（将来）   companion WebSocket + 同一套事件 switch
-    · termio sessions CLI   unix socket（headless 可驱动的既有证明）
+    · fyolo sessions CLI   unix socket（headless 可驱动的既有证明）
 ```
 
 纪律：**新代码不允许绕过 L1 直接摸 PTY。** 这条边界同时是将来（如果需要）
@@ -99,12 +99,12 @@ daemon 化的现成切割线 —— 但 daemon 化本设计**不做**（见 §11
 其 `docs/session-protocol.md` 开篇即写：新协议"replaces the existing mix of `output`、
 `codex` 和自定义 `acp` 格式"，换成 **9 种事件的扁平流**
 （`text`/`service`/`tool-call-start`/`tool-call-end`/`file`/`turn-start`/`turn-end`/`start`/`stop`），
-给出的理由与 Termio 的处境高度重合：载荷要端到端加密（ACP 假设明文 REST）、
+给出的理由与 Fyolo 的处境高度重合：载荷要端到端加密（ACP 假设明文 REST）、
 **tool call 是要渲染的一等 UI 而非 debug 元数据**、客户端一个 `switch` 就能实现全协议。
 一家真出货了 iOS/Android/Web 三端的产品，试过 ACP 形状又主动退回扁平事件流 ——
 这是目前能拿到的最强单条经验证据。
 
-对 Termio 而言，ACP 的方法层本来就是重复的：`session/new`、`session/load`、
+对 Fyolo 而言，ACP 的方法层本来就是重复的：`session/new`、`session/load`、
 `session/prompt`、`session/cancel` 在 companion wire 上分别已经是 `.start`、`.attach` +
 回放、PTY 二进制帧、中断键注入。再套一层 JSON-RPC 只是把同一件事说两遍，
 而且要在一个手写 JSON 编解码的 wire（`CompanionControl`）上模拟 RPC 语义。
@@ -116,7 +116,7 @@ Android 将来照样是一个 switch，10 个 case。
 （Claude 的 ACP 支持是 Zed 维护的 SDK 包装而非官方；Amp 把 ACP 锁在付费额度后）；
 最小公分母抽象丢 agent 特性；stdio/1:1/本地假设没有重连与多客户端。
 herdr（同架构竞品）与 vibe-kanban（编排器）都因此绕开了 ACP。
-Termio 只借它的 schema：最坏情况 ACP 标准死掉，我们手里仍是一套形状良好的私有
+Fyolo 只借它的 schema：最坏情况 ACP 标准死掉，我们手里仍是一套形状良好的私有
 schema（vibe-kanban 的 NormalizedEntry 就是自己发明了一遍）；
 若它活下来，原生 ACP agent（Gemini CLI、Goose）可免费直通。
 
@@ -165,11 +165,11 @@ schema（vibe-kanban 的 NormalizedEntry 就是自己发明了一遍）；
 与 Happy 的三处刻意分歧 —— 每一处都因为**信号源不同**，不是口味不同：
 
 1. **tool 用 upsert，不用 `start`/`end` 两条事件。** Happy 的远程流是 SDK 直播，
-   先开始后结束很自然；Termio 的源是**磁盘上的 transcript 文件**，重读、resume、
+   先开始后结束很自然；Fyolo 的源是**磁盘上的 transcript 文件**，重读、resume、
    fork 都会让同一条 tool 记录再次出现。以 `call` 为键的幂等 upsert 让"重放即收敛"，
    客户端不需要 dedupe，host 也不需要 Happy 那套 `processedMessageKeys` 全局去重表。
 2. **`seq` + `since` 游标写进协议。** Happy 有服务器存全量消息、客户端拉；
-   Termio 没有服务器，重连时必须能说"我到 seq N 了"。这与字节面的 ring-buffer
+   Fyolo 没有服务器，重连时必须能说"我到 seq N 了"。这与字节面的 ring-buffer
    catch-up 是同构的机制，直接复用心智模型。
 3. **审批是一对事件而非一次 RPC 往返。** 同一个 TUI 菜单可能被坐在 Mac 前的人回答，
    解析必须能从外部到达（§9 先答者赢）。Happy 踩过的坑值得先抄进设计：
@@ -181,7 +181,7 @@ schema（vibe-kanban 的 NormalizedEntry 就是自己发明了一遍）；
 
 Happy 的 `session-protocol-claude.md` 里篇幅最大的一节是 sidechain：Task 子代理的消息
 可能先于父 `tool_use` 到达（要在 host 缓冲、等父到了再 flush），provider 的 tool id
-不能泄漏进协议（要映射成自己的 id）。Termio 的 transcript 里是完全相同的结构
+不能泄漏进协议（要映射成自己的 id）。Fyolo 的 transcript 里是完全相同的结构
 （`parentUuid` / `isSidechain`）。教训直接照抄：`parent` 字段进信封、
 **孤儿缓冲在 host 做、客户端保持哑**。这是一个改造成本远高于预留成本的字段。
 
@@ -196,7 +196,7 @@ Happy 的 `session-protocol-claude.md` 里篇幅最大的一节是 sidechain：T
 Claude 改一行布局、权限菜单加第四项，matcher 就废。终点是
 "停在某个版本 Claude Code 的美颜滤镜"。
 
-而 Termio **不是一个 emulator**：它装 hooks、读 agent manifest、拥有 session 生命周期。
+而 Fyolo **不是一个 emulator**：它装 hooks、读 agent manifest、拥有 session 生命周期。
 它不需要猜 Claude 的脸 —— 它可以直接问。
 
 > **核心原则：一个 TUI 菜单不是问题本身，它是 agent 对问题的一次渲染。**
@@ -290,7 +290,7 @@ Claude Code 的 `PreToolUse` / `PermissionRequest` hook 把问题结构化地交
 手机上最难用的正是 agent 的输入行（边框、占位符、mode 行全挤在 80 列网格里），
 而它同时是唯一每轮都必须碰的控件。抬成原生输入框之后，
 iOS 已经建好的东西立刻全部生效：长按粘贴、语音听写、系统键盘。
-注意与 2026-07-03 被砍掉的 composer 的区别（见 memory: termio-ios-input）：
+注意与 2026-07-03 被砍掉的 composer 的区别（见 memory: fyolo-ios-input）：
 那是一个**摆在终端旁边的另一个输入框**，自己发明状态；
 这里的状态**来自 agent 自己声明的那个问题**。
 
@@ -335,10 +335,10 @@ protocol AgentAdapter {
   接 hooks,每接一个信号源多亮一批 flag —— 管线与客户端零改动。
 - 现状对应:Claude adapter 信号最全(hooks+transcript 均已有);Codex/OpenCode
   有 transcript 发现;normalizer 从 `SessionTraceRenderer` 的解析循环重构而来
-  (一次性 HTML → 增量 tail → update 事件),提升到 host 层(TermioStore),
+  (一次性 HTML → 增量 tail → update 事件),提升到 host 层(FyoloStore),
   macOS UI 是它的 1 号进程内订阅者。
 
-## 9. 多客户端 envelope 三规则（ACP 缺失、Termio 补齐）
+## 9. 多客户端 envelope 三规则（ACP 缺失、Fyolo 补齐）
 
 ACP 假设 1:1 本地连接；共享 session 需要 envelope 层规定：
 
@@ -360,7 +360,7 @@ bracketed-paste 原子注入已把窗口压到极小；性质同 tmux 双人，�
 ## 10. 实施阶段（每步独立可用）
 
 0. **hook 持有的权限问题（可独立发布，不依赖内容面）。** 交互面的最小切片，
-   只做 declared 级：`termio agent ask` 新 CLI 动词（读 stdin、走控制 socket、
+   只做 declared 级：`fyolo agent ask` 新 CLI 动词（读 stdin、走控制 socket、
    **等回答**、打印 `permissionDecision`）+ `question` / `answer` 两条 wire 消息 +
    手机上的一张卡片。先只服务现有的终端镜头 —— 终端照旧渲染，
    底部多一张原生审批卡。不需要 normalizer、不需要 chat 视图、**不需要一行正则**，
@@ -374,7 +374,7 @@ bracketed-paste 原子注入已把窗口压到极小；性质同 tmux 双人，�
    `ChatMessageContent` 判别联合 + tool-call 连续折叠 + 手势跟随）；输入沿用现有终端注入；
    镜头切换按钮 + 按 session 记忆。**dormant session 历史即刻可看**，这是第一阶段就成立的
    单条最强论据 —— 已强于现 trace HTML 一代。
-   （2026-07-03 备份 `~/termio-chatview-backup-20260703/` 可作脚手架。）
+   （2026-07-03 备份 `~/fyolo-chatview-backup-20260703/` 可作脚手架。）
 3. **审批卡。** hook PreToolUse 驱动 + `answer` 键击注入 + 三规则广播。
    这是 GUI 相对终端的第二条不可替代能力。
 4. **Resume 一等公民 + Codex adapter（transcript 信号）+ `.capabilities` + Settings 三档默认视图。**
@@ -390,11 +390,11 @@ bracketed-paste 原子注入已把窗口压到极小；性质同 tmux 双人，�
   remote-access-relay-strategy.md。）
 - **不为了手机而重启 agent。** Happy 的做法是：手机接管时杀掉本地 TUI、用 Agent SDK
   以 headless 流重开一个 session（`claudeRemoteLauncher`），此时 Mac 上的终端退化为一个
-  ink 状态板,双击空格才切回本地 TUI。Termio 不做这件事 —— 我们自己持有 PTY,
+  ink 状态板,双击空格才切回本地 TUI。Fyolo 不做这件事 —— 我们自己持有 PTY,
   两个面来自**同一个活着的 session**,不存在 local/remote 模式切换、不存在会话重启。
-  这是 Termio 相对 Happy 的结构性优势,也是本设计不能被"照抄 Happy"取代的原因。
+  这是 Fyolo 相对 Happy 的结构性优势,也是本设计不能被"照抄 Happy"取代的原因。
 - **GUI 必须靠终端做不到的事立身。** iOS chat UI 曾两次被砍（见 memory:
-  termio-ios-chat / termio-chat-lens）,原因一致：气泡只是把终端已经显示的东西
+  fyolo-ios-chat / fyolo-chat-lens）,原因一致：气泡只是把终端已经显示的东西
   重画一遍。第三次要成立,验收标准是四条不可替代能力 —— dormant 历史、
   可点审批、原生 diff、plan 清单。做不到这四条就不要重做这个视图。
 - **延迟不对称**：结构面隔 transcript 落盘,滞后数百 ms～1s;不承诺与字节面逐帧同步。
@@ -403,7 +403,7 @@ bracketed-paste 原子注入已把窗口压到极小；性质同 tmux 双人，�
 - **TUI permission 菜单 → PermissionOption 的映射是启发式**（hook payload + 菜单解析）,
   偶尔退化为通用 "Option 1/2/3" 标签,可接受。
 - **不训练/不内嵌"自动识别任意 TUI 控件"的模型。** yetone 的路线图里有这一条
-  （小模型识别未支持控件 → 转义 → 之后走模式匹配）。Termio 走不到那一步就够了：
+  （小模型识别未支持控件 → 转义 → 之后走模式匹配）。Fyolo 走不到那一步就够了：
   最关键的控件根本不用认（§6.4 declared 级）。
   开放集识别是研究赌注,而运行时依赖推理既不可复现也没法做确定性测试。
 - **不写"某家 agent 某一版菜单"的正则** —— 无论写在 Swift 里还是写成 manifest 数据。
@@ -415,12 +415,12 @@ bracketed-paste 原子注入已把窗口压到极小；性质同 tmux 双人，�
 
 ## 12. Prior Art（2026-07-10/11 调研，2026-08-03 复核 Happy）
 
-| 产品 | 架构 | 对 Termio 的启示 |
+| 产品 | 架构 | 对 Fyolo 的启示 |
 |---|---|---|
 | Happy (slopus/happy) | CLI 包装 + E2EE relay + RN app;**双 launcher**:local=tail JSONL,remote=Agent SDK 直播 | 见下方复核 |
 | vibe-kanban (BloopAI) | 编排器;各家原生 stream-json → 自有 NormalizedEntry | 跨 agent 统一 schema 的词汇;resume token 模型;拒绝 ACP 的理由 |
 | sarea（本机 repo） | 原生 SwiftUI chat-first;stream-json headless | iOS 视图层蓝本:ChatMessageContent、内联审批卡、tool 折叠 |
-| herdr.dev | **同架构竞品**:PTY host + 真 TUI + 读屏 manifest + hooks | 验证 PTY 路线;其空档（无移动端/结构面）= Termio 差异化;热更新 manifest 可偷 |
+| herdr.dev | **同架构竞品**:PTY host + 真 TUI + 读屏 manifest + hooks | 验证 PTY 路线;其空档（无移动端/结构面）= Fyolo 差异化;热更新 manifest 可偷 |
 | **yetone（2026-08-02 演示）** | macOS 终端 + **渲染层钩子实时识别 TUI 控件 → GUI 重绘**;底下是真终端跑真 Claude Code | §6.4 交互面的直接来源;声明将开源 |
 
 ### Happy 复核（2026-08-03，读其仓库 HEAD）
@@ -432,10 +432,10 @@ bracketed-paste 原子注入已把窗口压到极小；性质同 tmux 双人，�
    回答成了"完全不要"——这是最激进的一端。
 2. **协议从 ACP 形状退回扁平 9 事件流**（§5）。
 3. **本地模式下 TUI 与 GUI 并存,靠 SessionStart hook + JSONL 扫描**,
-   与 Termio 现有信号源完全一致 —— 这条路已被验证可行。
+   与 Fyolo 现有信号源完全一致 —— 这条路已被验证可行。
 4. **难点全在 subagent 与去重**(`session-protocol-claude.md` 最长的一节):
    孤儿 sidechain 缓冲、provider id 不外泄、重启后按 uuid 去重。
-   Termio 用 upsert + seq 可以绕开一半(§6.2),但 `parent` 字段必须第一天就留。
+   Fyolo 用 upsert + seq 可以绕开一半(§6.2),但 `parent` 字段必须第一天就留。
 
 ### yetone 演示复核（2026-08-02，X 帖 2083948454116831711，~216k 阅读）
 
@@ -453,7 +453,7 @@ bracketed-paste 原子注入已把窗口压到极小；性质同 tmux 双人，�
 
 > 产品方向是大道，实现路线是奇技 —— 而且是当前窗口期里很有用的那种奇技。
 
-理由与 Termio 的处境完全对得上：
+理由与 Fyolo 的处境完全对得上：
 **问题在于协议不存在，只好读格子。** Ink / Bubble Tea / Textual 各自往 cell buffer 画,
 你匹配的是"Claude Code 这一版长什么样",不是系统 API;**升级即断裂**
 （改一行布局、权限菜单加第四项,matcher 就废）;yetone 自己要拿小模型兜底,
@@ -465,14 +465,14 @@ bracketed-paste 原子注入已把窗口压到极小；性质同 tmux 双人，�
 三条可直接抄的收敛判据：(1) 从"针对某家的 pattern"长成**稳定的控件中间表示**；
 (2) 模型识别只当 bootstrapping,绝不进运行时；(3) **认不出就老实显示纯 TUI,
 绝不半 GUI 半乱**。§6.4 的三级结构就是按这三条重写的 ——
-而 Termio 比 yetone 多一张牌：**它装 hooks,所以第一级根本不用读屏。**
+而 Fyolo 比 yetone 多一张牌：**它装 hooks,所以第一级根本不用读屏。**
 
-视频里被 GUI 化的控件与 Termio 的封闭集高度重合：**权限菜单**（1 Yes / 2 Yes,
+视频里被 GUI 化的控件与 Fyolo 的封闭集高度重合：**权限菜单**（1 Yes / 2 Yes,
 allow reading from tmp/ / 3 No）、tool 卡（Write/Read，含 Error writing file）、
 状态栏（模型、用量条、manual mode on）、图片输入。
-窗口形态（左会话列表 + 右 SESSION/GIT/PROCESSES 检查器 + 标签页）与 Termio 近乎同构 ——
+窗口形态（左会话列表 + 右 SESSION/GIT/PROCESSES 检查器 + 标签页）与 Fyolo 近乎同构 ——
 这条赛道上"终端 + agent GUI"的收敛形状已经出现，差异化只能来自**手机**与**hook 真值**。
 
 SDK 资产：随方法层放弃,不再 vendor swift-acp、不再引 Kotlin SDK;
-事件类型直接写进 `TermioShared`,与 `CompanionControl` 同一份、两端共享。
+事件类型直接写进 `FyoloShared`,与 `CompanionControl` 同一份、两端共享。
 ACP 名词的正式来源仍是 agentclientprotocol/agent-client-protocol 的 `schema/v1/schema.json`。

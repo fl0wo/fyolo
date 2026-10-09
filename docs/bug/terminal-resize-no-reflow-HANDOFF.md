@@ -28,7 +28,7 @@ delivered (TIOCSWINSZ succeeded, the grid followed, ghostty painted the new
 grid) — but the child never learned it should repaint, so the VT screen kept
 the old-width drawing. §1's "environmental, not a code regression" was exactly
 right: the variable that changed 2 days prior was the **Claude Code version**
-(its resize-detection mechanism changed); Termio's spawn shape had always been
+(its resize-detection mechanism changed); Fyolo's spawn shape had always been
 wrong but nothing had stepped on it before.
 
 **Fix:** `PTYProcess.init` now spawns via `forkpty` — the shape every terminal
@@ -48,8 +48,8 @@ The user insists "两天前 (2 days ago) it worked." So we checked out the **exa
 commit into a clean git worktree and built it:
 
 ```
-git worktree add /tmp/termio-2daysago 0bd4559   # "build(macos): switch Mac app to Lakr233"
-# built its termio.app (Lakr233/libghostty-spm 1.2.9) — an UNTOUCHED checkout
+git worktree add /tmp/fyolo-2daysago 0bd4559   # "build(macos): switch Mac app to Lakr233"
+# built its fyolo.app (Lakr233/libghostty-spm 1.2.9) — an UNTOUCHED checkout
 ```
 
 **That untouched 2-days-ago build reproduces the bug too.**
@@ -59,8 +59,8 @@ state, not a code change.** Do NOT git-diff or git-bisect the source; the previo
 hours doing exactly that. Whatever changed lives OUTSIDE the source tree (persisted UserDefaults,
 display/monitor configuration, the Claude Code agent version, or macOS state).
 
-The worktree at `/tmp/termio-2daysago` (commit `0bd4559`, bundle id `com.termio.app`) is still there
-— use it as the clean control. Remove with `git worktree remove /tmp/termio-2daysago --force`.
+The worktree at `/tmp/fyolo-2daysago` (commit `0bd4559`, bundle id `com.fyolo.app`) is still there
+— use it as the clean control. Remove with `git worktree remove /tmp/fyolo-2daysago --force`.
 
 ---
 
@@ -83,17 +83,17 @@ input separator) reflows to fill the new width, no white void on the right.**
 
 ## 3. What is PROVEN by instrumentation — DO NOT re-derive
 
-The full resize chain was logged end to end (`TERMIO_GEOM` in the wrapper's
-`TerminalSurfaceCoordinator.synchronizeMetrics`, plus `TERMIO_RESIZE_CB` / `TERMIO_RESIZEHOST` /
-`TERMIO_TIOCSWINSZ` in Termio). Dragging the window produced, per drag:
+The full resize chain was logged end to end (`FYOLO_GEOM` in the wrapper's
+`TerminalSurfaceCoordinator.synchronizeMetrics`, plus `FYOLO_RESIZE_CB` / `FYOLO_RESIZEHOST` /
+`FYOLO_TIOCSWINSZ` in Fyolo). Dragging the window produced, per drag:
 
 | step | log | result |
 | --- | --- | --- |
-| view frame resizes | `TERMIO_GEOM view_pt=326→727 grid=38→84` | ✅ the NSView DOES track the window |
+| view frame resizes | `FYOLO_GEOM view_pt=326→727 grid=38→84` | ✅ the NSView DOES track the window |
 | ghostty recomputes grid | same `grid=` field | ✅ surface grid tracks (up to 84 cols) |
-| wrapper → Termio resize callback | `TERMIO_RESIZE_CB cols=84` ×271 | ✅ fires |
-| `PTYProcess.resizeFromHost` | `TERMIO_RESIZEHOST … owner=host` ×271 | ✅ runs, `owner=host` (NOT companion) |
-| winsize to the child | `TERMIO_TIOCSWINSZ cols=74 rc=0` (coalesced ~5×) | ✅ **child gets the correct winsize** |
+| wrapper → Fyolo resize callback | `FYOLO_RESIZE_CB cols=84` ×271 | ✅ fires |
+| `PTYProcess.resizeFromHost` | `FYOLO_RESIZEHOST … owner=host` ×271 | ✅ runs, `owner=host` (NOT companion) |
+| winsize to the child | `FYOLO_TIOCSWINSZ cols=74 rc=0` (coalesced ~5×) | ✅ **child gets the correct winsize** |
 
 **Conclusion: the view resizes, ghostty's grid is correct, and the child process receives the
 correct new winsize (TIOCSWINSZ rc=0). Everything up to and including the child is correct. The ONLY
@@ -111,19 +111,19 @@ Corollary rule-outs (already proven, do not revisit):
 
 ## 4. Architecture facts you MUST know
 
-- **Termio owns the PTY host-side** (`.inMemory` backend via `Sources/termio/PTYProcess.swift`), NOT
+- **Fyolo owns the PTY host-side** (`.inMemory` backend via `Sources/fyolo/PTYProcess.swift`), NOT
   ghostty's `.exec`. The agent process is independent of the ghostty surface, so the surface can be
   torn down / recreated without killing Claude. (`docs/CLAUDE.md` is stale — it says `.exec`.)
 - The `InMemoryTerminalSession` (in the wrapper) holds the VT/screen state; the ghostty **surface**
   only renders it.
 - **This embedding renders REACTIVELY off coalesced wakeups — there is no guaranteed continuous
   render tick on macOS.** A dropped render edge = stale paint. `warmUpRendering` / `pumpRendering`
-  (in `TermioStore+TerminalSurface.swift`) exist to pump `controller.tick()` for a while to force
+  (in `FyoloStore+TerminalSurface.swift`) exist to pump `controller.tick()` for a while to force
   paints. This is the likely locus of the repaint failure.
-- **Lakr233 vs the jiweiyuan fork is a drop-in swap for Termio.** Session control
-  (`TermioStore+SessionControl.swift`) reaches the raw `ghostty_surface_t` by **Mirror reflection**
+- **Lakr233 vs the jiweiyuan fork is a drop-in swap for Fyolo.** Session control
+  (`FyoloStore+SessionControl.swift`) reaches the raw `ghostty_surface_t` by **Mirror reflection**
   and calls the raw C API `ghostty_surface_key` — it does NOT use the fork's public
-  `submitReturn`/`sendKeyEvent`/`rawValue`. Verified: Termio compiles **unchanged** against
+  `submitReturn`/`sendKeyEvent`/`rawValue`. Verified: Fyolo compiles **unchanged** against
   `Lakr233/libghostty-spm` 1.2.9. (macOS `Package.swift` is currently pointed at Lakr233 1.2.9.)
 
 ---
@@ -150,14 +150,14 @@ Corollary rule-outs (already proven, do not revisit):
 - `Package.swift` → `Lakr233/libghostty-spm` from `1.2.9` (rolled back from the fork).
 - App code was `git checkout HEAD`-reverted for the spawn/layout files, so it is ~HEAD.
 - **Uncommitted, JUST added, NEVER built/tested** (user interrupted the build): a "force refresh on
-  resize" in `monitor()` (`TermioStore+TerminalSurface.swift`) + a `resizeRefreshWork` debounce dict
-  in `TermioStore.swift`. It subscribes to `state.$surfaceSize`, debounces ~180 ms after resizes
+  resize" in `monitor()` (`FyoloStore+TerminalSurface.swift`) + a `resizeRefreshWork` debounce dict
+  in `FyoloStore.swift`. It subscribes to `state.$surfaceSize`, debounces ~180 ms after resizes
   stop, then calls `PTYProcess.jiggleResize()` (SIGWINCH shrink+restore → child redraws its whole
   TUI) + `pumpRendering(state, duration: 0.5)`. **This is the user's own suggested "force reload
   ghostty on resize" idea — it is implemented but UNVERIFIED. Build it and test it first.**
-- The fork checkout under `.build/checkouts/` may still contain a temporary `TERMIO_GEOM` NSLog in
+- The fork checkout under `.build/checkouts/` may still contain a temporary `FYOLO_GEOM` NSLog in
   `TerminalSurfaceCoordinator.swift` (harmless, and unused now that Package points at Lakr233).
-- iOS (`ios/TermioMobile.xcodeproj`) still points at the remote **fork** via
+- iOS (`ios/FyoloMobile.xcodeproj`) still points at the remote **fork** via
   `XCRemoteSwiftPackageReference` — untouched.
 
 Nothing is committed. The branch is `fix/terminal-narrow-grid-frozen-banner`.
@@ -170,15 +170,15 @@ Because §1 says it's environmental, chase these — roughly in order:
 
 1. **Purge persisted state and retest.** The day's broken builds persisted narrow grids via
    `rememberHostGrid`, and a stale `NSSplitView Subview Frames …` can pin the detail pane narrow.
-   Clear these keys for `com.termio.app`, `sh.termio.app`, and `sh.termio.app.dev`:
-   `termio.lastHostGridColumns` / `termio.lastHostGridRows`, `"NSWindow Frame TermioMainWindow"`,
+   Clear these keys for `com.fyolo.app`, `sh.fyolo.app`, and `sh.fyolo.app.dev`:
+   `fyolo.lastHostGridColumns` / `fyolo.lastHostGridRows`, `"NSWindow Frame FyoloMainWindow"`,
    any `"NSSplitView Subview Frames …"`, then relaunch a fresh session. (Quick, high-value.)
 2. **Test on the PRIMARY monitor.** The user's window was on a **second** monitor (measured window
    frame `x=1858`, screen origin `x=1512, y=-98`). Multi-monitor + differing backing scale/geometry
    is a classic terminal-sizing/repaint breaker. Move the window to the built-in display and retest.
 3. **Compare against a known-good terminal.** Run the SAME Claude Code in **Ghostty.app** or
    **Terminal.app** and resize. If Claude Code itself no longer reflows there either, the regression
-   is in the **Claude Code agent version**, not Termio — which would perfectly explain "same code,
+   is in the **Claude Code agent version**, not Fyolo — which would perfectly explain "same code,
    worked 2 days ago, broken now." This single test rules the agent in or out and should be done
    EARLY.
 4. **Fix the repaint directly** (the confirmed failure point). The size reaches the child correctly,
@@ -187,7 +187,7 @@ Because §1 says it's environmental, chase these — roughly in order:
    b. Investigate whether the **Metal layer size** updates on resize (`updateMetalLayerMetrics` in
       the wrapper's `AppTerminalView+Lifecycle`) — a Metal layer stuck at the old size would render
       the correct grid into a stale-size drawable.
-   c. Nuclear: recreate the ghostty surface on resize (Termio owns the PTY, so the agent survives —
+   c. Nuclear: recreate the ghostty surface on resize (Fyolo owns the PTY, so the agent survives —
       but the InMemory session must replay/repaint its screen). This is the user's literal
       "reload ghostty on drag" request; keep as last resort due to flicker/scroll loss.
 
@@ -195,14 +195,14 @@ Because §1 says it's environmental, chase these — roughly in order:
 
 ## 8. How to build/run/observe (repro harness)
 
-- Dev build (isolated, bundle id `sh.termio.app.dev`, port 8788):
-  `TERMIO_CHANNEL=dev ./scripts/build-app.sh` then
-  `open ./termio-dev.app --stdout /tmp/termio-dev.log --stderr /tmp/termio-dev.log`.
-- Kill only the dev app: `pkill -9 -f "termio-dev.app/Contents/MacOS/termio"`.
+- Dev build (isolated, bundle id `sh.fyolo.app.dev`, port 8788):
+  `FYOLO_CHANNEL=dev ./scripts/build-app.sh` then
+  `open ./fyolo-dev.app --stdout /tmp/fyolo-dev.log --stderr /tmp/fyolo-dev.log`.
+- Kill only the dev app: `pkill -9 -f "fyolo-dev.app/Contents/MacOS/fyolo"`.
 - **You cannot script a window resize** (System Events can't set bounds here). You must ask the user
-  to drag the window, then read `/tmp/termio-dev.log`.
-- Re-add the `TERMIO_GEOM` NSLog to the wrapper's `synchronizeMetrics` (log `size.width` points +
-  computed `grid` cols) and the `TERMIO_RESIZE_CB/RESIZEHOST/TIOCSWINSZ` logs in Termio to re-observe
+  to drag the window, then read `/tmp/fyolo-dev.log`.
+- Re-add the `FYOLO_GEOM` NSLog to the wrapper's `synchronizeMetrics` (log `size.width` points +
+  computed `grid` cols) and the `FYOLO_RESIZE_CB/RESIZEHOST/TIOCSWINSZ` logs in Fyolo to re-observe
   the chain — but note §3 already established the chain works up to the child.
 
 ---

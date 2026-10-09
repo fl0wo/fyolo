@@ -6,8 +6,8 @@ created: 2026-08-08
 updated: 2026-08-31
 related:
   - 20260724-sessions-cli-v2.md
-  - 20260730-termiod-session-protocol.md
-  - 20260730-termiod-session-mux.md
+  - 20260730-fyolod-session-protocol.md
+  - 20260730-fyolod-session-mux.md
 ---
 
 # Design: Sessions CLI v3 — command design (better than tmux)
@@ -22,16 +22,16 @@ related:
 
 - **Links, not coordinates.** tmux addresses work by position
   (`-t work:2.1`) in three coexisting namespaces (`name`, index, `%id`), and
-  positions shift under renumbering. termio addresses sessions by one stable
-  noun: `termio://session/<uuid>` (unique prefix accepted). Nothing in the CLI
+  positions shift under renumbering. fyolo addresses sessions by one stable
+  noun: `fyolo://session/<uuid>` (unique prefix accepted). Nothing in the CLI
   ever names a window or pane — layout is a client concern (protocol §H.5).
 - **Ten verbs, one noun.** tmux has ~90 flat commands mixing lifecycle,
-  layout, config scopes, key tables, and copy-mode. termio's surface is ten
+  layout, config scopes, key tables, and copy-mode. fyolo's surface is ten
   verbs on `session`. Every capability beyond that is either the client's job
   (layout, selection, scrollback) or the protocol's (status, snapshots).
 - **JSON is the contract; tmux's format strings are the cautionary tale.**
   tmux scripting means `#{pane_pid}` template soup plus `capture-pane` text
-  scraping. Every termio verb takes `--json` and emits one documented, stable
+  scraping. Every fyolo verb takes `--json` and emits one documented, stable
   shape. Screen truth comes from transcripts and `S` snapshots, never scraped
   text.
 - **Push, not poll.** tmux has no events; supervision is a poll-and-scrape
@@ -59,13 +59,13 @@ related:
 | Remote = nested tmux | `C-b C-b` prefix chords; two servers, two option scopes, two clipboards |
 
 None of these are implementation bugs; they follow from tmux's model — the
-mux owns layout and config, and scripting was retrofitted. termio's model
+mux owns layout and config, and scripting was retrofitted. fyolo's model
 (host owns sessions; clients own layout; status is protocol) removes the
 categories rather than polishing them.
 
 ## 2. The v3 surface
 
-Verbs marked **P** speak the session protocol (termiod) once Phase 4 lands;
+Verbs marked **P** speak the session protocol (fyolod) once Phase 4 lands;
 **G** verbs address the GUI and stay on the app socket (a window action needs
 a window). Until the daemon is default, P-verbs route via the app for
 app-owned sessions — a routing bit, not a second vocabulary.
@@ -96,7 +96,7 @@ one shape per verb, no template language, no parsing prose.
 
 **Exit codes** (v2, restated as contract): `0` ok/settled · `1` error, reason
 on stderr (`prompt_stalled` / `session_closed` / `agent_gone` / `boot-failed`)
-· `2` termio gone · `3` timeout, target still running.
+· `2` fyolo gone · `3` timeout, target still running.
 
 ## 3. What we refuse (tmux features that are anti-features here)
 
@@ -116,9 +116,9 @@ on stderr (`prompt_stalled` / `session_closed` / `agent_gone` / `boot-failed`)
 1. **v3.0 (app socket, now):** `list --closed` + tombstones, `closed` watch
    events, `spawn --wait=boot` + loud boot-failure, done latch, `send`
    chunking, documented JSON schemas. All are app-store changes; none wait on
-   termiod.
+   fyolod.
 2. **v3.1 (protocol backing, Phase 4 of the mux plan):** P-verbs move to the
-   session protocol in the Rust `termio` binary; `read` switches to `S`
+   session protocol in the Rust `fyolo` binary; `read` switches to `S`
    snapshots; `watch` consumes host `E` events and therefore works with the
    GUI closed. G-verbs stay behind; the routing bit retires with the last
    app-owned session.

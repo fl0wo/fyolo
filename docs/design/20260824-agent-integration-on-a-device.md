@@ -1,19 +1,19 @@
 ---
-title: Installing termio's agent integration on a device
+title: Installing fyolo's agent integration on a device
 status: draft
 type: rfc
 created: 2026-08-24
 updated: 2026-08-25
 related:
-  - 20260825-agent-integration-moves-to-termiod.md
+  - 20260825-agent-integration-moves-to-fyolod.md
   - 20260824-ios-as-device-client.md
   - 20260814-remote-to-device.md
-  - 20260805-termiod-device-architecture.md
-  - 20260730-termiod-session-protocol.md
+  - 20260805-fyolod-device-architecture.md
+  - 20260730-fyolod-session-protocol.md
   - 20260718-agent-abstraction-and-configuration.md
 ---
 
-# Installing termio's agent integration on a device
+# Installing fyolo's agent integration on a device
 
 > An agent on a VPS gets no skill and no hooks, because both installers write to
 > this Mac's `$HOME` with `FileManager`. Give the skill a device-flavoured
@@ -27,15 +27,15 @@ re-do it:
 
 | Decision | State |
 | --- | --- |
-| D1 — device payload | **Done.** `Sources/termio/Resources/skills/termio-device/SKILL.md`, selected by `AgentIntegrationTarget.skillResourceDirectory`. Unscoped, as D1 says it must be until `Session::info()` returns the project. |
-| D2 — session id in the environment | **Done.** `session::daemon_owned_env` exports `TERMIOD_SESSION_ID` and `TERMIOD_SOCK`, layered after the client's `env` so a client cannot spoof either. Two tests. |
+| D1 — device payload | **Done.** `Sources/fyolo/Resources/skills/fyolo-device/SKILL.md`, selected by `AgentIntegrationTarget.skillResourceDirectory`. Unscoped, as D1 says it must be until `Session::info()` returns the project. |
+| D2 — session id in the environment | **Done.** `session::daemon_owned_env` exports `FYOLOD_SESSION_ID` and `FYOLOD_SOCK`, layered after the client's `env` so a client cannot spoof either. Two tests. |
 | D2 — device hook command | **Done.** `AgentStatusHooks.reportCommand(reporter:)` emits the `set-status` form, drops the stdin-mining flags, and keeps Cursor's `printf '{}'` contract. `HookReportCommandTests`. |
 | D5 — policy in the client | **Done.** `AgentConfigStore` is the seam; all four hook dialects and the skill installer go through it, and paths stay unexpanded because `~` means the *target's* home. |
-| D6 — the v0 SSH arm | **Done.** `SSHAgentConfigStore`, riding `Termiod.sshArguments(host:)`. |
+| D6 — the v0 SSH arm | **Done.** `SSHAgentConfigStore`, riding `Fyolod.sshArguments(host:)`. |
 | D3 — `home:` dest | Not built. Belongs to the v1 transfer-plane arm; the v0 SSH arm never touches `UploadOpen`. |
 | D4 — `expect_sha256` | **Done on the v0 arm**, which is where the race actually is. `AgentConfigStore.write(_:to:ifUnchangedFrom:)` commits a merge against the bytes it was computed from; `SSHAgentConfigStore` does the digest check and the rename in one remote command, so nothing slips between them. A lost race reports the agent as not installed and the pane's setup button is the retry — no re-merge loop, which would fight a live editor. The protocol-level `UploadCommit { expect_sha256 }` is still owed by the v1 arm. |
 | — | **Done.** A machine's pane calls both installers with `device.integrationTarget` (`MachinePaneModel.setUp`), so §D6's surface exists and a device target now reaches them. |
-| — | **Done.** The plugin dialects install on a device: the three templates take a `HookReporter` and generate the `termiod set-status` form. `DeviceHookInstallTests`. |
+| — | **Done.** The plugin dialects install on a device: the three templates take a `HookReporter` and generate the `fyolod set-status` form. `DeviceHookInstallTests`. |
 
 One behaviour worth knowing before reading further: remote status carries **state
 and title only**.
@@ -43,7 +43,7 @@ and title only**.
 Two things the device arm learned the hard way, both of which fail *silently*
 because every hook form ends in `2>/dev/null || true`:
 
-- `Termiod.remoteBinary()` is a shell **expression** (`$HOME/.local/bin/termiod`),
+- `Fyolod.remoteBinary()` is a shell **expression** (`$HOME/.local/bin/fyolod`),
   not a path. Quoting it whole emits a literal `$HOME` directory. There are three
   escaping contexts for one binary — raw, shell, and JavaScript — and
   `HookReporter` now spells all three.
@@ -74,7 +74,7 @@ another rc that can take seconds. Both variables are unset on a default account,
 where this resolves exactly as `expandingTildeInPath` always did.
 
 There is no trade here, which is why it is a plain rule rather than a heuristic:
-every agent termio files under `~/.config` — OpenCode, Amp, Crush — documents
+every agent fyolo files under `~/.config` — OpenCode, Amp, Crush — documents
 XDG support. An agent that hardcoded the literal default would be the one case
 this rule got wrong, and the catalog has none.
 
@@ -84,10 +84,10 @@ Two installers, one shape. `SessionSkillInstaller.sync` and
 `AgentStatusHooks.sync` (`GeneralSettingsTab.swift:36`, `:56`) both resolve
 `FileManager.default.homeDirectoryForCurrentUser`
 (`SessionControl.swift:708`) and write into the agent's config directory on the
-machine termio is running on.
+machine fyolo is running on.
 
 An agent launched on a device therefore has neither. The visible symptom is
-status: every hook termio installs invokes `termio agent report <state>`
+status: every hook fyolo installs invokes `fyolo agent report <state>`
 (`HookListener.swift:255`), so a remote agent never reports through the hook
 contract at all and its state comes only from screen-streak promotion and OSC
 title classification. The invisible symptom is the skill — a remote agent simply
@@ -103,7 +103,7 @@ Two different write problems wearing one Settings toggle:
 
 | | Skill | Hooks |
 | --- | --- | --- |
-| Shape | one whole file, `<skillDir>/termio/SKILL.md` (`SessionControl.swift:751`) | a **merge** into a file the user also owns and edits |
+| Shape | one whole file, `<skillDir>/fyolo/SKILL.md` (`SessionControl.swift:751`) | a **merge** into a file the user also owns and edits |
 | Dialects | one | three — JSON manifest, script directory, plugin drop-in |
 | Idempotence | byte-compare, no version field | compare after merge; refuses to touch an unparseable file (`HookListener.swift:507`) |
 | Hazard | none beyond clobbering our own file | clobbering the user's config, or being out-merged by a destructive third-party writer (`conflictingHookMarkers`) |
@@ -114,9 +114,9 @@ split.
 ```mermaid
 flowchart LR
   subgraph mac["Today — Mac only"]
-    S1["SessionSkillInstaller"] -->|FileManager| H1["~/.claude/skills/termio/SKILL.md"]
+    S1["SessionSkillInstaller"] -->|FileManager| H1["~/.claude/skills/fyolo/SKILL.md"]
     S2["AgentStatusHooks"] -->|"read · merge · write"| H2["~/.claude/settings.json"]
-    H2 -->|"termio agent report"| CS["termio.app control socket"]
+    H2 -->|"fyolo agent report"| CS["fyolo.app control socket"]
   end
   subgraph vps["A device — nothing arrives"]
     A["agent on the VPS"] -.->|"no skill"| X1["~/.claude/skills — absent"]
@@ -128,15 +128,15 @@ flowchart LR
 
 Three facts the design has to fit, each verifiable in the tree:
 
-- **The payload differs.** `skills/termio/SKILL.md` teaches the `termio sessions`
-  CLI and gates on `TERMIO_SESSION`. A box has neither: no `termio` binary, and
-  `pty.rs:83` lists `TERMIO_SESSION` among the `LAUNCHER_ENV_KEYS` the daemon
-  strips. What a box does have is `termiod` at `$HOME/.local/bin/termiod`, with
+- **The payload differs.** `skills/fyolo/SKILL.md` teaches the `fyolo sessions`
+  CLI and gates on `FYOLO_SESSION`. A box has neither: no `fyolo` binary, and
+  `pty.rs:83` lists `FYOLO_SESSION` among the `LAUNCHER_ENV_KEYS` the daemon
+  strips. What a box does have is `fyolod` at `$HOME/.local/bin/fyolod`, with
   `list`, `send`, `create`, `kill`, and `set-status` (`main.rs:47-162`).
 - **A device hook cannot name its session.** The device equivalent of
-  `termio agent report` is `termiod set-status <target> <status>` (`main.rs:93`),
+  `fyolo agent report` is `fyolod set-status <target> <status>` (`main.rs:93`),
   and nothing puts the target in the child's environment — `pty.rs:273` sets
-  `TERMIOD_SESSION=1`, a boolean marker. A hook that cannot name its session
+  `FYOLOD_SESSION=1`, a boolean marker. A hook that cannot name its session
   cannot report at all.
 - **Uploads cannot address `$HOME`.** `UploadOpen.dest` is a path under `root`,
   "which must then be present", or `temp:<name>` in a session scratch dir
@@ -146,9 +146,9 @@ Three facts the design has to fit, each verifiable in the tree:
 
 ### D1 — The device gets its own skill, not a copy of the Mac's
 
-Ship a `termiod`-flavoured `SKILL.md`: same shape, same frontmatter contract,
-`termiod` verbs, and a gate on the device's own session marker rather than
-`TERMIO_SESSION`.
+Ship a `fyolod`-flavoured `SKILL.md`: same shape, same frontmatter contract,
+`fyolod` verbs, and a gate on the device's own session marker rather than
+`FYOLO_SESSION`.
 
 **Depends on** the same one-field gap the iOS RFC records as P0.3:
 `WorkstreamSpec.project` is stored (`session.rs:302`) and `Session::info()`
@@ -161,24 +161,24 @@ that names a missing binary is worse than two that are each correct.
 
 ### D2 — Export the session id, and make `set-status` the device hook target
 
-`termiod` exports `TERMIOD_SESSION_ID=<id>` into every PTY it spawns. The
-existing `TERMIOD_SESSION=1` marker keeps its meaning — "you are inside a
-termiod session" — so nothing that reads it changes.
+`fyolod` exports `FYOLOD_SESSION_ID=<id>` into every PTY it spawns. The
+existing `FYOLOD_SESSION=1` marker keeps its meaning — "you are inside a
+fyolod session" — so nothing that reads it changes.
 
-The device hook command becomes `termiod set-status "$TERMIOD_SESSION_ID" <state>`,
+The device hook command becomes `fyolod set-status "$FYOLOD_SESSION_ID" <state>`,
 and its fingerprint for strip-and-replace is ` set-status `, the exact role
 ` agent report ` plays locally. **It carries state and title only** — `SetStatus`
 has no transcript, conversation, tool or prompt-title field, so the four
 stdin-mining flags are dropped rather than emitted for a binary that would reject
 them.
 
-**Not** reused: `TERMIO_SESSION`. It is on the strip list for a real reason
+**Not** reused: `FYOLO_SESSION`. It is on the strip list for a real reason
 (`pty.rs:70` — a stale launcher value poisoning a later session), and giving it a
 second meaning on the device side would fight that.
 
 ### D3 — A `home:` dest class on `UploadOpen`
 
-`dest: "home:.claude/skills/termio/SKILL.md"`, resolved against the daemon
+`dest: "home:.claude/skills/fyolo/SKILL.md"`, resolved against the daemon
 user's `$HOME`. The daemon refuses anything that escapes it: no `..` traversal,
 no absolute path, no symlink whose resolved target leaves `$HOME`.
 
@@ -224,7 +224,7 @@ Swift, and the catalog they read is user-extensible.
 ### D5 — Policy stays in the client; the daemon owns only path safety
 
 > **Reversed 2026-08-25** by
-> [`20260825-agent-integration-moves-to-termiod.md`](20260825-agent-integration-moves-to-termiod.md).
+> [`20260825-agent-integration-moves-to-fyolod.md`](20260825-agent-integration-moves-to-fyolod.md).
 > The duplication argument below is still the true cost, and that RFC pays it. What
 > it prices that this one did not is the shape D5 forces: policy in Swift and files
 > on another machine puts the plan and the filesystem on opposite ends of a network,
@@ -239,7 +239,7 @@ declaration — stays in Swift, one implementation.
 
 ### D6 — v0 rides SSH; v1 rides the protocol
 
-The Mac already has the road: `termiod remote deploy` builds and installs over
+The Mac already has the road: `fyolod remote deploy` builds and installs over
 system SSH (`remote.rs`). A first cut can install skill and hooks the same way,
 with no protocol change at all, and be useful the day it lands.
 
@@ -251,7 +251,7 @@ the Mac, not a design.
 front rather than left to drift.** The SSH arm is deleted the release after `home:`
 and `expect_sha256` ship and the protocol arm has installed on a real device — not
 kept as a fallback. Both arms call the same merge code behind `AgentConfigStore`
-(`Sources/termio/Agents/AgentConfigStore.swift`), so what differs is transport, not
+(`Sources/fyolo/Agents/AgentConfigStore.swift`), so what differs is transport, not
 merge logic; if that ever stops being true, v0 goes immediately.
 
 
@@ -293,7 +293,7 @@ that, and reports through it.
 ## Non-goals
 
 - **The agent catalog does not move to Rust** (D5).
-- **termio does not install the agent CLIs themselves.** It installs its own
+- **fyolo does not install the agent CLIs themselves.** It installs its own
   integration into an agent that is already there.
 - **No general remote filesystem API.** D3 and D7 are two scoped verbs, not a
   write plane.
@@ -302,7 +302,7 @@ that, and reports through it.
 
 ## Open questions
 
-1. **Whose `$HOME`?** A shared box where several people run `termiod` under one
+1. **Whose `$HOME`?** A shared box where several people run `fyolod` under one
    account makes "the user's agent config" ambiguous. Today's answer — the
    daemon user's home — is probably right and is untested.
 2. **Should a first write to a device be confirmed?** It is the user's own box,
@@ -311,7 +311,7 @@ that, and reports through it.
 3. **Does the device skill wait for project scoping?** D1 ships an
    unscoped-and-honest version; the alternative is holding it until
    `Session::info()` returns the project.
-4. **Version skew.** A device running an older `termiod` has no `home:` dest and
+4. **Version skew.** A device running an older `fyolod` has no `home:` dest and
    no `expect_sha256`. The install must degrade to "not supported on this
    device, update it" rather than to a partial write.
 

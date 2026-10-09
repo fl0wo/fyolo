@@ -6,7 +6,7 @@ created: 2026-08-30
 updated: 2026-08-31
 related:
   - 20260829-tab-strip-is-the-collapsed-sidebar.md
-  - 20260827-termiod-lifecycle-reconcile.md
+  - 20260827-fyolod-lifecycle-reconcile.md
 ---
 
 # Session identity survives the agent
@@ -20,7 +20,7 @@ related:
 A built-in Claude Code or Codex session runs as:
 
 ```text
-termiod
+fyolod
 └─ /bin/zsh -il
    └─ codex | claude
 ```
@@ -39,18 +39,18 @@ this writing.
 ### 1. Destroy depends on a lazily-created link
 
 `closeSession` kills the daemon-side session through exactly one line
-(`Sources/termio/TermioStore/TermioStore+ProjectActions.swift:1003`):
+(`Sources/fyolo/FyoloStore/FyoloStore+ProjectActions.swift:1003`):
 
 ```swift
-termiodLinks[id]?.killAndClose()
-termiodLinks[id] = nil
+fyolodLinks[id]?.killAndClose()
+fyolodLinks[id] = nil
 ```
 
-The `?.` is the bug. A `TermiodSessionLink` is created only when a pane
+The `?.` is the bug. A `FyolodSessionLink` is created only when a pane
 actually renders (`surface(for:)` →
-`makeTermiodLink` in `TermioStore+TerminalSurface.swift:287`), and it is
-cleared in several places — first thing in `applyTermiodExit`
-(`TermioStore+Termiod.swift:375`), on connection loss, and wholesale on app
+`makeFyolodLink` in `FyoloStore+TerminalSurface.swift:287`), and it is
+cleared in several places — first thing in `applyFyolodExit`
+(`FyoloStore+Fyolod.swift:375`), on connection loss, and wholesale on app
 quit. So every one of these closes silently kills nothing:
 
 - a row restored after app relaunch that was never selected,
@@ -58,36 +58,36 @@ quit. So every one of these closes silently kills nothing:
 - any close after the exit/connection-lost paths nil'd the link.
 
 The same pattern repeats at `removeProject`
-(`TermioStore+ProjectActions.swift:857`) and `relaunchSession` (`:1063`).
+(`FyoloStore+ProjectActions.swift:857`) and `relaunchSession` (`:1063`).
 `relaunchSession` is the worst case: its comment promises "a respawn-in-place
 must not leave the old daemon-side process running under the same name", but on
 the revert-to-shell path the kill is *always* a no-op, because
-`applyTermiodExit` already nil'd the link before calling it.
+`applyFyolodExit` already nil'd the link before calling it.
 
 The irony: `killAndClose()` itself already kills by name
-(`Terminal/Termiod/TermiodClient.swift:1292`), and `closeDeviceSessions`
+(`Terminal/Fyolod/FyolodClient.swift:1292`), and `closeDeviceSessions`
 already does a link-free kill for stranger rows
-(`TermioStore+Termiod.swift:770`). The capability exists; `closeSession` just
+(`FyoloStore+Fyolod.swift:770`). The capability exists; `closeSession` just
 doesn't use it when the link is gone.
 
 ### 2. Agent exit inside a surviving shell is invisible
 
 The launch wrapper is `[shell, "-ilc", "exec \(command)"]`
-(`TermioStore+TerminalSurface.swift:502`). When the `exec` actually replaces
+(`FyoloStore+TerminalSurface.swift:502`). When the `exec` actually replaces
 the shell, agent exit ends the daemon session, `link.onExit` fires, and
-`applyTermiodExit` reverts the row to a shell in place — the designed behavior.
+`applyFyolodExit` reverts the row to a shell in place — the designed behavior.
 
 The issue's process tree shows a shell that did **not** exec: the agent ran as
 a child of `zsh -il`. (A `claude`/`codex` that resolves to a shell function or
 alias shim in the user's zshrc is enough — `exec` of a function cannot replace
 the process.) In that tree the daemon session never exits, so no exit event
 ever fires. And the app deliberately never demotes a declared agent row from
-foreground data — `applyTermiodInformation` is wired with
-`identifiesAgent: isPlainTerminal` (`TermioStore+Termiod.swift:135`). Net
+foreground data — `applyFyolodInformation` is wired with
+`identifiesAgent: isPlainTerminal` (`FyoloStore+Fyolod.swift:135`). Net
 effect: no code path in the app can notice the agent left.
 
-termiod, for its part, already reports everything needed: the foreground
-sampler (`termiod/src/session/foreground.rs`, 2s cadence) publishes
+fyolod, for its part, already reports everything needed: the foreground
+sampler (`fyolod/src/session/foreground.rs`, 2s cadence) publishes
 `foreground_pid` / `foreground_argv` per session, and `zsh` in an Also Running
 row is precisely that sampler reporting an idle login shell.
 
@@ -95,7 +95,7 @@ row is precisely that sampler reporting an idle login shell.
 
 "Also Running" was designed (tab-strip RFC) as *sessions the device reports
 that no row accounts for* — the adoption affordance for sessions started from
-the `termiod` CLI. The filter (`TermioStore/DeviceContext.swift:205`) is:
+the `fyolod` CLI. The filter (`FyoloStore/DeviceContext.swift:205`) is:
 
 ```swift
 guard information.alive else { return false }
@@ -124,7 +124,7 @@ object; the foreground process is an attribute of it.**
   it is. There is no orphan bucket at all. External sessions are handled by
   detection and state roll-up, not by a separate section.
 
-Termio's revert-to-shell is already the right call by this standard — it is
+Fyolo's revert-to-shell is already the right call by this standard — it is
 tmux's `remain-on-exit` with a live shell instead of a dead pane. The bug is
 that on the non-exec tree the revert never runs, and that close can leak the
 daemon session into a bucket that changes its identity.
@@ -140,19 +140,19 @@ attachment — an optimization, never a prerequisite.
 name, exactly as `closeDeviceSessions` already does:
 
 ```swift
-if let link = termiodLinks[id] {
+if let link = fyolodLinks[id] {
     link.killAndClose()
 } else {
-    Termiod.killSession(
+    Fyolod.killSession(
         target: daemonSessionName(for: session),
-        route: TermiodRoute(sshAlias: session.termiodRemoteHost))
+        route: FyolodRoute(sshAlias: session.fyolodRemoteHost))
 }
-termiodLinks[id] = nil
+fyolodLinks[id] = nil
 ```
 
 `closeSession` already reads the session before mutating (`locate(id)` at
 `:998`), so name and route are available. "No such session" stays a benign
-answer, as it already is in `TermiodClient.swift:829`.
+answer, as it already is in `FyolodClient.swift:829`.
 
 If the route is unreachable at close time (remote host offline), record the
 `(name, route)` pair as a pending kill and retry on the next successful roster
@@ -164,7 +164,7 @@ close-while-offline hole that no link-based scheme could.
 Keep both exit shapes converging on the same UX — the row stays in place:
 
 - **Exec'd tree** (daemon child *is* the agent): unchanged —
-  `applyTermiodExit` → revert to shell in place. D1 fixes `relaunchSession` so
+  `applyFyolodExit` → revert to shell in place. D1 fixes `relaunchSession` so
   the respawn actually replaces the old daemon session instead of reattaching
   to it.
 - **Wrapped tree** (agent is a child of a surviving shell): let foreground data
@@ -196,13 +196,13 @@ bounded, persisted in `StateFile`). At roster refresh:
   invariant hold even across crashes and offline closes,
 - anything else → a genuine stranger; show it for adoption as designed.
 
-The journal, not name shape, decides "mine": two Termio installs share one
+The journal, not name shape, decides "mine": two Fyolo installs share one
 per-uid daemon roster, so a UUID-shaped name alone proves nothing about whose
 session it is.
 
 ### The verdict on the section itself
 
-Keep the mechanism, fix its diet. Adopting `termiod`-CLI sessions into the
+Keep the mechanism, fix its diet. Adopting `fyolod`-CLI sessions into the
 sidebar is real product surface — it is the "one roster, any client" half of
 the positioning, and herdr validates external-session detection as the
 category norm. What #528 shows is not that the section is a bad idea but that
@@ -212,23 +212,23 @@ for most users is never, and that is the correct frequency for it.
 
 ## Testing
 
-- `Tests/termioTests/TermiodDestroyIntegrationTests.swift` installs the link by
+- `Tests/fyoloTests/FyolodDestroyIntegrationTests.swift` installs the link by
   hand (`:104`), so the link-present path is the only one ever exercised — the
   #528 close path has zero coverage. Add the link-less cases: close of a
-  restored row, close after `applyTermiodExit`, close from the CLI path.
+  restored row, close after `applyFyolodExit`, close from the CLI path.
 - Unit-test the D3 filter with a journaled close: roster row matching a
   journaled name must be killed, not listed.
 - The D2 demotion streak is pure logic over `SessionInfo` sequences — testable
   without a window, same shape as `StallProbeTests`.
 - Manual: reproduce the issue's tree by shadowing `claude` with a zsh function
-  in a probe channel (`TERMIO_CHANNEL=probe`), exit the agent, confirm the row
+  in a probe channel (`FYOLO_CHANNEL=probe`), exit the agent, confirm the row
   demotes in place; close it, confirm the daemon roster is empty.
 
 ## Non-goals
 
 - #526/#527 (connect-failure daemon spawning) are a different root cause and
   tracked separately.
-- No daemon-side "owner" metadata. termiod stays client-agnostic; ownership is
+- No daemon-side "owner" metadata. fyolod stays client-agnostic; ownership is
   the app's bookkeeping (the journal), which also keeps two installs sharing a
   roster honest.
 - No change to revert-to-shell as the designed outcome of agent exit, and no
