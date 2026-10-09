@@ -308,11 +308,11 @@ export function OrchestrationDemo() {
 
   return (
     <div ref={ref} className="relative">
-      {/* The window. Sidebar tone sits a step above the terminal's near-black,
-          the way the app's source list sits above its surfaces; the inset top
-          hairline plus the cast shadow are what make it read as a real macOS
-          window rather than a flat panel. */}
-      <div className="flex h-[25rem] overflow-hidden rounded-2xl border border-white/10 bg-[#1b1b21] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08),0_28px_60px_-24px_rgba(0,0,0,0.8)] md:h-[27rem] lg:h-[28rem]">
+      {/* The window. Sidebar and terminal are both pure black, kept apart by
+          the hairline between them; the inset top hairline plus the cast
+          shadow are what make it read as a real macOS window rather than a
+          flat panel. */}
+      <div className="flex h-[25rem] overflow-hidden rounded-2xl border border-white/10 bg-black shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08),0_28px_60px_-24px_rgba(0,0,0,0.8)] md:h-[27rem] lg:h-[28rem]">
         {/* The sidebar only opens once the window is wide enough for the
             terminal beside it to hold a full command line unwrapped — below
             that it folds away, which is the app's own collapsed-source-list
@@ -368,7 +368,7 @@ export function OrchestrationDemo() {
             terminals on the right. The window's title block (the session's
             folder over its branch) sits at the top, the way the app titles a
             window. */}
-        <div className="flex min-w-0 flex-1 flex-col border-white/[0.07] bg-[#0b0b0d] lg:border-l">
+        <div className="flex min-w-0 flex-1 flex-col border-white/[0.07] bg-black lg:border-l">
           <div className="flex items-start gap-3 px-4 pb-2 pt-3 sm:px-5">
             <div className="flex lg:hidden">
               <TrafficLights />

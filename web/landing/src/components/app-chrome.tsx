@@ -160,8 +160,8 @@ export function ServerGlyph({ className }: { className?: string }) {
   );
 }
 
-// The window a mock lives in: the app's rounded frame, with the sidebar tone a
-// step above the terminal's near-black and the inset top hairline plus cast
+// The window a mock lives in: the app's rounded frame in pure black, matching
+// the hero and orchestration windows, with the inset top hairline plus cast
 // shadow that make it read as a real macOS window rather than a flat panel.
 export function MockWindow({
   className,
@@ -174,7 +174,7 @@ export function MockWindow({
     <div
       aria-hidden="true"
       className={cn(
-        "flex overflow-hidden rounded-xl border border-white/10 bg-[#1b1b21]",
+        "flex overflow-hidden rounded-xl border border-white/10 bg-black",
         "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.07),0_16px_32px_-18px_rgba(0,0,0,0.8)]",
         className,
       )}

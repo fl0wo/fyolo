@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { OrchestrationDemo } from "@/components/sections/orchestration-demo";
 
@@ -6,7 +5,7 @@ import { OrchestrationDemo } from "@/components/sections/orchestration-demo";
 // fleet" claim. Copy and the terminal transcript mirror the real CLI surface
 // (scripts/fyolo + /docs/session-control); nothing here is aspirational.
 //
-// Layout: one bg-card article holding heading, demo, and docs link — the same
+// Layout: one bg-card article holding heading, demo, and closing line — the same
 // single-surface shape as the agent showcase, so adjacent sections match.
 export function Orchestration() {
   return (
@@ -29,15 +28,9 @@ export function Orchestration() {
             <OrchestrationDemo />
           </div>
 
-          <p className="mt-12 text-center text-sm text-muted-foreground">
-            Pinned JSON shapes, explicit waits, honest exit codes —{" "}
-            <Link
-              href="/docs/session-control"
-              className="font-medium text-foreground underline-offset-4 hover:underline"
-            >
-              read the API docs
-            </Link>
-            .
+          <p className="mt-12 text-balance text-center text-sm text-muted-foreground">
+            Your agents get the same commands you do: spawn a session, answer
+            its prompt, read its reply.
           </p>
         </Reveal>
       </div>

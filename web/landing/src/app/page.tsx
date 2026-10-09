@@ -1,12 +1,8 @@
 import { SiteNav } from "@/components/site-nav";
 import { Hero } from "@/components/sections/hero";
-import { AgentShowcase } from "@/components/sections/agent-showcase";
 import { Orchestration } from "@/components/sections/orchestration";
 import { FeatureGrid } from "@/components/sections/feature-grid";
-import { Companion } from "@/components/sections/companion";
-import { Faq } from "@/components/sections/faq";
 import { GitHubBand } from "@/components/sections/github-band";
-import { CtaBand } from "@/components/sections/cta-band";
 import { SiteFooter } from "@/components/site-footer";
 import { HeroGradient } from "@/components/hero-gradient";
 import { downloadUrl } from "@/lib/site";
@@ -37,29 +33,23 @@ export default function Home() {
       <SiteNav />
       <main className="flex-1">
         <Hero />
-        <AgentShowcase />
         <Orchestration />
         <FeatureGrid />
-        <Companion />
-        <Faq />
         <GitHubBand />
       </main>
-      {/* Shaded outro — mirrors the hero. The CTA band and footer share one slow
-          aurora (same MeshGradient), and the footer floats over it as glass,
-          echoing the way the nav floats over the hero shader up top. */}
-      <div className="hero-cinematic relative isolate overflow-hidden">
-        <HeroGradient className="absolute inset-0 -z-10" />
+      {/* Shaded outro — mirrors the hero. The footer floats over one slow
+          aurora (same MeshGradient) as glass, echoing the way the nav floats
+          over the hero shader up top. */}
+      <div className="relative isolate overflow-hidden bg-background">
+        {/* The aurora fades in from the page above through a mask rather than
+            an overlay: the footer is short enough that an overlay's top edge
+            and the WebGL canvas's snap to different pixel rows, leaving a seam. */}
+        <HeroGradient className="absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,transparent,black)]" />
         {/* Frosted film grain over the aurora, matching the hero. */}
         <div
           aria-hidden="true"
           className="grain-overlay pointer-events-none absolute -inset-[6%] -z-10"
         />
-        {/* Fade the page above down into the aurora (the hero's bottom fade, flipped). */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-background to-transparent"
-        />
-        <CtaBand />
         <SiteFooter />
       </div>
     </>

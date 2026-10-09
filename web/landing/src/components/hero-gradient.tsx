@@ -5,14 +5,14 @@ import { MeshGradient } from "@paper-design/shaders-react";
 import { cn } from "@/lib/utils";
 import { useInView } from "@/lib/use-in-view";
 
-// A slow, restrained aurora behind the hero, via Paper Shaders (WebGL). Deep navy
-// → indigo → violet over near-black, drifting almost imperceptibly — the matte
-// "developer" look (Linear/Vercel/Resend), not a playful flowing blob. The real
+// A slow, restrained aurora behind the hero, via Paper Shaders (WebGL). Mostly
+// black, with deep violet and a neon-magenta edge — cyberpunk purple, drifting
+// almost imperceptibly, not a playful flowing blob. The real
 // frosted texture comes from the grain layer on top (see `.grain-overlay` /
 // hero.tsx); the in-shader grain just keeps the gradient from banding. The
 // section's `.hero-cinematic` CSS gradient sits underneath as the SSR / no-WebGL
 // fallback. Motion is paused for users who prefer reduced motion.
-const PALETTE = ["#070710", "#102a5e", "#1f63b0", "#2f8aa0", "#191636"];
+const PALETTE = ["#040307", "#12062a", "#3d1785", "#7e1d9e", "#07050d"];
 
 export function HeroGradient({ className }: { className?: string }) {
   const [mounted, setMounted] = useState(false);

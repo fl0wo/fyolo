@@ -500,14 +500,14 @@ html[data-theme-switching] *::after {
      page's #08080a background. */
   .hero-cinematic {
     background-image:
-      radial-gradient(54% 44% at 50% -6%, rgba(40, 120, 200, 0.22), transparent 62%),
-      radial-gradient(40% 36% at 78% 8%, rgba(40, 150, 165, 0.12), transparent 60%),
+      radial-gradient(54% 44% at 50% -6%, rgba(124, 58, 237, 0.24), transparent 62%),
+      radial-gradient(40% 36% at 78% 8%, rgba(217, 70, 239, 0.12), transparent 60%),
       linear-gradient(
         180deg,
-        #0a1a40 0%,
-        #09152e 30%,
-        #08101f 60%,
-        #08080e 84%,
+        #1a0833 0%,
+        #12062a 30%,
+        #0b0618 60%,
+        #08070e 84%,
         #08080a 100%
       );
   }
@@ -666,6 +666,193 @@ html[data-theme-switching] *::after {
   }
   @media (prefers-reduced-motion: reduce) {
     .animate-marquee {
+      animation: none;
+    }
+  }
+
+  /* The hero's stack hub (sections/stack-hub.tsx). Each tool owns one slot of a
+     shared cycle: its chip fires, a comet runs the wire into the terminal, the
+     port on the window's edge flares, and the tool's TUI line lights, then
+     fades into the next slot. Only transform and opacity animate: every glow
+     is painted once on a pseudo-element and faded in, so the loop runs on the
+     compositor with no per-frame layout or paint. --hub-delay picks the slot;
+     [data-hub-paused] holds it while the hero is scrolled away. */
+  :root {
+    --hub-accent: #a855f7;
+    --hub-hot: #f0dcff;
+    --hub-magenta: #d946ef;
+  }
+  @keyframes hub-fire {
+    0%,
+    22%,
+    100% {
+      opacity: 0;
+    }
+    3%,
+    9% {
+      opacity: 1;
+    }
+  }
+  @keyframes hub-comet {
+    0%,
+    3% {
+      opacity: 0;
+      transform: translateX(-100%);
+      /* Eases in, so the comet accelerates into the port. */
+      animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+    }
+    4% {
+      opacity: 1;
+      transform: translateX(-96%);
+      animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+    }
+    12% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    14%,
+    100% {
+      opacity: 0;
+      transform: translateX(0);
+    }
+  }
+  @keyframes hub-flare {
+    0%,
+    11% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    13% {
+      opacity: 1;
+      transform: scale(1.25);
+    }
+    26%,
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+  @keyframes hub-row {
+    0%,
+    11%,
+    40%,
+    100% {
+      opacity: 0;
+    }
+    14%,
+    26% {
+      opacity: 1;
+    }
+  }
+
+  .hub-chip,
+  .hub-row {
+    position: relative;
+    isolation: isolate;
+  }
+  .hub-chip::after,
+  .hub-row::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .hub-chip::after {
+    inset: -1px;
+    background: color-mix(in oklab, var(--hub-accent) 16%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--hub-accent) 70%, transparent),
+      0 0 24px -2px color-mix(in oklab, var(--hub-accent) 75%, transparent);
+    animation: hub-fire var(--hub-cycle) var(--ease-apple) var(--hub-delay)
+      infinite;
+  }
+  .hub-row::before {
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--hub-accent) 30%, transparent),
+      color-mix(in oklab, var(--hub-magenta) 8%, transparent) 70%,
+      transparent
+    );
+    box-shadow: inset 2px 0 0 var(--hub-accent);
+    animation: hub-row var(--hub-cycle) var(--ease-apple) var(--hub-delay)
+      infinite;
+  }
+
+  /* The comet is as wide as its wire and slides in from the left, so
+     translateX percentages land the head exactly on the port. */
+  .hub-comet {
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    height: 2px;
+    margin-top: -1px;
+    border-radius: 9999px;
+    background: linear-gradient(
+      90deg,
+      transparent 45%,
+      color-mix(in oklab, var(--hub-accent) 55%, transparent) 80%,
+      var(--hub-hot)
+    );
+    opacity: 0;
+    animation: hub-comet var(--hub-cycle) linear var(--hub-delay) infinite;
+  }
+  .hub-comet::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+    border-radius: 9999px;
+    background: var(--hub-hot);
+    box-shadow:
+      0 0 8px 2px var(--hub-accent),
+      0 0 18px 4px color-mix(in oklab, var(--hub-magenta) 45%, transparent);
+  }
+
+  /* A resting socket on the window's edge, with the flare painted once and
+     faded in when the comet lands. */
+  .hub-port {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    margin-top: -2.5px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.28);
+  }
+  .hub-port::after {
+    content: "";
+    position: absolute;
+    inset: -9px;
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle,
+      var(--hub-hot) 0 18%,
+      color-mix(in oklab, var(--hub-accent) 70%, transparent) 32%,
+      transparent 70%
+    );
+    opacity: 0;
+    animation: hub-flare var(--hub-cycle) var(--ease-apple) var(--hub-delay)
+      infinite;
+  }
+
+  [data-hub-paused] .hub-chip::after,
+  [data-hub-paused] .hub-row::before,
+  [data-hub-paused] .hub-comet,
+  [data-hub-paused] .hub-port::after {
+    animation-play-state: paused;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hub-chip::after,
+    .hub-row::before,
+    .hub-comet,
+    .hub-port::after {
       animation: none;
     }
   }
@@ -854,15 +1041,15 @@ html[data-theme-switching] *::after {
   @keyframes mock-theme {
     0%,
     28% {
-      background-color: #1b1b21;
+      background-color: #000000;
     }
     38%,
     62% {
-      background-color: #1e1c2b;
+      background-color: #0e0a18;
     }
     72%,
     100% {
-      background-color: #231a24;
+      background-color: #140a12;
     }
   }
   @keyframes mock-theme-ink {

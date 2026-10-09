@@ -9,7 +9,7 @@ const siteDescription =
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fyolo.sh"),
   title: {
-    default: "Fyolo — the Terminal-first Agentic Development Environment",
+    default: "Fyolo — one ADE, every tool connected",
     template: "%s — Fyolo",
   },
   description: siteDescription,
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Fyolo — the Terminal-first Agentic Development Environment",
+    title: "Fyolo — one ADE, every tool connected",
     description: siteDescription,
     type: "website",
     siteName: "Fyolo",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fyolo — the Terminal-first Agentic Development Environment",
+    title: "Fyolo — one ADE, every tool connected",
     description: siteDescription,
     images: ["/og.webp"],
   },

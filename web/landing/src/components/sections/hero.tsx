@@ -1,11 +1,7 @@
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/reveal";
 import { HeroGradient } from "@/components/hero-gradient";
-import { HeroCarousel } from "@/components/hero-carousel";
-import { AppleMark } from "@/components/section-label";
-import { AgentMarquee } from "@/components/agent-icons";
-import { downloadUrl, heroSlides, supportedAgents } from "@/lib/site";
+import { BrewInstall } from "@/components/brew-install";
+import { StackHub } from "@/components/sections/stack-hub";
 
 export function Hero() {
   return (
@@ -35,39 +31,25 @@ export function Hero() {
         </Reveal>
         <Reveal delayMs={40}>
           <h1 className="mt-5 text-balance text-5xl font-medium leading-[1.1] tracking-tight text-foreground sm:text-6xl">
-            Orchestrate your fleet of agents.
+            One ADE. Every tool connected.
           </h1>
         </Reveal>
-        <Reveal delayMs={160} className="mt-12 w-full">
-          <div className="mx-auto max-w-5xl [perspective:2400px]">
-            <div className="origin-bottom [transform:rotateX(7deg)]">
-              <HeroCarousel slides={heroSlides} />
-            </div>
-          </div>
+        <Reveal delayMs={80}>
+          <p className="mx-auto mt-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground sm:text-lg">
+            GitHub, Linear, Docker, your tests, your files, Claude and Codex — in
+            one terminal, on machines you own.
+          </p>
         </Reveal>
-
-        <Reveal delayMs={200} className="mt-14 w-full max-w-3xl">
-          <AgentMarquee agents={supportedAgents} />
+        <Reveal delayMs={120} className="mt-10 flex w-full flex-col items-center gap-3">
+          <BrewInstall />
+          {/* Below 14 the app will not launch, and macOS reports only a generic
+              Finder error — so the floor is stated where the install happens. */}
+          <p className="text-sm text-muted-foreground">
+            Requires macOS 14 or later
+          </p>
         </Reveal>
-        <Reveal delayMs={240}>
-          <div className="mt-10 flex flex-col items-center justify-center gap-3">
-            <a
-              href={downloadUrl}
-              className={cn(
-                buttonVariants(),
-                "h-12 gap-2 rounded-full px-7 text-base",
-                "shadow-[0_12px_32px_rgba(20,23,28,0.18),0_0_0_1px_rgba(0,211,199,0.14)]",
-              )}
-            >
-              <AppleMark />
-              Download for Mac
-            </a>
-            {/* Below 14 the app will not launch, and macOS reports only a generic
-                Finder error — so the floor is stated where the download happens. */}
-            <p className="text-sm text-muted-foreground">
-              Requires macOS 14 or later
-            </p>
-          </div>
+        <Reveal delayMs={200} className="mt-16 w-full">
+          <StackHub />
         </Reveal>
       </div>
     </section>

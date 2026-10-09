@@ -24,14 +24,6 @@ export const supportedAgents = [
 
 export type SupportedAgent = (typeof supportedAgents)[number];
 
-export const navLinks = [
-  { label: "Docs", href: "/docs" },
-  { label: "Changelog", href: "/changelog" },
-] as const;
-
-// Community Discord invite, surfaced in the site nav.
-export const discordUrl = "https://discord.gg/H9DKVwsE5f";
-
 // The public source repository, surfaced in the site nav and footer.
 export const githubUrl = "https://github.com/fl0wo/fyolo";
 
@@ -51,6 +43,10 @@ export function formatStarCount(stars: number): string {
 // downloads.fyolo.sh) that always serves the newest notarized DMG. The release
 // workflow (.github/workflows/release.yml) overwrites this object on every tag.
 export const downloadUrl = "https://downloads.fyolo.sh/fyolo.dmg";
+
+// The Homebrew cask the release workflow bumps in fl0wo/homebrew-tap; the hero
+// leads with it.
+export const brewInstallCommand = "brew install --cask fl0wo/tap/fyolo";
 
 export const testflightUrl = "https://testflight.apple.com/join/1Arf1UKR";
 
