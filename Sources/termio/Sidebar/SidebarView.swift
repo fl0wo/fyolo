@@ -343,6 +343,12 @@ struct SidebarView: View {
         // behind the traffic lights. (We previously painted the column ourselves to dodge a macOS 26
         // full-screen round-trip bug, but per the design call we're back to the stock sidebar.)
         .listStyle(.sidebar)
+        // fyolo: with a theme picked, paint the column in the terminal's own background
+        // instead of the system's grey material, so the sidebar sits flush with the terminal.
+        .scrollContentBackground(chrome == nil ? .automatic : .hidden)
+        .background {
+            if let chrome { chrome.background.ignoresSafeArea() }
+        }
         .contentMargins(.bottom, 12, for: .scrollContent)
         .environment(\.defaultMinListRowHeight, 1)
         .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 360)

@@ -40,12 +40,8 @@ struct ChromeTheme {
         let dark = definition.isDark
         self.background = background
         self.foreground = foreground
-        // Lift the sidebar a touch off the terminal background — lighter in a dark
-        // theme, darker in a light one, like VSCode's activity bar.
-        self.panelBackground = background.blended(
-            with: dark ? .white : .black,
-            amount: dark ? 0.06 : 0.04
-        )
+        // The sidebar sits flush with the terminal: same color as the theme background.
+        self.panelBackground = background
         // One alpha for both brightnesses is too thin over a light panel: at 0.6
         // Catppuccin Latte's project labels measure 2.69 against `panelBackground`
         // and Rose Pine Dawn's 2.62, under the 3.0 floor muted chrome text needs.
