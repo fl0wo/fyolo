@@ -70,7 +70,7 @@ struct DaemonSocket: Sendable {
 /// daemon is doing the copying.
 @MainActor
 final class DeviceSpliceServer {
-    /// Where a phone dials this Mac: 8795 for release, 8796 for dev, both clear
+    /// Where a phone dials this Mac: 8895 for release, 8896 for dev, both clear
     /// of the companion port and of the daemon's own 8790.
     nonisolated static var defaultPort: UInt16 { AppChannel.devicePort }
 

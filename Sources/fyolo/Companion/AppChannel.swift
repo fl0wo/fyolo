@@ -120,13 +120,13 @@ enum AppChannel {
             .appendingPathComponent(".fyolo" + suffix, isDirectory: true)
     }
 
-    /// Companion (phone) server port: 8787 for release, 8788 for dev, so both can
-    /// bind at once.
-    static var companionPort: UInt16 { suffix.isEmpty ? 8787 : 8788 }
+    /// Companion (phone) server port: 8887 for release, 8888 for dev, so both can
+    /// bind at once. termio's 8787/8788 plus 100, so fyolo also runs beside termio.
+    static var companionPort: UInt16 { suffix.isEmpty ? 8887 : 8888 }
 
-    /// Where a phone dials this Mac's session host (`DeviceSpliceServer`): 8795
-    /// for release, 8796 for dev. Clear of the companion pair above and of the
+    /// Where a phone dials this Mac's session host (`DeviceSpliceServer`): 8895
+    /// for release, 8896 for dev. Clear of the companion pair above and of the
     /// daemon's own loopback listener on 8790, so a Mac running all three has
     /// nothing to fight over.
-    static var devicePort: UInt16 { suffix.isEmpty ? 8795 : 8796 }
+    static var devicePort: UInt16 { suffix.isEmpty ? 8895 : 8896 }
 }

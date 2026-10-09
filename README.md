@@ -7,6 +7,14 @@ extended with my own custom connectors.
 
 It is not a product and is not for sale. It's open source because termio is.
 
+## Install
+
+```sh
+brew install --cask fl0wo/tap/fyolo
+```
+
+Update with `brew upgrade --cask fyolo`. Needs macOS 14 or later.
+
 ## What's different from termio
 
 - Renamed throughout to fyolo, so it installs and runs beside termio without

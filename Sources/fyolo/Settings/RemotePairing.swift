@@ -233,7 +233,7 @@ struct RemotePairingSection: View {
     }
 
     /// fyolod's own default WebSocket port (`DEPLOY.md`) — not the Mac
-    /// companion's 8787/8788, so a Mac running both does not have them fight.
+    /// companion's 8887/8888, so a Mac running both does not have them fight.
     private static let daemonPort = 8790
 
     @State private var phase = Phase.asking

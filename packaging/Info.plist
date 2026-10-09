@@ -48,9 +48,7 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>SUEnableAutomaticChecks</key>
-	<true/>
-	<key>SUFeedURL</key>
-	<string>https://downloads.fyolo.sh/appcast.xml</string>
+	<false/>
 	<key>SUPublicEDKey</key>
 	<string>zm3UpFrDf8tFcctK2vkEhrms6oFTp50AUb824lP9BAw=</string>
 </dict>

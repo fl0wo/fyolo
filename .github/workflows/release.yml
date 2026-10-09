@@ -2,10 +2,12 @@ name: Release
 
 # Cut a release by pushing a version tag:
 #   git tag v0.1.0 && git push origin v0.1.0
-# The tag is the source of truth for the version; the build number is the commit
-# count (monotonic, so Sparkle always sees a higher CFBundleVersion). The DMG and
-# the Sparkle appcast.xml are hosted on Cloudflare R2 behind downloads.fyolo.sh,
-# which is where the app's SUFeedURL and the website's Download button point.
+# The tag is the version; the build number is the commit count. The DMG is
+# attached to the GitHub Release, and the Homebrew cask in fl0wo/homebrew-tap is
+# pointed at it, so `brew install --cask fl0wo/tap/fyolo` serves it.
+#
+# The app is ad-hoc signed, not Developer ID signed or notarized. The cask
+# clears the quarantine flag after install so Gatekeeper lets it open.
 on:
   push:
     tags:
@@ -17,27 +19,16 @@ concurrency:
 
 env:
   APP_NAME: fyolo
-  SPARKLE_VERSION: "2.9.3"
-  # Pin the toolchain to the macOS 26.4 SDK. AppKit keys titlebar/sidebar chrome off
-  # the SDK the app links against, and 26.5-linked builds drop the floating sidebar
-  # inset — the window title lands flush against the sidebar divider. Keep this in
-  # step with the local dev toolchain until the toolbar is adapted to the 26.5 chrome.
+  TAP_REPO: fl0wo/homebrew-tap
+  # Same toolchain pins as .github/workflows/fyolod.yml — keep them in step.
   DEVELOPER_DIR: /Applications/Xcode_26.4.app/Contents/Developer
-  # build-app.sh builds fyolod into the bundle, and its VT engine is compiled by
-  # Zig from our libghostty fork. Pinned with its published checksum, exactly as
-  # .github/workflows/fyolod.yml pins it — keep the two in step.
   ZIG_VERSION: "0.16.0"
   ZIG_SHA256_AARCH64_MACOS: "b23d70deaa879b5c2d486ed3316f7eaa53e84acf6fc9cc747de152450d401489"
-  # The DMG lives at $DOWNLOAD_BASE_URL/v<version>/fyolo.dmg (immutable) with a
-  # stable $DOWNLOAD_BASE_URL/fyolo.dmg copy; the appcast at $DOWNLOAD_BASE_URL/
-  # appcast.xml (matches SUFeedURL in packaging/Info.plist).
-  DOWNLOAD_BASE_URL: https://downloads.fyolo.sh
-  R2_BUCKET: fyolo-downloads
 
 jobs:
   release:
     runs-on: macos-26
-    timeout-minutes: 60
+    timeout-minutes: 90
     permissions:
       contents: write
 
@@ -61,32 +52,7 @@ jobs:
           echo "build=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
           echo "Releasing v$VERSION (build $BUILD_NUMBER)"
 
-      # Import the Developer ID Application certificate into a throwaway keychain.
-      - name: Import signing certificate
-        env:
-          DEVELOPER_ID_CERT_P12: ${{ secrets.DEVELOPER_ID_CERT_P12 }}
-          DEVELOPER_ID_CERT_PASSWORD: ${{ secrets.DEVELOPER_ID_CERT_PASSWORD }}
-        run: |
-          CERT_PATH="$RUNNER_TEMP/certificate.p12"
-          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
-          KEYCHAIN_PASSWORD="$(openssl rand -hex 16)"
-
-          echo "$DEVELOPER_ID_CERT_P12" | base64 --decode > "$CERT_PATH"
-
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security import "$CERT_PATH" -P "$DEVELOPER_ID_CERT_PASSWORD" \
-            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-          security set-key-partition-list -S apple-tool:,apple: \
-            -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
-
-      # `libghostty-vt-sys` invokes `zig` by name and honours no env override, so
-      # the toolchain has to land on PATH under exactly that name. build-app.sh
-      # points the daemon's build at the Command Line Tools SDK itself — Xcode 26's
-      # libSystem.tbd is arm64e-only and Zig cannot link against it — and leaves
-      # DEVELOPER_DIR above intact for the Swift build.
+      # `libghostty-vt-sys` invokes `zig` by name, so it has to be on PATH.
       - name: Install Zig (for fyolod's VT engine)
         run: |
           url="https://ziglang.org/download/${ZIG_VERSION}/zig-aarch64-macos-${ZIG_VERSION}.tar.xz"
@@ -96,12 +62,9 @@ jobs:
           tar -xJf "$RUNNER_TEMP/zig.tar.xz" -C "$RUNNER_TEMP/zig" --strip-components=1
           echo "$RUNNER_TEMP/zig" >> "$GITHUB_PATH"
 
-      # build-app.sh embeds + signs Sparkle, builds and signs fyolod into
-      # Contents/Resources, and Developer-ID-signs the bundle with the hardened
-      # runtime, so the output is ready to notarize.
-      - name: Build signed app bundle
+      - name: Build app bundle (ad-hoc signed)
         env:
-          SIGN_IDENTITY: "Developer ID Application"
+          SIGN_IDENTITY: "-"
           FYOLO_VERSION: ${{ steps.meta.outputs.version }}
           FYOLO_BUILD: ${{ steps.meta.outputs.build }}
         run: ./scripts/build-app.sh
@@ -131,17 +94,8 @@ jobs:
 
           echo "DMG_PATH=$DMG_PATH" >> "$GITHUB_ENV"
 
-      # What a user receives is the app *inside the DMG*, not the one the build
-      # left in the checkout — signing, notarization and the DMG copy all sit
-      # between them. The daemons are the payload that makes a remote machine
-      # work at all and they are plain files in Resources, so nothing else would
-      # notice them going missing: the app would install, launch, and fail only
-      # when someone pointed it at a VPS.
-      #
-      # The `fyolo` clients ship beside them and sit in exactly that position:
-      # a deploy refuses outright when the client slice for a box's target is
-      # missing (`remote::shipped_client`), so a lost one turns deploying from
-      # something that works into something that cannot be done at all.
+      # The daemons and clients are plain files in Resources that only matter
+      # once someone points the app at a VPS, so check they made it into the DMG.
       - name: Verify the daemons and clients survived into the DMG
         run: |
           mount_point="$RUNNER_TEMP/dmg-check"
@@ -173,122 +127,18 @@ jobs:
           hdiutil detach "$mount_point" -quiet
           exit $status
 
-      # Notarize + staple the DMG. The app inside is already Developer-ID-signed
-      # with the hardened runtime and a secure timestamp, which notarization needs.
-      - name: Notarize and staple DMG
-        env:
-          ASC_API_KEY: ${{ secrets.ASC_API_KEY }}
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-        run: |
-          ASC_KEY_PATH="$RUNNER_TEMP/asc_api_key.p8"
-          echo "$ASC_API_KEY" | base64 --decode > "$ASC_KEY_PATH"
-
-          xcrun notarytool submit "$DMG_PATH" \
-            --key "$ASC_KEY_PATH" \
-            --key-id "$ASC_KEY_ID" \
-            --issuer "$ASC_ISSUER_ID" \
-            --wait
-
-          xcrun stapler staple "$DMG_PATH"
-
-      - name: Install Sparkle tools
-        run: |
-          curl -sL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz" \
-            | tar xJ -C "$RUNNER_TEMP" bin/sign_update bin/generate_appcast
-          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
-
-      # generate_appcast reads the version from the app inside the (stapled) DMG,
-      # signs the DMG with the EdDSA private key, and points download URLs at this
-      # release's versioned R2 path. Download the existing appcast from R2 first so
-      # generate_appcast MERGES history rather than emitting only the newest item.
-      - name: Generate appcast
-        env:
-          SPARKLE_ED_KEY: ${{ secrets.SPARKLE_ED_KEY }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
-        run: |
-          VERSION="${{ steps.meta.outputs.version }}"
-          APPCAST_DIR="$RUNNER_TEMP/appcast_dir"
-          mkdir -p "$APPCAST_DIR"
-
-          aws s3 cp "s3://$R2_BUCKET/appcast.xml" "$APPCAST_DIR/appcast.xml" \
-            --endpoint-url "$R2_ENDPOINT" \
-            || echo "::notice::No existing appcast.xml — generating fresh history"
-
-          cp "$DMG_PATH" "$APPCAST_DIR/"
-
-          echo "$SPARKLE_ED_KEY" | generate_appcast \
-            --ed-key-file - \
-            --download-url-prefix "$DOWNLOAD_BASE_URL/v${VERSION}/" \
-            "$APPCAST_DIR"
-
-          cp "$APPCAST_DIR/appcast.xml" "$RUNNER_TEMP/appcast.xml"
-
-      - name: Upload DMG + appcast to R2
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
-        run: |
-          VERSION="${{ steps.meta.outputs.version }}"
-
-          # Versioned copy — the immutable URL the appcast points at.
-          aws s3 cp "$DMG_PATH" \
-            "s3://$R2_BUCKET/v${VERSION}/${APP_NAME}.dmg" \
-            --endpoint-url "$R2_ENDPOINT"
-
-          # Stable "latest" copy — what the website Download button links to.
-          aws s3 cp "$DMG_PATH" \
-            "s3://$R2_BUCKET/${APP_NAME}.dmg" \
-            --endpoint-url "$R2_ENDPOINT" \
-            --cache-control "no-cache"
-
-          aws s3 cp "$RUNNER_TEMP/appcast.xml" \
-            "s3://$R2_BUCKET/appcast.xml" \
-            --endpoint-url "$R2_ENDPOINT" \
-            --cache-control "no-cache"
-
-      # The stable DMG + appcast change every release, so purge just those two from
-      # Cloudflare's edge so updates appear immediately. Versioned URLs are immutable
-      # and need no purge. No-ops (with a notice) until the secrets are set.
-      - name: Purge Cloudflare cache
-        env:
-          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-        run: |
-          if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ]; then
-            echo "::notice::CLOUDFLARE_API_TOKEN/ZONE_ID not set — skipping cache purge (stable URLs follow the edge TTL)."
-            exit 0
-          fi
-          curl -sf -X POST \
-            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache" \
-            -H "Authorization: Bearer $CF_API_TOKEN" \
-            -H "Content-Type: application/json" \
-            --data '{"files":[
-              "'"$DOWNLOAD_BASE_URL/${APP_NAME}.dmg"'",
-              "'"$DOWNLOAD_BASE_URL/appcast.xml"'"
-            ]}' \
-            && echo "Purged stable DMG + appcast from Cloudflare cache"
-
-      # Record the release on GitHub for the tag + auto-generated changelog.
-      # Artifacts live on R2 (the private repo's own assets aren't public), so the
-      # download link leads the body — GitHub renders release titles as plain text,
-      # so a URL there is unclickable.
-      - name: Record GitHub Release
+      - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="${{ steps.meta.outputs.version }}"
-          gh release create "v${VERSION}" \
+          gh release create "v${VERSION}" "$DMG_PATH" \
             --title "${APP_NAME} v${VERSION}" \
-            --notes "[Download ${APP_NAME} ${VERSION} for macOS]($DOWNLOAD_BASE_URL/v${VERSION}/${APP_NAME}.dmg)" \
+            --notes "Install or update with Homebrew: \`brew install --cask fl0wo/tap/${APP_NAME}\`" \
             --generate-notes
 
-      # Point the Homebrew tap (fyolo-sh/homebrew-tap) at this release so
-      # `brew install --cask fyolo-sh/tap/fyolo` serves it. Auth is a write
-      # deploy key on the tap repo. No-ops (with a notice) until the secret is set.
+      # Rewrite the cask in the tap to point at this release. Auth is a write
+      # deploy key on the tap repo, stored here as the TAP_DEPLOY_KEY secret.
       - name: Bump Homebrew cask
         env:
           TAP_DEPLOY_KEY: ${{ secrets.TAP_DEPLOY_KEY }}
@@ -305,17 +155,13 @@ jobs:
           chmod 600 "$KEY_FILE"
           export GIT_SSH_COMMAND="ssh -i $KEY_FILE -o StrictHostKeyChecking=accept-new"
 
-          git clone --depth 1 git@github.com:fyolo-sh/homebrew-tap.git "$RUNNER_TEMP/tap"
+          git clone --depth 1 "git@github.com:${TAP_REPO}.git" "$RUNNER_TEMP/tap"
           cd "$RUNNER_TEMP/tap"
           sed -i '' \
             -e "s/^  version .*/  version \"${VERSION}\"/" \
             -e "s/^  sha256 .*/  sha256 \"${SHA256}\"/" \
             Casks/fyolo.rb
-          git -c user.name="fyolo-release" -c user.email="release@fyolo.sh" \
+          git -c user.name="fyolo-release" -c user.email="fyolo-release@users.noreply.github.com" \
             commit -am "fyolo ${VERSION}"
           git push
           echo "Bumped cask to ${VERSION} (${SHA256})"
-
-      - name: Cleanup keychain
-        if: always()
-        run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
