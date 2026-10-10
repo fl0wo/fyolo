@@ -1,0 +1,33 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "landing",
+	"compatibility_date": "2026-10-09",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	// Serve the site on fyolo.sh and www.fyolo.sh. Custom domains make Cloudflare
+	// create the DNS records and certificates on deploy.
+	"routes": [
+		{ "pattern": "fyolo.sh", "custom_domain": true },
+		{ "pattern": "www.fyolo.sh", "custom_domain": true }
+	],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			// Self-reference service binding, the service name must match the worker name
+			// see https://opennext.js.org/cloudflare/caching
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "landing"
+		}
+	],
+	"images": {
+		// Enable image optimization
+		// see https://opennext.js.org/cloudflare/howtos/image
+		"binding": "IMAGES"
+	}
+}
