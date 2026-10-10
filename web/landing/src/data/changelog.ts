@@ -17,6 +17,17 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.2.3",
+    date: "2026-10-10",
+    title: "Black where it should be black",
+    changes: {
+      fixed: [
+        "Terminal: in regions that write decimals with a comma, a new terminal opened grey instead of in your theme.",
+        "Full screen: the bar across the top of the screen takes the terminal's color instead of grey.",
+      ],
+    },
+  },
+  {
     version: "0.2.2",
     date: "2026-10-10",
     title: "Your GitHub account in Settings",
