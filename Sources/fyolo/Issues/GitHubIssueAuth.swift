@@ -106,6 +106,12 @@ enum GitHubIssueAuth {
             ?? "Ov23lik1VrZvkHndjlJ8"
     }
 
+    /// Posted on the main thread whenever the stored connection is replaced or
+    /// removed. Every GitHub surface — the Issues pane, the welcome page, Settings,
+    /// the issue cache — reloads from the Keychain on it, so connecting or
+    /// disconnecting anywhere is seen everywhere, including by the surface that did it.
+    static let connectionDidChange = Notification.Name("sh.fyolo.github.connectionDidChange")
+
     // MARK: Keychain
 
     /// Per channel, so the dev build can be taken back to "never connected" to
@@ -148,6 +154,7 @@ enum GitHubIssueAuth {
         if status != errSecSuccess {
             Log.issues.error("keychain store failed: \(status)")
         }
+        NotificationCenter.default.post(name: connectionDidChange, object: nil)
     }
 
     static func deleteConnection() {
@@ -157,6 +164,7 @@ enum GitHubIssueAuth {
             kSecAttrAccount as String: account,
         ]
         SecItemDelete(query as CFDictionary)
+        NotificationCenter.default.post(name: connectionDidChange, object: nil)
     }
 
     // MARK: Device flow

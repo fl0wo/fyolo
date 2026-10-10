@@ -392,6 +392,8 @@
 	<string>Connect</string>
 	<key>Connect GitHub</key>
 	<string>Connect GitHub</string>
+	<key>Connect to read issues and pull requests, and to clone your repositories.</key>
+	<string>Connect to read issues and pull requests, and to clone your repositories.</string>
 	<key>Connect to…</key>
 	<string>Connect to…</string>
 	<key>Connect your GitHub account to clone one of your repositories.</key>
@@ -402,6 +404,12 @@
 	<string>Connected</string>
 	<key>Connected and authenticated</key>
 	<string>Connected and authenticated</string>
+	<key>Connected through the GitHub CLI</key>
+	<string>Connected through the GitHub CLI</string>
+	<key>Connected through the browser</key>
+	<string>Connected through the browser</string>
+	<key>Connected with a personal access token</key>
+	<string>Connected with a personal access token</string>
 	<key>Connecting…</key>
 	<string>Connecting…</string>
 	<key>Connection failed</key>
@@ -542,6 +550,8 @@
 	<string>Discard Changes?</string>
 	<key>Discard Changes…</key>
 	<string>Discard Changes…</string>
+	<key>Disconnect</key>
+	<string>Disconnect</string>
 	<key>Disconnect GitHub</key>
 	<string>Disconnect GitHub</string>
 	<key>Discord</key>
@@ -664,6 +674,8 @@
 	<string>Git worktree</string>
 	<key>GitHub</key>
 	<string>GitHub</string>
+	<key>GitHub Account</key>
+	<string>GitHub Account</string>
 	<key>GitHub Issues</key>
 	<string>GitHub Issues</string>
 	<key>GitHub no longer accepts the saved token. Connect again.</key>
@@ -1648,6 +1660,8 @@
 	<string>Toggle Project Files</string>
 	<key>Toggle Sidebar</key>
 	<string>Toggle Sidebar</string>
+	<key>Token no longer accepted</key>
+	<string>Token no longer accepted</string>
 	<key>Token usage</key>
 	<string>Token usage</string>
 	<key>Token usage for your connected agents</key>

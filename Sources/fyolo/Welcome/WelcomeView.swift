@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 /// The center-pane welcome, shown by `TerminalPane` whenever no session is mounted
@@ -128,8 +129,18 @@ final class WelcomeRepositoriesModel: ObservableObject {
     /// Why the stored connection stopped working, shown above Connect.
     @Published private(set) var connectionError: String?
 
-    lazy var connector = GitHubConnector { [weak self] connection in
-        await self?.load(connection)
+    let connector = GitHubConnector()
+    private var connectionObserver: AnyCancellable?
+
+    init() {
+        connectionObserver = NotificationCenter.default
+            .publisher(for: GitHubIssueAuth.connectionDidChange)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in MainActor.assumeIsolated { self?.reload() } }
+    }
+
+    private func reload() {
+        Task { await start() }
     }
 
     func start() async {
@@ -140,14 +151,8 @@ final class WelcomeRepositoriesModel: ObservableObject {
         await load(connection)
     }
 
-    /// Forgets the connection everywhere, the Issues pane's cached reads included,
-    /// so the next account to connect never sees this one's private issues.
-    func disconnect(clearing cache: IssueCache) {
+    func disconnect() {
         GitHubIssueAuth.deleteConnection()
-        cache.clear()
-        account = nil
-        connectionError = nil
-        phase = .disconnected
     }
 
     private func load(_ connection: GitHubConnection) async {
@@ -162,7 +167,8 @@ final class WelcomeRepositoriesModel: ObservableObject {
             phase = .loaded(loaded)
         } catch GitHubIssueProvider.APIError.status(401) {
             // A revoked or expired token: drop it and offer Connect again, the same
-            // self-heal the Issues pane does on a 401.
+            // self-heal the Issues pane does on a 401. The deletion's reload lands on
+            // `.disconnected` and keeps this explanation.
             GitHubIssueAuth.deleteConnection()
             account = nil
             connectionError = localized("GitHub no longer accepts the saved token. Connect again.")
@@ -207,7 +213,7 @@ private struct WelcomeRepositories: View {
                 Menu {
                     Button(localized("Refresh")) { Task { await model.start() } }
                     Divider()
-                    Button(localized("Disconnect GitHub")) { model.disconnect(clearing: store.issueCache) }
+                    Button(localized("Disconnect GitHub")) { model.disconnect() }
                 } label: {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 11, weight: .semibold))

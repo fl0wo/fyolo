@@ -7,9 +7,9 @@ import SwiftUI
 /// through fyolo's OAuth app), the GitHub CLI's existing sign-in, or a pasted
 /// personal access token for any host — the path for GitHub Enterprise Server,
 /// for organizations that block OAuth apps, and for anyone who already has a
-/// token. Each ends the same way: the connection is verified, stored, and handed
-/// to `onConnected`, so the surfaces that offer Connect differ only in what they
-/// do next.
+/// token. Each ends the same way: the connection is verified and stored, and
+/// `GitHubIssueAuth.connectionDidChange` tells every surface — this one included —
+/// to reload.
 @MainActor
 final class GitHubConnector: ObservableObject {
     enum State: Equatable {
@@ -51,12 +51,7 @@ final class GitHubConnector: ObservableObject {
     /// The GitHub CLI's signed-in account, offered as a one-click way in.
     let cliAccount = GitHubCLI.signedInAccount()
 
-    private let onConnected: (GitHubConnection) async -> Void
     private var attempt: Task<Void, Never>?
-
-    init(onConnected: @escaping (GitHubConnection) async -> Void) {
-        self.onConnected = onConnected
-    }
 
     func connectInBrowser() {
         run {
@@ -105,9 +100,8 @@ final class GitHubConnector: ObservableObject {
             do {
                 let connection = try await connect()
                 try Task.checkCancellation()
-                GitHubIssueAuth.store(connection)
                 state = .idle
-                await onConnected(connection)
+                GitHubIssueAuth.store(connection)
             } catch {
                 // A cancelled attempt was already put back to idle by `cancel()`,
                 // and the error it unwinds with is not the user's to read.

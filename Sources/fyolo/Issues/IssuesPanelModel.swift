@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import AppKit
 
@@ -58,13 +59,14 @@ final class IssuesPanelModel: ObservableObject {
 
     init(repoRoot: String) {
         self.repoRoot = repoRoot
+        connectionObserver = NotificationCenter.default
+            .publisher(for: GitHubIssueAuth.connectionDidChange)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in MainActor.assumeIsolated { self?.connectionDidChange() } }
     }
 
-    /// The pane's Connect: whichever way the user signs in, the pane resolves its
-    /// binding and loads once the connection is stored.
-    lazy var connector = GitHubConnector { [weak self] connection in
-        await self?.didConnect(connection)
-    }
+    let connector = GitHubConnector()
+    private var connectionObserver: AnyCancellable?
 
     /// The server the pane reads from — github.com until connected otherwise.
     var host: String { provider?.connection.host ?? GitHubConnection.dotComHost }
@@ -112,25 +114,27 @@ final class IssuesPanelModel: ObservableObject {
 
     // MARK: Connect / disconnect
 
-    private func didConnect(_ connection: GitHubConnection) async {
-        errorMessage = nil
-        recovery = nil
-        provider = GitHubIssueProvider(connection: connection)
-        didStart = true
-        await resolveContainer()
-        await loadList()
+    /// Follows the stored connection wherever it changed — this pane's Connect,
+    /// the welcome page, Settings: back to Connect when it is gone, a fresh resolve
+    /// and load against whatever replaced it.
+    private func connectionDidChange() {
+        let stored = GitHubIssueAuth.storedConnection()
+        guard stored != provider?.connection else { return }
+        resetConnection()
+        if stored != nil { Task { await start() } }
     }
 
     func disconnect() {
         GitHubIssueAuth.deleteConnection()
+        resetConnection()
+    }
+
+    private func resetConnection() {
         provider = nil
         items = []
         candidates = []
         openItem = nil
         detail = nil
-        // The token is gone, so a later reconnect (possibly a different account) must not read
-        // this account's cached private-repo detail.
-        cache?.clear()
         didStart = false
         // Re-resolve the binding on the next reconnect (possibly a different account/repo).
         didResolveContainer = false

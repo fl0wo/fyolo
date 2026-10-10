@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 /// App-and-account settings: language, the GitHub integration, and the
@@ -35,6 +36,9 @@ struct GeneralSettingsTab: View {
                     )
                 }
                 .toggleStyle(.switch)
+                if settings.githubIntegrationEnabled {
+                    GitHubAccountRow()
+                }
             } header: {
                 SectionHeaderLabel(title: localized("Integrations"))
             }
@@ -52,5 +56,95 @@ struct GeneralSettingsTab: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// The connected GitHub account, read back from the Keychain and kept in step
+/// with it: connecting or disconnecting anywhere — here, the welcome page, the
+/// Issues pane — lands here too.
+@MainActor
+final class GitHubAccountModel: ObservableObject {
+    @Published private(set) var connection: GitHubConnection?
+    /// The connection's login, once GitHub has confirmed it; `nil` while asking,
+    /// or when the token no longer works.
+    @Published private(set) var login: String?
+    @Published private(set) var isTokenRejected = false
+    let connector = GitHubConnector()
+    private var connectionObserver: AnyCancellable?
+
+    init() {
+        connectionObserver = NotificationCenter.default
+            .publisher(for: GitHubIssueAuth.connectionDidChange)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in MainActor.assumeIsolated { self?.reload() } }
+    }
+
+    func reload() {
+        Task { await refresh() }
+    }
+
+    func refresh() async {
+        let stored = GitHubIssueAuth.storedConnection()
+        connection = stored
+        login = nil
+        isTokenRejected = false
+        guard let stored else { return }
+        do {
+            login = try await GitHubIssueProvider(connection: stored).account()
+        } catch GitHubIssueProvider.APIError.status(401) {
+            isTokenRejected = true
+        } catch {
+            Log.issues.error("reading the GitHub account failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    func disconnect() {
+        GitHubIssueAuth.deleteConnection()
+    }
+}
+
+/// Settings' GitHub account row: who fyolo is signed in as, on which server and
+/// how, with Disconnect — or, when nothing is connected, the same connect choices
+/// the welcome page and the Issues pane offer, token and Enterprise host included.
+private struct GitHubAccountRow: View {
+    @StateObject private var model = GitHubAccountModel()
+
+    var body: some View {
+        Group {
+            if let connection = model.connection {
+                HStack(alignment: .center) {
+                    SettingsLabel(
+                        title: accountTitle(connection),
+                        subtext: detail(connection)
+                    )
+                    Spacer()
+                    Button(localized("Disconnect")) { model.disconnect() }
+                }
+            } else {
+                GitHubConnectView(
+                    connector: model.connector,
+                    title: localized("GitHub Account"),
+                    message: localized("Connect to read issues and pull requests, and to clone your repositories.")
+                )
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            }
+        }
+        .task { await model.refresh() }
+    }
+
+    private func accountTitle(_ connection: GitHubConnection) -> String {
+        if let login = model.login { return "@\(login)" }
+        return model.isTokenRejected ? localized("Token no longer accepted") : connection.host
+    }
+
+    private func detail(_ connection: GitHubConnection) -> String {
+        let via: String
+        switch connection.source {
+        case .browser: via = localized("Connected through the browser")
+        case .cli: via = localized("Connected through the GitHub CLI")
+        case .token: via = localized("Connected with a personal access token")
+        }
+        return model.login == nil ? via : "\(connection.host) · \(via)"
     }
 }

@@ -1902,6 +1902,16 @@
         }
       }
     },
+    "Connect to read issues and pull requests, and to clone your repositories.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接后即可查看议题和拉取请求，并克隆你的仓库。"
+          }
+        }
+      }
+    },
     "Connect to…": {
       "localizations": {
         "zh-Hans": {
@@ -1948,6 +1958,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "已连接并通过认证"
+          }
+        }
+      }
+    },
+    "Connected through the browser": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过浏览器连接"
+          }
+        }
+      }
+    },
+    "Connected through the GitHub CLI": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过 GitHub CLI 连接"
+          }
+        }
+      }
+    },
+    "Connected with a personal access token": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过个人访问令牌连接"
           }
         }
       }
@@ -2643,6 +2683,16 @@
         }
       }
     },
+    "Disconnect": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开连接"
+          }
+        }
+      }
+    },
     "Disconnect GitHub": {
       "localizations": {
         "zh-Hans": {
@@ -3160,6 +3210,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "GitHub"
+          }
+        }
+      }
+    },
+    "GitHub Account": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub 账户"
           }
         }
       }
@@ -8154,6 +8214,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "切换侧栏"
+          }
+        }
+      }
+    },
+    "Token no longer accepted": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "令牌已失效"
           }
         }
       }

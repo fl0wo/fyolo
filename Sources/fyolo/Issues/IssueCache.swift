@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 // MARK: - Issue cache
@@ -14,6 +15,17 @@ import Foundation
 /// re-fetching. Reads are stale-while-revalidate — see `IssuesPanelModel.loadList` / `loadDetail`.
 @MainActor
 final class IssueCache {
+    private var connectionObserver: AnyCancellable?
+
+    /// Empties itself whenever the GitHub connection changes, wherever that
+    /// happened: a signed-out or re-authed-as-someone-else session must not read a
+    /// prior account's cached private-repo data.
+    init() {
+        connectionObserver = NotificationCenter.default
+            .publisher(for: GitHubIssueAuth.connectionDidChange)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in MainActor.assumeIsolated { self?.clear() } }
+    }
 
     // MARK: Detail
 
@@ -88,9 +100,7 @@ final class IssueCache {
 
     // MARK: Lifecycle
 
-    /// Drops everything — called when the GitHub token is removed (`IssuesPanelModel.disconnect`),
-    /// since a signed-out or re-authed-as-someone-else session must not read a prior account's
-    /// cached private-repo data.
+    /// Drops everything. See `init` for when.
     func clear() {
         details.removeAll()
         lists.removeAll()

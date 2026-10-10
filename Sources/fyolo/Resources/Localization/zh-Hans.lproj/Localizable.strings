@@ -392,6 +392,8 @@
 	<string>连接</string>
 	<key>Connect GitHub</key>
 	<string>连接 GitHub</string>
+	<key>Connect to read issues and pull requests, and to clone your repositories.</key>
+	<string>连接后即可查看议题和拉取请求，并克隆你的仓库。</string>
 	<key>Connect to…</key>
 	<string>连接到…</string>
 	<key>Connect your GitHub account to clone one of your repositories.</key>
@@ -402,6 +404,12 @@
 	<string>已连接</string>
 	<key>Connected and authenticated</key>
 	<string>已连接并通过认证</string>
+	<key>Connected through the GitHub CLI</key>
+	<string>通过 GitHub CLI 连接</string>
+	<key>Connected through the browser</key>
+	<string>通过浏览器连接</string>
+	<key>Connected with a personal access token</key>
+	<string>通过个人访问令牌连接</string>
 	<key>Connecting…</key>
 	<string>正在连接…</string>
 	<key>Connection failed</key>
@@ -542,6 +550,8 @@
 	<string>要放弃更改吗？</string>
 	<key>Discard Changes…</key>
 	<string>放弃更改…</string>
+	<key>Disconnect</key>
+	<string>断开连接</string>
 	<key>Disconnect GitHub</key>
 	<string>断开 GitHub 连接</string>
 	<key>Discord</key>
@@ -664,6 +674,8 @@
 	<string>Git worktree</string>
 	<key>GitHub</key>
 	<string>GitHub</string>
+	<key>GitHub Account</key>
+	<string>GitHub 账户</string>
 	<key>GitHub Issues</key>
 	<string>GitHub Issues</string>
 	<key>GitHub no longer accepts the saved token. Connect again.</key>
@@ -1648,6 +1660,8 @@
 	<string>切换项目文件</string>
 	<key>Toggle Sidebar</key>
 	<string>切换侧栏</string>
+	<key>Token no longer accepted</key>
+	<string>令牌已失效</string>
 	<key>Token usage</key>
 	<string>Token 用量</string>
 	<key>Token usage for your connected agents</key>
