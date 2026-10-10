@@ -17,6 +17,22 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.2.0",
+    date: "2026-10-10",
+    title: "Start from a project, or clone one from GitHub",
+    changes: {
+      new: [
+        "Welcome: a fresh install opens on one question — which project. Pick a recent folder, open any folder, or clone one of your GitHub repositories; the sidebar and file panel step aside until you do.",
+        "Clone from GitHub: a searchable list of your repositories, most recently pushed first. A click clones it, private ones included, and opens it as a project.",
+        "Connect GitHub three ways: sign in through the browser, reuse the GitHub CLI's account, or paste a personal access token.",
+        "GitHub Enterprise: a token with your server's host works for issues, pull requests and cloning, including organizations that block OAuth apps.",
+      ],
+      improved: [
+        "GitHub sign-in: the approval page now names Fyolo instead of termio.",
+      ],
+    },
+  },
+  {
     version: "0.1.1",
     date: "2026-10-10",
     title: "Session links work in the CLI again",
