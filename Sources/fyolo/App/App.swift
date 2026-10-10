@@ -329,6 +329,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             MainActor.assumeIsolated {
                 self?.scheduleSeparatorReassert()
                 self?.noteSplitViewResize()
+                self?.clearFullScreenTitlebarMaterial()
             }
         }
         // Re-resolve the window background whenever the OS flips light↔dark under `.system` mode
@@ -842,12 +843,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // on a mismatched lighter band. The sidebar's vibrant material still wins on the
         // leading column; this only affects the detail (terminal) side.
         //
-        // EXCEPT in fullscreen: on macOS 26 the fullscreen title-bar host doesn't honor a
-        // transparent titlebar — it composites a light Liquid Glass material, which read as a
-        // white band over a dark terminal. Turning transparency off in fullscreen lets the
+        // EXCEPT in fullscreen on macOS 26: there the fullscreen title-bar host doesn't honor
+        // a transparent titlebar — it composites a light Liquid Glass material, which read as
+        // a white band over a dark terminal. Turning transparency off in fullscreen lets the
         // toolbar fall back to the window's own (dark) titlebar material, which tracks the
-        // appearance and matches the terminal far better. Windowed keeps the seamless look.
-        window.titlebarAppearsTransparent = !window.styleMask.contains(.fullScreen)
+        // appearance and matches the terminal far better. Earlier systems honor the
+        // transparency in fullscreen too, and the opaque material there is a grey band of
+        // its own, so they keep the seamless look in both modes.
+        window.titlebarAppearsTransparent = !(window.styleMask.contains(.fullScreen)
+            && Self.fullScreenTitlebarIgnoresTransparency)
+        clearFullScreenTitlebarMaterial()
+    }
+
+    /// In fullscreen AppKit moves the toolbar into its own `NSToolbarFullScreenWindow`,
+    /// whose title bar paints one title-bar-material blur per split item — sidebar,
+    /// terminal, inspector — whatever `titlebarAppearsTransparent` says. Those are the
+    /// grey band across the top of the screen. Hiding them lets the terminal-colored
+    /// window show through, the way the windowed title bar does. AppKit rebuilds them
+    /// when a split item opens or collapses, so this re-runs after every split relayout.
+    /// Not on macOS 26, which keeps the opaque title bar it needs (see above).
+    private func clearFullScreenTitlebarMaterial() {
+        guard let window, window.styleMask.contains(.fullScreen),
+              !Self.fullScreenTitlebarIgnoresTransparency
+        else { return }
+        for toolbarWindow in NSApp.windows
+        where String(describing: type(of: toolbarWindow)) == "NSToolbarFullScreenWindow" {
+            if let root = toolbarWindow.contentView { hideTitlebarMaterial(in: root) }
+        }
+    }
+
+    private func hideTitlebarMaterial(in view: NSView) {
+        for subview in view.subviews {
+            if let effect = subview as? NSVisualEffectView, effect.material == .titlebar {
+                effect.isHidden = true
+            } else {
+                hideTitlebarMaterial(in: subview)
+            }
+        }
+    }
+
+    private static var fullScreenTitlebarIgnoresTransparency: Bool {
+        if #available(macOS 26.0, *) { return true }
+        return false
     }
 
     /// The terminal background color flattened to a static color for the window's current

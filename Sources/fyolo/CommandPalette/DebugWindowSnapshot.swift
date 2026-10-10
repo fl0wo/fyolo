@@ -47,6 +47,25 @@ enum DebugWindowSnapshot {
                 try? png.write(to: URL(fileURLWithPath: "/tmp/fyolo-dev-window.png"))
             }
         }
+        captureFullScreenToolbar()
+    }
+
+    /// In fullscreen AppKit moves the toolbar into a separate system window
+    /// (`NSToolbarFullScreenWindow`) that the capture above never sees, though it
+    /// is what draws the band across the top of the screen. Dumped beside the
+    /// main capture so a fullscreen title-bar glitch can be read too.
+    @MainActor
+    private static func captureFullScreenToolbar() {
+        let toolbarWindows = NSApp.windows.filter { String(describing: type(of: $0)).contains("FullScreen") }
+        var lines: [String] = []
+        for window in toolbarWindows {
+            lines.append("window \(type(of: window)) frame=\(window.frame) opaque=\(window.isOpaque) bg=\(window.backgroundColor.description)")
+            if let root = window.contentView?.superview ?? window.contentView {
+                dump(root, depth: 1, into: &lines)
+            }
+        }
+        try? lines.joined(separator: "\n").write(
+            toFile: "/tmp/fyolo-dev-fullscreen.txt", atomically: true, encoding: .utf8)
     }
 
     /// Which window a capture means: the frontmost ordinary window.
@@ -73,6 +92,9 @@ enum DebugWindowSnapshot {
         if view.alphaValue < 1 { bits += " alpha=\(view.alphaValue)" }
         if let bg = view.layer?.backgroundColor, let c = NSColor(cgColor: bg), c.alphaComponent > 0 {
             bits += " bg=\(c)"
+        }
+        if let effect = view as? NSVisualEffectView {
+            bits += " material=\(effect.material.rawValue) blending=\(effect.blendingMode.rawValue) state=\(effect.state.rawValue)"
         }
         lines.append(bits)
         for sub in view.subviews {
