@@ -24,16 +24,16 @@ All paths below are relative to `web/landing/`.
 2. **Apply the requested changes** (copy, screenshot, layout) to
    `src/app/og-card/page.tsx`. Current design decisions — keep them unless the
    user overrides:
-   - Wordmark is capitalized **"Fyolo"** (matches the nav `Logo` component).
-   - Headline slogan has **no trailing period**.
-   - Subline: "Terminal-first Agentic Development Environment, built for
-     AI builders."
-   - Agent row uses real `AgentIcon` icons; sizes are tuned (30px text / 34px
-     icons / 30px gap) so all six agents fit on ONE row inside the 1080px left
-     column — if you add an agent or grow the sizes, re-check that Kimi/Pi
-     don't clip under the screenshot or wrap to a lonely second line.
-   - Screenshot window: `public/screenshots/hero1.png` at left 1240 / top 150 /
-     width 1560, 28px radius, white/0.18 border.
+   - Wordmark is lowercase **"fyolo"** beside the purple-F `FyoloMark`
+     (matches the nav `Logo` component).
+   - Headline has **no trailing period**: "One ADE connected to Linear" —
+     the hero's rotating word caught on the tool the frozen hub has lit, in
+     the rotator's violet. Change both together.
+   - Subline tracks the hero's: the tools it connects, "— in one terminal."
+   - The brew install pill sits top-right, from `brewInstallCommand`.
+   - The visual is the hero's real `StackHub`, scaled 1.95× and centered. Its
+     loop is frozen via `FROZEN_AT` (paused, negative delay) on Linear's port
+     flaring and its line lit — keep the capture deterministic.
    - The page includes `nextjs-portal { display: none }` — this hides the Next
      dev-tools badge, which otherwise ships in the capture. Don't remove it.
 
@@ -65,6 +65,8 @@ All paths below are relative to `web/landing/`.
 6. **Ship + clean up** (the route must never be deployed):
    ```bash
    magick /tmp/og-card/og.png -quality 88 public/og.webp
+   # no ImageMagick? Next's own sharp works:
+   # node -e "require('./'+require('child_process').execSync('ls -d node_modules/.pnpm/sharp@*/node_modules/sharp').toString().trim())('/tmp/og-card/og.png').webp({quality:88}).toFile('public/og.webp')"
    cp src/app/og-card/page.tsx <skill-dir>/assets/og-card-page.tsx  # persist edits
    rm -rf src/app/og-card
    curl -s -o /dev/null -w "%{http_code}" http://localhost:<port>/og-card  # expect 404

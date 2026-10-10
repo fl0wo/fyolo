@@ -857,6 +857,62 @@ html[data-theme-switching] *::after {
     }
   }
 
+  /* The hero headline's rotating word (rotating-word.tsx): letters flip in on
+     X from below, staggered by --i, while the outgoing word flips up and
+     away. Transform and opacity only; the box's width eases between words. */
+  .rotator {
+    perspective: 900px;
+    color: #c084fc;
+    text-shadow: 0 0 28px rgba(168, 85, 247, 0.45);
+    transition: width 0.55s var(--ease-apple);
+  }
+  .rotator-letter {
+    display: inline-block;
+    transform-origin: 50% 50% -0.35em;
+    backface-visibility: hidden;
+  }
+  @keyframes rotator-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.3em) rotateX(-95deg);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes rotator-out {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-0.3em) rotateX(95deg);
+    }
+  }
+  /* The outgoing word clears quickly and the incoming one waits a beat, so
+     the two only share the slot for a moment instead of overlapping mid-turn. */
+  .rotator-in .rotator-letter {
+    animation: rotator-in 0.6s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+    animation-delay: calc(110ms + var(--i) * 30ms);
+  }
+  .rotator-out .rotator-letter {
+    animation: rotator-out 0.28s cubic-bezier(0.55, 0, 0.8, 0.3) both;
+    animation-delay: calc(var(--i) * 12ms);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rotator {
+      transition: none;
+    }
+    .rotator-in .rotator-letter {
+      animation: none;
+    }
+    .rotator-out {
+      display: none;
+    }
+  }
+
   @keyframes demo-cursor-blink {
     50% {
       opacity: 0;

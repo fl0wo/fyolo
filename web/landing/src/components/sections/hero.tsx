@@ -2,6 +2,17 @@ import { Reveal } from "@/components/reveal";
 import { HeroGradient } from "@/components/hero-gradient";
 import { BrewInstall } from "@/components/brew-install";
 import { StackHub } from "@/components/sections/stack-hub";
+import { RotatingWord } from "@/components/rotating-word";
+
+const connectedTools = [
+  "Linear",
+  "GitHub",
+  "Docker",
+  "Vitest",
+  "Claude",
+  "Codex",
+  "your files",
+] as const;
 
 export function Hero() {
   return (
@@ -30,8 +41,17 @@ export function Hero() {
           </p>
         </Reveal>
         <Reveal delayMs={40}>
-          <h1 className="mt-5 text-balance text-5xl font-medium leading-[1.1] tracking-tight text-foreground sm:text-6xl">
-            One ADE. Every tool connected.
+          <h1 className="mt-5 text-5xl font-medium leading-[1.1] tracking-tight text-foreground sm:text-6xl">
+            <span className="sr-only">
+              One ADE connected to Linear, GitHub, Docker, Vitest, Claude, Codex
+              and your files.
+            </span>
+            <span aria-hidden="true">One ADE connected to </span>
+            {/* Its own line on phones, so the rotating word never re-wraps
+                the sentence as it changes length. */}
+            <span className="block sm:inline">
+              <RotatingWord words={connectedTools} />
+            </span>
           </h1>
         </Reveal>
         <Reveal delayMs={80}>
