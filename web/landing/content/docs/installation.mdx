@@ -1,9 +1,9 @@
 ---
 title: Installation
-description: Download Fyolo for macOS, drag it to Applications, and let Sparkle keep it up to date — no account or license key required.
+description: Install Fyolo on macOS with Homebrew and keep it current with brew upgrade — no account or license key required.
 ---
 
-Fyolo runs on Apple silicon and Intel Macs from the same download. Installation is a normal drag-to-Applications
+Fyolo runs on Apple silicon and Intel Macs from the same build. Installation is one Homebrew command
 — there’s no account to create and no license key to enter.
 
 <Callout type="note" title="Before you begin">
@@ -15,26 +15,22 @@ Fyolo runs on Apple silicon and Intel Macs from the same download. Installation 
 
 | | |
 | --- | --- |
-| **macOS** | 14 (Sonoma) or later, Apple silicon or Intel — one universal download |
+| **macOS** | 14 (Sonoma) or later, Apple silicon or Intel — one universal build |
+| **Homebrew** | [brew.sh](https://brew.sh), or download the disk image instead |
 | **An account** | None. There is no sign-in, no license key, and no payment backend |
 | **Agent CLIs** | Whichever you already use — `claude`, `codex`, and the rest. Fyolo hosts them, it doesn’t ship them |
 | **For another machine** | Anything you can already `ssh` to. Fyolo reads your `~/.ssh/config` and installs nothing as root |
 
-## Download and install
+## Install with Homebrew
 
-1. Download the latest build from
-   [downloads.fyolo.sh](https://downloads.fyolo.sh/fyolo.dmg). The link
-   always serves the newest notarized release.
-2. Open the `.dmg` and drag **Fyolo** into your **Applications** folder.
-3. Launch it from Applications. Because the app is notarized by Apple, it opens
-   without a Gatekeeper warning.
+```sh
+brew install --cask fl0wo/tap/fyolo
+```
 
-<DocsImage
-  src="/screenshots/docs/00-dmg-install.png"
-  alt="The Fyolo disk image with Fyolo.app on the left, an Applications folder on the right, and a drag arrow between them"
-  width={1544}
-  height={1024}
-/>
+Homebrew downloads the latest release from GitHub, puts Fyolo in your
+**Applications** folder, and clears the quarantine flag macOS sets on downloads.
+Fyolo is ad-hoc signed rather than notarized by Apple, so without that step
+Gatekeeper would refuse to open it.
 
 ## Check it worked
 
@@ -53,25 +49,35 @@ If you already use [Ghostty](https://ghostty.org), there’s nothing to pick: Fy
 reads your `~/.config/ghostty/config` on first launch and starts with the font and
 theme you chose there.
 
-## Install with Homebrew
+## Download the disk image instead
 
-Prefer the command line? Fyolo is a [Homebrew](https://brew.sh) cask:
+If you’d rather not use Homebrew, every release attaches the disk image to its
+[GitHub release](https://github.com/fl0wo/fyolo/releases/latest).
 
-```sh
-brew install --cask fyolo-sh/tap/fyolo
-```
+1. Download `fyolo.dmg` from the latest release.
+2. Open it and drag **Fyolo** into your **Applications** folder.
+3. Launch it. The first time, macOS blocks it because the app isn’t notarized:
+   open **System Settings ▸ Privacy & Security** and click **Open Anyway** next
+   to the message about Fyolo. Running
+   `xattr -dr com.apple.quarantine /Applications/fyolo.app` does the same.
 
-This installs the same notarized build. Fyolo still updates itself through
-Sparkle, so `brew upgrade` leaves it alone unless you pass `--greedy`.
+<DocsImage
+  src="/screenshots/docs/00-dmg-install.png"
+  alt="The Fyolo disk image with Fyolo.app on the left, an Applications folder on the right, and a drag arrow between them"
+  width={1544}
+  height={1024}
+/>
 
 ## Staying up to date
 
-Fyolo updates itself through Sparkle. It periodically checks the download
-server for a newer version and offers to install it in place. The check carries
-no account or device identifier — the server sees only an IP address and the
-version being asked about.
+```sh
+brew upgrade --cask fyolo
+```
 
-You can trigger a check any time from **Fyolo ▸ Check for Updates**.
+Fyolo doesn’t update itself. Each release bumps the Homebrew cask, so a
+`brew upgrade` moves you to the newest version along with everything else you
+installed with Homebrew. If you installed the disk image, download the new one
+from GitHub and replace the app.
 
 ## Bring your own agents
 
@@ -105,7 +111,8 @@ Nothing is hidden, and nothing lives on a server of ours:
 
 ## Uninstalling
 
-Quit Fyolo and drag it to the Trash. To remove what it wrote outside the bundle,
+Quit Fyolo and run `brew uninstall --cask fyolo`, or drag it to the Trash if you
+installed the disk image. To remove what it wrote outside the bundle,
 turn off **Live agent status** and **Session control** under **Settings ▸ Agents**
 first — both toggles remove the hooks and the skill they installed on **this
 Mac**, leaving anything you wrote yourself alone. Then delete `~/.fyolo` and

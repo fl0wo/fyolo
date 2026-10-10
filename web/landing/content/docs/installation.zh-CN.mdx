@@ -1,13 +1,13 @@
 ---
 title: 安装
-description: 下载 macOS 版 Fyolo，拖进「应用程序」，之后交给 Sparkle 自动更新——无需账号，也没有许可证密钥。
+description: 用 Homebrew 在 macOS 上安装 Fyolo，之后用 brew upgrade 保持最新——无需账号，也没有许可证密钥。
 x-i18n:
   source_path: installation.mdx
-  source_hash: 291ad5bc9a574c246f12b16131840f3964e348ce7bc6aea8517dba7176d6c397
+  source_hash: f445af56db12ef013e8171e5c6d5e058798ab5b03b7fff1b9ffb2e203f2fd155
   generated_at: 2026-10-10
 ---
 
-Fyolo 用同一个下载包同时运行在 Apple 芯片和 Intel 的 Mac 上。安装就是普通的拖进「应用程序」——不用注册账号，
+Fyolo 用同一个构建同时运行在 Apple 芯片和 Intel 的 Mac 上。安装只需一条 Homebrew 命令——不用注册账号，
 也没有许可证密钥要填。
 
 <Callout type="note" title="开始之前">
@@ -19,24 +19,21 @@ Fyolo 用同一个下载包同时运行在 Apple 芯片和 Intel 的 Mac 上。�
 
 | | |
 | --- | --- |
-| **macOS** | 14（Sonoma）或更高版本，Apple 芯片和 Intel 都可以——同一个通用下载包 |
+| **macOS** | 14（Sonoma）或更高版本，Apple 芯片和 Intel 都可以——同一个通用构建 |
+| **Homebrew** | [brew.sh](https://brew.sh)，或者改为下载磁盘映像 |
 | **账号** | 不需要。没有登录、没有许可证密钥，也没有支付后端 |
 | **Agent 命令行工具** | 你本来在用的那些，`claude`、`codex` 之类。Fyolo 托管它们，不附带它们 |
 | **想用另一台机器** | 任何你已经能 `ssh` 上去的机器。Fyolo 读你的 `~/.ssh/config`，不以 root 身份装任何东西 |
 
-## 下载并安装
+## 用 Homebrew 安装
 
-1. 从 [downloads.fyolo.sh](https://downloads.fyolo.sh/fyolo.dmg) 下载最新版本。
-   这个链接始终指向最新的、已公证的发布版本。
-2. 打开 `.dmg`，把 **Fyolo** 拖进 **应用程序** 文件夹。
-3. 从「应用程序」启动它。由于应用已通过 Apple 公证，打开时不会出现 Gatekeeper 警告。
+```sh
+brew install --cask fl0wo/tap/fyolo
+```
 
-<DocsImage
-  src="/screenshots/docs/00-dmg-install.png"
-  alt="Fyolo 磁盘映像窗口，左侧是 Fyolo.app，右侧是「应用程序」文件夹，两者之间有拖放箭头"
-  width={1544}
-  height={1024}
-/>
+Homebrew 会从 GitHub 下载最新版本，把 Fyolo 放进 **应用程序** 文件夹，并清除 macOS
+给下载文件打上的隔离标记。Fyolo 用的是临时签名（ad-hoc），没有经过 Apple 公证，
+少了这一步 Gatekeeper 会拒绝打开它。
 
 ## 确认装好了
 
@@ -51,23 +48,33 @@ Fyolo 用同一个下载包同时运行在 Apple 芯片和 Intel 的 Mac 上。�
 如果你本来就在用 [Ghostty](https://ghostty.org)，那就没什么要挑的：Fyolo 会在首次启动时
 读你的 `~/.config/ghostty/config`，用你在那里选好的字体和主题开始。
 
-## 用 Homebrew 安装
+## 改为下载磁盘映像
 
-更喜欢命令行？Fyolo 提供 [Homebrew](https://brew.sh) cask：
+如果你不想用 Homebrew，每个版本都会把磁盘映像附在它的
+[GitHub 发布页](https://github.com/fl0wo/fyolo/releases/latest)上。
 
-```sh
-brew install --cask fyolo-sh/tap/fyolo
-```
+1. 从最新版本下载 `fyolo.dmg`。
+2. 打开它，把 **Fyolo** 拖进 **应用程序** 文件夹。
+3. 启动它。第一次启动时，macOS 会因为应用未经公证而拦下它：打开
+   **系统设置 ▸ 隐私与安全性**，在关于 Fyolo 的提示旁点 **仍要打开**。运行
+   `xattr -dr com.apple.quarantine /Applications/fyolo.app` 效果相同。
 
-装的是同一个已公证的版本。Fyolo 之后仍通过 Sparkle 自行更新，所以 `brew upgrade`
-不会动它，除非你加上 `--greedy`。
+<DocsImage
+  src="/screenshots/docs/00-dmg-install.png"
+  alt="Fyolo 磁盘映像窗口，左侧是 Fyolo.app，右侧是「应用程序」文件夹，两者之间有拖放箭头"
+  width={1544}
+  height={1024}
+/>
 
 ## 保持最新
 
-Fyolo 通过 Sparkle 自行更新。它会定期向下载服务器询问是否有新版本，并提示你就地
-安装。这个检查不携带任何账号或设备标识——服务器只看到一个 IP 地址和被询问的版本号。
+```sh
+brew upgrade --cask fyolo
+```
 
-你也可以随时从 **Fyolo ▸ 检查更新** 手动触发。
+Fyolo 不会自行更新。每次发布都会更新 Homebrew cask，所以一次 `brew upgrade` 就会把它
+和你用 Homebrew 装的其他东西一起升到最新版本。如果你装的是磁盘映像，就从 GitHub 下载
+新的那个，替换掉旧应用。
 
 ## 自带 Agent
 
@@ -98,7 +105,7 @@ Fyolo 附带一个小巧的命令行工具。打开 **设置 ▸ Fyolo server**�
 
 ## 卸载
 
-退出 Fyolo，把它拖进废纸篓。想清掉它写在应用包外面的东西，先在**设置 ▸ Agent** 里关掉
+退出 Fyolo，运行 `brew uninstall --cask fyolo`；如果装的是磁盘映像，就把它拖进废纸篓。想清掉它写在应用包外面的东西，先在**设置 ▸ Agent** 里关掉
 **Agent 实时状态**和**会话控制**——这两个开关会移除它们装在**本机**上的 hooks 和技能，而
 你自己写的那些原封不动。然后如果你也想让状态消失，删掉 `~/.fyolo` 和
 `~/Library/Application Support/fyolo`。
