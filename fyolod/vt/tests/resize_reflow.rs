@@ -54,7 +54,7 @@ fn visible(bytes: &[u8]) -> Vec<String> {
         .collect()
 }
 
-const PROMPT: &str = ">> fyolo git:(docs/remote-access-after-shipping) x ";
+const PROMPT: &str = ">> fyolod git:(docs/remote-access-after-shipping) x ";
 
 /// zsh's real SIGWINCH redisplay, captured from a live session: carriage
 /// return to what zsh believes is the prompt's first physical row (it assumes
@@ -83,7 +83,7 @@ fn reflowing_resize_duplicates_the_prompt() {
     });
     let copies = rows
         .iter()
-        .filter(|row| row.starts_with(">> fyolo git:("))
+        .filter(|row| row.starts_with(">> fyolod git:("))
         .count();
     assert!(copies >= 2, "expected the duplicate, got rows: {rows:?}");
 }
@@ -99,7 +99,7 @@ fn no_reflow_resize_keeps_zsh_redraw_clean() {
     assert_eq!(
         rows,
         vec![
-            ">> fyolo git:(docs/remote-access-after-shippin".to_string(),
+            ">> fyolod git:(docs/remote-access-after-shippin".to_string(),
             "g) x".to_string(),
         ],
         "one prompt, wrapped at the new width, nothing stale above it"
@@ -125,7 +125,7 @@ fn no_reflow_resize_survives_a_split_storm() {
         let rows = visible(&vt.format_vt().expect("fmt"));
         let copies = rows
             .iter()
-            .filter(|row| row.contains(">> fyolo git:("))
+            .filter(|row| row.contains(">> fyolod git:("))
             .count();
         assert_eq!(copies, 1, "at {cols} cols expected one prompt, rows: {rows:?}");
     }
@@ -204,7 +204,7 @@ fn marked_prompt_resize_reflows_without_duplicating() {
     let rows = visible(&vt.format_vt().expect("fmt"));
     let copies = rows
         .iter()
-        .filter(|row| row.contains(">> fyolo git:("))
+        .filter(|row| row.contains(">> fyolod git:("))
         .count();
     assert_eq!(copies, 1, "one prompt after a marked resize, rows: {rows:?}");
 }
@@ -269,7 +269,7 @@ fn unmarked_resize_for_shell_still_truncates() {
     assert_eq!(
         rows,
         vec![
-            ">> fyolo git:(docs/remote-access-after-shippin".to_string(),
+            ">> fyolod git:(docs/remote-access-after-shippin".to_string(),
             "g) x".to_string(),
         ],
         "no marks, no reflow: same screen as the truncating resize"
@@ -321,7 +321,7 @@ fn marked_resize_survives_a_split_storm() {
         let rows = visible(&vt.format_vt().expect("fmt"));
         let copies = rows
             .iter()
-            .filter(|row| row.contains(">> fyolo git:("))
+            .filter(|row| row.contains(">> fyolod git:("))
             .count();
         assert_eq!(copies, 1, "at {cols} cols expected one prompt, rows: {rows:?}");
     }
@@ -357,7 +357,7 @@ fn redraw_winning_the_resize_race_blanks_until_the_nudged_redraw() {
     let rows = visible(&vt.format_vt().expect("fmt"));
     let copies = rows
         .iter()
-        .filter(|row| row.contains(">> fyolo git:("))
+        .filter(|row| row.contains(">> fyolod git:("))
         .count();
     assert_eq!(copies, 1, "the nudged redraw restored one prompt, rows: {rows:?}");
 }

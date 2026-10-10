@@ -116,8 +116,9 @@ pub fn is_address(token: &str) -> bool {
     if let Some(scheme_end) = token.find("://") {
         let scheme = &token[..scheme_end];
         let rest = &token[scheme_end + 3..];
-        return scheme.starts_with("fyolo")
-            && scheme[6..].chars().all(|c| c.is_ascii_lowercase() || c == '-')
+        return scheme
+            .strip_prefix("fyolo")
+            .is_some_and(|channel| channel.chars().all(|c| c.is_ascii_lowercase() || c == '-'))
             && !rest.is_empty()
             && !rest.contains(' ');
     }
