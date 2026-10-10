@@ -17,6 +17,16 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.2.1",
+    date: "2026-10-10",
+    title: "A new icon",
+    changes: {
+      improved: [
+        "Icon: Fyolo now wears the purple F from the website, on macOS and on the iPhone companion.",
+      ],
+    },
+  },
+  {
     version: "0.2.0",
     date: "2026-10-10",
     title: "Start from a project, or clone one from GitHub",
