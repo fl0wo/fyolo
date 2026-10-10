@@ -1084,6 +1084,8 @@
 	<string>Open in Browser</string>
 	<key>Open in Editor</key>
 	<string>Open in Editor</string>
+	<key>Open in Integrated Terminal</key>
+	<string>Open in Integrated Terminal</string>
 	<key>Open on GitHub</key>
 	<string>Open on GitHub</string>
 	<key>Open one to see how it is reached and what it runs.</key>

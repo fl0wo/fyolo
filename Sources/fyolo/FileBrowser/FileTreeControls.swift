@@ -97,4 +97,7 @@ struct FileTreeActions {
     /// Read at menu-open time so the item tracks the live session: a plain shell
     /// has no chat to add to, so the row doesn't offer one.
     let canAddToChat: () -> Bool
+    /// Opens a fyolo terminal already `cd`'d into the given directory — a folder
+    /// row's own path, a file row's containing folder.
+    let openInTerminal: (_ directory: URL) -> Void
 }

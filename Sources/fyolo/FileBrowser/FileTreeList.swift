@@ -309,8 +309,9 @@ private struct FileRow: View {
     /// Right-click menu via an AppKit `NSMenu`, NOT SwiftUI's `.contextMenu` —
     /// the latter paints an accent highlight ring around the targeted row that
     /// can't be styled off. New File / New Folder appear only for a folder (they
-    /// create inside it); every row gets Reveal in Finder, Copy Path, Rename,
-    /// Delete. The empty area below the rows has its own root menu (see
+    /// create inside it); every row gets Reveal in Finder, Open in Integrated
+    /// Terminal, Copy Path, Rename, Delete. The empty area below the rows has its
+    /// own root menu (see
     /// `EmptyAreaContextMenu`).
     ///
     /// Every item on it moves or reveals a file through this process, so a row
@@ -366,8 +367,8 @@ private struct SymbolicLinkTooltip: ViewModifier {
 /// `.contextMenu` — the latter rings the targeted row with an un-styleable accent
 /// highlight. A secondary-click recognizer on the row's own view pops the menu up,
 /// so nothing emphasizes the row. New File / New Folder appear only for a folder
-/// (created inside it); every row gets Reveal in Finder, Copy Path / Copy Relative
-/// Path, Rename, and Delete.
+/// (created inside it); every row gets Reveal in Finder, Open in Integrated
+/// Terminal, Copy Path / Copy Relative Path, Rename, and Delete.
 private struct RowContextMenu: NSViewRepresentable {
     let isDirectory: Bool
     /// Where this row's symlink lands, or nil when the row isn't a link — gates Show
@@ -476,6 +477,7 @@ private struct RowContextMenu: NSViewRepresentable {
                 menu.addItem(menuItem(localized("Show Original"), #selector(showOriginal)))
             }
             menu.addItem(menuItem(localized("Reveal in Finder"), #selector(revealInFinder)))
+            menu.addItem(menuItem(localized("Open in Integrated Terminal"), #selector(openInTerminal)))
             menu.addItem(.separator())
             menu.addItem(menuItem(localized("Copy Path"), #selector(copyPath)))
             menu.addItem(menuItem(localized("Copy Relative Path"), #selector(copyRelativePath)))
@@ -499,6 +501,11 @@ private struct RowContextMenu: NSViewRepresentable {
         @objc private func deleteItem() { actions?.delete(target) }
         @objc private func revealInFinder() {
             NSWorkspace.shared.activateFileViewerSelecting([target])
+        }
+
+        /// A folder opens in itself; a file opens in the folder that holds it.
+        @objc private func openInTerminal() {
+            actions?.openInTerminal(isDirectory ? target : target.deletingLastPathComponent())
         }
 
         /// Reveals what the link points at, not the link — the Finder selects the target

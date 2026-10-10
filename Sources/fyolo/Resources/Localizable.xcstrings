@@ -5147,6 +5147,16 @@
         }
       }
     },
+    "Open in Integrated Terminal": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在集成终端中打开"
+          }
+        }
+      }
+    },
     "Open Link": {
       "localizations": {
         "zh-Hans": {

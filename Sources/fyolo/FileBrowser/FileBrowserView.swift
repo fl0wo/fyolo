@@ -545,7 +545,8 @@ struct FileBrowserView: View {
             rename: { rename($0) },
             delete: { delete($0) },
             addToChat: { _ = store.addPathToSelectedSessionPrompt($0) },
-            canAddToChat: { store.selectedSessionRunsAgent }
+            canAddToChat: { store.selectedSessionRunsAgent },
+            openInTerminal: { store.addTerminal(in: $0.path) }
         )
     }
 

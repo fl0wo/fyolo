@@ -716,18 +716,38 @@ extension FyoloStore {
             addRemoteTerminal(host: alias)
             return
         }
-        let reported = liveWorkingDirectory(for: id)
-        guard case .project(let index, _) = slot else {
-            let directory = reported ?? session.spawnDirectory
+        let anchor: String?
+        if case .project(let index, _) = slot {
+            anchor = session.worktreePath ?? projects[index].path
+        } else {
+            anchor = nil
+        }
+        let directory = liveWorkingDirectory(for: id) ?? session.spawnDirectory ?? anchor
+        addTerminal(in: directory, besideSessionAt: slot)
+    }
+
+    /// The file tree's Open in Integrated Terminal: a shell that starts in
+    /// `directory`, filed where ⌘T would file it — beside the selected session, so
+    /// a folder of the project the tree is showing opens in that project (and its
+    /// worktree). With nothing selected it is a loose terminal.
+    func addTerminal(in directory: String) {
+        guard let id = selectedSessionID, let slot = locate(id) else {
             addScratchSession(agent: .terminal, spawnDirectory: directory)
             return
         }
-        let directory = reported
-            ?? session.spawnDirectory
-            ?? session.worktreePath
-            ?? projects[index].path
+        addTerminal(in: directory, besideSessionAt: slot)
+    }
+
+    /// Files a new plain terminal starting in `directory` beside the session at
+    /// `slot`: in the same project and worktree bucket for a real project, in the
+    /// Terminals section otherwise (a shell has no business in the Chats funnel).
+    private func addTerminal(in directory: String?, besideSessionAt slot: SessionSlot) {
+        guard case .project(let index, _) = slot else {
+            addScratchSession(agent: .terminal, spawnDirectory: directory)
+            return
+        }
         addSession(to: projects[index].id, agent: .terminal,
-                   worktreePath: session.worktreePath, spawnDirectory: directory)
+                   worktreePath: self[slot].worktreePath, spawnDirectory: directory)
     }
 
     /// The agent a bare **New Chat** launches, resolved in priority order:
