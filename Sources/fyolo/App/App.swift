@@ -123,6 +123,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // Whether maximizing is what collapsed the navigator, so restoring re-opens only a sidebar
     // this mode closed — never one the user had already put away.
     private var sidebarCollapsedForMaximize = false
+    // Collapses both side panes while the welcome page is up and reopens them once a project
+    // is (see `applyWelcomeLayout`).
+    private var welcomeObserver: AnyCancellable?
+    // Whether the welcome page is what collapsed the panes, so leaving it reopens them.
+    private var panesCollapsedForWelcome = false
     // Coalesces the per-frame `windowDidResize` stream into a single settle so the inspector's
     // max thickness (and the tracking-separator re-bind it forces) is recomputed once the drag
     // stops, not on every intermediate frame.
@@ -339,6 +344,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         DispatchQueue.main.async { [weak self] in
             self?.syncInspectorSwitch()
             self?.syncNavigatorItems()
+            // Subscribed only now, after the autosave restore, so the first value — the
+            // launch's own welcome state — is applied to the panes as they actually came up
+            // rather than being overwritten by the restore.
+            guard let self else { return }
+            self.welcomeObserver = self.store.$selectedSessionID
+                .map { $0 == nil }
+                .removeDuplicates()
+                .receive(on: RunLoop.main)
+                .sink { [weak self] showsWelcome in
+                    MainActor.assumeIsolated { self?.applyWelcomeLayout(showsWelcome) }
+                }
         }
         updateWindowTitle()
         // Keep the native title/subtitle in step with the selected session and its live branch.
@@ -1476,6 +1492,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if item.isCollapsed {
             item.isCollapsed = false
             setInspectorSwitchVisible(true)
+        }
+    }
+
+    /// The welcome page (no session selected) is a single centered question, so both side
+    /// panes step aside for it: the sidebar has nothing in it yet on a first launch, and the
+    /// inspector has no project to show. Once a session is selected — a folder opened, a
+    /// repository cloned — both come back, so the user lands in the full workspace.
+    private func applyWelcomeLayout(_ showsWelcome: Bool) {
+        guard let sidebar = sidebarSplitItem, let inspector = filesInspectorItem else { return }
+        if showsWelcome {
+            panesCollapsedForWelcome = true
+            if !sidebar.isCollapsed { sidebar.isCollapsed = true }
+            if !inspector.isCollapsed {
+                inspector.isCollapsed = true
+                setInspectorSwitchVisible(false)
+            }
+        } else if panesCollapsedForWelcome {
+            panesCollapsedForWelcome = false
+            sidebar.isCollapsed = false
+            revealInspectorForDetail()
+            // Opening both relayouts around divider 1, which can leave the tracking separator
+            // inert; re-bind once it settles, as the detail reveal does.
+            DispatchQueue.main.async { [weak self] in self?.reassertInspectorSeparator() }
         }
     }
 
