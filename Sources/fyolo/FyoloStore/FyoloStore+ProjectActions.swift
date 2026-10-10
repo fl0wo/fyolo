@@ -1120,6 +1120,87 @@ extension FyoloStore {
         cloneOnRemote(host: alias, info: info, into: .new(name: name))
     }
 
+    // MARK: - Clone from GitHub
+
+    /// Clones `repository` and opens it as a project on the machine the current
+    /// workspace is on — the same dispatch ⌘O makes, so the welcome page's two
+    /// ways in agree on where a project lands.
+    func cloneRepository(_ repository: GitHubRepository) {
+        switch currentWorkspace.device {
+        case .thisMac:
+            cloneOnThisMac(repository)
+        case .ssh(let alias):
+            cloneProject(from: repository.cloneUrl, on: alias)
+        }
+    }
+
+    /// Asks which folder the clone goes in — `NSOpenPanel` reopens on the last one
+    /// chosen, so every clone after the first is a single click — then runs
+    /// `git clone` there and opens the result.
+    private func cloneOnThisMac(_ repository: GitHubRepository) {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.prompt = localized("Clone Here")
+        panel.message = localized("Choose the folder to clone \(repository.fullName) into.")
+        guard panel.runModal() == .OK, let parent = panel.url else { return }
+        let destination = parent.appendingPathComponent(repository.name, isDirectory: true)
+
+        // Cloned there before: open it instead of failing on git's "already exists".
+        let gitDirectory = destination.appendingPathComponent(".git").path
+        if FileManager.default.fileExists(atPath: gitDirectory) {
+            addProject(at: destination)
+            return
+        }
+
+        let hud = RemoteSetupHUD(message: localized("Cloning \(repository.name)…"))
+        hud.show()
+        let environment = Self.gitHubCloneEnvironment(for: repository.cloneUrl)
+        let arguments = ["clone", "--", repository.cloneUrl, destination.path]
+        DispatchQueue.global(qos: .userInitiated).async {
+            let clone = Self.runProcess("/usr/bin/git", arguments, extraEnvironment: environment)
+            DispatchQueue.main.async {
+                hud.dismiss()
+                guard let clone, clone.exitCode == 0 else {
+                    let detail = clone.map { output in
+                        output.standardError
+                            .split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+                            .last(where: { !$0.isEmpty }) ?? "git clone failed"
+                    } ?? "couldn't run git"
+                    Log.app.error("clone of \(repository.fullName, privacy: .public) failed: \(detail, privacy: .public)")
+                    let alert = NSAlert()
+                    alert.messageText = localized("Couldn’t clone \(repository.fullName)")
+                    alert.informativeText = detail
+                    alert.alertStyle = .warning
+                    alert.runModal()
+                    return
+                }
+                self.addProject(at: destination)
+            }
+        }
+    }
+
+    /// Lets a github.com clone authenticate as the connected account, so a private
+    /// repository clones before the user has set up git credentials of their own.
+    /// Environment-borne config rather than `-c`, which would put the token in the
+    /// process list, and scoped to this one command: the checkout's `.git/config`
+    /// never sees it, so later fetches use the user's own credentials.
+    /// `GIT_TERMINAL_PROMPT=0` turns a missing credential into an error instead of a
+    /// prompt nobody can answer.
+    private static func gitHubCloneEnvironment(for cloneURL: String) -> [String: String] {
+        var environment = ["GIT_TERMINAL_PROMPT": "0"]
+        guard URL(string: cloneURL)?.host == "github.com",
+              let token = GitHubIssueAuth.storedToken()
+        else { return environment }
+        let credential = Data("x-access-token:\(token)".utf8).base64EncodedString()
+        environment["GIT_CONFIG_COUNT"] = "1"
+        environment["GIT_CONFIG_KEY_0"] = "http.https://github.com/.extraheader"
+        environment["GIT_CONFIG_VALUE_0"] = "Authorization: Basic \(credential)"
+        return environment
+    }
+
     /// Files a directory that is already on `alias` as a project, then opens its
     /// first terminal. That terminal is also the check: the daemon fails visibly
     /// if the path isn't there, rather than the row quietly pointing at nothing.

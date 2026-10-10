@@ -1746,7 +1746,7 @@ extension FyoloStore {
     }
 
     /// A captured subprocess result — exit code plus drained stdout/stderr.
-    private struct ProcessOutput {
+    struct ProcessOutput {
         let exitCode: Int32
         let standardOutput: String
         let standardError: String
@@ -1755,7 +1755,11 @@ extension FyoloStore {
     /// Runs `executable args`, draining both pipes before waiting so neither can
     /// deadlock on a full buffer. `nil` only when the process couldn't launch.
     /// `nonisolated` so the off-main `performRemoteReadyCheck` can call it.
-    private nonisolated static func runProcess(_ executable: String, _ args: [String]) -> ProcessOutput? {
+    /// `extraEnvironment` reaches the child without appearing in its arguments,
+    /// which any user on the machine can read with `ps`.
+    nonisolated static func runProcess(
+        _ executable: String, _ args: [String], extraEnvironment: [String: String] = [:]
+    ) -> ProcessOutput? {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: executable)
         process.arguments = args
@@ -1769,6 +1773,7 @@ extension FyoloStore {
         if AppChannel.isFyoloAppBundle {
             environment["FYOLOD_SOCK"] = nil
         }
+        environment.merge(extraEnvironment) { _, extra in extra }
         process.environment = environment
         let out = Pipe(), err = Pipe()
         process.standardOutput = out

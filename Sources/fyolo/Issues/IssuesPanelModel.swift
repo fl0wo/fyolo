@@ -18,6 +18,11 @@ final class IssuesPanelModel: ObservableObject {
         /// Connected, but none of the project's remotes is a github.com repo.
         case unbound
         case ready
+
+        var userCode: String? {
+            if case .connecting(let userCode) = self { return userCode }
+            return nil
+        }
     }
 
     @Published private(set) var phase: Phase = .disconnected
@@ -111,11 +116,7 @@ final class IssuesPanelModel: ObservableObject {
         errorMessage = nil
         recovery = nil
         do {
-            let code = try await GitHubIssueAuth.requestDeviceCode()
-            phase = .connecting(userCode: code.userCode)
-            NSWorkspace.shared.open(code.verificationURL)
-            let token = try await GitHubIssueAuth.waitForToken(code)
-            GitHubIssueAuth.store(token: token)
+            let token = try await GitHubIssueAuth.connect { phase = .connecting(userCode: $0) }
             provider = GitHubIssueProvider(token: token)
             didStart = true
             await resolveContainer()

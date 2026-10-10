@@ -1442,6 +1442,16 @@
         }
       }
     },
+    "Choose a project to start.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一个项目开始。"
+          }
+        }
+      }
+    },
     "Choose another branch to compare with.": {
       "localizations": {
         "zh-Hans": {
@@ -1458,6 +1468,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "选取项目的排序方式"
+          }
+        }
+      }
+    },
+    "Choose the folder to clone %@ into.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择要将 %@ 克隆到的文件夹。"
           }
         }
       }
@@ -1542,12 +1562,42 @@
         }
       }
     },
+    "Clone from GitHub": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从 GitHub 克隆"
+          }
+        }
+      }
+    },
+    "Clone Here": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "克隆到这里"
+          }
+        }
+      }
+    },
     "Clone to": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "克隆到"
+          }
+        }
+      }
+    },
+    "Cloning %@…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在克隆 %@…"
           }
         }
       }
@@ -1832,6 +1882,16 @@
         }
       }
     },
+    "Connect your GitHub account to clone one of your repositories.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接你的 GitHub 账户，即可克隆你的仓库。"
+          }
+        }
+      }
+    },
     "Connect your GitHub account to read this project’s issues and pull requests here.": {
       "localizations": {
         "zh-Hans": {
@@ -2048,6 +2108,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法修改主题文件夹"
+          }
+        }
+      }
+    },
+    "Couldn’t clone %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法克隆 %@"
           }
         }
       }
@@ -4404,6 +4474,16 @@
         }
       }
     },
+    "No repository matches.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有匹配的仓库。"
+          }
+        }
+      }
+    },
     "No Session": {
       "localizations": {
         "zh-Hans": {
@@ -4893,6 +4973,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "打开"
+          }
+        }
+      }
+    },
+    "Open Folder…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开文件夹…"
           }
         }
       }
@@ -5433,6 +5523,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "隐私"
+          }
+        }
+      }
+    },
+    "Private": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私有"
           }
         }
       }
@@ -6168,6 +6268,16 @@
         }
       }
     },
+    "Search repositories": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索仓库"
+          }
+        }
+      }
+    },
     "Select text in the document, then choose Highlight.": {
       "localizations": {
         "zh-Hans": {
@@ -6744,6 +6854,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "载入该仓库时出错。请稍后重试。"
+          }
+        }
+      }
+    },
+    "Something went wrong loading your repositories. Try again in a moment.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载你的仓库时出错。请稍后重试。"
           }
         }
       }
@@ -7454,6 +7574,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "加粗字形"
+          }
+        }
+      }
+    },
+    "This GitHub account has no repositories yet.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个 GitHub 账户还没有仓库。"
           }
         }
       }
@@ -8455,6 +8585,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "来自 ~/.ssh/config 的 Host 条目，与 `ssh` 解析的别名一致。右键点按主机即可连接。"
+          }
+        }
+      }
+    },
+    "Your Repositories": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的仓库"
           }
         }
       }

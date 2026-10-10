@@ -300,10 +300,14 @@
 	<string>Choose a project folder on %@.</string>
 	<key>Choose a project folder to open in Fyolo.</key>
 	<string>Choose a project folder to open in Fyolo.</string>
+	<key>Choose a project to start.</key>
+	<string>Choose a project to start.</string>
 	<key>Choose another branch to compare with.</key>
 	<string>Choose another branch to compare with.</string>
 	<key>Choose how projects are ordered</key>
 	<string>Choose how projects are ordered</string>
+	<key>Choose the folder to clone %@ into.</key>
+	<string>Choose the folder to clone %@ into.</string>
 	<key>Choose which repository’s issues to show</key>
 	<string>Choose which repository’s issues to show</string>
 	<key>Choose…</key>
@@ -312,6 +316,8 @@
 	<string>Clear</string>
 	<key>Clone</key>
 	<string>Clone</string>
+	<key>Clone Here</key>
+	<string>Clone Here</string>
 	<key>Clone a Repository</key>
 	<string>Clone a Repository</string>
 	<key>Clone a Repository onto %@</key>
@@ -320,8 +326,12 @@
 	<string>Clone a Repository…</string>
 	<key>Clone a repository onto %@, or open a folder that’s already there — the path completes as you type.</key>
 	<string>Clone a repository onto %@, or open a folder that’s already there — the path completes as you type.</string>
+	<key>Clone from GitHub</key>
+	<string>Clone from GitHub</string>
 	<key>Clone to</key>
 	<string>Clone to</string>
+	<key>Cloning %@…</key>
+	<string>Cloning %@…</string>
 	<key>Close</key>
 	<string>Close</string>
 	<key>Close (Esc)</key>
@@ -378,6 +388,8 @@
 	<string>Connect GitHub</string>
 	<key>Connect to…</key>
 	<string>Connect to…</string>
+	<key>Connect your GitHub account to clone one of your repositories.</key>
+	<string>Connect your GitHub account to clone one of your repositories.</string>
 	<key>Connect your GitHub account to read this project’s issues and pull requests here.</key>
 	<string>Connect your GitHub account to read this project’s issues and pull requests here.</string>
 	<key>Connected</key>
@@ -422,6 +434,8 @@
 	<string>Could not run ssh: %@</string>
 	<key>Couldn’t change the Themes folder</key>
 	<string>Couldn’t change the Themes folder</string>
+	<key>Couldn’t clone %@</key>
+	<string>Couldn’t clone %@</string>
 	<key>Couldn’t create the worktrees folder: %@</key>
 	<string>Couldn’t create the worktrees folder: %@</string>
 	<key>Couldn’t create worktree session</key>
@@ -940,6 +954,8 @@
 	<string>No open pull requests right now.</string>
 	<key>No pull requests found.</key>
 	<string>No pull requests found.</string>
+	<key>No repository matches.</key>
+	<string>No repository matches.</string>
 	<key>No results</key>
 	<string>No results</string>
 	<key>No route to host</key>
@@ -1010,6 +1026,8 @@
 	<string>Opacity below 100% lets the desktop show through; blur softens it. The window stays solid at full opacity.</string>
 	<key>Open</key>
 	<string>Open</string>
+	<key>Open Folder…</key>
+	<string>Open Folder…</string>
 	<key>Open Link</key>
 	<string>Open Link</string>
 	<key>Open Project</key>
@@ -1120,6 +1138,8 @@
 	<string>Previous Session</string>
 	<key>Privacy</key>
 	<string>Privacy</string>
+	<key>Private</key>
+	<string>Private</string>
 	<key>Project Files</key>
 	<string>Project Files</string>
 	<key>Projects</key>
@@ -1290,6 +1310,8 @@
 	<string>Search Project</string>
 	<key>Search commands</key>
 	<string>Search commands</string>
+	<key>Search repositories</key>
+	<string>Search repositories</string>
 	<key>Search themes</key>
 	<string>Search themes</string>
 	<key>Search themes…</key>
@@ -1384,6 +1406,8 @@
 	<string>Something other than a folder is at “%@”. Move or delete it, then remove the worktree.</string>
 	<key>Something went wrong loading this repository. Try again in a moment.</key>
 	<string>Something went wrong loading this repository. Try again in a moment.</string>
+	<key>Something went wrong loading your repositories. Try again in a moment.</key>
+	<string>Something went wrong loading your repositories. Try again in a moment.</string>
 	<key>Sort</key>
 	<string>Sort</string>
 	<key>Special files can’t be previewed</key>
@@ -1508,6 +1532,8 @@
 	<string>Themes</string>
 	<key>Thicken glyphs</key>
 	<string>Thicken glyphs</string>
+	<key>This GitHub account has no repositories yet.</key>
+	<string>This GitHub account has no repositories yet.</string>
 	<key>This Mac</key>
 	<string>This Mac</string>
 	<key>This Mac and the machines you reach from it</key>
@@ -1712,6 +1738,8 @@
 	<string>You can restore it from the Trash.</string>
 	<key>Your Host entries from ~/.ssh/config — the same aliases `ssh` resolves. Right-click a host to connect.</key>
 	<string>Your Host entries from ~/.ssh/config — the same aliases `ssh` resolves. Right-click a host to connect.</string>
+	<key>Your Repositories</key>
+	<string>Your Repositories</string>
 	<key>Your themes</key>
 	<string>Your themes</string>
 	<key>Zoom</key>

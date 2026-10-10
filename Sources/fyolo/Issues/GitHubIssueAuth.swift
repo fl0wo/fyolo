@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 import Security
 
 // MARK: - GitHub connection (OAuth Device Flow)
@@ -26,7 +26,9 @@ enum GitHubIssueAuth {
 
     // MARK: Keychain
 
-    private static let service = "sh.fyolo.app.issues"
+    /// Per channel, so the dev build can be taken back to "never connected" to
+    /// exercise onboarding without signing the release app out of GitHub.
+    private static let service = "sh.fyolo.app.issues" + AppChannel.suffix
     private static let account = "github"
 
     /// The stored token, or `nil` when the user never connected (or disconnected).
@@ -93,6 +95,19 @@ enum GitHubIssueAuth {
             case .network(let message): return message
             }
         }
+    }
+
+    /// The whole sign-in: request a code, hand it to `showCode` for display, open
+    /// the verification page, wait for approval, and keep the token. Every surface
+    /// that offers Connect goes through here, so they cannot drift apart.
+    @MainActor
+    static func connect(showCode: (String) -> Void) async throws -> String {
+        let code = try await requestDeviceCode()
+        showCode(code.userCode)
+        NSWorkspace.shared.open(code.verificationURL)
+        let token = try await waitForToken(code)
+        store(token: token)
+        return token
     }
 
     /// Step 1: ask GitHub for a user code to show (and open the verification page).

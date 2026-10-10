@@ -173,11 +173,12 @@ extension Workspace {
         isAutoCreated = try c.decodeIfPresent(Bool.self, forKey: .isAutoCreated)
     }
 
-    /// First-run state for a fresh install: one workspace holding one shell, so a
-    /// new user lands in a working terminal rather than an empty column. The
-    /// switcher stays out of sight until they make a second workspace.
+    /// First-run state for a fresh install: one empty workspace, so a new user
+    /// lands on the welcome page and starts by choosing a project — open a folder
+    /// or clone a repository — rather than in a shell rooted nowhere in particular.
+    /// The switcher stays out of sight until they make a second workspace.
     static func firstRun() -> [Workspace] {
-        [Workspace(name: defaultName, terminals: [Session(title: "Terminal 1")])]
+        [Workspace(name: defaultName)]
     }
 
     /// What the one workspace every user starts with is called. It is the only

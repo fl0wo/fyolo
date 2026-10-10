@@ -176,6 +176,28 @@ struct GitHubIssueProvider: IssueProvider {
 
     private nonisolated(unsafe) static var cachedLogin: String?
 
+    /// Every repository the account can clone — its own, its collaborations, and
+    /// its organizations' — most recently pushed first, which is the order someone
+    /// picking a project to work on wants. Paged until GitHub runs out, capped so an
+    /// account in a huge organization still answers in a few requests; the welcome
+    /// page's search covers what the cap leaves out of view.
+    func repositories() async throws -> [GitHubRepository] {
+        let pageSize = 100
+        var repositories: [GitHubRepository] = []
+        for page in 1...5 {
+            var components = URLComponents(string: "https://api.github.com/user/repos")!
+            components.queryItems = [
+                URLQueryItem(name: "sort", value: "pushed"),
+                URLQueryItem(name: "per_page", value: String(pageSize)),
+                URLQueryItem(name: "page", value: String(page)),
+            ]
+            let batch: [GitHubRepository] = try await get(components.url!)
+            repositories += batch
+            if batch.count < pageSize { break }
+        }
+        return repositories
+    }
+
     private func get<T: Decodable>(_ url: URL) async throws -> T {
         var request = URLRequest(url: url, timeoutInterval: 15)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -263,4 +285,20 @@ private struct RawComment: Decodable {
     let user: RawIssue.RawUser?
     let body: String?
     let createdAt: Date
+}
+
+/// A repository the connected account can clone, as `/user/repos` lists it.
+struct GitHubRepository: Decodable, Identifiable, Hashable, Sendable {
+    let id: Int
+    let name: String
+    let fullName: String
+    let isPrivate: Bool
+    let cloneUrl: String
+    let pushedAt: Date?
+
+    // The decoder converts snake_case first, so these name the converted keys.
+    enum CodingKeys: String, CodingKey {
+        case id, name, fullName, cloneUrl, pushedAt
+        case isPrivate = "private"
+    }
 }

@@ -300,10 +300,14 @@
 	<string>选取 %@ 上的项目文件夹。</string>
 	<key>Choose a project folder to open in Fyolo.</key>
 	<string>选取要在 Fyolo 中打开的项目文件夹。</string>
+	<key>Choose a project to start.</key>
+	<string>选择一个项目开始。</string>
 	<key>Choose another branch to compare with.</key>
 	<string>请另选一个用于对比的分支。</string>
 	<key>Choose how projects are ordered</key>
 	<string>选取项目的排序方式</string>
+	<key>Choose the folder to clone %@ into.</key>
+	<string>选择要将 %@ 克隆到的文件夹。</string>
 	<key>Choose which repository’s issues to show</key>
 	<string>选择显示哪个仓库的 issue</string>
 	<key>Choose…</key>
@@ -312,6 +316,8 @@
 	<string>清除</string>
 	<key>Clone</key>
 	<string>克隆</string>
+	<key>Clone Here</key>
+	<string>克隆到这里</string>
 	<key>Clone a Repository</key>
 	<string>克隆仓库</string>
 	<key>Clone a Repository onto %@</key>
@@ -320,8 +326,12 @@
 	<string>克隆仓库…</string>
 	<key>Clone a repository onto %@, or open a folder that’s already there — the path completes as you type.</key>
 	<string>把一个仓库克隆到 %@，或者打开一个已经在那里的文件夹——路径会边输入边补全。</string>
+	<key>Clone from GitHub</key>
+	<string>从 GitHub 克隆</string>
 	<key>Clone to</key>
 	<string>克隆到</string>
+	<key>Cloning %@…</key>
+	<string>正在克隆 %@…</string>
 	<key>Close</key>
 	<string>关闭</string>
 	<key>Close (Esc)</key>
@@ -378,6 +388,8 @@
 	<string>连接 GitHub</string>
 	<key>Connect to…</key>
 	<string>连接到…</string>
+	<key>Connect your GitHub account to clone one of your repositories.</key>
+	<string>连接你的 GitHub 账户，即可克隆你的仓库。</string>
 	<key>Connect your GitHub account to read this project’s issues and pull requests here.</key>
 	<string>连接你的 GitHub 账户，即可在此查看该项目的 issues 和 PR。</string>
 	<key>Connected</key>
@@ -422,6 +434,8 @@
 	<string>无法运行 ssh：%@</string>
 	<key>Couldn’t change the Themes folder</key>
 	<string>无法修改主题文件夹</string>
+	<key>Couldn’t clone %@</key>
+	<string>无法克隆 %@</string>
 	<key>Couldn’t create the worktrees folder: %@</key>
 	<string>无法创建 worktrees 文件夹：%@</string>
 	<key>Couldn’t create worktree session</key>
@@ -940,6 +954,8 @@
 	<string>目前没有开放的 PR。</string>
 	<key>No pull requests found.</key>
 	<string>未找到 PR。</string>
+	<key>No repository matches.</key>
+	<string>没有匹配的仓库。</string>
 	<key>No results</key>
 	<string>没有结果</string>
 	<key>No route to host</key>
@@ -1010,6 +1026,8 @@
 	<string>不透明度低于 100% 时会透出桌面，模糊可使其更柔和；完全不透明时窗口保持实色。</string>
 	<key>Open</key>
 	<string>打开</string>
+	<key>Open Folder…</key>
+	<string>打开文件夹…</string>
 	<key>Open Link</key>
 	<string>打开链接</string>
 	<key>Open Project</key>
@@ -1120,6 +1138,8 @@
 	<string>上一个会话</string>
 	<key>Privacy</key>
 	<string>隐私</string>
+	<key>Private</key>
+	<string>私有</string>
 	<key>Project Files</key>
 	<string>项目文件</string>
 	<key>Projects</key>
@@ -1290,6 +1310,8 @@
 	<string>搜索项目</string>
 	<key>Search commands</key>
 	<string>搜索命令</string>
+	<key>Search repositories</key>
+	<string>搜索仓库</string>
 	<key>Search themes</key>
 	<string>搜索主题</string>
 	<key>Search themes…</key>
@@ -1384,6 +1406,8 @@
 	<string>“%@”所在位置现在不是文件夹。请先移走或删除它，再移除 worktree。</string>
 	<key>Something went wrong loading this repository. Try again in a moment.</key>
 	<string>载入该仓库时出错。请稍后重试。</string>
+	<key>Something went wrong loading your repositories. Try again in a moment.</key>
+	<string>加载你的仓库时出错。请稍后重试。</string>
 	<key>Sort</key>
 	<string>排序</string>
 	<key>Special files can’t be previewed</key>
@@ -1508,6 +1532,8 @@
 	<string>主题</string>
 	<key>Thicken glyphs</key>
 	<string>加粗字形</string>
+	<key>This GitHub account has no repositories yet.</key>
+	<string>这个 GitHub 账户还没有仓库。</string>
 	<key>This Mac</key>
 	<string>本机</string>
 	<key>This Mac and the machines you reach from it</key>
@@ -1712,6 +1738,8 @@
 	<string>可以从废纸篓恢复它。</string>
 	<key>Your Host entries from ~/.ssh/config — the same aliases `ssh` resolves. Right-click a host to connect.</key>
 	<string>来自 ~/.ssh/config 的 Host 条目，与 `ssh` 解析的别名一致。右键点按主机即可连接。</string>
+	<key>Your Repositories</key>
+	<string>你的仓库</string>
 	<key>Your themes</key>
 	<string>你的主题</string>
 	<key>Zoom</key>

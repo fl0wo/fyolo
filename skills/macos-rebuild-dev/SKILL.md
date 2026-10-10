@@ -106,6 +106,14 @@ When invoked, execute these steps sequentially:
    the daemon version the deploy reported. If the window doesn't appear, check
    `/tmp/fyolo-dev.log`.
 
+## Seeing the first-launch onboarding
+
+`scripts/dev-onboarding.sh` kills the dev app, backs up and clears its session
+tree, defaults, and dev-only GitHub token, and relaunches it as a fresh install —
+the release app is never touched. `--keep-recents` / `--keep-github` keep the
+Recent list or the GitHub connection (to see the repository list); `--restore`
+puts everything except the token back.
+
 ## Verifying a fyolod-side change
 
 Sessions carried across the handoff keep the environment and shell their

@@ -222,25 +222,14 @@ struct IssuesView: View {
     @ViewBuilder
     private var content: some View {
         switch model.phase {
-        case .disconnected:
-            zeroState(
+        case .disconnected, .connecting:
+            GitHubConnectPrompt(
                 title: localized("GitHub Issues"),
-                message: localized("Connect your GitHub account to read this project’s issues and pull requests here.")
-            ) {
-                Button(localized("Connect GitHub")) { Task { await model.connect() } }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.regular)
-            }
-        case .connecting(let userCode):
-            zeroState(
-                title: localized("Enter Code on GitHub"),
-                message: localized("Type this code at github.com/login/device to approve Fyolo. Waiting for approval…")
-            ) {
-                Text(userCode)
-                    .font(.system(size: 22, weight: .semibold, design: .monospaced))
-                    .textSelection(.enabled)
-                ProgressView().controlSize(.small)
-            }
+                message: localized("Connect your GitHub account to read this project’s issues and pull requests here."),
+                userCode: model.phase.userCode,
+                errorMessage: model.errorMessage
+            ) { Task { await model.connect() } }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .unbound:
             zeroState(
                 title: localized("No GitHub Repository"),
@@ -258,24 +247,8 @@ struct IssuesView: View {
     private func zeroState<Actions: View>(
         title: String, message: String, @ViewBuilder actions: () -> Actions
     ) -> some View {
-        VStack(spacing: 10) {
-            HugeIconView(icon: .github, size: 34, color: .secondary)
-            Text(title).font(.system(size: 13, weight: .semibold))
-            Text(message)
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 260)
-            actions()
-            if let error = model.errorMessage {
-                Text(error)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 260)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        GitHubPrompt(title: title, message: message, errorMessage: model.errorMessage, actions: actions)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @ViewBuilder
@@ -388,6 +361,80 @@ struct IssuesView: View {
 /// metadata — label chips and the updated age — still appears on hover (the
 /// GitChangeRow pattern), so the resting row stays clean and the hover answers
 /// "what labels, how fresh".
+/// The GitHub zero-state block — mark, title, one line of explanation, the
+/// actions, and any error beneath them. Shared by every surface that talks to
+/// GitHub (the Issues pane, the welcome page), so a prompt reads the same
+/// wherever the user meets it.
+struct GitHubPrompt<Actions: View>: View {
+    let title: String
+    let message: String
+    let errorMessage: String?
+    private let actions: Actions
+
+    init(
+        title: String, message: String, errorMessage: String?,
+        @ViewBuilder actions: () -> Actions
+    ) {
+        self.title = title
+        self.message = message
+        self.errorMessage = errorMessage
+        self.actions = actions()
+    }
+
+    var body: some View {
+        VStack(spacing: 10) {
+            HugeIconView(icon: .github, size: 34, color: .secondary)
+            Text(title).font(.system(size: 13, weight: .semibold))
+            Text(message)
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 260)
+            actions
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 260)
+            }
+        }
+    }
+}
+
+/// Connect GitHub, both halves: the button, then — once `GitHubIssueAuth.connect`
+/// has a code — the code to type at github.com while it waits. `title` and
+/// `message` say what connecting is *for* on the surface showing it.
+struct GitHubConnectPrompt: View {
+    let title: String
+    let message: String
+    /// The device-flow code to show, or `nil` before the flow has started.
+    let userCode: String?
+    let errorMessage: String?
+    let connect: () -> Void
+
+    var body: some View {
+        if let userCode {
+            GitHubPrompt(
+                title: localized("Enter Code on GitHub"),
+                message: localized("Type this code at github.com/login/device to approve Fyolo. Waiting for approval…"),
+                errorMessage: errorMessage
+            ) {
+                Text(userCode)
+                    .font(.system(size: 22, weight: .semibold, design: .monospaced))
+                    .textSelection(.enabled)
+                ProgressView().controlSize(.small)
+            }
+        } else {
+            GitHubPrompt(title: title, message: message, errorMessage: errorMessage) {
+                Button(localized("Connect GitHub"), action: connect)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.regular)
+            }
+        }
+    }
+}
+
 private struct IssueRow: View {
     let item: IssueSummary
     let font: Font
