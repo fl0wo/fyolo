@@ -228,6 +228,7 @@ public enum HugeIcon: Hashable, Sendable {
     case inbox
     case github
     case docker
+    case puzzle
     case voice
     case close
     case collapse
@@ -450,6 +451,10 @@ public enum HugeIcon: Hashable, Sendable {
             // grid of crates on the 3.5–12.5 band, over a hull from the tail at 2 to
             // the spout at 22 — the inspector's Docker segment.
             return "M5 12.5V9.5H14V12.5 M8 9.5V12.5 M11 9.5V12.5 M8 9.5V6.5H14V9.5 M11 6.5V9.5 M11 6.5V3.5H14V6.5 M2 12.5H18.5C19.2 11.4 20.5 10.8 22 11.2C21.6 12.4 20.6 13.1 19.4 13.3C18 17.6 14.2 20.5 9.5 20.5C5.4 20.5 2.6 17.8 2 12.5Z"
+        case .puzzle:
+            // A jigsaw piece with a knob on top and one on the right, in the set's stroke
+            // style — the Plugins settings tab.
+            return "M4.5 9H8.5V8C8.5 6.61929 9.61929 5.5 11 5.5C12.3807 5.5 13.5 6.61929 13.5 8V9H17.5V12.5H18.5C19.8807 12.5 21 13.6193 21 15C21 16.3807 19.8807 17.5 18.5 17.5H17.5V20.5H4.5V9Z"
         case .inbox:
             // Hugeicons "inbox": a rounded tray — the iOS no-sessions empty state.
             return "M2.5 12C2.5 7.52166 2.5 5.28249 3.89124 3.89124C5.28249 2.5 7.52166 2.5 12 2.5C16.4783 2.5 18.7175 2.5 20.1088 3.89124C21.5 5.28249 21.5 7.52166 21.5 12C21.5 16.4783 21.5 18.7175 20.1088 20.1088C18.7175 21.5 16.4783 21.5 12 21.5C7.52166 21.5 5.28249 21.5 3.89124 20.1088C2.5 18.7175 2.5 16.4783 2.5 12Z M21.5 13.5H16.5743C15.7322 13.5 15.0706 14.2036 14.6995 14.9472C14.2963 15.7551 13.4889 16.5 12 16.5C10.5111 16.5 9.70373 15.7551 9.30054 14.9472C8.92942 14.2036 8.26777 13.5 7.42566 13.5H2.5"

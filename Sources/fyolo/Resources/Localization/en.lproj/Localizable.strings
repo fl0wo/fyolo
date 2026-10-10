@@ -130,6 +130,8 @@
 	<string>A phone can attach straight to one of these instead, and keep working when this Mac is asleep.</string>
 	<key>A port is a number from 1 to 65535.</key>
 	<string>A port is a number from 1 to 65535.</string>
+	<key>A run button beside each script in a package.json, using the project’s package manager.</key>
+	<string>A run button beside each script in a package.json, using the project’s package manager.</string>
 	<key>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</key>
 	<string>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</string>
 	<key>Activity</key>
@@ -244,6 +246,8 @@
 	<string>Branch</string>
 	<key>Bring All to Front</key>
 	<string>Bring All to Front</string>
+	<key>Built In</key>
+	<string>Built In</string>
 	<key>Built-in</key>
 	<string>Built-in</string>
 	<key>Cancel</key>
@@ -1140,6 +1144,8 @@
 %@</string>
 	<key>Opens the ~/.ssh/config entry this machine is defined in.</key>
 	<string>Opens the ~/.ssh/config entry this machine is defined in.</string>
+	<key>Optional features you can turn on and off</key>
+	<string>Optional features you can turn on and off</string>
 	<key>Other machines</key>
 	<string>Other machines</string>
 	<key>Overwrite</key>
@@ -1200,6 +1206,8 @@
 	<string>Plan limits come from %@'s OAuth login; no passwords are stored. Revoking stops all reading of %@'s data.</string>
 	<key>Play sound</key>
 	<string>Play sound</string>
+	<key>Plugins</key>
+	<string>Plugins</string>
 	<key>Pointing fyolod at %@…</key>
 	<string>Pointing fyolod at %@…</string>
 	<key>Port</key>

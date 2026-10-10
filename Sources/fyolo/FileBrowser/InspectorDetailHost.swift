@@ -409,6 +409,7 @@ struct InspectorDetailContent: View {
                                    }
                                },
                                canAddToChat: { store.selectedSessionRunsAgent },
+                               runPluginCommand: { store.run($0) },
                                onClose: close)
                     .id(url)
             }

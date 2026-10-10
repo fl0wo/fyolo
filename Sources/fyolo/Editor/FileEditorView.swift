@@ -51,6 +51,9 @@ struct FileEditorView: View {
     /// snippet, file → reference). Left nil where there is no session to send to; the menu item
     /// then never appears.
     let addToChat: ((String?) -> Void)?
+    /// Performs what a plugin's gutter button asks for. Injected like `addToChat` — the
+    /// editor has no reach into the store — and `nil` wherever plugins don't apply.
+    let runPluginCommand: ((PluginCommand) -> Void)?
     let canAddToChat: (() -> Bool)?
 
     /// Whether the header carries the inspector's window controls (hide list / maximize / close).
@@ -134,6 +137,7 @@ struct FileEditorView: View {
          onRemoteSave: ((RemoteDocument) -> Void)? = nil,
          onDirtyChange: ((Bool) -> Void)? = nil,
          addToChat: ((String?) -> Void)? = nil, canAddToChat: (() -> Bool)? = nil,
+         runPluginCommand: ((PluginCommand) -> Void)? = nil,
          showsInspectorChrome: Bool = true, onClose: @escaping () -> Void) {
         self.url = url
         self.settings = settings
@@ -145,6 +149,7 @@ struct FileEditorView: View {
         self.onDirtyChange = onDirtyChange
         self.addToChat = addToChat
         self.canAddToChat = canAddToChat
+        self.runPluginCommand = runPluginCommand
         self.showsInspectorChrome = showsInspectorChrome
         self.onClose = onClose
         let displayURL = displayName.map {
@@ -185,6 +190,14 @@ struct FileEditorView: View {
     /// the same thing as the terminal theme's foreground (a warm cream, a tinted grey) — the
     /// editor's plain text has to sit in the palette the pane behind it is drawn from.
     private var textColor: NSColor { settings.editorInk(for: colorScheme) }
+
+    /// The enabled plugins' gutter buttons for this file, recomputed from the live buffer so
+    /// they follow edits. None for a file on another machine: a plugin's command runs on this
+    /// Mac, where that file's folder isn't.
+    private var gutterActions: [GutterAction] {
+        guard runPluginCommand != nil, remote == nil, loaded else { return [] }
+        return PluginRegistry.gutterActions(for: url, text: text, settings: settings)
+    }
     private var caretColor: NSColor { chrome.map { NSColor($0.accent) } ?? .textColor }
     /// Whether the editor sits on a dark background — the theme's own luminance signal, falling
     /// back to the system appearance when no theme is picked.
@@ -363,6 +376,8 @@ struct FileEditorView: View {
             addToChat: addToChat,
             canAddToChat: canAddToChat,
             isActive: isActive,
+            gutterActions: gutterActions,
+            onGutterAction: runPluginCommand.map { run in { run($0.command) } },
             onSave: saveNow
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)

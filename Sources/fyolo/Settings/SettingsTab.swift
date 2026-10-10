@@ -25,6 +25,9 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case appearance
     case terminal
     case keyboard
+    /// Optional features the user switches on and off — today the built-in
+    /// plugins, later anything installed beside them.
+    case plugins
     /// This Mac: the `fyolod` it runs, the `fyolo` CLI on its PATH, and what
     /// Fyolo has installed into its agents' configs.
     ///
@@ -128,6 +131,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .server: return localized("Server")
         case .remoteHosts: return localized("Remote Hosts")
         case .keyboard: return localized("Keyboard")
+        case .plugins: return localized("Plugins")
         case .agents: return localized("Agents")
         case .usage: return localized("Usage")
         case .mobile: return localized("Mobile")
@@ -146,6 +150,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .server: return .serverStack
         case .remoteHosts: return .network
         case .keyboard: return .keyboard
+        case .plugins: return .puzzle
         case .agents: return .bot
         case .usage: return .chartColumn
         case .mobile: return .smartPhoneWifi
@@ -164,6 +169,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .server: return localized("What this Mac runs, and what Fyolo installed on it")
         case .remoteHosts: return localized("The machines you reach from this Mac")
         case .keyboard: return localized("Keyboard shortcuts for every command")
+        case .plugins: return localized("Optional features you can turn on and off")
         case .agents: return localized("The coding agents offered when you start a session")
         case .usage: return localized("Token usage for your connected agents")
         case .mobile: return localized("Pair your iPhone with the machines you work on")

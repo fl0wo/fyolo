@@ -197,6 +197,7 @@ struct SettingsView: View {
                 onConnect: onSSHConnect, onSetUpKey: onSetUpKey
             )
         case .keyboard: KeybindingsSettingsTab()
+        case .plugins: PluginsSettingsTab(settings: settings)
         case .agents:
             AgentSettingsTab(settings: settings, store: store, onOpenMachine: open)
         case .usage: UsageSettingsTab(settings: settings, usage: usage)

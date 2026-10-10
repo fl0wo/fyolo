@@ -611,6 +611,16 @@
         }
       }
     },
+    "A run button beside each script in a package.json, using the project’s package manager.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 package.json 的每个脚本旁显示运行按钮，使用项目自己的包管理器。"
+          }
+        }
+      }
+    },
     "A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.": {
       "localizations": {
         "zh-Hans": {
@@ -1158,6 +1168,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "前置全部窗口"
+          }
+        }
+      }
+    },
+    "Built In": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内置"
           }
         }
       }
@@ -5557,6 +5577,16 @@
         }
       }
     },
+    "Optional features you can turn on and off": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可以开启或关闭的可选功能"
+          }
+        }
+      }
+    },
     "Other machines": {
       "localizations": {
         "zh-Hans": {
@@ -5853,6 +5883,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "播放声音"
+          }
+        }
+      }
+    },
+    "Plugins": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "插件"
           }
         }
       }

@@ -117,11 +117,15 @@ extension FyoloStore {
     /// ratio is the new pane's share of the split — stated, so it pins the
     /// divider against later equalization. Both absent means the automatic
     /// placement above, with the group re-equalized after the insert.
+    ///
+    /// `spawnDirectory` starts a shell somewhere other than where the anchor's
+    /// shell is — a plugin running a script in that script's own folder.
     @discardableResult
     func addSplitSession(
         in scope: ControlScope, agent: AgentPreset = .terminal,
         anchor: Session.ID? = nil, takeFocus: Bool = true,
-        direction: SplitDirection? = nil, ratio: Double? = nil
+        direction: SplitDirection? = nil, ratio: Double? = nil,
+        spawnDirectory: String? = nil
     ) -> Session.ID? {
         let inScope = Set(scope.sessions.map(\.id))
         let anchorID = anchor.flatMap { inScope.contains($0) ? $0 : nil }
@@ -132,10 +136,11 @@ extension FyoloStore {
             // Nothing to split against. A project still takes a normal add; a
             // loose scope with no rows left falls back to a scratch session.
             guard let project = scope.project else {
-                addScratchSession(agent: agent)
+                addScratchSession(agent: agent, spawnDirectory: spawnDirectory)
                 return selectedSessionID
             }
-            return addSession(to: project.id, agent: agent, takeFocus: takeFocus)
+            return addSession(to: project.id, agent: agent, spawnDirectory: spawnDirectory,
+                              takeFocus: takeFocus)
         }
 
         let title = agent == .terminal
@@ -150,7 +155,7 @@ extension FyoloStore {
         // decision about what it may read and write, and it is made by the
         // checkout above, never by wherever a neighbouring shell wandered.
         if agent == .terminal {
-            newSession.spawnDirectory = liveWorkingDirectory(for: anchorID)
+            newSession.spawnDirectory = spawnDirectory ?? liveWorkingDirectory(for: anchorID)
         }
         // And the anchor's device, for the same reason: a split of a session on
         // another machine stays on that machine.

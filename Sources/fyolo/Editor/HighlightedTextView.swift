@@ -59,6 +59,10 @@ struct HighlightedTextView: NSViewRepresentable {
     /// (rebuilding it re-highlights the whole document), so a dormant editor hides itself and
     /// never claims focus. Non-Markdown files only ever have this face, hence the default.
     var isActive: Bool = true
+    /// Plugin run buttons for the gutter (`PluginRegistry.gutterActions`), and what a click on
+    /// one does. Empty for most files, which keeps the gutter its usual width.
+    var gutterActions: [GutterAction] = []
+    var onGutterAction: ((GutterAction) -> Void)? = nil
     /// Invoked when the user presses ⌘S — flushes the buffer to disk immediately.
     let onSave: () -> Void
 
@@ -258,6 +262,8 @@ struct HighlightedTextView: NSViewRepresentable {
             editorFont: font, numberColor: lineNumberColor, gutterColor: backgroundColor,
             baselineShift: Self.gutterBaselineShift(font: font, lineSpacing: lineSpacing)
         )
+        coordinator.ruler?.setMarkers(gutterActions)
+        coordinator.ruler?.onMarkerClick = onGutterAction
 
         // A new jump target while the same file stays open (the user clicked another search hit).
         if jumpToLine != coordinator.appliedJumpLine {

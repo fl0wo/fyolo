@@ -91,7 +91,7 @@ final class AppSettings: ObservableObject {
         Key.scrollbackMegabytes, Key.copyOnSelect,
         Key.interfaceFontFamily, Key.interfaceFontSize, Key.interfaceRowPadding,
         Key.agentCommands, Key.devices,
-        Key.bypassPermissionAgents, Key.agentArguments, Key.disabledAgents,
+        Key.bypassPermissionAgents, Key.agentArguments, Key.disabledAgents, Key.disabledPlugins,
         Key.addedAgents, Key.agentOrder, Key.agentHooksEnabled,
         Key.sessionControlEnabled, Key.githubIntegrationEnabled,
         Key.notifyTaskCompletion, Key.notificationSound,
@@ -138,6 +138,7 @@ final class AppSettings: ObservableObject {
         /// they describe the agent, not the box it runs on.
         static let agentArguments = "agents.arguments"
         static let disabledAgents = "agents.disabled"
+        static let disabledPlugins = "plugins.disabled"
         static let addedAgents = "agents.added"
         static let agentOrder = "agents.order"
         static let agentHooksEnabled = "agents.hooksEnabled"
@@ -405,6 +406,13 @@ final class AppSettings: ObservableObject {
         didSet { store.set(Array(disabledAgents), forKey: Key.disabledAgents) }
     }
 
+    /// Plugins switched off in Settings ▸ Plugins, by `FyoloPlugin.id`. Stored as
+    /// the disabled set, like `disabledAgents`, so a plugin is on until the user
+    /// turns it off.
+    @Published var disabledPlugins: Set<String> {
+        didSet { store.set(Array(disabledPlugins), forKey: Key.disabledPlugins) }
+    }
+
     /// Agents pinned to the Agents settings list even while switched off, by
     /// `rawValue`. A row on that list means added-or-enabled (`isAgentListed`); the
     /// rest wait behind its "Add Agent" menu. `setAgent` keeps any agent the user
@@ -652,6 +660,7 @@ final class AppSettings: ObservableObject {
         bypassPermissionAgents = Set(store.stringArray(Key.bypassPermissionAgents) ?? [])
         agentArguments = store.stringDictionary(Key.agentArguments) ?? [:]
         disabledAgents = Set(store.stringArray(Key.disabledAgents) ?? [])
+        disabledPlugins = Set(store.stringArray(Key.disabledPlugins) ?? [])
         addedAgents = Set(store.stringArray(Key.addedAgents) ?? [])
         agentOrder = store.stringArray(Key.agentOrder) ?? []
         agentHooksEnabled = store.bool(Key.agentHooksEnabled)
@@ -790,6 +799,18 @@ final class AppSettings: ObservableObject {
 
     func isAgentEnabled(_ agent: AgentPreset) -> Bool {
         !disabledAgents.contains(agent.rawValue)
+    }
+
+    func isPluginEnabled(_ id: String) -> Bool {
+        !disabledPlugins.contains(id)
+    }
+
+    func setPlugin(_ id: String, enabled: Bool) {
+        if enabled {
+            disabledPlugins.remove(id)
+        } else {
+            disabledPlugins.insert(id)
+        }
     }
 
     func isUsageAuthorized(_ agent: AgentPreset) -> Bool {

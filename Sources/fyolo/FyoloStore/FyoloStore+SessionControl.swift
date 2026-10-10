@@ -393,6 +393,50 @@ extension FyoloStore {
         return spawnQueuedReply(request, fresh)
     }
 
+    /// Performs a plugin's request (see `PluginCommand`).
+    func run(_ command: PluginCommand) {
+        switch command {
+        case .runInTerminal(let commandLine, let directory, let title):
+            runInNewTerminal(commandLine, in: directory.path, title: title)
+        }
+    }
+
+    /// Opens a terminal in `directory` as a split beside the session in view —
+    /// focus stays put, so the file the user clicked in stays open — names the row
+    /// `title`, and types `commandLine` into it once its shell is up. The same
+    /// path `fyolo sessions run` takes: boot-settle, then the bytes and a real
+    /// Return key.
+    func runInNewTerminal(_ commandLine: String, in directory: String, title: String) {
+        let scope: ControlScope
+        if let selected = selectedSessionID, let home = locate(selected) {
+            scope = self.scope(at: home)
+        } else {
+            addTerminal(in: directory)
+            guard let id = selectedSessionID, let session = session(id) else { return }
+            updateSession(id) { $0.givenTitle = title }
+            deliverWhenReady(commandLine, to: session)
+            return
+        }
+        guard let freshID = addSplitSession(
+            in: scope, agent: .terminal, anchor: selectedSessionID, takeFocus: false,
+            spawnDirectory: directory),
+            let fresh = session(freshID)
+        else { return }
+        updateSession(freshID) { $0.givenTitle = title }
+        deliverWhenReady(commandLine, to: fresh)
+    }
+
+    private func deliverWhenReady(_ commandLine: String, to session: Session) {
+        let state = surface(for: session)
+        Task { [weak self] in
+            guard let self else { return }
+            await self.waitForBootSettle(of: state)
+            if await !self.performDelivery(commandLine, to: session, state: state) {
+                Log.app.error("could not type a plugin command into \(session.id, privacy: .public)")
+            }
+        }
+    }
+
     /// The provenance envelope prepended to a spawned session's prompt when the
     /// spawner is itself a fyolo session (design doc §4.6) — without it the new
     /// agent has no idea who spawned it and can only stop as `needs-you` and hope.

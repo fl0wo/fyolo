@@ -3,6 +3,9 @@ import AppKit
 /// An Xcode-style line-number gutter for the editor's text view: right-aligned numbers, one per
 /// logical line. A soft-wrapped line keeps a single number on its first visual row (drawn at the
 /// first line fragment of each paragraph), and a trailing empty line is numbered like Xcode's.
+///
+/// Plugins can mark lines with a run button (`GutterAction`): a green ▶ drawn just right of the
+/// line's number, in a column the gutter only makes room for while some line is marked.
 final class LineNumberRulerView: NSRulerView {
     private var numberFont: NSFont
     private var numberColor: NSColor
@@ -14,6 +17,17 @@ final class LineNumberRulerView: NSRulerView {
 
     override var isOpaque: Bool { true }
 
+    /// The gutter's width with no markers: numbers only.
+    private static let numberColumnWidth: CGFloat = 42
+    /// What a marked file adds on the right of the numbers for the ▶.
+    private static let markerColumnWidth: CGFloat = 14
+
+    private var gutterActions: [Int: GutterAction] = [:]
+    /// Where each visible marker was last drawn, in ruler coordinates — what a
+    /// click or a hover is tested against.
+    private var markerHitRects: [(rect: NSRect, action: GutterAction)] = []
+    var onMarkerClick: ((GutterAction) -> Void)?
+
     init(scrollView: NSScrollView, editorFont: NSFont, numberColor: NSColor, gutterColor: NSColor,
          baselineShift: CGFloat) {
         self.numberFont = Self.gutterFont(for: editorFont)
@@ -22,7 +36,51 @@ final class LineNumberRulerView: NSRulerView {
         self.baselineShift = baselineShift
         super.init(scrollView: scrollView, orientation: .verticalRuler)
         clientView = scrollView.documentView
-        ruleThickness = 42
+        ruleThickness = Self.numberColumnWidth
+    }
+
+    func setMarkers(_ actions: [GutterAction]) {
+        let byLine = Dictionary(actions.map { ($0.line, $0) }, uniquingKeysWith: { first, _ in first })
+        guard byLine != gutterActions else { return }
+        gutterActions = byLine
+        let thickness = Self.numberColumnWidth + (gutterActions.isEmpty ? 0 : Self.markerColumnWidth)
+        if ruleThickness != thickness {
+            ruleThickness = thickness
+            scrollView?.tile()
+        }
+        needsDisplay = true
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        for area in trackingAreas { removeTrackingArea(area) }
+        addTrackingArea(NSTrackingArea(
+            rect: .zero,
+            options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect],
+            owner: self))
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        let hit = marker(at: convert(event.locationInWindow, from: nil))
+        (hit == nil ? NSCursor.arrow : NSCursor.pointingHand).set()
+        toolTip = hit?.help
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        NSCursor.arrow.set()
+        toolTip = nil
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        guard let hit = marker(at: convert(event.locationInWindow, from: nil)) else {
+            super.mouseDown(with: event)
+            return
+        }
+        onMarkerClick?(hit)
+    }
+
+    private func marker(at point: NSPoint) -> GutterAction? {
+        markerHitRects.first { $0.rect.contains(point) }?.action
     }
 
     @available(*, unavailable)
@@ -72,10 +130,12 @@ final class LineNumberRulerView: NSRulerView {
         let yOffset = convert(NSPoint.zero, from: textView).y
         let attributes: [NSAttributedString.Key: Any] = [.font: numberFont, .foregroundColor: numberColor]
 
+        markerHitRects.removeAll(keepingCapacity: true)
+        let markerColumn = gutterActions.isEmpty ? 0 : Self.markerColumnWidth
         let drawNumber: (Int, CGFloat) -> Void = { number, fragMinY in
             let string = "\(number)" as NSString
             let size = string.size(withAttributes: attributes)
-            let x = self.ruleThickness - size.width - 6
+            let x = self.ruleThickness - markerColumn - size.width - 6
             let y = fragMinY + inset + yOffset + self.baselineShift
             // `yOffset` carries the live scroll position, and a trackpad reports it in fractional
             // pixels, so an unsnapped origin rasterizes the digits at a different subpixel phase
@@ -89,6 +149,9 @@ final class LineNumberRulerView: NSRulerView {
             let topClipInset = self.window.map { 1 / $0.backingScaleFactor } ?? 0
             guard origin.y > self.bounds.minY + topClipInset else { return }
             string.draw(at: origin, withAttributes: attributes)
+            if let action = self.gutterActions[number] {
+                self.drawMarker(action, besideNumberAt: NSRect(origin: origin, size: size))
+            }
         }
 
         let visibleGlyphRange = layoutManager.glyphRange(forBoundingRect: textView.visibleRect, in: container)
@@ -118,6 +181,27 @@ final class LineNumberRulerView: NSRulerView {
            layoutManager.extraLineFragmentTextContainer != nil {
             drawNumber(lineNumber, layoutManager.extraLineFragmentRect.minY)
         }
+    }
+
+    /// A green ▶ in the marker column, centered on the number's text box (and so
+    /// on the code line), with a hit area the column's full width and the line's
+    /// height — a small glyph with a forgiving target.
+    private func drawMarker(_ action: GutterAction, besideNumberAt numberRect: NSRect) {
+        let height = (numberFont.capHeight * 1.15).rounded()
+        let width = (height * 0.9).rounded()
+        let left = ruleThickness - Self.markerColumnWidth + (Self.markerColumnWidth - width) / 2 - 2
+        let midY = numberRect.midY
+        let triangle = NSBezierPath()
+        triangle.move(to: NSPoint(x: left, y: midY - height / 2))
+        triangle.line(to: NSPoint(x: left + width, y: midY))
+        triangle.line(to: NSPoint(x: left, y: midY + height / 2))
+        triangle.close()
+        NSColor.systemGreen.setFill()
+        triangle.fill()
+        let hitRect = NSRect(
+            x: ruleThickness - Self.markerColumnWidth - 2, y: numberRect.minY - 2,
+            width: Self.markerColumnWidth + 2, height: numberRect.height + 4)
+        markerHitRects.append((hitRect, action))
     }
 
     // MARK: Line numbering anchor
