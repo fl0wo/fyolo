@@ -391,6 +391,14 @@ struct FileBrowserView: View {
             } else {
                 noProject
             }
+        case .docker:
+            // The containers are this Mac's; a session on another machine has its
+            // own engine, which this pane does not reach yet.
+            if let deviceCheckout {
+                unavailable(pane: localized("Docker"), on: deviceCheckout)
+            } else {
+                DockerView()
+            }
         case .info:
             SessionInfoView()
         }

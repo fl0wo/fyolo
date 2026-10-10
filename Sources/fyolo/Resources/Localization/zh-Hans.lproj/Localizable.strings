@@ -180,6 +180,8 @@
 	<string>替身 → %@</string>
 	<key>All</key>
 	<string>全部</string>
+	<key>All Containers</key>
+	<string>所有容器</string>
 	<key>All caught up</key>
 	<string>全部处理完毕</string>
 	<key>All changes to these %lld files will be lost. This cannot be undone.
@@ -386,6 +388,8 @@
 	<string>把当前分支与它将要合入的分支做对比。</string>
 	<key>Compare to branch</key>
 	<string>对比分支</string>
+	<key>Compose</key>
+	<string>Compose</string>
 	<key>Config file</key>
 	<string>配置文件</string>
 	<key>Connect</key>
@@ -416,6 +420,12 @@
 	<string>连接失败</string>
 	<key>Connection refused</key>
 	<string>连接被拒绝</string>
+	<key>Container</key>
+	<string>容器</string>
+	<key>Containers</key>
+	<string>容器</string>
+	<key>Containers you start appear here.</key>
+	<string>你启动的容器会显示在这里。</string>
 	<key>Contents</key>
 	<string>目录</string>
 	<key>Conversation</key>
@@ -448,6 +458,8 @@
 	<string>拷贝 ssh 命令</string>
 	<key>Could not run ssh: %@</key>
 	<string>无法运行 ssh：%@</string>
+	<key>Couldn’t Inspect</key>
+	<string>无法检查</string>
 	<key>Couldn’t change the Themes folder</key>
 	<string>无法修改主题文件夹</string>
 	<key>Couldn’t clone %@</key>
@@ -542,6 +554,8 @@
 	<string>淡化已忽略的文件</string>
 	<key>Direct Attach</key>
 	<string>直接连接</string>
+	<key>Directory</key>
+	<string>目录</string>
 	<key>Discard %lld Files…</key>
 	<string>放弃 %lld 个文件的更改…</string>
 	<key>Discard Changes</key>
@@ -558,6 +572,16 @@
 	<string>Discord</string>
 	<key>Discord, GitHub, and the WeChat group</key>
 	<string>Discord、GitHub 与微信群</string>
+	<key>Docker</key>
+	<string>Docker</string>
+	<key>Docker didn’t answer in time.</key>
+	<string>Docker 未能及时响应。</string>
+	<key>Docker isn’t installed on this Mac.</key>
+	<string>这台 Mac 上没有安装 Docker。</string>
+	<key>Docker isn’t running. Start Docker Desktop, OrbStack or Colima.</key>
+	<string>Docker 未在运行。请启动 Docker Desktop、OrbStack 或 Colima。</string>
+	<key>Docker returned an unexpected reply.</key>
+	<string>Docker 返回了意外的响应。</string>
 	<key>Done</key>
 	<string>完成</string>
 	<key>Don’t Compare</key>
@@ -600,6 +624,8 @@
 	<string>请输入以“/”开头的路径。等 %@ 报出主目录之后，“~/”也可以用。</string>
 	<key>Enter an absolute path</key>
 	<string>请输入绝对路径</string>
+	<key>Environment (%lld)</key>
+	<string>环境变量 (%lld)</string>
 	<key>Every iPhone paired with %@ is signed out and must re-scan the new QR to reconnect.</key>
 	<string>所有与 %@ 配对的 iPhone 都会退出登录，需重新扫描新的二维码才能重新连接。</string>
 	<key>Every paired iPhone is signed out and must re-scan the new QR to reconnect.</key>
@@ -638,6 +664,8 @@
 	<string>聚焦右侧窗格</string>
 	<key>Focus Pane Up</key>
 	<string>聚焦上方窗格</string>
+	<key>Follow</key>
+	<string>跟随</string>
 	<key>Font</key>
 	<string>字体</string>
 	<key>Font name</key>
@@ -732,6 +760,8 @@
 	<string>忽略所有 .%@ 文件（添加到 .gitignore）</string>
 	<key>Ignore File (Add to .gitignore)</key>
 	<string>忽略文件（添加到 .gitignore）</string>
+	<key>Image</key>
+	<string>镜像</string>
 	<key>Increase Font Size</key>
 	<string>增大字体</string>
 	<key>Info</key>
@@ -826,6 +856,8 @@
 	<string>本地</string>
 	<key>Login shell</key>
 	<string>登录 shell</string>
+	<key>Logs</key>
+	<string>日志</string>
 	<key>Looking for agent CLIs…</key>
 	<string>正在查找 Agent 命令行工具…</string>
 	<key>Lost the connection to %@. The session is still running there — reconnecting…</key>
@@ -850,6 +882,8 @@
 	<string>手机</string>
 	<key>Mobile Access</key>
 	<string>移动访问</string>
+	<key>Mounts</key>
+	<string>挂载</string>
 	<key>Move Down</key>
 	<string>下移</string>
 	<key>Move Up</key>
@@ -878,6 +912,8 @@
 	<string>需要上面的“实时 Agent 状态”：没有它，就没有东西告诉 Fyolo 一个 Agent 完成了。</string>
 	<key>Needs `ngrok config add-authtoken` on that machine first. The free address changes on every restart.</key>
 	<string>需要先在那台机器上运行 `ngrok config add-authtoken`。免费版的地址每次重启都会变。</string>
+	<key>Networks</key>
+	<string>网络</string>
 	<key>New</key>
 	<string>新建</string>
 	<key>New %@ Session</key>
@@ -952,6 +988,8 @@
 	<string>无项目</string>
 	<key>No Pull Requests</key>
 	<string>没有 PR</string>
+	<key>No Running Containers</key>
+	<string>没有运行中的容器</string>
 	<key>No Session</key>
 	<string>没有会话</string>
 	<key>No agent CLIs on %@ yet. Install one there and it shows up here.</key>
@@ -982,6 +1020,8 @@
 	<string>目前没有开放的 issues。</string>
 	<key>No open pull requests right now.</key>
 	<string>目前没有开放的 PR。</string>
+	<key>No output yet.</key>
+	<string>暂无输出。</string>
 	<key>No pull requests found.</key>
 	<string>未找到 PR。</string>
 	<key>No repository matches.</key>
@@ -1164,6 +1204,8 @@
 	<string>正在把 fyolod 指向 %@…</string>
 	<key>Port</key>
 	<string>端口</string>
+	<key>Ports</key>
+	<string>端口</string>
 	<key>Posts a notification when an agent finishes or needs you while Fyolo is in the background.</key>
 	<string>当 Fyolo 在后台时，Agent 完成任务或需要你时发送通知。</string>
 	<key>Press Shortcut…</key>
@@ -1292,6 +1334,8 @@
 	<string>请求权限</string>
 	<key>Reset Font Size</key>
 	<string>重设字体大小</string>
+	<key>Restart</key>
+	<string>重启策略</string>
 	<key>Restarting the tunnel changes the address, and every paired iPhone has to scan again.</key>
 	<string>重启隧道会更换地址，所有已配对的 iPhone 都需要重新扫码。</string>
 	<key>Restore Defaults</key>
@@ -1464,6 +1508,8 @@
 	<string>已暂存：下一次 git 提交将包含此文件</string>
 	<key>Start an agent in a project.</key>
 	<string>在项目中启动一个 Agent。</string>
+	<key>Started</key>
+	<string>启动时间</string>
 	<key>Starting %@ on %@…</key>
 	<string>正在 %2$@ 上启动 %1$@…</string>
 	<key>Starting tunnel…</key>
@@ -1810,6 +1856,8 @@
 	<string>当前</string>
 	<key>devices</key>
 	<string>台设备</string>
+	<key>docker exited with an error.</key>
+	<string>docker 以错误退出。</string>
 	<key>e.g. JetBrains Mono</key>
 	<string>例如 JetBrains Mono</string>
 	<key>first %1$lld of %2$lld files</key>
@@ -1852,6 +1900,8 @@ Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks
 	<string>macOS 尚未请求允许 Fyolo 发送通知。</string>
 	<key>machines</key>
 	<string>台设备</string>
+	<key>not published</key>
+	<string>未发布</string>
 	<key>nothing</key>
 	<string>无</string>
 	<key>optional</key>

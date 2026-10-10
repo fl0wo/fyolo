@@ -784,7 +784,7 @@ struct IssueDetailView: View {
 /// The pane's miniature capsule segmented switch — the git pane's Changes /
 /// History track generalized over any value: our own always-visible track with
 /// a Liquid Glass selection pill sliding between text segments.
-private struct CapsuleSwitch<Value: Hashable>: View {
+struct CapsuleSwitch<Value: Hashable>: View {
     let segments: [(title: String, value: Value)]
     @Binding var selection: Value
 

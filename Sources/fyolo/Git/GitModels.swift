@@ -8,7 +8,7 @@ import SwiftUI
 /// search, the git changes list, the issue tracker, or the session Info pane.
 /// Drives the segmented switch at the top of `FileBrowserView`.
 enum InspectorTab: String, Hashable, Sendable, Codable {
-    case files, search, changes, issues, info
+    case files, search, changes, issues, docker, info
 }
 
 /// The git pane's own inner switch, in scope order: what isn't committed yet, what

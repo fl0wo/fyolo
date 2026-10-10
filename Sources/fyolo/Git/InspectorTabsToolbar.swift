@@ -61,12 +61,14 @@ struct InspectorTabsToolbar: View {
         (.search, .search, "Search Files"),
         (.changes, .gitBranch, "Changes"),
         (.issues, .github, "Issues"),
+        (.docker, .docker, "Docker"),
         (.info, .infoCircle, "Info"),
     ]
 
-    /// Two segments exist only where they have something to show, rather than leading
+    /// Some segments exist only where they have something to show, rather than leading
     /// to a dead pane: Issues for a project that actually lives on GitHub (and with the
-    /// integration left on in General), Changes for a root git tracks at all. A loose
+    /// integration left on in General), Changes for a root git tracks at all, Docker
+    /// for a Mac with the `docker` CLI installed. A loose
     /// terminal follows its shell, so `cd` in and out of a repo does move the Changes
     /// segment in and out with it — the pane switch reflows there, which is the cost of
     /// never offering a git pane for a folder that has no git.
@@ -75,6 +77,7 @@ struct InspectorTabsToolbar: View {
             switch segment.tab {
             case .issues: settings.githubIntegrationEnabled && hasGitHubRemote
             case .changes: isRepository
+            case .docker: DockerService.isInstalled
             default: true
             }
         }

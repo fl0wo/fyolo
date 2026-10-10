@@ -891,6 +891,16 @@
         }
       }
     },
+    "All Containers": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有容器"
+          }
+        }
+      }
+    },
     "Allow Keychain Access…": {
       "localizations": {
         "zh-Hans": {
@@ -1872,6 +1882,16 @@
         }
       }
     },
+    "Compose": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compose"
+          }
+        }
+      }
+    },
     "Config file": {
       "localizations": {
         "zh-Hans": {
@@ -2018,6 +2038,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "连接被拒绝"
+          }
+        }
+      }
+    },
+    "Container": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "容器"
+          }
+        }
+      }
+    },
+    "Containers": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "容器"
+          }
+        }
+      }
+    },
+    "Containers you start appear here.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你启动的容器会显示在这里。"
           }
         }
       }
@@ -2218,6 +2268,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法创建 worktree 会话"
+          }
+        }
+      }
+    },
+    "Couldn’t Inspect": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法检查"
           }
         }
       }
@@ -2643,6 +2703,16 @@
         }
       }
     },
+    "Directory": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目录"
+          }
+        }
+      }
+    },
     "Discard %lld Files…": {
       "localizations": {
         "zh-Hans": {
@@ -2719,6 +2789,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Discord、GitHub 与微信群"
+          }
+        }
+      }
+    },
+    "Docker": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker"
+          }
+        }
+      }
+    },
+    "Docker didn’t answer in time.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker 未能及时响应。"
+          }
+        }
+      }
+    },
+    "docker exited with an error.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "docker 以错误退出。"
+          }
+        }
+      }
+    },
+    "Docker isn’t installed on this Mac.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这台 Mac 上没有安装 Docker。"
+          }
+        }
+      }
+    },
+    "Docker isn’t running. Start Docker Desktop, OrbStack or Colima.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker 未在运行。请启动 Docker Desktop、OrbStack 或 Colima。"
+          }
+        }
+      }
+    },
+    "Docker returned an unexpected reply.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker 返回了意外的响应。"
           }
         }
       }
@@ -2933,6 +3063,16 @@
         }
       }
     },
+    "Environment (%lld)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "环境变量 (%lld)"
+          }
+        }
+      }
+    },
     "Every iPhone paired with %@ is signed out and must re-scan the new QR to reconnect.": {
       "localizations": {
         "zh-Hans": {
@@ -3119,6 +3259,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "聚焦上方窗格"
+          }
+        }
+      }
+    },
+    "Follow": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随"
           }
         }
       }
@@ -3500,6 +3650,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "忽略文件（添加到 .gitignore）"
+          }
+        }
+      }
+    },
+    "Image": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "镜像"
           }
         }
       }
@@ -3974,6 +4134,16 @@
         }
       }
     },
+    "Logs": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日志"
+          }
+        }
+      }
+    },
     "Looking for agent CLIs…": {
       "localizations": {
         "zh-Hans": {
@@ -4090,6 +4260,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "移动访问"
+          }
+        }
+      }
+    },
+    "Mounts": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挂载"
           }
         }
       }
@@ -4230,6 +4410,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "需要先在那台机器上运行 `ngrok config add-authtoken`。免费版的地址每次重启都会变。"
+          }
+        }
+      }
+    },
+    "Networks": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络"
           }
         }
       }
@@ -4604,6 +4794,16 @@
         }
       }
     },
+    "No output yet.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无输出。"
+          }
+        }
+      }
+    },
     "No Project": {
       "localizations": {
         "zh-Hans": {
@@ -4630,6 +4830,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "没有匹配的仓库。"
+          }
+        }
+      }
+    },
+    "No Running Containers": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有运行中的容器"
           }
         }
       }
@@ -4931,6 +5141,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "未安装在 %@ 上。"
+          }
+        }
+      }
+    },
+    "not published": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发布"
           }
         }
       }
@@ -5657,6 +5877,16 @@
         }
       }
     },
+    "Ports": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "端口"
+          }
+        }
+      }
+    },
     "Posts a notification when an agent finishes or needs you while Fyolo is in the background.": {
       "localizations": {
         "zh-Hans": {
@@ -6293,6 +6523,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "重设字体大小"
+          }
+        }
+      }
+    },
+    "Restart": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重启策略"
           }
         }
       }
@@ -7144,6 +7384,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "在项目中启动一个 Agent。"
+          }
+        }
+      }
+    },
+    "Started": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动时间"
           }
         }
       }
