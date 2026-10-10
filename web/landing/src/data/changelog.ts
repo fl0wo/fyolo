@@ -17,6 +17,19 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.2.2",
+    date: "2026-10-10",
+    title: "Your GitHub account in Settings",
+    changes: {
+      new: [
+        "Settings: General shows the connected GitHub account, its host and how it connected, with Disconnect — or the connect choices when nothing is connected.",
+      ],
+      fixed: [
+        "GitHub: connecting or disconnecting in one place now updates the Issues pane, the welcome page and Settings at once.",
+      ],
+    },
+  },
+  {
     version: "0.2.1",
     date: "2026-10-10",
     title: "A new icon",
