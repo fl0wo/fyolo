@@ -39,10 +39,11 @@ export function formatStarCount(stars: number): string {
     : String(stars);
 }
 
-// The desktop build download — the stable Cloudflare R2 URL (behind
-// downloads.fyolo.sh) that always serves the newest notarized DMG. The release
-// workflow (.github/workflows/release.yml) overwrites this object on every tag.
-export const downloadUrl = "https://downloads.fyolo.sh/fyolo.dmg";
+// The desktop build download: the newest GitHub Release, whose assets carry
+// the DMG the release workflow (.github/workflows/release.yml) attaches on every
+// tag. Before the first release GitHub falls back to the releases list, so the
+// link never 404s.
+export const downloadUrl = `${githubUrl}/releases/latest`;
 
 // The Homebrew cask the release workflow bumps in fl0wo/homebrew-tap; the hero
 // leads with it.
