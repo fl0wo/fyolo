@@ -17,6 +17,16 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.1.1",
+    date: "2026-10-10",
+    title: "Session links work in the CLI again",
+    changes: {
+      fixed: [
+        "fyolo sessions: a fyolo://session/… link as the target no longer crashes the command.",
+      ],
+    },
+  },
+  {
     version: "0.1.0",
     date: "2026-10-10",
     title: "Fyolo's first release",
