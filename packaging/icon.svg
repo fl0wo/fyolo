@@ -1,64 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="fyolo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1024" height="1024" role="img" aria-label="fyolo">
   <title>fyolo</title>
-
-  <!-- Black squircle. macOS will apply its own mask for the dock; this rounded
-       rect keeps the mark self-contained for README / web use. -->
-  <rect x="0" y="0" width="512" height="512" rx="114" fill="#000000"/>
-
-  <!-- 九宫格: 3x3 of 72px rounded cells on a 32px gutter, centered.
-       Columns/rows at 116 / 220 / 324.
-
-       The 8 perimeter cells form a clockwise comet trail (terminal spinner):
-       the leader is full white, ~3 cells fade behind it, the rest sit dim.
-       Each cell runs the same 1.6s waveform, offset by 0.2s per step so the
-       bright spot travels around the ring. -->
-  <g fill="#FFFFFF" shape-rendering="geometricPrecision">
-
-    <!-- center "core": the cursor that stays lit while the agent streams -->
-    <rect x="220" y="220" width="72" height="72" rx="14" opacity="0.92">
-      <animate attributeName="opacity" values="0.92;0.7;0.92" dur="1.6s" repeatCount="indefinite"/>
-    </rect>
-
-    <!-- ring, clockwise from top-left. begin offsets stagger the trail. -->
-    <rect x="116" y="116" width="72" height="72" rx="14">
-      <animate attributeName="opacity" begin="0s"
-        keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
-        values="1;0.55;0.3;0.18;0.12;0.12;0.12;0.12;1" dur="1.6s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="220" y="116" width="72" height="72" rx="14">
-      <animate attributeName="opacity" begin="0.2s"
-        keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
-        values="1;0.55;0.3;0.18;0.12;0.12;0.12;0.12;1" dur="1.6s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="324" y="116" width="72" height="72" rx="14">
-      <animate attributeName="opacity" begin="0.4s"
-        keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
-        values="1;0.55;0.3;0.18;0.12;0.12;0.12;0.12;1" dur="1.6s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="324" y="220" width="72" height="72" rx="14">
-      <animate attributeName="opacity" begin="0.6s"
-        keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
-        values="1;0.55;0.3;0.18;0.12;0.12;0.12;0.12;1" dur="1.6s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="324" y="324" width="72" height="72" rx="14">
-      <animate attributeName="opacity" begin="0.8s"
-        keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
-        values="1;0.55;0.3;0.18;0.12;0.12;0.12;0.12;1" dur="1.6s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="220" y="324" width="72" height="72" rx="14">
-      <animate attributeName="opacity" begin="1.0s"
-        keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
-        values="1;0.55;0.3;0.18;0.12;0.12;0.12;0.12;1" dur="1.6s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="116" y="324" width="72" height="72" rx="14">
-      <animate attributeName="opacity" begin="1.2s"
-        keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
-        values="1;0.55;0.3;0.18;0.12;0.12;0.12;0.12;1" dur="1.6s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="116" y="220" width="72" height="72" rx="14">
-      <animate attributeName="opacity" begin="1.4s"
-        keyTimes="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1"
-        values="1;0.55;0.3;0.18;0.12;0.12;0.12;0.12;1" dur="1.6s" repeatCount="indefinite"/>
-    </rect>
+  <!-- The mark from the landing page (web/landing/src/components/logo.tsx), a solid
+       purple F on black, scaled from its 64-unit box by 8. The corner radius is
+       Apple's icon template (114 @ 512) rather than the favicon's, so the macOS
+       inset in scripts/render-icon.sh lands on the system squircle. -->
+  <rect width="512" height="512" rx="114" fill="#000000"/>
+  <g fill="#741c92">
+    <rect x="128" y="96" width="96" height="320"/>
+    <rect x="128" y="96" width="256" height="96"/>
+    <rect x="128" y="256" width="224" height="64"/>
   </g>
 </svg>

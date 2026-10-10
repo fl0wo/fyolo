@@ -42,8 +42,8 @@ falls back to ad-hoc automatically — the build still succeeds, they just don't
 notifications. Set `SIGN_IDENTITY=…` to force a specific one. The app runs
 unsandboxed with `.exec` PTYs — see `CLAUDE.md`. The icon is `packaging/icon-static.svg`,
 rasterized to `packaging/AppIcon.png` by `scripts/render-icon.sh` (needs headless
-Chrome). Note: dev and release currently share the same icon art and differ only by
-name ("fyolo dev") — a tinted dev icon is a possible follow-up.
+Chrome). The dev bundle takes `packaging/AppIcon-dev.png` instead, the same mark
+inverted (a black F on purple), so the two apps stay apart in the Dock.
 
 ## Instructions
 
