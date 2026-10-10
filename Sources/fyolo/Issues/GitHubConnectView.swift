@@ -217,16 +217,20 @@ struct GitHubConnectView: View {
             VStack(spacing: 8) {
                 // Not localized: token prefixes read the same in every language.
                 SecureField("ghp_… / github_pat_…", text: $token)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12))
                     .onSubmit(submit)
+                    .capsuleField()
                 HStack(spacing: 6) {
                     Text(localized("Host"))
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                     TextField(GitHubConnection.dotComHost, text: $host)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 12))
                         .onSubmit(submit)
                 }
+                .capsuleField()
                 HStack {
                     Button(localized("Cancel")) {
                         connector.clearError()

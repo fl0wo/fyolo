@@ -34,6 +34,9 @@ struct WelcomeView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 48)
         }
+        // A system scroller ignores the terminal theme the page sits on; the page
+        // still scrolls when the window is short.
+        .scrollIndicators(.hidden)
     }
 
     /// The hero: the real app icon, big and centered, with the wordmark and the
@@ -120,6 +123,8 @@ final class WelcomeRepositoriesModel: ObservableObject {
     }
 
     @Published private(set) var phase: Phase = .loading
+    /// The signed-in login, shown beside the section label once the list loads.
+    @Published private(set) var account: String?
     /// Why the stored connection stopped working, shown above Connect.
     @Published private(set) var connectionError: String?
 
@@ -135,15 +140,31 @@ final class WelcomeRepositoriesModel: ObservableObject {
         await load(connection)
     }
 
+    /// Forgets the connection everywhere, the Issues pane's cached reads included,
+    /// so the next account to connect never sees this one's private issues.
+    func disconnect(clearing cache: IssueCache) {
+        GitHubIssueAuth.deleteConnection()
+        cache.clear()
+        account = nil
+        connectionError = nil
+        phase = .disconnected
+    }
+
     private func load(_ connection: GitHubConnection) async {
         connectionError = nil
         phase = .loading
+        let provider = GitHubIssueProvider(connection: connection)
         do {
-            phase = .loaded(try await GitHubIssueProvider(connection: connection).repositories())
+            async let repositories = provider.repositories()
+            async let login = provider.account()
+            let (loaded, signedIn) = try await (repositories, login)
+            account = signedIn
+            phase = .loaded(loaded)
         } catch GitHubIssueProvider.APIError.status(401) {
             // A revoked or expired token: drop it and offer Connect again, the same
             // self-heal the Issues pane does on a 401.
             GitHubIssueAuth.deleteConnection()
+            account = nil
             connectionError = localized("GitHub no longer accepts the saved token. Connect again.")
             phase = .disconnected
         } catch {
@@ -152,24 +173,65 @@ final class WelcomeRepositoriesModel: ObservableObject {
     }
 }
 
-/// The Clone from GitHub section: Connect when no account is linked, otherwise a
-/// searchable list of the account's repositories, most recently pushed first. A
-/// row clones on whichever machine the current workspace is on.
+/// The Clone from GitHub section: one card that holds Connect when no account is
+/// linked, and otherwise a searchable, self-scrolling list of the account's
+/// repositories, most recently pushed first. A row clones on whichever machine
+/// the current workspace is on.
 private struct WelcomeRepositories: View {
     @EnvironmentObject var store: FyoloStore
+    @EnvironmentObject var settings: AppSettings
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var model = WelcomeRepositoriesModel()
     @State private var query = ""
 
-    /// Enough to cover what someone is working on this week; the search reaches
-    /// the rest without growing the page into a scroll inside a scroll.
-    private let visibleLimit = 8
+    /// About six rows: enough to scan this week's work, short enough that the page
+    /// itself never has to scroll to reach the bottom of the card.
+    private let listHeight: CGFloat = 228
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            WelcomeSectionLabel(text: localized("Clone from GitHub"))
-            content
+            header
+            card
         }
         .task { await model.start() }
+    }
+
+    private var header: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            WelcomeSectionLabel(text: localized("Clone from GitHub"))
+            Spacer(minLength: 0)
+            if let account = model.account {
+                Text("@\(account)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+                Menu {
+                    Button(localized("Refresh")) { Task { await model.start() } }
+                    Divider()
+                    Button(localized("Disconnect GitHub")) { model.disconnect(clearing: store.issueCache) }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 18, height: 14)
+                        .contentShape(Rectangle())
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .padding(.trailing, 8)
+            }
+        }
+    }
+
+    /// Every state shares one card, filled like the Open Folder pill above it, so
+    /// the section keeps its shape while it connects, loads, and lists.
+    private var card: some View {
+        content
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.primary.opacity(0.04))
+            )
     }
 
     @ViewBuilder
@@ -182,13 +244,11 @@ private struct WelcomeRepositories: View {
                 message: localized("Connect your GitHub account to clone one of your repositories."),
                 hostError: model.connectionError
             )
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
+            .padding(.vertical, 20)
         case .loading:
             ProgressView()
                 .controlSize(.small)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
+                .frame(height: listHeight)
         case .failed(let message):
             GitHubPrompt(
                 title: localized("Couldn’t load"),
@@ -199,8 +259,7 @@ private struct WelcomeRepositories: View {
                     .buttonStyle(.borderedProminent)
                     .controlSize(.regular)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
+            .padding(.vertical, 20)
         case .loaded(let repositories):
             loaded(repositories)
         }
@@ -210,38 +269,128 @@ private struct WelcomeRepositories: View {
     private func loaded(_ repositories: [GitHubRepository]) -> some View {
         if repositories.isEmpty {
             WelcomeNote(text: localized("This GitHub account has no repositories yet."))
+                .padding(.vertical, 14)
         } else {
-            TextField(localized("Search repositories"), text: $query)
-                .textFieldStyle(.roundedBorder)
-                .padding(.horizontal, 8)
-                .padding(.bottom, 6)
-            let matches = filtered(repositories)
-            if matches.isEmpty {
-                WelcomeNote(text: localized("No repository matches."))
+            VStack(spacing: 6) {
+                searchField
+                list(filtered(repositories))
             }
-            ForEach(matches.prefix(visibleLimit)) { repository in
-                WelcomeListRow(
-                    icon: .github,
-                    title: repository.fullName,
-                    subtitle: subtitle(for: repository)
-                ) { store.cloneRepository(repository) }
-            }
+            .padding(.top, 8)
         }
     }
+
+    private var searchField: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+            TextField(localized("Search repositories"), text: $query)
+                .textFieldStyle(.plain)
+                .font(.system(size: 13))
+            if !query.isEmpty {
+                Button { query = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help(localized("Clear"))
+            }
+        }
+        .capsuleField()
+        .padding(.horizontal, 8)
+    }
+
+    /// The list scrolls inside the card with no scroller of its own: the top and
+    /// bottom edges fade instead, which says "more" in the app's own chrome rather
+    /// than with a system scroller that ignores the theme.
+    private func list(_ matches: [GitHubRepository]) -> some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                if matches.isEmpty {
+                    WelcomeNote(text: localized("No repository matches."))
+                        .padding(.top, 8)
+                }
+                ForEach(matches) { repository in
+                    WelcomeRepositoryRow(repository: repository, chrome: chrome) {
+                        store.cloneRepository(repository)
+                    }
+                }
+            }
+            .padding(.vertical, 6)
+        }
+        .scrollIndicators(.never)
+        .frame(height: listHeight)
+        .mask(
+            VStack(spacing: 0) {
+                LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 10)
+                Rectangle().fill(.black)
+                LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 18)
+            }
+        )
+    }
+
+    private var chrome: ChromeTheme? { settings.chromeTheme(for: colorScheme) }
 
     private func filtered(_ repositories: [GitHubRepository]) -> [GitHubRepository] {
         let needle = query.trimmingCharacters(in: .whitespaces)
         guard !needle.isEmpty else { return repositories }
         return repositories.filter { $0.fullName.localizedCaseInsensitiveContains(needle) }
     }
+}
 
-    private func subtitle(for repository: GitHubRepository) -> String {
-        var parts: [String] = []
-        if repository.isPrivate { parts.append(localized("Private")) }
-        if let pushedAt = repository.pushedAt {
-            parts.append(pushedAt.formatted(.relative(presentation: .named)))
+/// One repository: the owner's avatar, `owner/` dimmed ahead of the name, a lock
+/// when private, and how long ago it was pushed — one line, so the card shows a
+/// useful handful at once. Hover lifts it with the sidebar's own highlight.
+private struct WelcomeRepositoryRow: View {
+    let repository: GitHubRepository
+    let chrome: ChromeTheme?
+    let action: () -> Void
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 9) {
+                avatar
+                (Text(repository.owner.login + "/").foregroundStyle(.secondary)
+                    + Text(repository.name).foregroundStyle(.primary))
+                    .font(.system(size: 13))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                if repository.isPrivate {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
+                        .help(localized("Private"))
+                }
+                Spacer(minLength: 8)
+                if let pushedAt = repository.pushedAt {
+                    Text(pushedAt.formatted(.relative(presentation: .named)))
+                        .font(.system(size: 11))
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 32)
+            .background(SidebarRowHighlight(isSelected: false, isHovering: isHovering, chrome: chrome))
+            .contentShape(Rectangle())
         }
-        return parts.joined(separator: " · ")
+        .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
+        .help(localized("Clone \(repository.fullName)"))
+    }
+
+    private var avatar: some View {
+        AsyncImage(url: repository.owner.avatarUrl) { image in
+            image.resizable().aspectRatio(contentMode: .fill)
+        } placeholder: {
+            Circle().fill(Color.primary.opacity(0.08))
+        }
+        .frame(width: 18, height: 18)
+        .clipShape(Circle())
     }
 }
 
@@ -324,9 +473,11 @@ private struct WelcomeActionRow: View {
     }
 }
 
-/// A two-line list row — glyph, title, and a quieter detail line — shared by the
-/// Recent folders and the GitHub repositories so both lists read as one page.
+/// A two-line list row — glyph, title, and a quieter detail line — for the Recent
+/// folders, lifted on hover with the sidebar's own themed highlight.
 private struct WelcomeListRow: View {
+    @EnvironmentObject var settings: AppSettings
+    @Environment(\.colorScheme) private var colorScheme
     let icon: HugeIcon
     let title: String
     let subtitle: String
@@ -356,14 +507,12 @@ private struct WelcomeListRow: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.primary.opacity(isHovering ? 0.08 : 0))
-            )
+            .background(SidebarRowHighlight(isSelected: false, isHovering: isHovering, chrome: chrome))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
-        .animation(.easeInOut(duration: 0.1), value: isHovering)
     }
+
+    private var chrome: ChromeTheme? { settings.chromeTheme(for: colorScheme) }
 }

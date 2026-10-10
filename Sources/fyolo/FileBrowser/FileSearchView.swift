@@ -207,7 +207,7 @@ struct FileSearchView: View {
             }
             .padding(.horizontal, 9)
             .frame(height: 28)
-            .background { fieldChrome }
+            .background { CapsuleFieldChrome() }
             .padding(.horizontal, 8)
             .padding(.top, 7)
             .padding(.bottom, trimmedQuery.isEmpty ? 7 : 4)
@@ -235,20 +235,6 @@ struct FileSearchView: View {
         switch scope {
         case .thisMac: return localized("Search Project")
         case .device(_, let host, _): return localized("Search \(host)")
-        }
-    }
-
-    /// The field's own chrome, replacing the `NSSearchField` bezel (stripped in
-    /// `makeNSView`): a Liquid Glass capsule on macOS 26 — same material recipe as
-    /// the toolbar's `InspectorTabsToolbar` track — and a flat capsule fill below.
-    @ViewBuilder
-    private var fieldChrome: some View {
-        if #available(macOS 26.0, *) {
-            Capsule()
-                .fill(.clear)
-                .glassEffect(.regular.tint(Color.white.opacity(0.12)), in: .capsule)
-        } else {
-            Capsule(style: .continuous).fill(Color.primary.opacity(0.06))
         }
     }
 
@@ -946,3 +932,29 @@ private extension View {
     }
 }
 
+/// The chrome fyolo draws behind a text field instead of AppKit's bezel: a Liquid
+/// Glass capsule on macOS 26 — same material recipe as the toolbar's
+/// `InspectorTabsToolbar` track — and a flat capsule fill below. Shared by every
+/// field that sits in the app's own chrome (file search, the welcome page's
+/// repository search, the GitHub token form), so they read as one family.
+struct CapsuleFieldChrome: View {
+    var body: some View {
+        if #available(macOS 26.0, *) {
+            Capsule()
+                .fill(.clear)
+                .glassEffect(.regular.tint(Color.white.opacity(0.12)), in: .capsule)
+        } else {
+            Capsule(style: .continuous).fill(Color.primary.opacity(0.06))
+        }
+    }
+}
+
+extension View {
+    /// Dresses a `.plain` text field in `CapsuleFieldChrome` at the file search's
+    /// height and inset.
+    func capsuleField() -> some View {
+        padding(.horizontal, 9)
+            .frame(height: 28)
+            .background { CapsuleFieldChrome() }
+    }
+}

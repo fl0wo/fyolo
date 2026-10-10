@@ -305,10 +305,16 @@ struct GitHubRepository: Decodable, Identifiable, Hashable, Sendable {
     let isPrivate: Bool
     let cloneUrl: String
     let pushedAt: Date?
+    let owner: Owner
+
+    struct Owner: Decodable, Hashable, Sendable {
+        let login: String
+        let avatarUrl: URL?
+    }
 
     // The decoder converts snake_case first, so these name the converted keys.
     enum CodingKeys: String, CodingKey {
-        case id, name, fullName, cloneUrl, pushedAt
+        case id, name, fullName, cloneUrl, pushedAt, owner
         case isPrivate = "private"
     }
 }

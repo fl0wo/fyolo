@@ -1542,6 +1542,16 @@
         }
       }
     },
+    "Clone %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "克隆 %@"
+          }
+        }
+      }
+    },
     "Clone a Repository": {
       "localizations": {
         "zh-Hans": {

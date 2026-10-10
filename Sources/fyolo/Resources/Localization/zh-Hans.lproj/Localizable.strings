@@ -320,6 +320,8 @@
 	<string>清除</string>
 	<key>Clone</key>
 	<string>克隆</string>
+	<key>Clone %@</key>
+	<string>克隆 %@</string>
 	<key>Clone Here</key>
 	<string>克隆到这里</string>
 	<key>Clone a Repository</key>

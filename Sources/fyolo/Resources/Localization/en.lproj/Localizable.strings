@@ -320,6 +320,8 @@
 	<string>Clear</string>
 	<key>Clone</key>
 	<string>Clone</string>
+	<key>Clone %@</key>
+	<string>Clone %@</string>
 	<key>Clone Here</key>
 	<string>Clone Here</string>
 	<key>Clone a Repository</key>
