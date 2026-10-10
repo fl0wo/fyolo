@@ -263,6 +263,16 @@ final class ThemeLibraryTests: XCTestCase {
         XCTAssertTrue(state.renderedConfig.contains("minimum-contrast = 1.5"), state.renderedConfig)
     }
 
+    /// Ghostty only reads a dot decimal, and one unreadable line rejects the whole
+    /// config. Formatting with the user's locale wrote `1,5` in comma-decimal
+    /// regions, which left every new terminal on libghostty's grey default theme.
+    func testConfigNumbersUseADotWhateverTheLocale() {
+        XCTAssertEqual(FyoloStore.ghosttyNumber(1.5), "1.5")
+        XCTAssertEqual(FyoloStore.ghosttyNumber(0.95), "0.95")
+        XCTAssertEqual(FyoloStore.ghosttyNumber(13), "13")
+        XCTAssertEqual(FyoloStore.ghosttyNumber(1200), "1200")
+    }
+
     /// A floor above 2 would be worse than the bug: libghostty snaps a failing
     /// foreground to pure black or white rather than nudging it, and the bundled
     /// light palettes put their legible-but-dim greys and yellows just above 2:1.

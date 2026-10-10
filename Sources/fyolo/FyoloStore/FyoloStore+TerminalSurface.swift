@@ -738,7 +738,7 @@ extension FyoloStore {
                 builder.withFontFamily(cjkFallback)
             }
         }
-        builder.withFontSize(Float(settings.fontSize))
+        builder.withCustom("font-size", Self.ghosttyNumber(settings.fontSize))
         builder.withFontThicken(settings.fontThicken)
 
         // `CursorStyle`'s raw values are the Ghostty cursor tokens, so this bridge
@@ -754,7 +754,7 @@ extension FyoloStore {
         // visible gap between the title and the first prompt line.
         builder.withWindowPaddingX(settings.windowPadding)
         builder.withWindowPaddingY(Self.terminalWindowPaddingY)
-        builder.withBackgroundOpacity(settings.backgroundOpacity)
+        builder.withCustom("background-opacity", Self.ghosttyNumber(settings.backgroundOpacity))
         builder.withBackgroundBlur(settings.backgroundBlur)
 
         // Ghostty measures scrollback in bytes; the UI speaks megabytes.
@@ -815,7 +815,7 @@ extension FyoloStore {
         .background("FFFFFF")
         .palette(7, color: "#4D4D4D")
         .palette(15, color: "#262626")
-        .minimumContrast(lightContrastFloor)
+        .custom("minimum-contrast", ghosttyNumber(lightContrastFloor))
 
     /// The WCAG floor libghostty enforces per glyph, against that glyph's own
     /// background, for light themes only.
@@ -831,6 +831,22 @@ extension FyoloStore {
     /// dark canvas, which every dark theme does on purpose.
     static let lightContrastFloor = 1.5
 
+    /// A number as Ghostty's config grammar takes it: always a dot decimal. The
+    /// package's typed setters (`withFontSize`, `minimumContrast`, …) format with the
+    /// user's locale, so in a comma-decimal region (Italy, Germany, France…) they
+    /// write `1,5`, which Ghostty rejects — and one rejected line rejects the whole
+    /// config. A new surface's first config is the light one, which carries the
+    /// contrast floor, so the theme never applied at all and the pane fell back to
+    /// libghostty's grey Afterglow. Every fractional value goes through here and
+    /// `custom` instead.
+    static func ghosttyNumber(_ value: Double) -> String {
+        value.formatted(
+            .number
+                .precision(.fractionLength(0 ... 3))
+                .grouping(.never)
+                .locale(Locale(identifier: "en_US_POSIX")))
+    }
+
     /// Resolves a chosen theme name to its terminal configuration, or `nil` when the
     /// slot is left on the default or the name no longer resolves. The contrast floor
     /// follows the theme's own brightness rather than the slot it was chosen into, so
@@ -840,7 +856,7 @@ extension FyoloStore {
         guard !name.isEmpty, let definition = ThemeLibrary.theme(named: name) else { return nil }
         let configuration = definition.toTerminalConfiguration()
         guard !definition.isDark else { return configuration }
-        return configuration.minimumContrast(Self.lightContrastFloor)
+        return configuration.custom("minimum-contrast", Self.ghosttyNumber(Self.lightContrastFloor))
     }
 
     /// Drives `ghostty_app_tick` at display rate for a short window so a config
