@@ -119,6 +119,8 @@ struct HighlightedTextView: NSViewRepresentable {
         storage.setAttributedString(NSAttributedString(string: text, attributes: baseAttributes))
 
         let scrollView = NSScrollView()
+        // Before the document view, which the clip view hosts (see `GutterAwareClipView`).
+        scrollView.contentView = GutterAwareClipView()
         scrollView.documentView = textView
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = false
@@ -507,6 +509,34 @@ private final class NotificationObserverBag: @unchecked Sendable {
 /// this only serves the reflex of pressing ⌘S — there is still no Save button. It also draws the
 /// Xcode-style current-line band and washes the bracket pair beside the caret.
 final class SavingTextView: NSTextView {
+    /// The gutter, when the pointer is over it. TextKit sizes this view's tracking area to the
+    /// scroll view's whole width — the strip under the line-number ruler included — and answers
+    /// every mouse move and cursor update there with the I-beam, after the gutter has set its
+    /// own pointer. Over the gutter those events are the gutter's, so they go to it instead.
+    private func gutter(under event: NSEvent) -> LineNumberRulerView? {
+        guard let ruler = enclosingScrollView?.verticalRulerView as? LineNumberRulerView,
+              ruler.superview != nil,
+              ruler.bounds.contains(ruler.convert(event.locationInWindow, from: nil))
+        else { return nil }
+        return ruler
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        if let gutter = gutter(under: event) {
+            gutter.updatePointer(for: event)
+            return
+        }
+        super.mouseMoved(with: event)
+    }
+
+    override func cursorUpdate(with event: NSEvent) {
+        if let gutter = gutter(under: event) {
+            gutter.updatePointer(for: event)
+            return
+        }
+        super.cursorUpdate(with: event)
+    }
+
     var onSave: (() -> Void)?
     /// When set, the right-click menu carries a trailing "Close" — the editor's only close
     /// affordance now that it has no chrome button (terminal-style, matching how a session closes).

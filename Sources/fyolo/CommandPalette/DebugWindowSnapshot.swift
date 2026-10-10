@@ -93,6 +93,11 @@ enum DebugWindowSnapshot {
         if let bg = view.layer?.backgroundColor, let c = NSColor(cgColor: bg), c.alphaComponent > 0 {
             bits += " bg=\(c)"
         }
+        if view.bounds.origin != .zero { bits += " bounds=\(view.bounds)" }
+        for area in view.trackingAreas {
+            let inWindow = view.convert(area.rect, to: nil)
+            bits += " track{\(type(of: area.owner as AnyObject)) win=\(inWindow) opts=\(area.options.rawValue)}"
+        }
         if let effect = view as? NSVisualEffectView {
             bits += " material=\(effect.material.rawValue) blending=\(effect.blendingMode.rawValue) state=\(effect.state.rawValue)"
         }

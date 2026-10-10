@@ -47,6 +47,8 @@ final class LineNumberRulerView: NSRulerView {
         if ruleThickness != thickness {
             ruleThickness = thickness
             scrollView?.tile()
+            // The clip view's I-beam area is trimmed to the gutter's edge, which just moved.
+            if let clipView = scrollView?.contentView { window?.invalidateCursorRects(for: clipView) }
         }
         needsDisplay = true
     }
@@ -60,14 +62,28 @@ final class LineNumberRulerView: NSRulerView {
             owner: self))
     }
 
+    /// The pointing hand over each ▶ as cursor rects too, rebuilt whenever a draw moves the
+    /// markers, so the pointer is right the moment it enters a marker — before any mouse move.
+    override func resetCursorRects() {
+        for hit in markerHitRects {
+            addCursorRect(hit.rect, cursor: .pointingHand)
+        }
+    }
+
     override func mouseMoved(with event: NSEvent) {
+        updatePointer(for: event)
+    }
+
+    /// The pointer for a spot on the gutter: a pointing hand over a ▶ with its command as the
+    /// tooltip, the arrow anywhere else. Also called by the text view, which receives the
+    /// gutter's mouse moves too (see `SavingTextView.gutter(under:)`).
+    func updatePointer(for event: NSEvent) {
         let hit = marker(at: convert(event.locationInWindow, from: nil))
         (hit == nil ? NSCursor.arrow : NSCursor.pointingHand).set()
         toolTip = hit?.help
     }
 
     override func mouseExited(with event: NSEvent) {
-        NSCursor.arrow.set()
         toolTip = nil
     }
 
@@ -130,6 +146,13 @@ final class LineNumberRulerView: NSRulerView {
         let yOffset = convert(NSPoint.zero, from: textView).y
         let attributes: [NSAttributedString.Key: Any] = [.font: numberFont, .foregroundColor: numberColor]
 
+        let previousHitRects = markerHitRects.map(\.rect)
+        defer {
+            // Scrolling or an edit moved the markers: the cursor rects must follow.
+            if markerHitRects.map(\.rect) != previousHitRects {
+                window?.invalidateCursorRects(for: self)
+            }
+        }
         markerHitRects.removeAll(keepingCapacity: true)
         let markerColumn = gutterActions.isEmpty ? 0 : Self.markerColumnWidth
         let drawNumber: (Int, CGFloat) -> Void = { number, fragMinY in
@@ -234,5 +257,28 @@ final class LineNumberRulerView: NSRulerView {
         }
         lineAnchor = (index, line)
         return line
+    }
+}
+
+/// The editor's clip view, keeping the text's I-beam out from under the gutter.
+///
+/// On current macOS the scroll view lays its ruler *over* the clip view and insets the
+/// content, so the clip view still spans the gutter's strip. `NSTextView` makes the I-beam
+/// its scroll view's document cursor, and the clip view's stock cursor rect covers its whole
+/// visible area — gutter included — where it overlaps the gutter's own rects with no defined
+/// winner: hovering a run button showed the I-beam. This trims the document cursor's rect to
+/// start at the gutter's trailing edge.
+final class GutterAwareClipView: NSClipView {
+    override func resetCursorRects() {
+        guard let cursor = documentCursor else { return }
+        var rect = visibleRect
+        if let scrollView = enclosingScrollView, scrollView.rulersVisible,
+           let ruler = scrollView.verticalRulerView, ruler.superview != nil {
+            let covered = convert(ruler.bounds, from: ruler)
+            let start = max(rect.minX, covered.maxX)
+            rect.size.width = max(0, rect.maxX - start)
+            rect.origin.x = start
+        }
+        addCursorRect(rect, cursor: cursor)
     }
 }
