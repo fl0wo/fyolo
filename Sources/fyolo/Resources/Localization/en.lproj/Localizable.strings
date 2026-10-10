@@ -22,6 +22,8 @@
 	<string>%@ arrived on %@ since the last setup. Set up again to install Fyolo’s hooks there.</string>
 	<key>%@ didn’t come up — check the network and retry</key>
 	<string>%@ didn’t come up — check the network and retry</string>
+	<key>%@ doesn’t answer like a GitHub server.</key>
+	<string>%@ doesn’t answer like a GitHub server.</string>
 	<key>%@ exited — shell</key>
 	<string>%@ exited — shell</string>
 	<key>%@ has nothing to pair against</key>
@@ -290,6 +292,8 @@
 	<string>Checking that %@ answers…</string>
 	<key>Checking the machine…</key>
 	<string>Checking the machine…</string>
+	<key>Checking the token with GitHub.</key>
+	<string>Checking the token with GitHub.</string>
 	<key>Checking…</key>
 	<string>Checking…</string>
 	<key>Choose a different name.</key>
@@ -396,6 +400,8 @@
 	<string>Connected</string>
 	<key>Connected and authenticated</key>
 	<string>Connected and authenticated</string>
+	<key>Connecting…</key>
+	<string>Connecting…</string>
 	<key>Connection failed</key>
 	<string>Connection failed</string>
 	<key>Connection refused</key>
@@ -452,6 +458,8 @@
 	<string>Couldn’t load</string>
 	<key>Couldn’t open a pull request page</key>
 	<string>Couldn’t open a pull request page</string>
+	<key>Couldn’t reach %@.</key>
+	<string>Couldn’t reach %@.</string>
 	<key>Couldn’t remove %@.</key>
 	<string>Couldn’t remove %@.</string>
 	<key>Couldn’t remove worktree</key>
@@ -470,6 +478,8 @@
 	<string>Couldn’t write ~/.ssh/config: %@</string>
 	<key>Create</key>
 	<string>Create</string>
+	<key>Create a Token…</key>
+	<string>Create a Token…</string>
 	<key>Credentials</key>
 	<string>Credentials</string>
 	<key>Current workspace</key>
@@ -572,6 +582,8 @@
 	<string>Enter Code on GitHub</string>
 	<key>Enter a host from your ~/.ssh/config, or a user@host to connect to.</key>
 	<string>Enter a host from your ~/.ssh/config, or a user@host to connect to.</string>
+	<key>Enter a host like github.com or github.example.com.</key>
+	<string>Enter a host like github.com or github.example.com.</string>
 	<key>Enter a path that starts with “/”. “~/” works too, once %@ has said where home is.</key>
 	<string>Enter a path that starts with “/”. “~/” works too, once %@ has said where home is.</string>
 	<key>Enter an absolute path</key>
@@ -652,6 +664,10 @@
 	<string>GitHub</string>
 	<key>GitHub Issues</key>
 	<string>GitHub Issues</string>
+	<key>GitHub no longer accepts the saved token. Connect again.</key>
+	<string>GitHub no longer accepts the saved token. Connect again.</string>
+	<key>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</key>
+	<string>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</string>
 	<key>Grant Org Access…</key>
 	<string>Grant Org Access…</string>
 	<key>Green</key>
@@ -970,6 +986,8 @@
 	<string>None</string>
 	<key>None found</key>
 	<string>None found</string>
+	<key>None of this project’s remotes point at %@, so there is no issue tracker to show.</key>
+	<string>None of this project’s remotes point at %@, so there is no issue tracker to show.</string>
 	<key>None of this project’s remotes point at github.com, so there is no issue tracker to show.</key>
 	<string>None of this project’s remotes point at github.com, so there is no issue tracker to show.</string>
 	<key>Not Now</key>
@@ -1094,10 +1112,16 @@
 	<string>Password</string>
 	<key>Paste</key>
 	<string>Paste</string>
+	<key>Paste a token first.</key>
+	<string>Paste a token first.</string>
+	<key>Paste a token with the repo scope. For GitHub Enterprise Server, change the host to yours.</key>
+	<string>Paste a token with the repo scope. For GitHub Enterprise Server, change the host to yours.</string>
 	<key>Path</key>
 	<string>Path</string>
 	<key>Permissions</key>
 	<string>Permissions</string>
+	<key>Personal Access Token</key>
+	<string>Personal Access Token</string>
 	<key>Pick a file on the left to see its changes.</key>
 	<string>Pick a file on the left to see its changes.</string>
 	<key>Pick how %@ is reached from outside. Fyolo runs it there over SSH and reads the address back — you never type one.</key>
@@ -1466,6 +1490,8 @@
 	<string>Test</string>
 	<key>Test Connection</key>
 	<string>Test Connection</string>
+	<key>The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.</key>
+	<string>The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.</string>
 	<key>The agent New Chat (⌘N) starts. “Last used” follows whichever agent you most recently chatted with.</key>
 	<string>The agent New Chat (⌘N) starts. “Last used” follows whichever agent you most recently chatted with.</string>
 	<key>The base branch has commits this branch doesn’t have, as of the last fetch.</key>
@@ -1664,10 +1690,14 @@
 	<string>Usage</string>
 	<key>Usage statistics</key>
 	<string>Usage statistics</string>
+	<key>Use %@ from GitHub CLI</key>
+	<string>Use %@ from GitHub CLI</string>
 	<key>Use Regular Expression</key>
 	<string>Use Regular Expression</string>
 	<key>Use Selection for Find</key>
 	<string>Use Selection for Find</string>
+	<key>Use a Personal Access Token…</key>
+	<string>Use a Personal Access Token…</string>
 	<key>Used for this invite only. To make it stick, start the daemon there with --wss-origin.</key>
 	<string>Used for this invite only. To make it stick, start the daemon there with --wss-origin.</string>
 	<key>User</key>

@@ -222,18 +222,18 @@ struct IssuesView: View {
     @ViewBuilder
     private var content: some View {
         switch model.phase {
-        case .disconnected, .connecting:
-            GitHubConnectPrompt(
+        case .disconnected:
+            GitHubConnectView(
+                connector: model.connector,
                 title: localized("GitHub Issues"),
                 message: localized("Connect your GitHub account to read this project’s issues and pull requests here."),
-                userCode: model.phase.userCode,
-                errorMessage: model.errorMessage
-            ) { Task { await model.connect() } }
+                hostError: model.errorMessage
+            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .unbound:
             zeroState(
                 title: localized("No GitHub Repository"),
-                message: localized("None of this project’s remotes point at github.com, so there is no issue tracker to show.")
+                message: localized("None of this project’s remotes point at \(model.host), so there is no issue tracker to show.")
             ) {
                 Button(localized("Disconnect GitHub")) { model.disconnect() }
                     .buttonStyle(.bordered)
@@ -269,7 +269,7 @@ struct IssuesView: View {
                     title: localized("Couldn’t load"),
                     message: localized("Reconnect to sign in with a different account, or grant Fyolo access to the organization that owns this repository.")
                 ) {
-                    Button(localized("Reconnect")) { Task { await model.reconnect() } }
+                    Button(localized("Reconnect")) { model.disconnect() }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.regular)
                     Button(localized("Grant Org Access…")) { model.openConnectionSettings() }
@@ -361,80 +361,6 @@ struct IssuesView: View {
 /// metadata — label chips and the updated age — still appears on hover (the
 /// GitChangeRow pattern), so the resting row stays clean and the hover answers
 /// "what labels, how fresh".
-/// The GitHub zero-state block — mark, title, one line of explanation, the
-/// actions, and any error beneath them. Shared by every surface that talks to
-/// GitHub (the Issues pane, the welcome page), so a prompt reads the same
-/// wherever the user meets it.
-struct GitHubPrompt<Actions: View>: View {
-    let title: String
-    let message: String
-    let errorMessage: String?
-    private let actions: Actions
-
-    init(
-        title: String, message: String, errorMessage: String?,
-        @ViewBuilder actions: () -> Actions
-    ) {
-        self.title = title
-        self.message = message
-        self.errorMessage = errorMessage
-        self.actions = actions()
-    }
-
-    var body: some View {
-        VStack(spacing: 10) {
-            HugeIconView(icon: .github, size: 34, color: .secondary)
-            Text(title).font(.system(size: 13, weight: .semibold))
-            Text(message)
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 260)
-            actions
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 260)
-            }
-        }
-    }
-}
-
-/// Connect GitHub, both halves: the button, then — once `GitHubIssueAuth.connect`
-/// has a code — the code to type at github.com while it waits. `title` and
-/// `message` say what connecting is *for* on the surface showing it.
-struct GitHubConnectPrompt: View {
-    let title: String
-    let message: String
-    /// The device-flow code to show, or `nil` before the flow has started.
-    let userCode: String?
-    let errorMessage: String?
-    let connect: () -> Void
-
-    var body: some View {
-        if let userCode {
-            GitHubPrompt(
-                title: localized("Enter Code on GitHub"),
-                message: localized("Type this code at github.com/login/device to approve Fyolo. Waiting for approval…"),
-                errorMessage: errorMessage
-            ) {
-                Text(userCode)
-                    .font(.system(size: 22, weight: .semibold, design: .monospaced))
-                    .textSelection(.enabled)
-                ProgressView().controlSize(.small)
-            }
-        } else {
-            GitHubPrompt(title: title, message: message, errorMessage: errorMessage) {
-                Button(localized("Connect GitHub"), action: connect)
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.regular)
-            }
-        }
-    }
-}
-
 private struct IssueRow: View {
     let item: IssueSummary
     let font: Font
@@ -1223,10 +1149,14 @@ final class GitHubAssetSchemeHandler: NSObject, WKURLSchemeHandler {
         }
 
         var request = URLRequest(url: url)
-        if let host = url.host,
-           host == "github.com" || host.hasSuffix(".githubusercontent.com"),
-           let token = GitHubIssueAuth.storedToken() {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        // The token goes only to the server it belongs to: a github.com token never
+        // reaches an Enterprise host's images, nor an Enterprise token github.com's.
+        if let host = url.host?.lowercased(),
+           let connection = GitHubIssueAuth.storedConnection(),
+           connection.isDotCom
+               ? host == "github.com" || host.hasSuffix(".githubusercontent.com")
+               : host == connection.host || host.hasSuffix("." + connection.host) {
+            request.setValue("Bearer \(connection.token)", forHTTPHeaderField: "Authorization")
         }
 
         // The scheme task must never leave the main actor (WebKit traps on

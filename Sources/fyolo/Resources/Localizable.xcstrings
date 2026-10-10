@@ -91,6 +91,16 @@
         }
       }
     },
+    "%@ doesn’t answer like a GitHub server.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 的响应不像 GitHub 服务器。"
+          }
+        }
+      }
+    },
     "%@ exited — shell": {
       "localizations": {
         "zh-Hans": {
@@ -1392,6 +1402,16 @@
         }
       }
     },
+    "Checking the token with GitHub.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在向 GitHub 验证令牌。"
+          }
+        }
+      }
+    },
     "Checking…": {
       "localizations": {
         "zh-Hans": {
@@ -1922,6 +1942,16 @@
         }
       }
     },
+    "Connecting…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在连接…"
+          }
+        }
+      }
+    },
     "Connection failed": {
       "localizations": {
         "zh-Hans": {
@@ -2192,6 +2222,16 @@
         }
       }
     },
+    "Couldn’t reach %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连接到 %@。"
+          }
+        }
+      }
+    },
     "Couldn’t remove %@.": {
       "localizations": {
         "zh-Hans": {
@@ -2278,6 +2318,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "创建"
+          }
+        }
+      }
+    },
+    "Create a Token…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建令牌…"
           }
         }
       }
@@ -2773,6 +2823,16 @@
         }
       }
     },
+    "Enter a host like github.com or github.example.com.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入主机，例如 github.com 或 github.example.com。"
+          }
+        }
+      }
+    },
     "Enter Code on GitHub": {
       "localizations": {
         "zh-Hans": {
@@ -3100,6 +3160,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "GitHub Issues"
+          }
+        }
+      }
+    },
+    "GitHub no longer accepts the saved token. Connect again.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub 不再接受已保存的令牌。请重新连接。"
+          }
+        }
+      }
+    },
+    "GitHub rejected this token. Check that it was copied whole and hasn’t expired.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub 拒绝了这个令牌。请确认它已完整复制且未过期。"
           }
         }
       }
@@ -4694,6 +4774,16 @@
         }
       }
     },
+    "None of this project’s remotes point at %@, so there is no issue tracker to show.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个项目的远程仓库都不指向 %@，因此没有可显示的议题追踪。"
+          }
+        }
+      }
+    },
     "None of this project’s remotes point at github.com, so there is no issue tracker to show.": {
       "localizations": {
         "zh-Hans": {
@@ -5307,6 +5397,26 @@
         }
       }
     },
+    "Paste a token first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先粘贴令牌。"
+          }
+        }
+      }
+    },
+    "Paste a token with the repo scope. For GitHub Enterprise Server, change the host to yours.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "粘贴一个具有 repo 权限的令牌。如果使用 GitHub Enterprise Server，请把主机改成你的服务器。"
+          }
+        }
+      }
+    },
     "Path": {
       "localizations": {
         "zh-Hans": {
@@ -5323,6 +5433,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "权限"
+          }
+        }
+      }
+    },
+    "Personal Access Token": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人访问令牌"
           }
         }
       }
@@ -7318,6 +7438,16 @@
         }
       }
     },
+    "The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub CLI 没有提供令牌。请在终端中运行 gh auth login，然后重试。"
+          }
+        }
+      }
+    },
     "The ignore rule couldn’t be added.": {
       "localizations": {
         "zh-Hans": {
@@ -8225,6 +8355,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用统计"
+          }
+        }
+      }
+    },
+    "Use %@ from GitHub CLI": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 GitHub CLI 中的 %@"
+          }
+        }
+      }
+    },
+    "Use a Personal Access Token…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用个人访问令牌…"
           }
         }
       }

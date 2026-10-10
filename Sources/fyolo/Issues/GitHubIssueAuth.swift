@@ -1,27 +1,109 @@
 import AppKit
 import Security
 
-// MARK: - GitHub connection (OAuth Device Flow)
+// MARK: - GitHub connection
 
-/// The GitHub connection for the Issues pane: an OAuth Device Flow sign-in and
-/// a Keychain-held token. Device Flow is the one OAuth shape an open-source app
-/// can ship — it needs only this public client id, no secret and no callback
-/// server. The token asks for `repo` scope so the write milestone (issue #100)
-/// won't need a re-auth.
+/// How fyolo reaches GitHub: which server, with which credential, and how the
+/// credential was obtained. One of these lives in the Keychain; every GitHub
+/// surface (the Issues pane, the welcome page's clone list, a local clone)
+/// reads it rather than a bare token, so a GitHub Enterprise Server connection
+/// works everywhere a github.com one does.
+struct GitHubConnection: Codable, Equatable, Sendable {
+    enum Source: String, Codable, Sendable {
+        /// The OAuth device flow — github.com only, since it needs fyolo's app.
+        case browser
+        /// A personal access token the user pasted.
+        case token
+        /// The token the GitHub CLI (`gh`) already holds.
+        case cli
+    }
+
+    static let dotComHost = "github.com"
+
+    /// Lowercased host with no scheme, path, or port: `github.com`,
+    /// `github.example.com`, `octocorp.ghe.com`.
+    let host: String
+    let token: String
+    let source: Source
+
+    var isDotCom: Bool { host == Self.dotComHost }
+
+    /// The REST root. github.com and GHE.com's data-residency hosts serve it from
+    /// an `api.` subdomain; GitHub Enterprise Server serves it under `/api/v3`.
+    var apiBase: String {
+        if isDotCom { return "https://api.github.com" }
+        if host.hasSuffix(".ghe.com") { return "https://api.\(host)" }
+        return "https://\(host)/api/v3"
+    }
+
+    /// Where the user changes what this credential can reach — the place a 403 on
+    /// an organization's private repository gets fixed. For the browser sign-in
+    /// that is the OAuth app's grant page; for a token, the token list, where
+    /// single sign-on is authorized per token.
+    var accessSettingsURL: URL? {
+        switch source {
+        case .browser:
+            URL(string: "https://github.com/settings/connections/applications/\(GitHubIssueAuth.clientID)")
+        case .token, .cli:
+            URL(string: "https://\(host)/settings/tokens")
+        }
+    }
+
+    /// A new classic token on `host`, pre-filled with the `repo` scope and a name
+    /// the user will recognize later in their token list. Classic rather than
+    /// fine-grained because one classic token reaches every organization the user
+    /// belongs to; a fine-grained one is bound to a single owner, and the clone
+    /// list would silently show only part of the user's repositories.
+    static func newTokenURL(host: String) -> URL? {
+        URL(string: "https://\(host)/settings/tokens/new?scopes=repo&description=Fyolo")
+    }
+
+    /// What the user typed in the Host field, reduced to a bare host — or `nil`
+    /// when nothing usable is left. Accepts a pasted URL (`https://ghe.corp/`) and
+    /// folds github.com's aliases into it, so `www.github.com` or `api.github.com`
+    /// doesn't become a "GitHub Enterprise" connection with the wrong API root.
+    static func normalizedHost(_ input: String) -> String? {
+        var host = input.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        for scheme in ["https://", "http://"] where host.hasPrefix(scheme) {
+            host.removeFirst(scheme.count)
+        }
+        if let slash = host.firstIndex(of: "/") { host = String(host[..<slash]) }
+        while host.hasSuffix(".") { host.removeLast() }
+        let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz0123456789.-")
+        guard !host.isEmpty, host.contains("."),
+              host.unicodeScalars.allSatisfy({ allowed.contains($0) })
+        else { return nil }
+        if host == "www.github.com" || host == "api.github.com" { return dotComHost }
+        return host
+    }
+
+    /// Reads a Keychain payload. Installs from before Enterprise support stored
+    /// the bare device-flow token, so anything that isn't a JSON connection is
+    /// taken as exactly that — a github.com browser sign-in — rather than
+    /// signing the user out.
+    static func decode(_ data: Data) -> GitHubConnection? {
+        if let connection = try? JSONDecoder().decode(GitHubConnection.self, from: data) {
+            return connection
+        }
+        guard let token = String(data: data, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+            !token.isEmpty, !token.hasPrefix("{")
+        else { return nil }
+        return GitHubConnection(host: dotComHost, token: token, source: .browser)
+    }
+}
+
+/// The stored GitHub connection and the OAuth Device Flow that makes one. Device
+/// Flow is the one OAuth shape an open-source app can ship — it needs only this
+/// public client id, no secret and no callback server. The token asks for `repo`
+/// scope so the write milestone (issue #100) won't need a re-auth.
 enum GitHubIssueAuth {
     /// The fyolo OAuth App's public client id (owned by the fyolo-sh org,
     /// "Enable Device Flow" checked). Public by design — device flow needs no
     /// secret. Overridable via the environment for testing against another app.
     static var clientID: String {
         ProcessInfo.processInfo.environment["FYOLO_GITHUB_CLIENT_ID"]
-            ?? "Ov23lipSynmaEBOQR1cM"
-    }
-
-    /// The user's connections page for this OAuth app — where org access is
-    /// granted. A 403 on a private repo is usually an org that hasn't authorized
-    /// fyolo, and reconnecting alone won't fix it; the grant happens here.
-    static var settingsURL: URL {
-        URL(string: "https://github.com/settings/connections/applications/\(clientID)")!
+            ?? "Ov23lik1VrZvkHndjlJ8"
     }
 
     // MARK: Keychain
@@ -31,8 +113,8 @@ enum GitHubIssueAuth {
     private static let service = "sh.fyolo.app.issues" + AppChannel.suffix
     private static let account = "github"
 
-    /// The stored token, or `nil` when the user never connected (or disconnected).
-    static func storedToken() -> String? {
+    /// The stored connection, or `nil` when the user never connected (or disconnected).
+    static func storedConnection() -> GitHubConnection? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -43,10 +125,17 @@ enum GitHubIssueAuth {
         guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
               let data = item as? Data
         else { return nil }
-        return String(data: data, encoding: .utf8)
+        return GitHubConnection.decode(data)
     }
 
-    static func store(token: String) {
+    static func store(_ connection: GitHubConnection) {
+        let data: Data
+        do {
+            data = try JSONEncoder().encode(connection)
+        } catch {
+            Log.issues.error("encoding the GitHub connection failed: \(error, privacy: .public)")
+            return
+        }
         let base: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -54,14 +143,14 @@ enum GitHubIssueAuth {
         ]
         SecItemDelete(base as CFDictionary)
         var add = base
-        add[kSecValueData as String] = Data(token.utf8)
+        add[kSecValueData as String] = data
         let status = SecItemAdd(add as CFDictionary, nil)
         if status != errSecSuccess {
             Log.issues.error("keychain store failed: \(status)")
         }
     }
 
-    static func deleteToken() {
+    static func deleteConnection() {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -97,17 +186,17 @@ enum GitHubIssueAuth {
         }
     }
 
-    /// The whole sign-in: request a code, hand it to `showCode` for display, open
-    /// the verification page, wait for approval, and keep the token. Every surface
-    /// that offers Connect goes through here, so they cannot drift apart.
+    /// The whole browser sign-in: request a code, hand it to `showCode` for
+    /// display, open the verification page, and wait for approval. github.com
+    /// only — the device flow runs against fyolo's OAuth app, which a GitHub
+    /// Enterprise Server has never heard of.
     @MainActor
-    static func connect(showCode: (String) -> Void) async throws -> String {
+    static func connectInBrowser(showCode: (String) -> Void) async throws -> GitHubConnection {
         let code = try await requestDeviceCode()
         showCode(code.userCode)
         NSWorkspace.shared.open(code.verificationURL)
         let token = try await waitForToken(code)
-        store(token: token)
-        return token
+        return GitHubConnection(host: GitHubConnection.dotComHost, token: token, source: .browser)
     }
 
     /// Step 1: ask GitHub for a user code to show (and open the verification page).
@@ -172,5 +261,94 @@ enum GitHubIssueAuth {
         } catch {
             throw DeviceFlowError.network(error.localizedDescription)
         }
+    }
+}
+
+// MARK: - GitHub CLI
+
+/// An account the GitHub CLI (`gh`) is signed in to on this Mac.
+struct GitHubCLIAccount: Equatable, Sendable {
+    let host: String
+    let user: String
+}
+
+/// Borrows the GitHub CLI's sign-in, so a developer who has run `gh auth login`
+/// connects in one click without minting anything new. fyolo never runs a login
+/// flow of its own here — only a credential the user's own tools already hold.
+enum GitHubCLI {
+    /// Where `gh` installs: Homebrew on Apple silicon and Intel, MacPorts, and the
+    /// official package. A GUI app inherits launchd's bare `PATH`, so searching
+    /// `PATH` would miss every one of them.
+    private static let executableCandidates = [
+        "/opt/homebrew/bin/gh", "/usr/local/bin/gh", "/opt/local/bin/gh",
+    ]
+
+    private static var executable: String? {
+        executableCandidates.first { FileManager.default.isExecutableFile(atPath: $0) }
+    }
+
+    /// `gh`'s config directory, resolved the way `gh` resolves it.
+    private static var hostsFile: URL {
+        let environment = ProcessInfo.processInfo.environment
+        if let directory = environment["GH_CONFIG_DIR"], !directory.isEmpty {
+            return URL(fileURLWithPath: directory).appendingPathComponent("hosts.yml")
+        }
+        let config = environment["XDG_CONFIG_HOME"].map { URL(fileURLWithPath: $0) }
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".config")
+        return config.appendingPathComponent("gh/hosts.yml")
+    }
+
+    /// The account worth offering — github.com's when there is one — or `nil` when
+    /// `gh` isn't installed or isn't signed in. Reads only the hosts file, which
+    /// holds no secret on a modern `gh` (the token is in its Keychain item), so it
+    /// is cheap enough to ask every time a connect prompt appears.
+    static func signedInAccount() -> GitHubCLIAccount? {
+        guard executable != nil,
+              let text = try? String(contentsOf: hostsFile, encoding: .utf8)
+        else { return nil }
+        let accounts = accounts(inHostsFile: text)
+        return accounts.first { $0.host == GitHubConnection.dotComHost } ?? accounts.first
+    }
+
+    /// The accounts in a `hosts.yml`: each top-level key is a host, and its
+    /// `user:` line names the active account. Pure, so the shape `gh` writes can be
+    /// pinned down in tests; a host with no `user:` is skipped, since `gh` writes
+    /// one for every completed login.
+    static func accounts(inHostsFile text: String) -> [GitHubCLIAccount] {
+        var accounts: [GitHubCLIAccount] = []
+        var host: String?
+        for line in text.split(separator: "\n", omittingEmptySubsequences: true) {
+            if line.first?.isWhitespace == false {
+                let key = line.trimmingCharacters(in: .whitespaces)
+                host = key.hasSuffix(":")
+                    ? GitHubConnection.normalizedHost(String(key.dropLast()))
+                    : nil
+                continue
+            }
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard let current = host, trimmed.hasPrefix("user:") else { continue }
+            let user = trimmed.dropFirst("user:".count).trimmingCharacters(in: .whitespaces)
+            guard !user.isEmpty else { continue }
+            accounts.append(GitHubCLIAccount(host: current, user: user))
+            host = nil
+        }
+        return accounts
+    }
+
+    /// The token `gh` holds for `host`, from `gh auth token`, or `nil` when it
+    /// can't hand one over.
+    static func token(for host: String) async -> String? {
+        guard let executable else { return nil }
+        let output = await Task.detached(priority: .userInitiated) {
+            FyoloStore.runProcess(executable, ["auth", "token", "--hostname", host])
+        }.value
+        guard let output, output.exitCode == 0 else {
+            if let output {
+                Log.issues.error("gh auth token failed: \(output.standardError, privacy: .public)")
+            }
+            return nil
+        }
+        let token = output.standardOutput.trimmingCharacters(in: .whitespacesAndNewlines)
+        return token.isEmpty ? nil : token
     }
 }

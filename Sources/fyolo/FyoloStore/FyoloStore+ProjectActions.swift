@@ -1182,8 +1182,9 @@ extension FyoloStore {
         }
     }
 
-    /// Lets a github.com clone authenticate as the connected account, so a private
-    /// repository clones before the user has set up git credentials of their own.
+    /// Lets a clone from the connected GitHub server authenticate as the connected
+    /// account, so a private repository clones before the user has set up git
+    /// credentials of their own.
     /// Environment-borne config rather than `-c`, which would put the token in the
     /// process list, and scoped to this one command: the checkout's `.git/config`
     /// never sees it, so later fetches use the user's own credentials.
@@ -1191,12 +1192,12 @@ extension FyoloStore {
     /// prompt nobody can answer.
     private static func gitHubCloneEnvironment(for cloneURL: String) -> [String: String] {
         var environment = ["GIT_TERMINAL_PROMPT": "0"]
-        guard URL(string: cloneURL)?.host == "github.com",
-              let token = GitHubIssueAuth.storedToken()
+        guard let connection = GitHubIssueAuth.storedConnection(),
+              URL(string: cloneURL)?.host?.lowercased() == connection.host
         else { return environment }
-        let credential = Data("x-access-token:\(token)".utf8).base64EncodedString()
+        let credential = Data("x-access-token:\(connection.token)".utf8).base64EncodedString()
         environment["GIT_CONFIG_COUNT"] = "1"
-        environment["GIT_CONFIG_KEY_0"] = "http.https://github.com/.extraheader"
+        environment["GIT_CONFIG_KEY_0"] = "http.https://\(connection.host)/.extraheader"
         environment["GIT_CONFIG_VALUE_0"] = "Authorization: Basic \(credential)"
         return environment
     }

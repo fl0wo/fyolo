@@ -22,6 +22,8 @@
 	<string>上次设置之后，%@ 才装到 %@ 上。再设置一次，把 Fyolo 的 hook 装进去。</string>
 	<key>%@ didn’t come up — check the network and retry</key>
 	<string>%@ 未能启动——请检查网络后重试</string>
+	<key>%@ doesn’t answer like a GitHub server.</key>
+	<string>%@ 的响应不像 GitHub 服务器。</string>
 	<key>%@ exited — shell</key>
 	<string>%@ 已退出——已回到 shell</string>
 	<key>%@ has nothing to pair against</key>
@@ -290,6 +292,8 @@
 	<string>正在确认 %@ 有回应…</string>
 	<key>Checking the machine…</key>
 	<string>正在检查设备…</string>
+	<key>Checking the token with GitHub.</key>
+	<string>正在向 GitHub 验证令牌。</string>
 	<key>Checking…</key>
 	<string>检查中…</string>
 	<key>Choose a different name.</key>
@@ -396,6 +400,8 @@
 	<string>已连接</string>
 	<key>Connected and authenticated</key>
 	<string>已连接并通过认证</string>
+	<key>Connecting…</key>
+	<string>正在连接…</string>
 	<key>Connection failed</key>
 	<string>连接失败</string>
 	<key>Connection refused</key>
@@ -452,6 +458,8 @@
 	<string>无法载入</string>
 	<key>Couldn’t open a pull request page</key>
 	<string>无法打开 Pull Request 页面</string>
+	<key>Couldn’t reach %@.</key>
+	<string>无法连接到 %@。</string>
 	<key>Couldn’t remove %@.</key>
 	<string>无法移除 %@。</string>
 	<key>Couldn’t remove worktree</key>
@@ -470,6 +478,8 @@
 	<string>无法写入 ~/.ssh/config：%@</string>
 	<key>Create</key>
 	<string>创建</string>
+	<key>Create a Token…</key>
+	<string>创建令牌…</string>
 	<key>Credentials</key>
 	<string>登录凭据</string>
 	<key>Current workspace</key>
@@ -572,6 +582,8 @@
 	<string>在 GitHub 上输入代码</string>
 	<key>Enter a host from your ~/.ssh/config, or a user@host to connect to.</key>
 	<string>输入 ~/.ssh/config 中的主机，或要连接的 user@host。</string>
+	<key>Enter a host like github.com or github.example.com.</key>
+	<string>请输入主机，例如 github.com 或 github.example.com。</string>
 	<key>Enter a path that starts with “/”. “~/” works too, once %@ has said where home is.</key>
 	<string>请输入以“/”开头的路径。等 %@ 报出主目录之后，“~/”也可以用。</string>
 	<key>Enter an absolute path</key>
@@ -652,6 +664,10 @@
 	<string>GitHub</string>
 	<key>GitHub Issues</key>
 	<string>GitHub Issues</string>
+	<key>GitHub no longer accepts the saved token. Connect again.</key>
+	<string>GitHub 不再接受已保存的令牌。请重新连接。</string>
+	<key>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</key>
+	<string>GitHub 拒绝了这个令牌。请确认它已完整复制且未过期。</string>
 	<key>Grant Org Access…</key>
 	<string>授予组织访问权限…</string>
 	<key>Green</key>
@@ -970,6 +986,8 @@
 	<string>无</string>
 	<key>None found</key>
 	<string>未找到</string>
+	<key>None of this project’s remotes point at %@, so there is no issue tracker to show.</key>
+	<string>这个项目的远程仓库都不指向 %@，因此没有可显示的议题追踪。</string>
 	<key>None of this project’s remotes point at github.com, so there is no issue tracker to show.</key>
 	<string>该项目的远程仓库都未指向 github.com，因此没有可显示的 issue 跟踪器。</string>
 	<key>Not Now</key>
@@ -1094,10 +1112,16 @@
 	<string>密码</string>
 	<key>Paste</key>
 	<string>粘贴</string>
+	<key>Paste a token first.</key>
+	<string>请先粘贴令牌。</string>
+	<key>Paste a token with the repo scope. For GitHub Enterprise Server, change the host to yours.</key>
+	<string>粘贴一个具有 repo 权限的令牌。如果使用 GitHub Enterprise Server，请把主机改成你的服务器。</string>
 	<key>Path</key>
 	<string>路径</string>
 	<key>Permissions</key>
 	<string>权限</string>
+	<key>Personal Access Token</key>
+	<string>个人访问令牌</string>
 	<key>Pick a file on the left to see its changes.</key>
 	<string>在左侧选择一个文件以查看其更改。</string>
 	<key>Pick how %@ is reached from outside. Fyolo runs it there over SSH and reads the address back — you never type one.</key>
@@ -1466,6 +1490,8 @@
 	<string>测试</string>
 	<key>Test Connection</key>
 	<string>测试连接</string>
+	<key>The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.</key>
+	<string>GitHub CLI 没有提供令牌。请在终端中运行 gh auth login，然后重试。</string>
 	<key>The agent New Chat (⌘N) starts. “Last used” follows whichever agent you most recently chatted with.</key>
 	<string>新建聊天（⌘N）启动的 Agent。“上次使用”跟随你最近一次聊天所用的 Agent。</string>
 	<key>The base branch has commits this branch doesn’t have, as of the last fetch.</key>
@@ -1664,10 +1690,14 @@
 	<string>用量</string>
 	<key>Usage statistics</key>
 	<string>使用统计</string>
+	<key>Use %@ from GitHub CLI</key>
+	<string>使用 GitHub CLI 中的 %@</string>
 	<key>Use Regular Expression</key>
 	<string>使用正则表达式</string>
 	<key>Use Selection for Find</key>
 	<string>用所选内容查找</string>
+	<key>Use a Personal Access Token…</key>
+	<string>使用个人访问令牌…</string>
 	<key>Used for this invite only. To make it stick, start the daemon there with --wss-origin.</key>
 	<string>仅用于本次邀请。要长期生效，请在那台机器上用 --wss-origin 启动守护进程。</string>
 	<key>User</key>

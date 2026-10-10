@@ -1746,7 +1746,7 @@ extension FyoloStore {
     }
 
     /// A captured subprocess result — exit code plus drained stdout/stderr.
-    struct ProcessOutput {
+    struct ProcessOutput: Sendable {
         let exitCode: Int32
         let standardOutput: String
         let standardError: String

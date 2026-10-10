@@ -818,7 +818,7 @@ enum GitService {
     /// empty pane. Two remotes pointing at the same repository collapse into one
     /// entry under the higher-priority name. Empty for a repo with no GitHub remote
     /// at all — the Issues pane's `.unbound` zero state.
-    static func gitHubRemotes(in dir: String) async -> [GitHubRemote] {
+    static func gitHubRemotes(in dir: String, host: String = "github.com") async -> [GitHubRemote] {
         await offMain {
             guard let listed = run(["remote"], in: dir) else { return [] }
             let names = orderedRemoteNames(
@@ -831,7 +831,7 @@ enum GitService {
             for name in names {
                 guard let url = run(["remote", "get-url", name], in: dir)?
                     .trimmingCharacters(in: .whitespacesAndNewlines),
-                    let slug = gitHubSlug(fromRemote: url),
+                    let slug = gitHubSlug(fromRemote: url, host: host),
                     seenSlugs.insert(slug).inserted
                 else { continue }
                 remotes.append(GitHubRemote(name: name, slug: slug))
@@ -856,13 +856,16 @@ enum GitService {
         return names.sorted { rank($0) == rank($1) ? $0 < $1 : rank($0) < rank($1) }
     }
 
-    /// The `owner/repo` slug when `remote` points at github.com — the Issues pane's
-    /// binding (docs/design/20260726-issue-tracker-integration.md). `nil` for any
-    /// other host.
-    static func gitHubSlug(fromRemote remote: String) -> String? {
+    /// The `owner/repo` slug when `remote` points at `host` — github.com unless
+    /// the connection is to a GitHub Enterprise server — the Issues pane's binding
+    /// (docs/design/20260726-issue-tracker-integration.md). `nil` for any other host.
+    static func gitHubSlug(fromRemote remote: String, host: String = "github.com") -> String? {
         guard let parsed = parseRemote(remote), isWellFormedSlug(parsed.path) else { return nil }
-        // A literal github.com host binds directly, whatever the transport.
-        if isGitHubHostName(parsed.host) { return parsed.path }
+        func isConnectedHost(_ candidate: String) -> Bool {
+            host == "github.com" ? isGitHubHostName(candidate) : candidate.lowercased() == host
+        }
+        // A literal match binds directly, whatever the transport.
+        if isConnectedHost(parsed.host) { return parsed.path }
         // Otherwise it may be an SSH `~/.ssh/config` alias (`Host github-work`
         // → `HostName github.com`, the standard trick for juggling accounts).
         // `sshTarget` is non-nil only for SSH remotes, so an HTTPS host never
@@ -870,7 +873,7 @@ enum GitService {
         // `Match exec` or falsely bind an unrelated repo to public GitHub.
         guard let target = parsed.sshTarget,
               let resolved = resolveSSHHostName(target),
-              isGitHubHostName(resolved)
+              isConnectedHost(resolved)
         else { return nil }
         return parsed.path
     }

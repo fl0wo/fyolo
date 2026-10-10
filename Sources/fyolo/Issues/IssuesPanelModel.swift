@@ -11,18 +11,11 @@ final class IssuesPanelModel: ObservableObject {
     /// Where the pane is in the connect → bind → read ladder; each step has a
     /// zero state except `.ready`.
     enum Phase: Equatable {
-        /// No token — show Connect.
+        /// No connection — show Connect (the connector owns its own steps).
         case disconnected
-        /// Device flow underway: show the code, wait for approval in the browser.
-        case connecting(userCode: String)
-        /// Connected, but none of the project's remotes is a github.com repo.
+        /// Connected, but none of the project's remotes is on the connected server.
         case unbound
         case ready
-
-        var userCode: String? {
-            if case .connecting(let userCode) = self { return userCode }
-            return nil
-        }
     }
 
     @Published private(set) var phase: Phase = .disconnected
@@ -67,6 +60,15 @@ final class IssuesPanelModel: ObservableObject {
         self.repoRoot = repoRoot
     }
 
+    /// The pane's Connect: whichever way the user signs in, the pane resolves its
+    /// binding and loads once the connection is stored.
+    lazy var connector = GitHubConnector { [weak self] connection in
+        await self?.didConnect(connection)
+    }
+
+    /// The server the pane reads from — github.com until connected otherwise.
+    var host: String { provider?.connection.host ?? GitHubConnection.dotComHost }
+
     var capabilities: IssueCapabilities? { provider?.capabilities }
 
     /// Whether the one-time resolve-and-load has run for this model. The model is registered on
@@ -97,8 +99,8 @@ final class IssuesPanelModel: ObservableObject {
     /// `loadDetail`. Reset by `disconnect()` so a reconnect re-resolves.
     private var didResolveContainer = false
     private func ensureReady() async {
-        if provider == nil, let token = GitHubIssueAuth.storedToken() {
-            provider = GitHubIssueProvider(token: token)
+        if provider == nil, let connection = GitHubIssueAuth.storedConnection() {
+            provider = GitHubIssueProvider(connection: connection)
         }
         guard provider != nil, !didResolveContainer else { return }
         if let readyTask { return await readyTask.value }
@@ -110,25 +112,17 @@ final class IssuesPanelModel: ObservableObject {
 
     // MARK: Connect / disconnect
 
-    /// Runs the whole device flow: shows the code, opens the verification page,
-    /// polls until approved, then loads the pane.
-    func connect() async {
+    private func didConnect(_ connection: GitHubConnection) async {
         errorMessage = nil
         recovery = nil
-        do {
-            let token = try await GitHubIssueAuth.connect { phase = .connecting(userCode: $0) }
-            provider = GitHubIssueProvider(token: token)
-            didStart = true
-            await resolveContainer()
-            await loadList()
-        } catch {
-            phase = .disconnected
-            errorMessage = error.localizedDescription
-        }
+        provider = GitHubIssueProvider(connection: connection)
+        didStart = true
+        await resolveContainer()
+        await loadList()
     }
 
     func disconnect() {
-        GitHubIssueAuth.deleteToken()
+        GitHubIssueAuth.deleteConnection()
         provider = nil
         items = []
         candidates = []
@@ -146,21 +140,13 @@ final class IssuesPanelModel: ObservableObject {
         recovery = nil
     }
 
-    /// Recover from a non-401 failure (typically a 403: the token is valid but has
-    /// no rights to *this* repo). A 401 self-heals via `disconnect()` in `loadList`,
-    /// but a 403 leaves the pane bound-yet-empty with no way out — so drop the token
-    /// and re-run the device flow, letting the user approve under a different account
-    /// (or after granting fyolo org access, see `openConnectionSettings`).
-    func reconnect() async {
-        disconnect()
-        await connect()
-    }
-
-    /// Opens the OAuth app's connections page, where the user grants fyolo access
-    /// to the org that owns a private repo — the fix a bare reconnect can't make,
-    /// since GitHub re-issues the same token without re-prompting for org grants.
+    /// Opens the page where the credential is granted the org that owns a private
+    /// repo — the OAuth app's grant page, or for a token the token list, where
+    /// single sign-on is authorized per token. A bare reconnect can't make that
+    /// fix: GitHub re-issues the same grant without asking about the org again.
     func openConnectionSettings() {
-        NSWorkspace.shared.open(GitHubIssueAuth.settingsURL)
+        guard let url = provider?.connection.accessSettingsURL else { return }
+        NSWorkspace.shared.open(url)
     }
 
     // MARK: Loading
@@ -222,7 +208,7 @@ final class IssuesPanelModel: ObservableObject {
     }
 
     private func resolveContainer() async {
-        let remotes = await GitService.gitHubRemotes(in: repoRoot).map {
+        let remotes = await GitService.gitHubRemotes(in: repoRoot, host: host).map {
             IssueRepositoryCandidate(slug: $0.slug, remoteName: $0.name)
         }
         let pick = await GitService.issuesRepository(in: repoRoot)

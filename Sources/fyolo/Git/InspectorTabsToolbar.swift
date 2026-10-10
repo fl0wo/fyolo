@@ -96,7 +96,8 @@ struct InspectorTabsToolbar: View {
             // the check doesn't rerun on unrelated store churn.
             .task(id: "\(settings.githubIntegrationEnabled)|\(store.inspectorCheckout?.localRoot ?? "")") {
                 if let path = store.inspectorCheckout?.localRoot, settings.githubIntegrationEnabled {
-                    hasGitHubRemote = await !GitService.gitHubRemotes(in: path).isEmpty
+                    let host = GitHubIssueAuth.storedConnection()?.host ?? GitHubConnection.dotComHost
+                    hasGitHubRemote = await !GitService.gitHubRemotes(in: path, host: host).isEmpty
                 } else {
                     hasGitHubRemote = false
                 }

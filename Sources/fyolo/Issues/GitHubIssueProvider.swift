@@ -11,8 +11,8 @@ struct GitHubIssueProvider: IssueProvider {
     let id = IssueProviderID.github
     let capabilities = IssueCapabilities(pullRequests: true)
 
-    /// Bearer token from the device-flow connect.
-    let token: String
+    /// The server and credential every request goes to.
+    let connection: GitHubConnection
 
     enum APIError: LocalizedError {
         case status(Int)
@@ -35,7 +35,7 @@ struct GitHubIssueProvider: IssueProvider {
     }
 
     func issues(in container: IssueContainer, query: IssueQuery) async throws -> [IssueSummary] {
-        var components = URLComponents(string: "https://api.github.com/repos/\(container.id)/issues")!
+        var components = URLComponents(string: "\(connection.apiBase)/repos/\(container.id)/issues")!
         var items = [
             URLQueryItem(name: "state", value: query.openOnly ? "open" : "all"),
             URLQueryItem(name: "sort", value: "updated"),
@@ -56,7 +56,7 @@ struct GitHubIssueProvider: IssueProvider {
     }
 
     func detail(_ number: Int, in container: IssueContainer) async throws -> IssueDetail {
-        let base = "https://api.github.com/repos/\(container.id)/issues/\(number)"
+        let base = "\(connection.apiBase)/repos/\(container.id)/issues/\(number)"
         async let rawIssue: RawIssue = get(URL(string: base)!)
         async let rawComments: [RawComment] = get(URL(string: "\(base)/comments?per_page=100")!)
         let (issue, comments) = try await (rawIssue, rawComments)
@@ -86,7 +86,7 @@ struct GitHubIssueProvider: IssueProvider {
             let color: String?
         }
         let raw: [RawLabel] = try await get(
-            URL(string: "https://api.github.com/repos/\(container.id)/labels?per_page=100")!)
+            URL(string: "\(connection.apiBase)/repos/\(container.id)/labels?per_page=100")!)
         return raw.map { IssueLabel(name: $0.name, colorHex: $0.color ?? "") }
     }
 
@@ -101,7 +101,7 @@ struct GitHubIssueProvider: IssueProvider {
             let fork: Bool
             let parent: Parent?
         }
-        guard let url = URL(string: "https://api.github.com/repos/\(slug)") else { return nil }
+        guard let url = URL(string: "\(connection.apiBase)/repos/\(slug)") else { return nil }
         let raw: RawRepository = try await get(url)
         guard raw.fork else { return nil }
         return raw.parent?.fullName
@@ -126,7 +126,7 @@ struct GitHubIssueProvider: IssueProvider {
             let contentsUrl: String?
         }
         let raw: [RawFile] = try await get(
-            URL(string: "https://api.github.com/repos/\(container.id)/pulls/\(number)/files?per_page=100")!)
+            URL(string: "\(connection.apiBase)/repos/\(container.id)/pulls/\(number)/files?per_page=100")!)
         return raw.map { file in
             let status: GitFileStatus
             switch file.status {
@@ -154,7 +154,7 @@ struct GitHubIssueProvider: IssueProvider {
     /// reported as missing, leaving the diff's bands inert.
     func fileText(at url: URL) async throws -> String? {
         var request = URLRequest(url: url, timeoutInterval: 15)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(connection.token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/vnd.github.raw", forHTTPHeaderField: "Accept")
         request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -167,14 +167,24 @@ struct GitHubIssueProvider: IssueProvider {
     /// The connected account's login, fetched once per app run — the `assignee`
     /// filter needs a username, not a token.
     private func login() async throws -> String? {
-        if let cached = Self.cachedLogin { return cached }
-        struct RawUser: Decodable { let login: String }
-        let user: RawUser = try await get(URL(string: "https://api.github.com/user")!)
-        Self.cachedLogin = user.login
-        return user.login
+        if let cached = Self.cachedLogin, cached.token == connection.token { return cached.login }
+        let login = try await account()
+        Self.cachedLogin = (connection.token, login)
+        return login
     }
 
-    private nonisolated(unsafe) static var cachedLogin: String?
+    /// Keyed by token, so connecting as someone else never answers with the
+    /// previous account's login.
+    private nonisolated(unsafe) static var cachedLogin: (token: String, login: String)?
+
+    /// The login this connection signs in as — a live round trip, which is what
+    /// makes it the check that a pasted token and host actually work.
+    func account() async throws -> String {
+        struct RawUser: Decodable { let login: String }
+        guard let url = URL(string: "\(connection.apiBase)/user") else { throw APIError.decoding }
+        let user: RawUser = try await get(url)
+        return user.login
+    }
 
     /// Every repository the account can clone — its own, its collaborations, and
     /// its organizations' — most recently pushed first, which is the order someone
@@ -185,7 +195,7 @@ struct GitHubIssueProvider: IssueProvider {
         let pageSize = 100
         var repositories: [GitHubRepository] = []
         for page in 1...5 {
-            var components = URLComponents(string: "https://api.github.com/user/repos")!
+            var components = URLComponents(string: "\(connection.apiBase)/user/repos")!
             components.queryItems = [
                 URLQueryItem(name: "sort", value: "pushed"),
                 URLQueryItem(name: "per_page", value: String(pageSize)),
@@ -200,7 +210,7 @@ struct GitHubIssueProvider: IssueProvider {
 
     private func get<T: Decodable>(_ url: URL) async throws -> T {
         var request = URLRequest(url: url, timeoutInterval: 15)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(connection.token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
         let (data, response) = try await URLSession.shared.data(for: request)

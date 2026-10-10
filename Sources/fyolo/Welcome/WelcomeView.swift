@@ -10,7 +10,7 @@ import SwiftUI
 /// Connect first when no account is linked).
 ///
 /// Everything here reuses existing entry points — `addProject`,
-/// `presentOpenProjectPanel`, `cloneRepository`, and the GitHub connect flow the
+/// `presentOpenProjectPanel`, `cloneRepository`, and the `GitHubConnector` the
 /// Issues pane uses — so the welcome adds no machinery, only a front door onto it.
 struct WelcomeView: View {
     @EnvironmentObject var store: FyoloStore
@@ -108,49 +108,43 @@ struct WelcomeView: View {
 // MARK: - Clone from GitHub
 
 /// What the Clone from GitHub section is showing. Lives only as long as the
-/// welcome page does: the token is in the Keychain, so a remount re-reads it and
-/// refetches the list rather than holding a copy that could go stale.
+/// welcome page does: the connection is in the Keychain, so a remount re-reads it
+/// and refetches the list rather than holding a copy that could go stale.
 @MainActor
 final class WelcomeRepositoriesModel: ObservableObject {
     enum Phase: Equatable {
         case disconnected
-        case connecting(userCode: String)
         case loading
         case loaded([GitHubRepository])
         case failed(String)
     }
 
     @Published private(set) var phase: Phase = .loading
-    /// Why the last Connect failed, shown under the button.
-    @Published private(set) var connectError: String?
+    /// Why the stored connection stopped working, shown above Connect.
+    @Published private(set) var connectionError: String?
+
+    lazy var connector = GitHubConnector { [weak self] connection in
+        await self?.load(connection)
+    }
 
     func start() async {
-        guard let token = GitHubIssueAuth.storedToken() else {
+        guard let connection = GitHubIssueAuth.storedConnection() else {
             phase = .disconnected
             return
         }
-        await load(token: token)
+        await load(connection)
     }
 
-    func connect() async {
-        connectError = nil
-        do {
-            let token = try await GitHubIssueAuth.connect { phase = .connecting(userCode: $0) }
-            await load(token: token)
-        } catch {
-            phase = .disconnected
-            connectError = error.localizedDescription
-        }
-    }
-
-    private func load(token: String) async {
+    private func load(_ connection: GitHubConnection) async {
+        connectionError = nil
         phase = .loading
         do {
-            phase = .loaded(try await GitHubIssueProvider(token: token).repositories())
+            phase = .loaded(try await GitHubIssueProvider(connection: connection).repositories())
         } catch GitHubIssueProvider.APIError.status(401) {
-            // A revoked token: drop it and offer Connect again, the same self-heal
-            // the Issues pane does on a 401.
-            GitHubIssueAuth.deleteToken()
+            // A revoked or expired token: drop it and offer Connect again, the same
+            // self-heal the Issues pane does on a 401.
+            GitHubIssueAuth.deleteConnection()
+            connectionError = localized("GitHub no longer accepts the saved token. Connect again.")
             phase = .disconnected
         } catch {
             phase = .failed(error.localizedDescription)
@@ -181,16 +175,13 @@ private struct WelcomeRepositories: View {
     @ViewBuilder
     private var content: some View {
         switch model.phase {
-        case .disconnected, .connecting:
-            GitHubConnectPrompt(
+        case .disconnected:
+            GitHubConnectView(
+                connector: model.connector,
                 title: localized("Your Repositories"),
                 message: localized("Connect your GitHub account to clone one of your repositories."),
-                userCode: {
-                    if case .connecting(let userCode) = model.phase { return userCode }
-                    return nil
-                }(),
-                errorMessage: model.connectError
-            ) { Task { await model.connect() } }
+                hostError: model.connectionError
+            )
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
         case .loading:
