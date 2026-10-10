@@ -1,6 +1,6 @@
-// The changelog rendered at /changelog, newest entry first. Fyolo ships through
-// Sparkle, so a release here corresponds to a notarized build users auto-update
-// to. Keep entries short and user-facing — what changed, not how. Categories are
+// The changelog rendered at /changelog, newest entry first. Fyolo ships as a
+// GitHub Release and a Homebrew cask, so a release here corresponds to a tagged
+// build users get with `brew upgrade --cask fyolo`. Keep entries short and user-facing — what changed, not how. Categories are
 // optional; omit any that are empty for a release. Items may open with a short
 // "Label: rest" lead — the page renders the label bold, Glaze-style.
 
@@ -16,6 +16,22 @@ export type ChangelogEntry = {
 };
 
 export const changelog: ChangelogEntry[] = [
+  {
+    version: "0.1.0",
+    date: "2026-10-10",
+    title: "Fyolo's first release",
+    changes: {
+      new: [
+        "Fyolo: a personal fork of termio with its own name, app, CLI and state, so it runs beside termio. Nothing carries over from a termio install.",
+        "Homebrew: install with brew install --cask fl0wo/tap/fyolo and update with brew upgrade --cask fyolo. Each release also ships the DMG on GitHub.",
+        "FLO theme: IR Black on pure black, now the default dark theme.",
+      ],
+      improved: [
+        "Sidebar: with a theme picked, the sidebar and document panel fill with the terminal background and sit flush with the terminal.",
+        "Ports: the iPhone companion and device links move to 8887/8888 and 8895/8896, clear of termio's.",
+      ],
+    },
+  },
   {
     version: "0.56.1",
     date: "2026-10-09",
