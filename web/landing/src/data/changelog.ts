@@ -17,6 +17,19 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.3.0",
+    date: "2026-10-10",
+    title: "Docker, plugins, and a terminal from any folder",
+    changes: {
+      new: [
+        "Docker: a new inspector pane lists the containers running on your Mac, grouped by Compose project. Open one to read its logs, with Follow, and its details — ports, networks, mounts, health and environment.",
+        "Plugins: a new Settings tab for optional features you can switch on and off.",
+        "package.json scripts: the first plugin puts a green run button beside each script. A click runs it with the project's package manager in a terminal split, and the file stays open.",
+        "Open in Integrated Terminal: right-click a file or folder in the file tree to open a terminal already in that folder.",
+      ],
+    },
+  },
+  {
     version: "0.2.3",
     date: "2026-10-10",
     title: "Black where it should be black",
