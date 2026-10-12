@@ -132,6 +132,17 @@ struct IssueSummary: Identifiable, Hashable, Sendable {
     let url: URL?
 
     var id: Int { number }
+
+    /// Whether the list's search field keeps this row: every whitespace-separated
+    /// term must land in the title or the identifier. Matching the identifier
+    /// rather than the bare number lets `#12` and `12` both find `#123`.
+    /// `localizedStandardContains` is Finder's own search comparison — case- and
+    /// diacritic-insensitive.
+    func matches(search: String) -> Bool {
+        search.split(whereSeparator: \.isWhitespace).allSatisfy { term in
+            title.localizedStandardContains(term) || identifier.localizedStandardContains(term)
+        }
+    }
 }
 
 /// One comment in the detail thread.

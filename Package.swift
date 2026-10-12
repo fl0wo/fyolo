@@ -15,10 +15,6 @@ let package = Package(
         // misdiagnosis — the real bug was fyolo's own PTY spawn shape (see
         // docs/bug/terminal-resize-no-reflow-HANDOFF.md §0).
         .package(url: "https://github.com/termio-sh/libghostty-swift", from: "1.1.6"),
-        // Sparkle powers in-app auto-update (the "Check for Updates…" menu item and
-        // background update checks). It reads the appcast published with each GitHub
-        // release; the matching EdDSA public key is embedded in packaging/Info.plist.
-        .package(url: "https://github.com/sparkle-project/Sparkle.git", from: "2.6.0"),
         // Highlightr (the highlight.js wrapper powering the file editor) is VENDORED
         // at Sources/fyolo/Editor/Highlightr, not a dependency: `swift build` bakes a
         // dependency's `Bundle.module` accessor with only the .app root + a build-machine
@@ -43,7 +39,6 @@ let package = Package(
                 // Bundled color-scheme catalog (Ghostty's built-in themes), used by
                 // the appearance settings to offer a theme picker.
                 .product(name: "GhosttyTheme", package: "libghostty-swift"),
-                .product(name: "Sparkle", package: "Sparkle"),
                 .product(name: "Markdown", package: "swift-markdown"),
                 .product(name: "FyoloShared", package: "Shared"),
             ],

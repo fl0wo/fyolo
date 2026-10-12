@@ -8,7 +8,7 @@ extension Fyolod {
     /// before it can show the user anywhere at all.
     ///
     /// Blocking; call it off the main thread.
-    static func deviceHome(route: FyolodRoute, caps: [String] = ["files"]) throws -> String {
+    static func deviceHome(route: FyolodRoute, caps: [String] = filesCapabilities) throws -> String {
         let channel = try ControlPool.channel(route: route, caps: caps)
         guard channel.capabilities.contains("files") else {
             throw DeviceFileError.unsupported

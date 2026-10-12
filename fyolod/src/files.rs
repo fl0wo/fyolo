@@ -856,6 +856,79 @@ impl grep_matcher::Matcher for LiteralMatcher {
     }
 }
 
+/// Which files a search reads, from the patterns typed into a client's "files
+/// to include" field. Gitignore glob syntax, because it is the syntax the tree
+/// already answers to: `*.ts` matches at any depth, a pattern holding a slash is
+/// anchored at the root, `src` covers everything beneath any `src` directory,
+/// `{a,b}` alternates, and a leading `!` makes a pattern an exclusion. Several
+/// inclusions are alternatives; an exclusion beats them all; exclusions alone
+/// narrow from everything.
+///
+/// Narrows the walk and never widens it: a file the ignore rules skip stays
+/// skipped however it is named here. That is why this is not the walker's own
+/// `overrides`, whose whitelist outranks `.gitignore` — ripgrep's `-g '*.ts'`
+/// searches an ignored `generated.ts`, and a filter typed to narrow a search
+/// should not reach into what the tree hides.
+pub struct SearchFilter {
+    include: ignore::gitignore::Gitignore,
+    exclude: ignore::gitignore::Gitignore,
+}
+
+impl SearchFilter {
+    /// The filter `patterns` describe, `None` when they describe none, or the
+    /// sentence naming the pattern that does not parse.
+    pub fn new(root: &Path, patterns: &[String]) -> Result<Option<SearchFilter>, String> {
+        let mut include = ignore::gitignore::GitignoreBuilder::new(root);
+        let mut exclude = ignore::gitignore::GitignoreBuilder::new(root);
+        // Set before any pattern is added — the builder applies it only to the
+        // globs that come after. Case-blind because the patterns are typed by
+        // people who do not think about case, on a filesystem that mostly
+        // does not either.
+        for builder in [&mut include, &mut exclude] {
+            builder.case_insensitive(true).map_err(|e| e.to_string())?;
+        }
+        for pattern in patterns {
+            let pattern = pattern.trim();
+            let (builder, glob) = match pattern.strip_prefix('!') {
+                Some(excluded) => (&mut exclude, excluded.trim_start()),
+                None => (&mut include, pattern),
+            };
+            if glob.is_empty() {
+                continue;
+            }
+            // A gitignore reads a leading `#` as a comment, which would turn a
+            // typed name into no pattern at all — and a filter into "everything".
+            let glob = if glob.starts_with('#') { format!("\\{glob}") } else { glob.to_string() };
+            builder
+                .add_line(None, &glob)
+                .map_err(|e| format!("invalid file pattern “{pattern}”: {e}"))?;
+        }
+        let include = include.build().map_err(|e| e.to_string())?;
+        let exclude = exclude.build().map_err(|e| e.to_string())?;
+        if include.is_empty() && exclude.is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(SearchFilter { include, exclude }))
+    }
+
+    /// Whether the file at `relative` (to the search root) is searched. A
+    /// pattern naming one of its directories names the file too.
+    fn admits(&self, relative: &Path) -> bool {
+        if self.exclude.matched_path_or_any_parents(relative, false).is_ignore() {
+            return false;
+        }
+        self.include.is_empty()
+            || self.include.matched_path_or_any_parents(relative, false).is_ignore()
+    }
+
+    /// Whether the walk can skip the directory at `relative` without listing
+    /// it: an exclusion covering it covers everything beneath. Inclusions can
+    /// never prune — `*.ts` may match anywhere below any directory.
+    fn prunes(&self, relative: &Path) -> bool {
+        self.exclude.matched(relative, true).is_ignore()
+    }
+}
+
 /// Search `root` for `query`, handing finished batches to `emit` as they fill.
 ///
 /// Blocking by construction — the daemon runs it on a blocking thread, which is
@@ -868,9 +941,13 @@ impl grep_matcher::Matcher for LiteralMatcher {
 /// skipped. The rules come from the `ignore` crate reading `.gitignore`, the
 /// global excludes file and `.git/info/exclude` — the same inputs git reads,
 /// re-implemented rather than asked, so the two can disagree in corner cases.
+///
+/// `filter` narrows that domain by path before a file is opened, so a search
+/// limited to `*.ts` costs the walk plus the `.ts` files, not the tree.
 pub fn search(
     root: &Path,
     query: &str,
+    filter: Option<Arc<SearchFilter>>,
     limit: u64,
     cancel: &std::sync::atomic::AtomicBool,
     emit: &mut dyn FnMut(Vec<crate::protocol::SearchMatch>),
@@ -979,8 +1056,22 @@ pub fn search(
         // would anchor wherever the daemon happened to be launched instead of
         // at the tree being searched. git anchors it at the top of the working
         // tree; so does this.
-        .current_dir(root)
-        .filter_entry(|entry| entry.file_name() != ".git");
+        .current_dir(root);
+    let prune = filter.clone();
+    let prune_root = root.to_path_buf();
+    walker.filter_entry(move |entry| {
+        if entry.file_name() == ".git" {
+            return false;
+        }
+        let Some(filter) = &prune else { return true };
+        if entry.depth() == 0 || !entry.file_type().is_some_and(|kind| kind.is_dir()) {
+            return true;
+        }
+        entry
+            .path()
+            .strip_prefix(&prune_root)
+            .map_or(true, |relative| !filter.prunes(relative))
+    });
     // Lower precedence than every ignore file in the tree, which is where git
     // puts it (`add_ignore` is the last matcher consulted).
     if let Some(global) = global_excludes(root) {
@@ -1003,6 +1094,9 @@ pub fn search(
         let Some(relative) = path.strip_prefix(root).ok().and_then(|p| p.to_str()) else {
             continue;
         };
+        if filter.as_ref().is_some_and(|filter| !filter.admits(Path::new(relative))) {
+            continue;
+        }
         let Some(file) = open_text(path) else { continue };
         collector.begin_file(relative);
         // A file the searcher refuses — a line past the heap limit, a read that
@@ -1973,8 +2067,131 @@ mod tests {
     fn found(root: &Path, query: &str, limit: u64) -> (Vec<crate::protocol::SearchMatch>, SearchOutcome) {
         let cancel = std::sync::atomic::AtomicBool::new(false);
         let mut all = Vec::new();
-        let outcome = search(root, query, limit, &cancel, &mut |batch| all.extend(batch));
+        let outcome = search(root, query, None, limit, &cancel, &mut |batch| all.extend(batch));
         (all, outcome)
+    }
+
+    /// The paths a search narrowed by `patterns` reads, in walk order.
+    fn paths_filtered(root: &Path, query: &str, patterns: &[&str]) -> Vec<String> {
+        let patterns: Vec<String> = patterns.iter().map(|p| p.to_string()).collect();
+        let filter = SearchFilter::new(root, &patterns).unwrap().map(Arc::new);
+        let cancel = std::sync::atomic::AtomicBool::new(false);
+        let mut all = Vec::new();
+        search(root, query, filter, 100, &cancel, &mut |batch| all.extend(batch));
+        all.into_iter().map(|hit| hit.path).collect()
+    }
+
+    /// A tree with the needle in every file, so which files answer is decided by
+    /// the filter alone.
+    fn filter_tree(name: &str) -> PathBuf {
+        let root = repo(name);
+        for path in [
+            "README.md",
+            "app.ts",
+            "app.test.ts",
+            "main.rs",
+            "src/view.tsx",
+            "src/deep/model.ts",
+            "vendor/lib.ts",
+            "docs/src/guide.md",
+        ] {
+            let path = root.join(path);
+            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+            touch(&path, b"needle\n");
+        }
+        root
+    }
+
+    #[test]
+    fn an_extension_pattern_matches_at_any_depth() {
+        let root = filter_tree("filter-extension");
+        assert_eq!(
+            paths_filtered(&root, "needle", &["*.ts"]),
+            vec!["app.test.ts", "app.ts", "src/deep/model.ts", "vendor/lib.ts"]
+        );
+    }
+
+    #[test]
+    fn patterns_are_alternatives_and_braces_expand() {
+        let root = filter_tree("filter-alternatives");
+        let listed = paths_filtered(&root, "needle", &["*.rs", "*.tsx"]);
+        assert_eq!(listed, vec!["main.rs", "src/view.tsx"]);
+        assert_eq!(paths_filtered(&root, "needle", &["*.{rs,tsx}"]), listed);
+    }
+
+    /// `src` names a directory the way it would in a `.gitignore`: everything
+    /// under any `src`. A slash anchors it at the root instead.
+    #[test]
+    fn a_directory_pattern_covers_everything_beneath_it() {
+        let root = filter_tree("filter-directory");
+        assert_eq!(
+            paths_filtered(&root, "needle", &["src"]),
+            vec!["docs/src/guide.md", "src/deep/model.ts", "src/view.tsx"]
+        );
+        assert_eq!(
+            paths_filtered(&root, "needle", &["/src"]),
+            vec!["src/deep/model.ts", "src/view.tsx"]
+        );
+        assert_eq!(
+            paths_filtered(&root, "needle", &["src/**"]),
+            vec!["src/deep/model.ts", "src/view.tsx"]
+        );
+    }
+
+    #[test]
+    fn a_bang_excludes_files_and_whole_directories() {
+        let root = filter_tree("filter-exclude");
+        assert_eq!(
+            paths_filtered(&root, "needle", &["*.ts", "!*.test.ts", "!vendor"]),
+            vec!["app.ts", "src/deep/model.ts"]
+        );
+        // Exclusions alone narrow from everything rather than from nothing.
+        assert_eq!(
+            paths_filtered(&root, "needle", &["!src", "!*.md"]),
+            vec!["app.test.ts", "app.ts", "main.rs", "vendor/lib.ts"]
+        );
+    }
+
+    /// Typed on a case-insensitive filesystem by people who do not think about
+    /// case, so `*.MD` finds `README.md`.
+    #[test]
+    fn patterns_ignore_case() {
+        let root = filter_tree("filter-case");
+        assert_eq!(
+            paths_filtered(&root, "needle", &["*.MD"]),
+            vec!["README.md", "docs/src/guide.md"]
+        );
+    }
+
+    /// The filter narrows the walk and never widens it: naming an ignored file
+    /// does not bring it back, which ripgrep's own `-g` would.
+    #[test]
+    fn a_pattern_never_reaches_an_ignored_file() {
+        let root = filter_tree("filter-ignored");
+        touch(&root.join(".gitignore"), b"vendor/\napp.test.ts\n");
+        assert_eq!(
+            paths_filtered(&root, "needle", &["*.ts"]),
+            vec!["app.ts", "src/deep/model.ts"]
+        );
+    }
+
+    /// `#` opens a comment in a `.gitignore`, which would quietly turn a typed
+    /// name into no pattern at all — and an empty filter into "everything".
+    #[test]
+    fn a_leading_hash_is_part_of_the_name() {
+        let root = repo("filter-hash");
+        touch(&root.join("#notes.txt"), b"needle\n");
+        touch(&root.join("other.txt"), b"needle\n");
+        assert_eq!(paths_filtered(&root, "needle", &["#notes.txt"]), vec!["#notes.txt"]);
+    }
+
+    #[test]
+    fn blank_patterns_are_no_filter_and_a_broken_one_is_refused() {
+        let root = scratch("filter-parse");
+        assert!(SearchFilter::new(&root, &[]).unwrap().is_none());
+        assert!(SearchFilter::new(&root, &[" ".into(), "!".into()]).unwrap().is_none());
+        let refused = SearchFilter::new(&root, &["*.{ts".into()]).err().unwrap();
+        assert!(refused.contains("*.{ts"), "names the pattern: {refused}");
     }
 
     /// A repository marker, which is what makes the ignore rules apply at all —
@@ -2469,7 +2686,7 @@ mod tests {
 
         let cancel = std::sync::atomic::AtomicBool::new(false);
         let mut delivered = 0usize;
-        let outcome = search(&root, "needle", 10_000, &cancel, &mut |batch| {
+        let outcome = search(&root, "needle", None, 10_000, &cancel, &mut |batch| {
             delivered += batch.len();
             cancel.store(true, std::sync::atomic::Ordering::Relaxed);
         });

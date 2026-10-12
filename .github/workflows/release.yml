@@ -6,6 +6,10 @@ name: Release
 # attached to the GitHub Release, and the Homebrew cask in fl0wo/homebrew-tap is
 # pointed at it, so `brew install --cask fl0wo/tap/fyolo` serves it.
 #
+# Beside the DMG goes latest.json (scripts/release-manifest.sh): the app reads
+# it through releases/latest/download/ to learn the newest version and the
+# oldest one still allowed to run.
+#
 # The app is ad-hoc signed, not Developer ID signed or notarized. The cask
 # clears the quarantine flag after install so Gatekeeper lets it open.
 on:
@@ -127,14 +131,21 @@ jobs:
           hdiutil detach "$mount_point" -quiet
           exit $status
 
+      - name: Write the update manifest
+        run: |
+          MANIFEST_PATH="$RUNNER_TEMP/latest.json"
+          ./scripts/release-manifest.sh "${{ steps.meta.outputs.version }}" "$DMG_PATH" > "$MANIFEST_PATH"
+          cat "$MANIFEST_PATH"
+          echo "MANIFEST_PATH=$MANIFEST_PATH" >> "$GITHUB_ENV"
+
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="${{ steps.meta.outputs.version }}"
-          gh release create "v${VERSION}" "$DMG_PATH" \
+          gh release create "v${VERSION}" "$DMG_PATH" "$MANIFEST_PATH" \
             --title "${APP_NAME} v${VERSION}" \
-            --notes "Install or update with Homebrew: \`brew install --cask fl0wo/tap/${APP_NAME}\`" \
+            --notes "Install with Homebrew: \`brew tap fl0wo/tap && brew install --cask fl0wo/tap/${APP_NAME}\`. Installed apps offer the update themselves." \
             --generate-notes
 
       # Rewrite the cask in the tap to point at this release. Auth is a write

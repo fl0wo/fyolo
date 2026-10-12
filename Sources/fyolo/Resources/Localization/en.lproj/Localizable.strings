@@ -466,6 +466,8 @@
 	<string>Couldn’t Inspect</string>
 	<key>Couldn’t change the Themes folder</key>
 	<string>Couldn’t change the Themes folder</string>
+	<key>Couldn’t check for updates</key>
+	<string>Couldn’t check for updates</string>
 	<key>Couldn’t clone %@</key>
 	<string>Couldn’t clone %@</string>
 	<key>Couldn’t create the worktrees folder: %@</key>
@@ -486,6 +488,8 @@
 	<string>Couldn’t open a pull request page</string>
 	<key>Couldn’t reach %@.</key>
 	<string>Couldn’t reach %@.</string>
+	<key>Couldn’t relaunch fyolo. Quit and open it again.</key>
+	<string>Couldn’t relaunch fyolo. Quit and open it again.</string>
 	<key>Couldn’t remove %@.</key>
 	<string>Couldn’t remove %@.</string>
 	<key>Couldn’t remove worktree</key>
@@ -590,6 +594,10 @@
 	<string>Done</string>
 	<key>Don’t Compare</key>
 	<string>Don’t Compare</string>
+	<key>Downloading…</key>
+	<string>Downloading…</string>
+	<key>Downloads the new version.</key>
+	<string>Downloads the new version.</string>
 	<key>Draft</key>
 	<string>Draft</string>
 	<key>Drag an agent onto another to reorder.</key>
@@ -648,6 +656,8 @@
 	<string>Files</string>
 	<key>Files changed</key>
 	<string>Files changed</string>
+	<key>Files to include, e.g. *.ts, !tests</key>
+	<string>Files to include, e.g. *.ts, !tests</string>
 	<key>Filter</key>
 	<string>Filter</string>
 	<key>Find</key>
@@ -714,6 +724,8 @@
 	<string>GitHub no longer accepts the saved token. Connect again.</string>
 	<key>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</key>
 	<string>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</string>
+	<key>GitHub replied with HTTP %lld.</key>
+	<string>GitHub replied with HTTP %lld.</string>
 	<key>Grant Org Access…</key>
 	<string>Grant Org Access…</string>
 	<key>Green</key>
@@ -736,6 +748,8 @@
 	<string>Highlights</string>
 	<key>History</key>
 	<string>History</string>
+	<key>Homebrew couldn’t update fyolo. Run %@ in a terminal to see why.</key>
+	<string>Homebrew couldn’t update fyolo. Run %@ in a terminal to see why.</string>
 	<key>Hooks</key>
 	<string>Hooks</string>
 	<key>Hooks and skill installed</key>
@@ -1134,6 +1148,8 @@
 	<string>Open on GitHub</string>
 	<key>Open one to see how it is reached and what it runs.</key>
 	<string>Open one to see how it is reached and what it runs.</string>
+	<key>Open the disk image and drag fyolo to Applications.</key>
+	<string>Open the disk image and drag fyolo to Applications.</string>
 	<key>Open the invite on your iPhone to install it with TestFlight.</key>
 	<string>Open the invite on your iPhone to install it with TestFlight.</string>
 	<key>Opened outside Fyolo on this device</key>
@@ -1252,6 +1268,8 @@
 	<string>Push the current branch to the repository’s remote first, then try again. (The remote also needs to be a forge Fyolo recognizes: GitHub, GitLab, Bitbucket, or Gitea.)</string>
 	<key>Quit Fyolo</key>
 	<string>Quit Fyolo</string>
+	<key>Quit fyolo</key>
+	<string>Quit fyolo</string>
 	<key>Range</key>
 	<string>Range</string>
 	<key>Reachable</key>
@@ -1290,10 +1308,16 @@
 	<string>Reinstall skill</string>
 	<key>Reinstalled</key>
 	<string>Reinstalled</string>
+	<key>Relaunch</key>
+	<string>Relaunch</string>
 	<key>Relaunch Fyolo to switch language?</key>
 	<string>Relaunch Fyolo to switch language?</string>
 	<key>Relaunch Now</key>
 	<string>Relaunch Now</string>
+	<key>Relaunch to finish updating.</key>
+	<string>Relaunch to finish updating.</string>
+	<key>Release Notes</key>
+	<string>Release Notes</string>
 	<key>Reload</key>
 	<string>Reload</string>
 	<key>Remote</key>
@@ -1348,6 +1372,8 @@
 	<string>Restarting the tunnel changes the address, and every paired iPhone has to scan again.</string>
 	<key>Restore Defaults</key>
 	<string>Restore Defaults</string>
+	<key>Reveal in Files</key>
+	<string>Reveal in Files</string>
 	<key>Reveal in Finder</key>
 	<string>Reveal in Finder</string>
 	<key>Revoke Access</key>
@@ -1488,6 +1514,8 @@
 	<string>Skill installed</string>
 	<key>Skill reinstalled</key>
 	<string>Skill reinstalled</string>
+	<key>Skip This Version</key>
+	<string>Skip This Version</string>
 	<key>Skip permission prompts</key>
 	<string>Skip permission prompts</string>
 	<key>Somebody else wrote this file after you opened it. Overwriting replaces their version.</key>
@@ -1576,6 +1604,10 @@
 	<string>The device couldn’t read this comparison.</string>
 	<key>The devices in your ~/.ssh/config, and the keys that reach them</key>
 	<string>The devices in your ~/.ssh/config, and the keys that reach them</string>
+	<key>The download didn’t match the release. Nothing was installed.</key>
+	<string>The download didn’t match the release. Nothing was installed.</string>
+	<key>The download failed.</key>
+	<string>The download failed.</string>
 	<key>The fyolo command-line tool, agent skill, and notifications</key>
 	<string>The fyolo command-line tool, agent skill, and notifications</string>
 	<key>The ignore rule couldn’t be added.</key>
@@ -1602,6 +1634,8 @@
 	<string>The public keys in ~/.ssh. Copy one to paste into a server’s authorized_keys — private keys are never read.</string>
 	<key>The read failed.</key>
 	<string>The read failed.</string>
+	<key>The release’s update information couldn’t be read.</key>
+	<string>The release’s update information couldn’t be read.</string>
 	<key>The search failed.</key>
 	<string>The search failed.</string>
 	<key>The session host answered, but not with a pairing invite.</key>
@@ -1648,6 +1682,8 @@
 	<string>This branch has no commits yet.</string>
 	<key>This branch has nothing the base branch doesn’t already have.</key>
 	<string>This branch has nothing the base branch doesn’t already have.</string>
+	<key>This build doesn’t check for updates.</key>
+	<string>This build doesn’t check for updates.</string>
 	<key>This checkout has no other branch to compare with.</key>
 	<string>This checkout has no other branch to compare with.</string>
 	<key>This device didn’t answer. Its fyolod may be too old to search.</key>
@@ -1686,6 +1722,8 @@
 	<string>This machine sent a name the file tree can’t show.</string>
 	<key>This machine’s fyolod is too old to browse files.</key>
 	<string>This machine’s fyolod is too old to browse files.</string>
+	<key>This machine’s fyolod is too old to filter by file. Clear the filter to search everything.</key>
+	<string>This machine’s fyolod is too old to filter by file. Clear the filter to search everything.</string>
 	<key>This machine’s fyolod is too old to install agent integration.</key>
 	<string>This machine’s fyolod is too old to install agent integration.</string>
 	<key>This machine’s fyolod is too old to list folders.</key>
@@ -1754,10 +1792,16 @@
 	<string>Update</string>
 	<key>Update Anyway</key>
 	<string>Update Anyway</string>
+	<key>Update Required</key>
+	<string>Update Required</string>
 	<key>Update ready</key>
 	<string>Update ready</string>
 	<key>Updated.</key>
 	<string>Updated.</string>
+	<key>Updates with Homebrew.</key>
+	<string>Updates with Homebrew.</string>
+	<key>Updating with Homebrew…</key>
+	<string>Updating with Homebrew…</string>
 	<key>Usage</key>
 	<string>Usage</string>
 	<key>Usage statistics</key>
@@ -1838,12 +1882,18 @@
 	<string>Yesterday</string>
 	<key>You can restore it from the Trash.</key>
 	<string>You can restore it from the Trash.</string>
+	<key>You have %@.</key>
+	<string>You have %@.</string>
 	<key>Your Host entries from ~/.ssh/config — the same aliases `ssh` resolves. Right-click a host to connect.</key>
 	<string>Your Host entries from ~/.ssh/config — the same aliases `ssh` resolves. Right-click a host to connect.</string>
 	<key>Your Repositories</key>
 	<string>Your Repositories</string>
+	<key>Your sessions keep running while you update.</key>
+	<string>Your sessions keep running while you update.</string>
 	<key>Your themes</key>
 	<string>Your themes</string>
+	<key>You’re up to date</key>
+	<string>You’re up to date</string>
 	<key>Zoom</key>
 	<string>Zoom</string>
 	<key>Zoom Split</key>
@@ -1870,6 +1920,12 @@
 	<string>e.g. JetBrains Mono</string>
 	<key>first %1$lld of %2$lld files</key>
 	<string>first %1$lld of %2$lld files</string>
+	<key>fyolo %@ is available</key>
+	<string>fyolo %@ is available</string>
+	<key>fyolo %@ is no longer supported. Update to %@ to keep using it.</key>
+	<string>fyolo %@ is no longer supported. Update to %@ to keep using it.</string>
+	<key>fyolo %@ is the newest version.</key>
+	<string>fyolo %@ is the newest version.</string>
 	<key>fyolo can teach the agents you run (Claude Code, Codex, …) a `fyolo sessions` command so they can see, drive, and read each other's sessions in a project.
 
 Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks. You can turn it off anytime in Settings ▸ Agents.</key>
@@ -1886,6 +1942,8 @@ Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks
 %@</string>
 	<key>fyolod on this Mac didn’t answer.</key>
 	<string>fyolod on this Mac didn’t answer.</string>
+	<key>fyolod on this Mac is too old to filter by file. Clear the filter to search everything.</key>
+	<string>fyolod on this Mac is too old to filter by file. Clear the filter to search everything.</string>
 	<key>fyolod on this Mac is too old to search.</key>
 	<string>fyolod on this Mac is too old to search.</string>
 	<key>git can no longer inspect “%@”, and its folder still holds files. Delete the folder to remove the worktree.</key>

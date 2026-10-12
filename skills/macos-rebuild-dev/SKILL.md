@@ -24,12 +24,12 @@ release one, so both can run at the same time:
 | Daemon launchd job | `sh.fyolo.fyolod` | `sh.fyolo.fyolod.dev` |
 | Companion port | 8787 | 8788 |
 | CLI on PATH | `fyolo` | `fyolo-dev` |
-| Sparkle auto-update | on | **no update feed** (dev never self-updates) |
+| Update check | on | **off** (dev never offers to replace itself) |
 
 All of this falls out of the `.dev` bundle-id suffix via `Sources/fyolo/Companion/AppChannel.swift`
-(paths + port) and `scripts/build-app.sh` (id, name, `SUFeedURL` deletion, CLI rebind).
-Sparkle.framework itself is embedded on both channels — the binary links it either
-way — so a dev bundle still carries it; it just has nothing to check.
+(paths + port, and `UpdateChecker`'s off switch) and `scripts/build-app.sh` (id, name,
+CLI rebind). `FYOLO_UPDATE_MANIFEST=<url>` (passed with `open --env`) turns the check
+on against a manifest of your own, to exercise the update UI.
 
 fyolo is a plain SwiftPM executable (`Package.swift` → `executableTarget` named
 `fyolo`); `swift build` alone produces a bare binary with **no Dock icon**. So this

@@ -3,7 +3,7 @@ title: fyolod Session Protocol
 status: draft
 type: design
 created: 2026-07-30
-updated: 2026-09-09
+updated: 2026-10-12
 related:
   - 20260730-fyolod-session-mux.md
   - 20260708-session-daemon-architecture.md
@@ -796,7 +796,7 @@ listing, and three mechanisms buy back the replica's perceived speed:
 | --- | --- | --- |
 | `fs.list` | `{root, paths[], after?}` → per-path `{entries[], next_after?, seq}` | entry = `{name, kind: file\|dir\|symlink\|unloaded_dir, size, mtime, symlink_target?, target_kind?}`; pages capped (~2,000 entries) and continued by **name**, not offset — a directory written while it is read shifts every offset behind the cursor, so an offset repeats one entry and drops another; `target_kind` is what a symlink resolves to, and only while the target stays under the root, so a client offers to descend exactly where `confine` will answer; every request carries its own `seq`, so a listing spanning several is only as fresh as its **first**; `next_page` is the retired offset form — a client still decodes it to tell an old host's first page from a complete one, and stops there rather than following an offset; ignored/external dirs are `unloaded_dir` stubs — never walked until explicitly listed (the one Zed lesson kept as invariant) |
 | `fs.read` | `{path, range?}` → chunked binary | 1 MiB soft cap for preview parity with the companion; `range` for the editor later |
-| `fs.search` | `{root, query, limit}` → streamed result events, terminal reply | host walks the root with ripgrep's searcher over the ignore rules — no subprocess, no git; cancellable by request id (⇧⌘F) |
+| `fs.search` | `{root, query, include?, limit}` → streamed result events, terminal reply | host walks the root with ripgrep's searcher over the ignore rules — no subprocess, no git; cancellable by request id (⇧⌘F). `include` (capability `search_include`) is gitignore-style globs, `!` to exclude, checked against each path before the file is opened; it narrows what the ignore rules allow and never reaches an ignored file. A host without the capability drops the field, so a client sends a filtered search only where it was granted |
 | `fs.match` | `{root, query, limit}` → `{paths[], coverage}` | filename fuzzy (⌘⇧O); see index above |
 
 **Uploads** (capability `upload`) — one mechanism, three gestures (drag onto a

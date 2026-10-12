@@ -278,6 +278,15 @@ struct InspectorDetailChromeButtons: View {
 
     var body: some View {
         HStack(spacing: 6) {
+            // Locate: open the Files tree down to this file — JetBrains' "Select Opened File"
+            // crosshair. Only for a file the tree can show; a diff, an issue, or a file from
+            // outside the checkout has no row to land on.
+            if store.revealableOpenFilePath != nil {
+                DetailChromeButton(icon: .target, size: 14,
+                                   help: localized("Reveal in Files")) {
+                    store.revealOpenFileInTree()
+                }
+            }
             // Collapse the leading list column so the detail fills the inspector. A panel glyph
             // rather than one of the box-split "layout" marks, which the diff's inline /
             // side-by-side toggle owns now: two of those in one header read as one control.

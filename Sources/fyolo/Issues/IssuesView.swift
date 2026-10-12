@@ -20,6 +20,7 @@ struct IssuesView: View {
     @StateObject private var model: IssuesPanelModel
     @State private var selection: Int?
     @State private var filterHovering = false
+    @State private var searchText = ""
 
     init(repoRoot: String) {
         self.repoRoot = repoRoot
@@ -72,8 +73,8 @@ struct IssuesView: View {
         }
     }
 
-    /// The kind switch (only when the provider has PRs at all) and the filter
-    /// menu, at the git pane's shared 34pt top-bar height. Trailing padding is
+    /// The kind switch (only when the provider has PRs at all), the search field,
+    /// refresh, and the filter menu, at the git pane's shared 34pt top-bar height. Trailing padding is
     /// deeper than leading so the funnel's right edge lines up under the
     /// toolbar's collapse button instead of hugging the pane edge.
     private var topBar: some View {
@@ -81,6 +82,7 @@ struct IssuesView: View {
             if model.capabilities?.pullRequests == true { kindSwitch }
             if model.candidates.count > 1 { repositoryMenu }
             Spacer(minLength: 0)
+            searchField
             refreshButton
                 // Breathing room so refresh and filter don't read as one two-icon cluster.
                 .padding(.trailing, 8)
@@ -89,6 +91,38 @@ struct IssuesView: View {
         .padding(.leading, 8)
         .padding(.trailing, 12)
         .frame(height: GitChangesView.topBarHeight)
+    }
+
+    /// Narrows the loaded list by title or `#number` as you type. Client-side over the
+    /// rows already fetched, so it costs no request and survives a kind or filter switch.
+    private var searchField: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.secondary)
+            TextField(localized("Search"), text: $searchText)
+                .textFieldStyle(.plain)
+                .font(.system(size: 11))
+                .onExitCommand { searchText = "" }
+            if !searchText.isEmpty {
+                Button { searchText = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help(localized("Clear"))
+            }
+        }
+        .padding(.horizontal, 7)
+        .frame(height: 22)
+        .frame(minWidth: 56, maxWidth: 120)
+        .background { CapsuleFieldChrome() }
+        .padding(.trailing, 4)
+    }
+
+    private var visibleItems: [IssueSummary] {
+        model.items.filter { $0.matches(search: searchText) }
     }
 
     /// Manual reload of the current query — the GitHub Desktop refresh affordance.
@@ -294,10 +328,13 @@ struct IssuesView: View {
                 message: emptyMessage
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if visibleItems.isEmpty {
+            PaneEmptyState(localized("No Matches"), icon: .search)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             // Native `List` selection as the click handler, like the changes list —
             // a selected row opens its detail in the center (see `body`'s onChange).
-            List(model.items, selection: $selection) { item in
+            List(visibleItems, selection: $selection) { item in
                 IssueRow(
                     item: item,
                     font: settings.interfaceFont,

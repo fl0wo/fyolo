@@ -39,7 +39,7 @@ Run from a macOS GUI session — Fyolo is a real foreground AppKit app
 (bootstrapped by an explicit `NSApplication` in `Sources/fyolo/App/App.swift`,
 not the SwiftUI `App` lifecycle).
 
-### App bundle (Dock icon, Sparkle embedded)
+### App bundle (Dock icon)
 
 `swift run` produces a bare binary with a generic Dock icon. For a proper
 `.app`:
@@ -65,7 +65,7 @@ open ./fyolo-dev.app
 
 The dev channel gets its own bundle id (`sh.fyolo.app.dev`), its own state dir
 (`~/.fyolo-dev`), its own companion port (8788), a `fyolo-dev` CLI, and no
-Sparkle update feed, so it can never auto-update itself onto the release channel.
+update checks, so it can never offer to replace itself with the release.
 
 ### iOS companion
 
@@ -148,8 +148,7 @@ package version in `Package.swift`.
 - Keep each commit a single logical change; the body (when needed) explains
   why, not what.
 - Don't rewrite pushed history on `main` — the release build number is
-  `git rev-list --count HEAD`, and Sparkle treats a lower build number as
-  older, which breaks auto-update.
+  `git rev-list --count HEAD`, and it must only ever increase.
 
 ### Pull requests
 
@@ -173,26 +172,23 @@ git tag v0.3.0
 git push origin v0.3.0
 ```
 
-That fires `.github/workflows/release.yml`, which builds the app,
-Developer-ID-signs and notarizes it, packages a DMG, signs and merges the
-Sparkle appcast, uploads everything to Cloudflare R2
-(`downloads.fyolo.sh`), and records a GitHub Release.
+That fires `.github/workflows/release.yml`, which builds the app (ad-hoc
+signed), packages a DMG, writes `latest.json`, publishes both on a GitHub
+Release, and bumps the Homebrew cask in `fl0wo/homebrew-tap`.
 
 - **The tag is the version**: `v0.3.0` → `CFBundleShortVersionString = 0.3.0`.
 - **The build number is the commit count** on `HEAD`, stamped into
   `CFBundleVersion`; it must only ever increase (see the history-rewrite
   warning above).
-- Existing installs pick the release up on their next Sparkle check via
-  `https://downloads.fyolo.sh/appcast.xml`.
+- Existing installs learn about it from `latest.json` within twelve hours, or
+  at once from **Check for Updates…**. A release that raises the floor
+  (`packaging/minimum-version`, or a new major) makes older versions update.
 
-Details, one-time secret setup, and the manual verification checklist live in
-`docs/RELEASING.md` and `docs/runbook/macos-release-runbook.md`. To reproduce
-a release-style signed bundle locally:
+Details and one-time secret setup live in `docs/RELEASING.md`. To reproduce
+a release-style bundle locally:
 
 ```sh
-SIGN_IDENTITY="Developer ID Application" \
-FYOLO_VERSION=0.3.0 FYOLO_BUILD=$(git rev-list --count HEAD) \
-  ./scripts/build-app.sh
+FYOLO_VERSION=0.4.0 FYOLO_BUILD=$(git rev-list --count HEAD) ./scripts/build-app.sh
 ```
 
 iOS releases run through `.github/workflows/ios.yml` and TestFlight and are

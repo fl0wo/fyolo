@@ -2262,6 +2262,16 @@
         }
       }
     },
+    "Couldn’t check for updates": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法检查更新"
+          }
+        }
+      }
+    },
     "Couldn’t clone %@": {
       "localizations": {
         "zh-Hans": {
@@ -2358,6 +2368,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法连接到 %@。"
+          }
+        }
+      }
+    },
+    "Couldn’t relaunch fyolo. Quit and open it again.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法重新启动 fyolo。请退出后重新打开。"
           }
         }
       }
@@ -2893,6 +2913,26 @@
         }
       }
     },
+    "Downloading…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在下载…"
+          }
+        }
+      }
+    },
+    "Downloads the new version.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将下载新版本。"
+          }
+        }
+      }
+    },
     "Draft": {
       "localizations": {
         "zh-Hans": {
@@ -3183,6 +3223,16 @@
         }
       }
     },
+    "Files to include, e.g. *.ts, !tests": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要包含的文件，例如 *.ts, !tests"
+          }
+        }
+      }
+    },
     "Filter": {
       "localizations": {
         "zh-Hans": {
@@ -3334,6 +3384,46 @@
         }
       }
     },
+    "fyolo %@ is available": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fyolo %@ 现已推出"
+          }
+        }
+      }
+    },
+    "fyolo %@ is no longer supported. Update to %@ to keep using it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fyolo %1$@ 已不再受支持。请更新到 %2$@ 以继续使用。"
+          }
+        }
+      }
+    },
+    "fyolo %@ is the newest version.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fyolo %@ 是最新版本。"
+          }
+        }
+      }
+    },
+    "fyolod on this Mac is too old to filter by file. Clear the filter to search everything.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这台 Mac 上的 fyolod 版本过旧，不支持按文件过滤。清除过滤条件即可搜索全部文件。"
+          }
+        }
+      }
+    },
     "General": {
       "localizations": {
         "zh-Hans": {
@@ -3420,6 +3510,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "GitHub 拒绝了这个令牌。请确认它已完整复制且未过期。"
+          }
+        }
+      }
+    },
+    "GitHub replied with HTTP %lld.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub 返回了 HTTP %lld。"
           }
         }
       }
@@ -3530,6 +3630,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "历史"
+          }
+        }
+      }
+    },
+    "Homebrew couldn’t update fyolo. Run %@ in a terminal to see why.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Homebrew 无法更新 fyolo。请在终端中运行 %@ 查看原因。"
           }
         }
       }
@@ -5447,6 +5557,16 @@
         }
       }
     },
+    "Open the disk image and drag fyolo to Applications.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开磁盘映像，将 fyolo 拖到“应用程序”文件夹。"
+          }
+        }
+      }
+    },
     "Open Themes Folder…": {
       "localizations": {
         "zh-Hans": {
@@ -6117,6 +6237,16 @@
         }
       }
     },
+    "Quit fyolo": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出 fyolo"
+          }
+        }
+      }
+    },
     "Range": {
       "localizations": {
         "zh-Hans": {
@@ -6307,6 +6437,16 @@
         }
       }
     },
+    "Relaunch": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新启动"
+          }
+        }
+      }
+    },
     "Relaunch Now": {
       "localizations": {
         "zh-Hans": {
@@ -6323,6 +6463,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新启动 Fyolo 以切换语言？"
+          }
+        }
+      }
+    },
+    "Relaunch to finish updating.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新启动以完成更新。"
+          }
+        }
+      }
+    },
+    "Release Notes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发行说明"
           }
         }
       }
@@ -6593,6 +6753,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "恢复默认"
+          }
+        }
+      }
+    },
+    "Reveal in Files": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“文件”中显示"
           }
         }
       }
@@ -7308,6 +7478,16 @@
         }
       }
     },
+    "Skip This Version": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过此版本"
+          }
+        }
+      }
+    },
     "Somebody else wrote this file after you opened it. Overwriting replaces their version.": {
       "localizations": {
         "zh-Hans": {
@@ -7808,6 +7988,26 @@
         }
       }
     },
+    "The download didn’t match the release. Nothing was installed.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载的文件与发布版本不符，未安装任何内容。"
+          }
+        }
+      }
+    },
+    "The download failed.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载失败。"
+          }
+        }
+      }
+    },
     "The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.": {
       "localizations": {
         "zh-Hans": {
@@ -7934,6 +8134,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "读取失败。"
+          }
+        }
+      }
+    },
+    "The release’s update information couldn’t be read.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取该版本的更新信息。"
           }
         }
       }
@@ -8078,6 +8288,16 @@
         }
       }
     },
+    "This build doesn’t check for updates.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此版本不检查更新。"
+          }
+        }
+      }
+    },
     "This GitHub account has no repositories yet.": {
       "localizations": {
         "zh-Hans": {
@@ -8104,6 +8324,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "本机以及你能连接的设备"
+          }
+        }
+      }
+    },
+    "This machine’s fyolod is too old to filter by file. Clear the filter to search everything.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该设备上的 fyolod 版本过旧，无法按文件过滤。清除过滤条件即可搜索全部文件。"
           }
         }
       }
@@ -8618,6 +8848,36 @@
         }
       }
     },
+    "Update Required": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要更新"
+          }
+        }
+      }
+    },
+    "Updates with Homebrew.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将通过 Homebrew 更新。"
+          }
+        }
+      }
+    },
+    "Updating with Homebrew…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在通过 Homebrew 更新…"
+          }
+        }
+      }
+    },
     "URL Pattern": {
       "comment": "Label for the Settings ▸ Mobile field holding a regular expression that matches the public URL a self-hosted tunnel prints on start-up.",
       "localizations": {
@@ -9109,6 +9369,16 @@
         }
       }
     },
+    "You have %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你当前的版本是 %@。"
+          }
+        }
+      }
+    },
     "Your Host entries from ~/.ssh/config — the same aliases `ssh` resolves. Right-click a host to connect.": {
       "localizations": {
         "zh-Hans": {
@@ -9129,12 +9399,32 @@
         }
       }
     },
+    "Your sessions keep running while you update.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新期间，你的会话会继续运行。"
+          }
+        }
+      }
+    },
     "Your themes": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "你的主题"
+          }
+        }
+      }
+    },
+    "You’re up to date": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已是最新版本"
           }
         }
       }

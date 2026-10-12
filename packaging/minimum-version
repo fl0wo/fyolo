@@ -1,0 +1,9 @@
+# The oldest fyolo release still allowed to run. Anything older is shown a
+# blocking "Update Required" sheet once it sees the next release's
+# latest.json (scripts/release-manifest.sh).
+#
+# A new major release raises the floor on its own (to <major>.0.0), so this
+# file is only for the exceptions: a release that must not stay in use — a
+# broken build, a protocol change older clients cannot speak. Raise it in the
+# same commit as the fix, then tag. Never above the version being released.
+0.0.0

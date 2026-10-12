@@ -1,14 +1,18 @@
 ---
 title: macOS release runbook — cut, notarize, publish fyolo.dmg
-status: active
+status: archived
 type: design
 created: 2026-07-06
-updated: 2026-07-12
+updated: 2026-10-12
 related:
   - ../RELEASING.md
 ---
 
 # macOS release runbook — cut, notarize, publish fyolo.dmg
+
+> **Archived.** The notarized R2 + Sparkle pipeline below no longer exists; fyolo
+> ships ad-hoc-signed DMGs on GitHub Releases and a Homebrew cask. See
+> [RELEASING.md](../RELEASING.md).
 
 > Operational runbook for shipping the macOS app: the one-time credential setup,
 > the per-release "push a tag" flow, how to verify a release went out, and how to

@@ -410,4 +410,134 @@ final class DeviceFileTreeTests: XCTestCase {
         XCTAssertEqual(tree.rootNodes.map(\.name), ["a", "b"])
         XCTAssertTrue(tree.rootNodes.allSatisfy { $0.notice == nil })
     }
+
+    // MARK: - Reveal in Files
+
+    /// The folders a reveal opens: every one between the root and the file,
+    /// outermost first, and none for a path the tree does not root.
+    func testFoldersLeadingToAPathStopAtItsParent() {
+        let tree = model()
+        XCTAssertEqual(tree.folders(leadingTo: "\(root)/src/deep/x.ts"),
+                       ["\(root)/src", "\(root)/src/deep"])
+        XCTAssertEqual(tree.folders(leadingTo: "\(root)/README.md"), [])
+        XCTAssertEqual(tree.folders(leadingTo: "\(root)x/other.ts"), [],
+                       "a sibling whose name starts like the root is not under it")
+        XCTAssertEqual(tree.folders(leadingTo: "/elsewhere/a/b.ts"), [])
+    }
+
+    /// The walk opens each folder on the way and lands on the file's own row,
+    /// finding rows by position in an outline whose items are not the nodes —
+    /// the shape SwiftUI's `List` gives it.
+    func testRevealOpensEachFolderAndLandsOnTheFile() throws {
+        let tree = revealTree()
+        let (outline, source) = mirror(tree)
+
+        let found = try XCTUnwrap(tree.revealRow(for: "\(root)/src/deep/x.ts", in: outline))
+
+        XCTAssertEqual(found.path, "\(root)/src/deep/x.ts")
+        XCTAssertEqual(source.path(of: outline.item(atRow: found.row)), found.path)
+        XCTAssertTrue(outline.isItemExpanded(source.item("\(root)/src")))
+        XCTAssertTrue(outline.isItemExpanded(source.item("\(root)/src/deep")))
+        XCTAssertFalse(outline.isItemExpanded(source.item("\(root)/docs")),
+                       "a folder off the path stays as it was")
+    }
+
+    /// An outline still drawing the previous snapshot must not be walked: the
+    /// n-th row there is not the model's n-th node, so the walk waits a frame.
+    func testRevealWaitsForAnOutlineThatHasNotCaughtUp() {
+        let tree = revealTree()
+        let (outline, _) = mirror(tree)
+        tree.apply([listing(root, [("aaa", .directory), ("docs", .directory),
+                                   ("src", .directory), ("README.md", .file)])])
+
+        XCTAssertNil(tree.revealRow(for: "\(root)/src/deep/x.ts", in: outline))
+    }
+
+    /// A file the tree does not draw — under a folder it never listed, or gone —
+    /// reveals the deepest folder it does have rather than nothing.
+    func testAPathTheTreeDoesNotDrawRevealsItsDeepestFolder() throws {
+        let tree = revealTree()
+        let (outline, source) = mirror(tree)
+
+        let found = try XCTUnwrap(tree.revealRow(for: "\(root)/src/gone/y.ts", in: outline))
+
+        XCTAssertEqual(found.path, "\(root)/src")
+        XCTAssertEqual(source.path(of: outline.item(atRow: found.row)), "\(root)/src")
+    }
+
+    private func revealTree() -> DeviceFileTreeModel {
+        let tree = model()
+        tree.apply([listing(root, [("docs", .directory), ("src", .directory),
+                                   ("README.md", .file)])])
+        tree.apply([listing("\(root)/docs", [("guide.md", .file)])])
+        tree.apply([listing("\(root)/src", [("deep", .directory), ("a.ts", .file)])])
+        tree.apply([listing("\(root)/src/deep", [("x.ts", .file)])])
+        return tree
+    }
+
+    /// A plain outline fed from the model's loaded rows, with items of its own
+    /// (one stable object per path) the way SwiftUI's are its own.
+    private func mirror(_ tree: DeviceFileTreeModel) -> (NSOutlineView, OutlineMirror) {
+        let outline = NSOutlineView()
+        let column = NSTableColumn(identifier: .init("name"))
+        outline.addTableColumn(column)
+        outline.outlineTableColumn = column
+        let source = OutlineMirror(tree: tree)
+        outline.dataSource = source
+        outline.reloadData()
+        return (outline, source)
+    }
+}
+
+/// A plain outline data source over a *snapshot* of the model's loaded rows,
+/// taken when it is made — SwiftUI's `List` serves the outline its own copy too,
+/// refreshed on its update pass rather than read live from the model.
+@MainActor
+private final class OutlineMirror: NSObject, NSOutlineViewDataSource {
+    private let roots: [String]
+    private let children: [String: [String]]
+    private let folders: Set<String>
+    private var items: [String: NSString] = [:]
+
+    init(tree: DeviceFileTreeModel) {
+        var children: [String: [String]] = [:]
+        var folders: Set<String> = []
+        var frontier = tree.rootNodes
+        while let node = frontier.popLast() {
+            guard node.isDirectory else { continue }
+            folders.insert(node.path)
+            let loaded = node.children ?? []
+            children[node.path] = loaded.map(\.path)
+            frontier.append(contentsOf: loaded)
+        }
+        self.roots = tree.rootNodes.map(\.path)
+        self.children = children
+        self.folders = folders
+    }
+
+    func item(_ path: String) -> NSString {
+        if let item = items[path] { return item }
+        let item = NSString(string: path)
+        items[path] = item
+        return item
+    }
+
+    func path(of item: Any?) -> String? { (item as? NSString).map(String.init) }
+
+    private func paths(under item: Any?) -> [String] {
+        guard let path = path(of: item) else { return roots }
+        return children[path] ?? []
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
+        paths(under: item).count
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, child index: Int, ofItem item: Any?) -> Any {
+        self.item(paths(under: item)[index])
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool {
+        path(of: item).map { folders.contains($0) } ?? false
+    }
 }

@@ -21,13 +21,13 @@ the Mac app.
 
 Fyolo ships as a notarized `.dmg` and updates itself in place:
 
-- **Download** — the landing "Download for Mac" buttons point at a stable
-  Cloudflare R2 URL (behind `downloads.fyolo.sh`) that always serves the newest
-  build. The single source of that URL is `src/lib/site.ts`; the release workflow
-  (`.github/workflows/release.yml`) overwrites the published `.dmg` on every tag.
-- **Auto-update** — the app embeds [Sparkle](https://sparkle-project.org/), so
-  once installed it keeps itself current from the same R2-hosted appcast. No
-  reinstalling, no checking the website.
+- **Download** — the landing "Download for Mac" buttons point at the newest
+  GitHub Release (`src/lib/site.ts`); the release workflow
+  (`.github/workflows/release.yml`) publishes the `.dmg` there on every tag and
+  bumps the Homebrew cask.
+- **Updates** — the installed app reads the `latest.json` published with each
+  release to learn of a newer version, and updates through Homebrew or the next
+  `.dmg` (`docs/RELEASING.md`). No checking the website.
 
 There is no account, no license key, and no server in the loop.
 
@@ -41,10 +41,10 @@ There is no account, no license key, and no server in the loop.
       │                                  │ "Download for Mac"
       │                                  ▼
       │                        ┌───────────────────┐
-      │        download .dmg ──│  Cloudflare R2    │
-      │                        │  downloads.fyolo │
+      │        download .dmg ──│  GitHub Releases  │
+      │                        │  + Homebrew tap   │
       │                        └─────────┬─────────┘
-      ▼                                  │ Sparkle appcast (auto-update)
+      ▼                                  │ latest.json (update check)
  ┌──────────────────────┐ ◀──────────────┘
  │  fyolo desktop app  │
  │  (macOS, local-only) │
@@ -57,7 +57,7 @@ There is no account, no license key, and no server in the loop.
 |-------|-------|------|
 | Next.js + TypeScript | landing | Marketing site, SSR/SSG pages |
 | Tailwind + shadcn/ui | landing | Styling and component primitives |
-| Cloudflare R2 | external | Hosts the notarized `.dmg` + Sparkle appcast |
+| GitHub Releases | external | Hosts the `.dmg` + `latest.json`; the Homebrew tap points at it |
 
 ## Local dev quickstart
 
@@ -71,10 +71,10 @@ There is no server to run.
 | Component | Target | Notes |
 |-----------|--------|-------|
 | `web/landing` | **Vercel** | Native Next.js host; preview deploys per PR. |
-| App download | **Cloudflare R2** | The `.dmg` + appcast, published by the release workflow on tag. |
+| App download | **GitHub Releases** | The `.dmg` + `latest.json`, published by the release workflow on tag. |
 
 ### Configuration (high level)
 
 - **Landing:** the download URL in `src/lib/site.ts`.
-- **Release:** the notarized `.dmg` and Sparkle appcast are uploaded to R2 by
+- **Release:** the `.dmg` and `latest.json` are published on a GitHub Release by
   `.github/workflows/release.yml` on each version tag.

@@ -73,6 +73,32 @@ final class FyolodSearchTimeoutTests: XCTestCase {
                        "the stub must have been reached, or nothing was proven")
     }
 
+    /// The stub grants `files` alone — a host from before `search_include`. It
+    /// would drop the field and search everything, so a filtered search is
+    /// refused before it is sent: the answer is immediate rather than the idle
+    /// bound running out on a request the stub never read.
+    func testAFilteredSearchIsNotSentToAHostThatCannotFilter() throws {
+        var caught: Error?
+        let finished = expectation(description: "the search was refused")
+        DispatchQueue.global(qos: .userInitiated).async { [socketPath] in
+            setenv("FYOLOD_SOCK", socketPath, 1)
+            do {
+                _ = try Fyolod.searchContents(
+                    route: .local, root: NSTemporaryDirectory(), query: "anything",
+                    include: ["*.ts"], limit: 400, idleTimeoutSeconds: 1)
+            } catch {
+                caught = error
+            }
+            finished.fulfill()
+        }
+        wait(for: [finished], timeout: 20)
+
+        XCTAssertEqual(caught as? DeviceFileError, .searchFilterUnsupported,
+                       "got \(String(describing: caught))")
+        XCTAssertEqual(handshaken.wait(timeout: .now()), .success,
+                       "the stub must have been reached, or nothing was proven")
+    }
+
     // MARK: - The stub host
 
     private func listen(on path: String) throws -> Int32 {

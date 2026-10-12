@@ -70,11 +70,11 @@ export default function PrivacyPage() {
               </p>
               <ul>
                 <li>
-                  <strong>Auto-updates.</strong> Fyolo periodically checks our
-                  download server for a newer version (powered by Sparkle). The
-                  check carries no account or device identifier — like any
-                  HTTPS request, the server sees an IP address and the app
-                  version being asked about, nothing more.
+                  <strong>Update checks.</strong> Fyolo periodically reads a
+                  small file published with each release on GitHub to learn
+                  whether a newer version exists. The check carries no account
+                  or device identifier — like any HTTPS request, GitHub sees an
+                  IP address and the app version, nothing more.
                 </li>
                 <li>
                   <strong>Your own usage dashboards.</strong> If you open the

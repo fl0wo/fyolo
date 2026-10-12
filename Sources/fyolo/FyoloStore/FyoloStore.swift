@@ -556,12 +556,60 @@ final class FyoloStore: ObservableObject {
     /// so the new tab starts on a clean list rather than showing the old tab's file/issue/diff.
     @Published var inspectorTab: InspectorTab = .files {
         didSet {
-            guard inspectorTab != oldValue else { return }
+            guard inspectorTab != oldValue, !keepsDetailAcrossTabSwitch else { return }
             openFileURL = nil
             openDiff = nil
             openIssueDetail = nil
         }
     }
+
+    /// Set for the one tab switch that must keep the detail: revealing the open
+    /// file in the Files tree is about that file, so closing it would defeat it.
+    private var keepsDetailAcrossTabSwitch = false
+
+    /// Asks the Files tree to open down to a path, select it and scroll to it. An
+    /// event rather than state: the tree acts once, and a stale request means nothing.
+    let revealInTreeRequest = PassthroughSubject<String, Never>()
+
+    /// The open file as the Files tree names it — the path on the checkout's own
+    /// machine — or `nil` when the open detail is not a file, or the file lies
+    /// outside the tree's root (a terminal link to `/etc/hosts`, a staged copy
+    /// with no origin). What decides whether the locate button is offered.
+    var revealableOpenFilePath: String? {
+        guard openDiff == nil, openIssueDetail == nil, openingRemoteFile == nil,
+              let checkout = inspectorCheckout, let root = checkout.root else { return nil }
+        let path: String
+        if let remote = openFileRemote {
+            guard checkout.isOnAnotherDevice else { return nil }
+            path = remote.path
+        } else if let url = openFileURL, checkout.localRoot != nil {
+            path = url.standardizedFileURL.path
+        } else {
+            return nil
+        }
+        let base = root.hasSuffix("/") ? root : root + "/"
+        return path.hasPrefix(base) && path.count > base.count ? path : nil
+    }
+
+    /// Shows the open file in the Files tree: the tab switches without closing
+    /// it, the list column comes back (widening the panel if it has to), and a
+    /// maximized detail steps down so the tree is on screen at all.
+    func revealOpenFileInTree() {
+        guard let path = revealableOpenFilePath else { return }
+        if inspectorMaximized { inspectorMaximized = false }
+        if inspectorTab != .files {
+            keepsDetailAcrossTabSwitch = true
+            inspectorTab = .files
+            keepsDetailAcrossTabSwitch = false
+        }
+        setInspectorListColumn(visible: true, widenTo: InspectorRoot.twoColumnMinWidth)
+        revealInTreeRequest.send(path)
+    }
+
+    /// Bumped by Search Files (⌘⇧F) so the Search pane takes the keyboard even
+    /// when it is already the inspector's tab — the tab switch alone only focuses
+    /// a pane that is appearing.
+    @Published var searchFocusRequest = 0
 
     /// The repo's dirty-file count, surfaced from the Changes pane so callers can reflect "has
     /// changes" without the inspector being open.

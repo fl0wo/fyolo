@@ -1,7 +1,6 @@
 import AppKit
 import Combine
 import GhosttyTerminal
-import Sparkle
 import SwiftUI
 import FyoloShared
 
@@ -55,17 +54,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Starts/stops the companion server + tunnel as the Mobile Access toggle flips.
     private var mobileAccessObserver: AnyCancellable?
     private var attachModeObserver: AnyCancellable?
-    // Drives in-app auto-update. Started only in release builds — a debug build has
-    // no Developer-ID signature for Sparkle to validate the appcast's EdDSA against,
-    // and we don't want dev runs phoning the update feed. The feed URL and public
-    // key live in packaging/Info.plist (SUFeedURL / SUPublicEDKey).
-    #if DEBUG
-    private let updaterController = SPUStandardUpdaterController(
-        startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
-    #else
-    private let updaterController = SPUStandardUpdaterController(
-        startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
-    #endif
+    /// Re-presents nothing: set once the blocking update sheet is up, which stays
+    /// until the app quits — a required update has no way back to "current".
+    private var updateRequiredSheet: NSWindow?
+    private var updateObserver: AnyCancellable?
     // Folders handed to us by the `fyolo` CLI (via `open -b sh.fyolo.app <dir>`)
     // before the window exists, replayed once it does. macOS may deliver the open
     // event during a cold launch, ahead of `applicationDidFinishLaunching`.
@@ -196,6 +188,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Count this install as active today, and keep counting across midnight
         // for a Mac that is left running (see `Analytics`).
         Analytics.start(settings: settings)
+        // Learn whether a newer release exists; one this version must update to
+        // puts a sheet over the window that only updating or quitting dismisses.
+        UpdateChecker.shared.start()
+        updateObserver = UpdateChecker.shared.$verdict
+            .receive(on: RunLoop.main)
+            .sink { [weak self] verdict in
+                MainActor.assumeIsolated { self?.presentUpdateRequired(verdict) }
+            }
         // Menu items cache their key equivalents at build time, so rebuild the
         // whole main menu whenever a user rebinds a shortcut in Settings.
         keybindingsObserver = NotificationCenter.default.addObserver(
@@ -1307,6 +1307,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         presenter.presentAsSheet(hostVC)
     }
 
+    /// View ▸ Search Files (⌘⇧F) — opens the inspector on the Search pane with the
+    /// query field focused; from inside the pane it selects the query, so typing
+    /// replaces it.
+    @objc func searchFiles(_ sender: Any?) {
+        if filesInspectorItem?.isCollapsed == true { toggleFilesInspector(sender) }
+        store.inspectorTab = .search
+        store.searchFocusRequest += 1
+    }
+
     /// View ▸ Show Project Files (and the toolbar's trailing inspector button) —
     /// collapses or expands the file-tree inspector. Reached via the responder chain
     /// (the menu item and toolbar item both target `nil`), like the other app actions.
@@ -1560,11 +1569,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// far as it goes rather than refusing the click outright. Only ever widens: pulling the divider
     /// back in stays the user's move.
     private func widenInspector(to thickness: CGFloat) {
+        // The item's index, not its view's: AppKit wraps each item's view in a container of its
+        // own, so `item.viewController.view` is never one of `arrangedSubviews`. Looking it up
+        // there failed on every call, and the list toggle silently did nothing in a narrow panel.
         guard let item = filesInspectorItem, !item.isCollapsed,
-              let splitView = splitViewController?.splitView,
-              let index = splitView.arrangedSubviews.firstIndex(of: item.viewController.view),
+              let splitViewController,
+              let index = splitViewController.splitViewItems.firstIndex(of: item),
               index > 0
         else { return }
+        let splitView = splitViewController.splitView
         let target = min(thickness, item.maximumThickness)
         guard target > item.viewController.view.frame.width else { return }
         // Set synchronously rather than through `animator()`, for the same reason the un-collapse in
@@ -1703,11 +1716,49 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.isMovableByWindowBackground = hidesToolbar
     }
 
-    /// Fyolo ▸ Check for Updates… — hands off to Sparkle's standard update flow.
+    /// Fyolo ▸ Check for Updates… — asks now and always answers, unlike the
+    /// background check, which stays silent unless there is something to offer.
     /// Reached via the responder chain (the menu item targets `nil`), the same
     /// nil-target routing the other app-menu items use.
     @objc func checkForUpdates(_ sender: Any?) {
-        updaterController.checkForUpdates(sender)
+        Task { @MainActor in
+            let checker = UpdateChecker.shared
+            let running = checker.runningVersion?.description ?? ""
+            let alert = NSAlert()
+            switch await checker.check() {
+            case .success(.current):
+                alert.messageText = localized("You’re up to date")
+                alert.informativeText = localized("fyolo \(running) is the newest version.")
+            case .success(.available(let manifest)):
+                alert.messageText = localized("fyolo \(manifest.version) is available")
+                alert.informativeText = localized("You have \(running).")
+                alert.addButton(withTitle: localized("Update"))
+                alert.addButton(withTitle: localized("Later"))
+                if manifest.notesURL != nil { alert.addButton(withTitle: localized("Release Notes")) }
+                switch alert.runModal() {
+                case .alertFirstButtonReturn: checker.update()
+                case .alertThirdButtonReturn: manifest.notesURL.map { _ = NSWorkspace.shared.open($0) }
+                default: break
+                }
+                return
+            case .success(.required):
+                // The verdict observer has put the blocking sheet up.
+                return
+            case .failure(let error):
+                alert.messageText = localized("Couldn’t check for updates")
+                alert.informativeText = error.localizedDescription
+            }
+            alert.runModal()
+        }
+    }
+
+    private func presentUpdateRequired(_ verdict: UpdateVerdict) {
+        guard case .required = verdict, updateRequiredSheet == nil, let window else { return }
+        let sheet = NSWindow(contentViewController: NSHostingController(
+            rootView: UpdateRequiredView(checker: UpdateChecker.shared)))
+        sheet.styleMask = [.titled]
+        updateRequiredSheet = sheet
+        window.beginSheet(sheet)
     }
 
     // MARK: - Split panes & palettes (View menu / ⌘⇧O / ⌘⇧P)
@@ -3569,6 +3620,11 @@ private func buildMainMenu() -> NSMenu {
         withTitle: localized("Show Project Files"),
         action: #selector(AppDelegate.toggleFilesInspector(_:)),
         command: .toggleProjectFiles
+    )
+    viewMenu.addItem(
+        withTitle: KeyCommandCatalog.info(.searchFiles).title,
+        action: #selector(AppDelegate.searchFiles(_:)),
+        command: .searchFiles
     )
     viewMenu.addItem(.separator())
     // Safari-style terminal font size: ⌘= bigger, ⌘- smaller, ⌘0 default. Drives

@@ -21,6 +21,10 @@ final class FileBrowserState: NSObject, ObservableObject {
     /// `FileBrowserView` can expand a folder on the click that selected it. Not
     /// `@Published` — it's an AppKit escape hatch, not view state.
     weak var outlineView: NSOutlineView?
+    /// A selection made by revealing a path, not by a click: the selection handler
+    /// consumes it without opening anything — the file is already open, and a
+    /// folder must not toggle shut under the reveal that just opened it.
+    var revealedSelection: String?
 
     /// Every primary click on a row, including one landing on the row already selected.
     /// That click publishes nothing through the `selection` binding — nothing changed —

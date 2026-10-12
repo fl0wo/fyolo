@@ -433,7 +433,7 @@ final class DeviceFileTreeModel: ObservableObject {
     /// click seconds from now does not pay to rebuild it.
     func startWarming() {
         guard pin == nil else { return }
-        pin = Fyolod.ControlPool.pin(route: checkout.device.route, caps: ["files"])
+        pin = Fyolod.ControlPool.pin(route: checkout.device.route, caps: Fyolod.filesCapabilities)
         guard watch == nil else { return }
         watch = provider.watch { [weak self] update in
             Task { @MainActor in self?.applyWatch(update) }
@@ -788,6 +788,74 @@ final class DeviceFileTreeModel: ObservableObject {
                 report(error, context: "list \(host):\(node.path)")
             }
         }
+    }
+
+    /// The folders between the root and `path`, outermost first — the rows an
+    /// outline has to open to show it. Empty for a path outside the root.
+    func folders(leadingTo path: String) -> [String] {
+        let base = root.hasSuffix("/") ? root : root + "/"
+        guard path.hasPrefix(base) else { return [] }
+        var folders: [String] = []
+        var current = base
+        for component in path.dropFirst(base.count).split(separator: "/").dropLast() {
+            current += component
+            folders.append(current)
+            current += "/"
+        }
+        return folders
+    }
+
+    /// Lists, in one `fs.list`, every folder on the way to `path` that the tree
+    /// has not loaded — so revealing a file deep in a closed tree costs one
+    /// round trip rather than one per level, and revealing one whose folders
+    /// are already open costs none.
+    ///
+    /// Root first and outermost folder first: the reply is applied in the order
+    /// asked, and a folder's row has to exist before its listing can attach.
+    func loadFolders(leadingTo path: String) async {
+        var wanted = rootNodes.isEmpty ? [root] : []
+        wanted += folders(leadingTo: path).filter { nodesByPath[$0]?.loadedChildren == nil }
+        guard !wanted.isEmpty else { return }
+        do {
+            apply(try await provider.list(wanted))
+            if !rootNodes.isEmpty, case .connecting = phase { phase = .ready }
+        } catch {
+            report(error, context: "reveal \(host):\(path)")
+        }
+    }
+
+    /// Opens `outline` down to the row for `path` and returns that row, or `nil`
+    /// while the outline has not yet caught up with the model — SwiftUI adopts
+    /// a listing on its next update pass, and an opened folder's rows a pass
+    /// after that — so the caller asks again a frame later.
+    ///
+    /// A path the tree does not draw (inside a hidden folder, or deleted since
+    /// it was opened) reveals its deepest folder the tree does have.
+    ///
+    /// The outline's items are SwiftUI's, not these nodes, so a row is found by
+    /// position: the n-th child of a folder's item is that folder's n-th loaded
+    /// child. The child counts are compared first, which is what refuses to
+    /// open the wrong row from a snapshot the outline has not refreshed yet.
+    func revealRow(for path: String, in outline: NSOutlineView) -> (row: Int, path: String)? {
+        let chain = (folders(leadingTo: path) + [path])
+            .prefix { nodesByPath[$0] != nil }
+        guard let target = chain.last else { return nil }
+        var parent: Any?
+        var siblings = rootNodes
+        for step in chain {
+            guard outline.numberOfChildren(ofItem: parent) == siblings.count,
+                  let index = siblings.firstIndex(where: { $0.path == step }),
+                  let item = outline.child(index, ofItem: parent)
+            else { return nil }
+            if step == target {
+                let row = outline.row(forItem: item)
+                return row >= 0 ? (row, target) : nil
+            }
+            if !outline.isItemExpanded(item) { outline.expandItem(item) }
+            parent = item
+            siblings = nodesByPath[step]?.loadedChildren ?? []
+        }
+        return nil
     }
 
     /// How this tree's files are read. The open itself belongs to the store

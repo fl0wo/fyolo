@@ -13,10 +13,10 @@ lives in the repository root (`Sources/fyolo`).
 
 ## Distribution
 
-The app is downloaded directly as a notarized `.dmg` (the stable Cloudflare R2
-URL behind `downloads.fyolo.sh`, served via `landing/src/lib/site.ts`) and keeps
-itself current through built-in **Sparkle** auto-updates. There is no checkout,
-no licensing service, and no server to run.
+The app installs with Homebrew (`brew install --cask fl0wo/tap/fyolo`) or as a
+`.dmg` from GitHub Releases, and checks those releases for updates
+(`docs/RELEASING.md`). There is no checkout, no licensing service, and no server
+to run.
 
 > Source will be opened later — not yet.
 

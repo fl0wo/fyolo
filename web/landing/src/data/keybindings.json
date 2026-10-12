@@ -38,6 +38,11 @@
           "id": "commandPalette",
           "title": "Command Palette…",
           "shortcut": "⇧⌘P"
+        },
+        {
+          "id": "searchFiles",
+          "title": "Search Files",
+          "shortcut": "⇧⌘F"
         }
       ]
     },

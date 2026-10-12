@@ -83,6 +83,11 @@ final class KeybindingSurfaceTests: XCTestCase {
             "super+,",              // open_config          → Settings…
             "super+q",              // quit                 → Quit Fyolo
             "super+ctrl+f",         // toggle_fullscreen    → Enter Full Screen
+            // Ghostty's terminal search is not wired into this embedding (no
+            // search action is handled), so its ⌘⇧F reached nothing; the key
+            // is Search Files, as in Xcode, VS Code and Zed. ⌘F, ⌘E and ⌘G stay
+            // with the terminal for when find-in-terminal lands.
+            "super+shift+f",        // terminal search      → Search Files
         ] + (1...9).map { "super+\($0)" } {  // goto_tab:N → the workspace switcher's rows
             XCTAssertTrue(triggers.contains(trigger), "\(trigger) is still handled by the surface")
         }
@@ -105,7 +110,7 @@ final class KeybindingSurfaceTests: XCTestCase {
         "alt+arrow_left", "alt+arrow_right",                // esc:b / esc:f (word motion)
         "shift+arrow_left", "shift+arrow_right", "shift+arrow_up", "shift+arrow_down",
         "shift+page_up", "shift+page_down", "shift+home", "shift+end",
-        "super+f", "super+e", "super+shift+f", "super+g", "super+shift+g",  // search
+        "super+f", "super+e", "super+g", "super+shift+g",   // search (⌘⇧F: Search Files)
     ]
 
     func testTerminalLayerIsLeftAlone() {

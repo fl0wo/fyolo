@@ -675,7 +675,7 @@ final class TunnelManager: ObservableObject {
     /// One-time fetch from the provider's GitHub release. tunelo ships a bare
     /// binary; cloudflared ships a single-file tgz. Both are small enough to
     /// pull on first use, and neither ends up inside the app bundle (which
-    /// would bloat every Sparkle update and freeze their CVE fixes to ours).
+    /// would bloat every app update and freeze their CVE fixes to ours).
     /// A bring-your-own provider (no `spec.download`) throws a hint instead.
     nonisolated private static func install(_ provider: Provider) async throws -> URL {
         guard let download = provider.spec?.download else {

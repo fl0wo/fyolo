@@ -1932,6 +1932,7 @@ async fn process_control(
         Control::FsSearch {
             root,
             query,
+            include,
             limit,
             seq,
         } => {
@@ -1963,6 +1964,7 @@ async fn process_control(
                     retained,
                     root,
                     query,
+                    include,
                     limit,
                     seq,
                 ));
@@ -2535,6 +2537,7 @@ async fn run_search(
     _retained: Option<oneshot::Sender<()>>,
     root: String,
     query: String,
+    include: Vec<String>,
     limit: u64,
     seq: Option<u64>,
 ) {
@@ -2555,6 +2558,17 @@ async fn run_search(
                 format!("{e:#}"),
                 false,
             )));
+            return;
+        }
+    };
+
+    // Parsed before queueing: a pattern that cannot match anything is the
+    // client's mistake to show now, not after the searches ahead of it.
+    let filter = match crate::files::SearchFilter::new(&root, &include) {
+        Ok(filter) => filter.map(Arc::new),
+        Err(message) => {
+            cleanup(&searches);
+            let _ = out.send(Outbound::Control(error(seq, ErrorCode::ProtoError, message, false)));
             return;
         }
     };
@@ -2598,7 +2612,7 @@ async fn run_search(
     let flag = cancel.clone();
     let sink = out.clone();
     let mut worker = tokio::task::spawn_blocking(move || {
-        crate::files::search(&root, &query, limit, &flag, &mut |matches| {
+        crate::files::search(&root, &query, filter, limit, &flag, &mut |matches| {
             let _ = sink.send(Outbound::Event(Event::SearchResults { request, matches }));
         })
     });
@@ -3173,6 +3187,7 @@ mod search_queue_tests {
             None,
             root,
             "needle".to_string(),
+            Vec::new(),
             1000,
             Some(7),
         ));

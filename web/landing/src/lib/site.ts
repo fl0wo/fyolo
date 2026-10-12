@@ -1,5 +1,5 @@
-// Shared site constants. Fyolo is free to use and ships with Sparkle
-// auto-updates — no account, no license keys, no payment backend.
+// Shared site constants. Fyolo is free to use and checks GitHub Releases for
+// updates — no account, no license keys, no payment backend.
 
 // The agents Fyolo ships a manifest for, in the order the app itself lists
 // them (`Sources/fyolo/Resources/agents/*.json`, the `order` field). The hero

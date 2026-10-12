@@ -459,6 +459,36 @@ final class FyolodFilesIntegrationTests: XCTestCase {
         XCTAssertFalse(result.limitHit)
     }
 
+    /// The "files to include" field narrows on the host: an extension keeps its
+    /// files at any depth, and `!` drops a directory whole.
+    func testSearchNarrowsToTheIncludedFiles() throws {
+        for path in ["one.ts", "sub/two.ts", "three.rs"] {
+            try Data("needle\n".utf8).write(to: root.appendingPathComponent(path))
+        }
+
+        let typed = try Fyolod.searchContents(
+            route: .local, root: root.path, query: "needle", include: ["*.ts"], limit: 400)
+        XCTAssertEqual(typed.hits.map(\.path), ["one.ts", "sub/two.ts"])
+
+        let excluded = try Fyolod.searchContents(
+            route: .local, root: root.path, query: "needle", include: ["*.ts", "!sub"],
+            limit: 400)
+        XCTAssertEqual(excluded.hits.map(\.path), ["one.ts"])
+    }
+
+    /// A pattern that cannot parse is the user's to fix, so the host's sentence
+    /// naming it is what reaches the pane — not an empty result.
+    func testABrokenPatternIsRefusedWithTheHostsReason() {
+        XCTAssertThrowsError(try Fyolod.searchContents(
+            route: .local, root: root.path, query: "needle", include: ["*.{ts"], limit: 400)
+        ) { error in
+            guard case FyolodClientError.requestFailed(let message) = error else {
+                return XCTFail("expected the host's refusal, got \(error)")
+            }
+            XCTAssertTrue(message.contains("*.{ts"), message)
+        }
+    }
+
     // MARK: - The pooled channel
 
     /// The premise of the whole pool: a second request reaches the device over
@@ -467,9 +497,9 @@ final class FyolodFilesIntegrationTests: XCTestCase {
     /// SSH handshake per folder expand.
     func testASecondRequestReusesTheFirstsConnection() throws {
         _ = try Fyolod.listDirectories(route: .local, root: root.path, paths: [root.path])
-        let first = try Fyolod.ControlPool.channel(route: .local, caps: ["files"])
+        let first = try Fyolod.ControlPool.channel(route: .local, caps: Fyolod.filesCapabilities)
         _ = try Fyolod.readFile(route: .local, path: root.appendingPathComponent("a.txt").path)
-        let second = try Fyolod.ControlPool.channel(route: .local, caps: ["files"])
+        let second = try Fyolod.ControlPool.channel(route: .local, caps: Fyolod.filesCapabilities)
         XCTAssertTrue(first === second, "the files plane must hold one channel per device")
     }
 
@@ -622,7 +652,7 @@ final class FyolodFilesIntegrationTests: XCTestCase {
 
         var attempts = 0
         var reuse: [Bool] = []
-        _ = try? Fyolod.withPooledRequest(route: .local, caps: ["files"]) { call, _ in
+        _ = try? Fyolod.withPooledRequest(route: .local, caps: Fyolod.filesCapabilities) { call, _ in
             attempts += 1
             reuse.append(call.wasReused)
             throw FyolodClientError.connectionClosed
@@ -635,7 +665,7 @@ final class FyolodFilesIntegrationTests: XCTestCase {
 
         // A refusal is not a broken pipe: the host would say the same thing again.
         attempts = 0
-        _ = try? Fyolod.withPooledRequest(route: .local, caps: ["files"]) { _, _ in
+        _ = try? Fyolod.withPooledRequest(route: .local, caps: Fyolod.filesCapabilities) { _, _ in
             attempts += 1
             throw FyolodClientError.requestFailed("no such file")
         }
@@ -644,7 +674,7 @@ final class FyolodFilesIntegrationTests: XCTestCase {
         // Once part of the answer has landed, replaying would splice two halves
         // of different answers together.
         attempts = 0
-        _ = try? Fyolod.withPooledRequest(route: .local, caps: ["files"]) { call, _ in
+        _ = try? Fyolod.withPooledRequest(route: .local, caps: Fyolod.filesCapabilities) { call, _ in
             attempts += 1
             try call.send(payload: Fyolod.encodeControl(
                 Fyolod.FsListOperation(root: root.path, paths: [root.path], seq: call.seq)))

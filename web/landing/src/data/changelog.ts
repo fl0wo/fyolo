@@ -17,6 +17,24 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.4.0",
+    date: "2026-10-12",
+    title: "Search by file type, and updates that tell you",
+    changes: {
+      new: [
+        "Updates: Fyolo checks for a new version and offers it in the sidebar. A Homebrew install updates with Homebrew; a download fetches the new disk image. A release that older versions can no longer run with asks you to update before continuing — your sessions keep running meanwhile.",
+        "Search Files (⇧⌘F): opens the Search pane ready to type.",
+        "Files to include: narrow a search to some files with patterns like *.ts, src, or !tests.",
+        "Reveal in Files: a button in an open file's header shows it in the file tree, with every folder on the way opened.",
+        "Issues: a search field filters the list by title or number.",
+      ],
+      fixed: [
+        "Check for Updates… showed an error instead of checking.",
+        "The list-column button beside an open file did nothing when the panel was too narrow for both.",
+      ],
+    },
+  },
+  {
     version: "0.3.0",
     date: "2026-10-10",
     title: "Docker, plugins, and a terminal from any folder",

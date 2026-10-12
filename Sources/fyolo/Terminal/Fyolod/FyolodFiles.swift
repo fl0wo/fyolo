@@ -434,6 +434,13 @@ extension Fyolod {
     /// coming back": the case it exists for answers in milliseconds or never.
     static let searchIdleTimeoutSeconds = 90
 
+    /// What every request on the files plane negotiates — listings, reads,
+    /// saves and searches alike. One list, because the pool keys channels by
+    /// it: a search asking for one more capability than the tree would open a
+    /// second, cold channel beside the one the tree keeps warm, and pay an SSH
+    /// handshake for it. A host that grants less simply leaves it out.
+    static let filesCapabilities = ["files", searchIncludeCapability]
+
     /// A file as it was on the device: its bytes, and the version they were read
     /// at. The version travels with the bytes because a reader that may later
     /// write them back has to be able to say *what it read* — asking again at
@@ -502,7 +509,7 @@ extension Fyolod {
     static func listDirectories(
         route: FyolodRoute, root: String, paths: [String]
     ) throws -> DirectoryListings {
-        try withFilesChannel(route: route) { call in
+        try withFilesChannel(route: route) { call, _ in
             func request(_ paths: [String], after: String?) throws -> FsListedPayload {
                 try requestFiles(call, operation: "fs.list") { seq in
                     FsListOperation(root: root, paths: paths, after: after, seq: seq)
@@ -669,7 +676,7 @@ extension Fyolod {
     static func readFile(
         route: FyolodRoute, path: String, limit: Int = filePreviewByteLimit
     ) throws -> DeviceFile {
-        try withFilesChannel(route: route) { call in
+        try withFilesChannel(route: route) { call, _ in
             let header = try requestFiles(call, operation: "fs.read") { seq in
                 FsReadOperation(path: path, seq: seq)
             } match: { control in
@@ -720,18 +727,25 @@ extension Fyolod {
     ///
     /// Blocking; call it off the main thread (`DeviceFileProvider` does).
     ///
+    /// - Parameter include: globs narrowing which files are read (`!` excludes),
+    ///   refused up front by a host too old to honour them — it would drop the
+    ///   field and answer with hits the filter rules out.
     /// - Parameter idleTimeoutSeconds: the silence bound, a parameter only so a
     ///   test can hold a stub host silent without waiting the real one out.
     static func searchContents(
-        route: FyolodRoute, root: String, query: String, limit: Int,
+        route: FyolodRoute, root: String, query: String, include: [String] = [], limit: Int,
         idleTimeoutSeconds: Int = searchIdleTimeoutSeconds
     ) throws -> SearchResult {
         // Nothing to ask for, and the host would answer one hit anyway: it
         // appends before it compares against the cap.
         guard limit > 0 else { return SearchResult(hits: [], limitHit: false) }
-        return try withFilesChannel(route: route) { call in
+        return try withFilesChannel(route: route) { call, granted in
+            guard include.isEmpty || granted.contains(searchIncludeCapability) else {
+                throw DeviceFileError.searchFilterUnsupported
+            }
             try call.send(payload: encodeControl(FsSearchOperation(
-                root: root, query: query, limit: UInt64(limit), seq: call.seq)))
+                root: root, query: query, include: include, limit: UInt64(limit),
+                seq: call.seq)))
             // Armed the moment the request is on the wire: from here until the
             // host's terminal reply, every way out of this closure — the idle
             // bound, a lost pipe, a thrown decode — is a search still walking
@@ -799,13 +813,13 @@ extension Fyolod {
     /// on a daemon that did not grant the capability — the pane then says the
     /// device cannot serve files rather than hanging on a reply that never comes.
     private static func withFilesChannel<Result>(
-        route: FyolodRoute, _ body: (ChannelCall) throws -> Result
+        route: FyolodRoute, _ body: (ChannelCall, Set<String>) throws -> Result
     ) throws -> Result {
-        try withPooledRequest(route: route, caps: ["files"]) { call, channel in
+        try withPooledRequest(route: route, caps: filesCapabilities) { call, channel in
             guard channel.capabilities.contains("files") else {
                 throw DeviceFileError.unsupported
             }
-            return try body(call)
+            return try body(call, channel.capabilities)
         }
     }
 
@@ -842,6 +856,9 @@ enum DeviceFileError: Error, Equatable {
     /// The daemon did not grant the `files` capability — too old, or built
     /// without it.
     case unsupported
+    /// The daemon searches but cannot narrow a search to some files, so a
+    /// filtered search is not sent at all.
+    case searchFilterUnsupported
     /// The device served less than the whole file, so this is not a preview.
     case tooLarge
     /// A name the tree refuses to build a path from.
@@ -948,10 +965,12 @@ struct DeviceFileProvider: Sendable {
 
     /// Content search under the pane's own root, on the device. Confined the same
     /// way a listing is: the daemon canonicalises `root` and greps nothing above it.
-    func search(_ query: String, limit: Int) async throws -> Fyolod.SearchResult {
+    func search(
+        _ query: String, include: [String] = [], limit: Int
+    ) async throws -> Fyolod.SearchResult {
         try await run { [route, root] in
             try Fyolod.searchContents(
-                route: route, root: root, query: query, limit: limit)
+                route: route, root: root, query: query, include: include, limit: limit)
         }
     }
 

@@ -62,6 +62,12 @@ public enum Fyolod {
     /// a plain shell that *looks* like the agent session it isn't.
     public static let spawnCommandCapability = "spawn_command"
 
+    /// The host honours `FsSearchOperation.include` — globs narrowing which
+    /// files a search reads. Gate a filtered search on it: an older host drops
+    /// the field and searches everything, which would show hits from files the
+    /// filter says are out of scope.
+    public static let searchIncludeCapability = "search_include"
+
     /// What a plain control channel (`list`, `kill`) offers: nothing. Both verbs
     /// are unconditional, and tombstones ride the `sessions` reply un-gated.
     public static let controlCapabilities: [String] = []
@@ -566,12 +572,18 @@ public enum Fyolod {
         public let op = "fs_search"
         public let root: String
         public let query: String
+        /// Gitignore-style globs, `!` for an exclusion; absent from the wire
+        /// when empty, so an unfiltered search reads the same to any host.
+        public let include: [String]?
         public let limit: UInt64
         public let seq: UInt64
 
-        public init(root: String, query: String, limit: UInt64, seq: UInt64) {
+        public init(
+            root: String, query: String, include: [String] = [], limit: UInt64, seq: UInt64
+        ) {
             self.root = root
             self.query = query
+            self.include = include.isEmpty ? nil : include
             self.limit = limit
             self.seq = seq
         }

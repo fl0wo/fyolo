@@ -52,6 +52,34 @@ struct ContentMatch: Sendable {
     }
 }
 
+/// The Search pane's "files to include" field, read as the patterns the daemon
+/// narrows a search by (`files::SearchFilter`): gitignore globs, `!` to exclude.
+enum SearchIncludeField {
+    /// The patterns in `text`, split on commas the way VS Code's field is — but
+    /// not inside braces, so `*.{ts,tsx}` stays the one alternation it reads as.
+    static func patterns(_ text: String) -> [String] {
+        var patterns: [String] = []
+        var current = ""
+        var depth = 0
+        for character in text {
+            switch character {
+            case "{": depth += 1
+            case "}": depth = max(depth - 1, 0)
+            case "," where depth == 0:
+                patterns.append(current)
+                current = ""
+                continue
+            default: break
+            }
+            current.append(character)
+        }
+        patterns.append(current)
+        return patterns
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && $0 != "!" }
+    }
+}
+
 /// Which machine the Search pane searches, and therefore what a hit opens. The
 /// pane is one pane either way — a field, hits grouped under their file, click to
 /// open — so the two roads differ only here.
@@ -128,6 +156,10 @@ struct FileSearchView: View {
     private static let debounce: Duration = .milliseconds(250)
 
     @State private var query = ""
+    /// The "files to include" field, as typed. Searches run on its parsed
+    /// `includePatterns`, so a stray comma or space starts no new search.
+    @State private var include = ""
+    @State private var includeFocused = false
     @State private var matches: [ContentMatch] = []
     @State private var isSearching = false
     /// What the device said when it refused to search — shown in place of the
@@ -152,6 +184,8 @@ struct FileSearchView: View {
             claimFocus(attempt: 0)
         }
         .onChange(of: query) { scheduleSearch() }
+        .onChange(of: includePatterns) { scheduleSearch() }
+        .onChange(of: store.searchFocusRequest) { claimFocus(attempt: 0) }
         .onDisappear {
             isVisible = false
             searchTask?.cancel()
@@ -181,6 +215,7 @@ struct FileSearchView: View {
                     text: $query,
                     isFocused: $fieldFocused,
                     focusRequest: focusRequest,
+                    selectRequest: store.searchFocusRequest,
                     placeholder: placeholder,
                     onSubmit: {
                         if let first = matches.first { open(first) }
@@ -210,7 +245,11 @@ struct FileSearchView: View {
             .background { CapsuleFieldChrome() }
             .padding(.horizontal, 8)
             .padding(.top, 7)
-            .padding(.bottom, trimmedQuery.isEmpty ? 7 : 4)
+            .padding(.bottom, 5)
+
+            includeField
+                .padding(.horizontal, 8)
+                .padding(.bottom, trimmedQuery.isEmpty ? 7 : 4)
 
             if !trimmedQuery.isEmpty {
                 HStack(spacing: 5) {
@@ -227,6 +266,54 @@ struct FileSearchView: View {
                 .padding(.bottom, 5)
             }
         }
+    }
+
+    /// Narrows the search to some files — `*.ts`, `src`, `!tests` — on the daemon,
+    /// before any file is opened. Never takes focus on its own: the query field is
+    /// what the pane is for.
+    private var includeField: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "line.3.horizontal.decrease")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(includePatterns.isEmpty ? .tertiary : .secondary)
+                .frame(width: 13)
+            NativeSearchField(
+                text: $include,
+                isFocused: $includeFocused,
+                focusRequest: NativeSearchField.neverFocused,
+                placeholder: localized("Files to include, e.g. *.ts, !tests"),
+                onSubmit: {
+                    if let first = matches.first { open(first) }
+                },
+                // Esc empties this field first, then behaves as it does in the
+                // query field.
+                onExit: {
+                    if !include.isEmpty {
+                        include = ""
+                    } else if !query.isEmpty {
+                        query = ""
+                    } else {
+                        onDismiss()
+                    }
+                }
+            )
+            if !include.isEmpty {
+                Button { include = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help(localized("Clear"))
+            }
+        }
+        .padding(.horizontal, 9)
+        .frame(height: 24)
+        .background { CapsuleFieldChrome() }
+    }
+
+    private var includePatterns: [String] {
+        SearchIncludeField.patterns(include)
     }
 
     /// What the field invites: the project locally, the machine by name for a
@@ -398,11 +485,12 @@ struct FileSearchView: View {
             return
         }
         let limit = Self.matchLimit
+        let patterns = includePatterns
         searchTask = Task {
             try? await Task.sleep(for: Self.debounce)
             guard !Task.isCancelled else { return }
             isSearching = true
-            let found = await find(trimmed, limit: limit)
+            let found = await find(trimmed, include: patterns, limit: limit)
             guard !Task.isCancelled else { return }
             matches = found
             isSearching = false
@@ -416,10 +504,10 @@ struct FileSearchView: View {
     /// either way, so its failures are shown rather than swallowed: a root that
     /// no longer resolves, a daemon too old for `fs.search`, a box that stopped
     /// answering.
-    private func find(_ query: String, limit: Int) async -> [ContentMatch] {
+    private func find(_ query: String, include: [String], limit: Int) async -> [ContentMatch] {
         let base = scope.base
         do {
-            let result = try await scope.provider.search(query, limit: limit)
+            let result = try await scope.provider.search(query, include: include, limit: limit)
             return result.hits.map { hit in
                 ContentMatch(
                     relative: hit.path,
@@ -469,6 +557,11 @@ struct FileSearchView: View {
         }
         if case DeviceFileError.unsupported = error, scope.isLocal {
             return localized("fyolod on this Mac is too old to search.")
+        }
+        if case DeviceFileError.searchFilterUnsupported = error {
+            return scope.isLocal
+                ? localized("fyolod on this Mac is too old to filter by file. Clear the filter to search everything.")
+                : localized("This machine’s fyolod is too old to filter by file. Clear the filter to search everything.")
         }
         return RemoteFileFailure.message(for: error, fallback: fallback)
     }
@@ -523,15 +616,25 @@ struct FileSearchView: View {
 /// control from a plain SwiftUI text field misses the native bezel, focus ring,
 /// cancel button, and field-editor behavior that make it feel at home on macOS.
 private struct NativeSearchField: NSViewRepresentable {
+    /// A `focusRequest` that never asks: the coordinator starts out having
+    /// "seen" it, so the field waits to be clicked.
+    static let neverFocused = -1
+
     @Binding var text: String
     @Binding var isFocused: Bool
     let focusRequest: Int
+    /// Bumped to select the whole text of a field that is already being edited
+    /// (⌘⇧F from inside the pane), so typing replaces the query. A field that
+    /// is not yet editing gets the same selection from becoming first responder.
+    var selectRequest = 0
     let placeholder: String
     let onSubmit: () -> Void
     let onExit: () -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(parent: self)
+        let coordinator = Coordinator(parent: self)
+        coordinator.lastSelectRequest = selectRequest
+        return coordinator
     }
 
     /// Switching away from the Search pane tears this field down by removing it from the view
@@ -582,6 +685,15 @@ private struct NativeSearchField: NSViewRepresentable {
             field.placeholderString = placeholder
         }
 
+        // One shot per request, apart from the focus retries: a retry landing
+        // after the first keystroke must not select what was just typed.
+        if context.coordinator.lastSelectRequest != selectRequest {
+            context.coordinator.lastSelectRequest = selectRequest
+            DispatchQueue.main.async { [weak field] in
+                field?.currentEditor()?.selectAll(nil)
+            }
+        }
+
         guard context.coordinator.lastFocusRequest != focusRequest else { return }
         context.coordinator.lastFocusRequest = focusRequest
         // The hosting view can enter the window one run-loop turn after SwiftUI
@@ -595,7 +707,8 @@ private struct NativeSearchField: NSViewRepresentable {
     @MainActor
     final class Coordinator: NSObject, NSTextFieldDelegate {
         var parent: NativeSearchField
-        var lastFocusRequest = -1
+        var lastFocusRequest = NativeSearchField.neverFocused
+        var lastSelectRequest = 0
 
         init(parent: NativeSearchField) {
             self.parent = parent

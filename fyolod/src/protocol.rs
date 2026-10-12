@@ -48,6 +48,7 @@ pub const HOST_CAPABILITIES: &[&str] = &[
     "handoff",
     "viewport",
     "spawn_command",
+    "search_include",
 ];
 /// Snapshot payload carrying packed cells.
 ///
@@ -787,6 +788,13 @@ pub enum Control {
     FsSearch {
         root: String,
         query: String,
+        /// Gitignore-style globs narrowing which files are read, `!` for an
+        /// exclusion (`files::SearchFilter`). Capability `search_include`: a
+        /// host without it drops the field and searches everything, so a
+        /// client gates a filtered search on the grant rather than showing
+        /// unfiltered hits under a filter.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        include: Vec<String>,
         limit: u64,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         seq: Option<u64>,

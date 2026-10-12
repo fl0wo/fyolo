@@ -134,6 +134,7 @@ private struct SidebarSectionHeader: View {
 struct SidebarView: View {
     @EnvironmentObject var store: FyoloStore
     @EnvironmentObject var settings: AppSettings
+    @ObservedObject private var updates = UpdateChecker.shared
     // The terminal theme is split light/dark and libghostty tracks the system
     // appearance; the chrome borrows whichever side is currently showing.
     @Environment(\.colorScheme) private var colorScheme
@@ -217,6 +218,13 @@ struct SidebarView: View {
         let hasTerminals = !workspace.terminals.isEmpty
         let hasChats = !workspace.chats.isEmpty
         return List {
+            // An optional update, offered where the agent-status nudge sits — never a
+            // modal for something the user may decline.
+            if updates.offersUpdate {
+                UpdateAvailableBanner(checker: updates)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
             // Nudge when agents are running but the status hooks are off — without them
             // the sidebar spinner stays dark. One tap enables (and reinstalls) them.
             if !settings.agentHooksEnabled && store.isRunningAnyAgent {

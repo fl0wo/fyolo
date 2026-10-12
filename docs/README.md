@@ -44,7 +44,6 @@ from the real front matter).
 | active | design | [iOS TestFlight runbook — build, upload, and drive ASC from the API](runbook/ios-testflight-runbook.md) |
 | active | design | [Issue tracker 集成：inspector Issues tab（GitHub / Linear，per-project provider）](design/20260726-issue-tracker-integration.md) |
 | active | design | [Keyboard and command design](design/20260812-keyboard-command-design.md) |
-| active | design | [macOS release runbook — cut, notarize, publish fyolo.dmg](runbook/macos-release-runbook.md) |
 | active | design | [Remote-access design lessons: sleep reachability, stable domains, identity, monetization](design/20260705-remote-access-lessons.md) |
 | active | design | [Research brief — fyolod Session Protocol (for design agent)](design/20260730-_research-session-protocol-brief.md) |
 | active | design | [Sessions CLI v2 — reliability & command design](design/20260724-sessions-cli-v2.md) |
@@ -64,6 +63,7 @@ from the real front matter).
 | approved | design | [Worktree information architecture](design/20260628-worktree-information-architecture.md) |
 | approved | rfc | [Theme store — browse 50, install on demand, library is truth](design/20260814-theme-store.md) |
 | archived | bug | [Input during a pending host resize](bug/terminal-input-pending-resize.md) |
+| archived | design | [macOS release runbook — cut, notarize, publish fyolo.dmg](runbook/macos-release-runbook.md) |
 | archived | design | [移动端 Agent UI 协议 —— PTY 之上的旁路结构面（ACP 词汇）](design/20260711-mobile-agent-ui-protocol.md) |
 | archived | design | [Agent permission questions on the phone](design/20260803-agent-permission-questions.md) |
 | archived | design | [iOS scroll-draw coalescing (vsync-capped surface draws)](design/20260706-ios-scroll-renderer-health.md) |

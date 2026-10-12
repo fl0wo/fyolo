@@ -32,6 +32,8 @@ struct FileBrowserView: View {
     /// Bumped to collapse the whole tree: it is the file list's `.id`, so changing it
     /// rebuilds the list fresh — and a fresh `List(children:)` starts fully collapsed.
     @State private var treeGeneration = 0
+    /// The reveal in flight, replaced by the next one so two never race the outline.
+    @State private var revealTask: Task<Void, Never>?
 
     /// Where the selected session's files live, and on which machine — see
     /// `FyoloStore.inspectorCheckout`. Nothing in this pane may ask the session
@@ -155,6 +157,13 @@ struct FileBrowserView: View {
             DispatchQueue.main.async { OutlineViewFixups.assertWheelIncrement(on: outline) }
         }
         .onChange(of: browserState.selection) {
+            if let revealed = browserState.revealedSelection {
+                browserState.revealedSelection = nil
+                if revealed == browserState.selection {
+                    browserState.selectedLocalURL = selectedNode?.localURL
+                    return
+                }
+            }
             // The table fires native selection on a clean click — reliably, unlike a
             // click recognizer, which `NSOutlineView`'s own primary-button tracking
             // swallows. So a selection *change* opens: a file opens, a folder opens
@@ -167,6 +176,50 @@ struct FileBrowserView: View {
             }
         }
         .onReceive(browserState.rowClicked) { activateClickedRow() }
+        .onReceive(store.revealInTreeRequest) { reveal($0) }
+        .onDisappear { revealTask?.cancel() }
+    }
+
+    /// Opens the tree down to `path`, selects it and scrolls it into view — the
+    /// detail header's locate button. The folders on the way are listed in one
+    /// request (none when already open); the outline then needs a frame or two to
+    /// adopt them, so the walk is retried briefly rather than assumed to land.
+    private func reveal(_ path: String) {
+        revealTask?.cancel()
+        guard let tree else { return }
+        revealTask = Task { @MainActor in
+            await tree.loadFolders(leadingTo: path)
+            for _ in 0 ..< 40 {
+                guard !Task.isCancelled else { return }
+                if let outline = browserState.outlineView,
+                   let found = tree.revealRow(for: path, in: outline) {
+                    select(found.path, row: found.row, in: outline)
+                    return
+                }
+                try? await Task.sleep(for: .milliseconds(16))
+            }
+            Log.files.error("reveal: the tree never drew \(path, privacy: .public)")
+        }
+    }
+
+    /// Selects the revealed row without opening it, and centres it only if it is
+    /// off screen — a row already in view stays where the eye left it.
+    private func select(_ path: String, row: Int, in outline: NSOutlineView) {
+        if browserState.selection != path {
+            browserState.revealedSelection = path
+            browserState.selection = path
+        }
+        let rowRect = outline.rect(ofRow: row)
+        guard let scrollView = outline.enclosingScrollView else {
+            outline.scrollRowToVisible(row)
+            return
+        }
+        let clip = scrollView.contentView
+        guard !clip.documentVisibleRect.contains(rowRect) else { return }
+        let highest = max(0, outline.bounds.height - clip.bounds.height)
+        let top = min(max(0, rowRect.midY - clip.bounds.height / 2), highest)
+        clip.scroll(to: NSPoint(x: clip.bounds.origin.x, y: top))
+        scrollView.reflectScrolledClipView(clip)
     }
 
     /// Arms the tree for the selected checkout: the device's channel stays warm

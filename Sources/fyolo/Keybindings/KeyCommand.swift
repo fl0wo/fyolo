@@ -12,6 +12,7 @@ enum KeyCommandID: String, CaseIterable, Identifiable {
     // Navigation
     case openQuickly = "nav.open-quickly"
     case commandPalette = "nav.command-palette"
+    case searchFiles = "nav.search-files"
     // Session
     case nextSession = "session.next"
     case previousSession = "session.previous"
@@ -81,6 +82,10 @@ enum KeyCommandCatalog {
               defaultShortcut: .init(modifiers: [.command, .shift], key: .char("o"))),
         .init(id: .commandPalette, category: localized("Navigation"), title: localized("Command Palette…"),
               defaultShortcut: .init(modifiers: [.command, .shift], key: .char("p"))),
+        // VS Code's find-in-files key, beside its ⌘⇧P: ⌘⇧O jumps to a file by
+        // name, ⌘⇧F finds the files that contain something.
+        .init(id: .searchFiles, category: localized("Navigation"), title: localized("Search Files"),
+              defaultShortcut: .init(modifiers: [.command, .shift], key: .char("f"))),
         // Session — cycling follows the sidebar's visual order (see
         // `selectAdjacentSession`). ⌘⇧]/⌘⇧[ is the iTerm2/Chrome tab-cycling
         // convention; ghostty's own next/previous_tab on the same keys are

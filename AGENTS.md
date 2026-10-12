@@ -63,8 +63,8 @@ lifecycle. Run it from a macOS GUI session.
 
 Use the dev channel whenever a released fyolo is installed: it gets its own
 bundle id (`sh.fyolo.app.dev`), state dir (`~/.fyolo-dev`), companion port
-(8788), and `fyolo-dev` CLI, with no Sparkle update feed, so it can never
-auto-update itself onto the release channel.
+(8788), and `fyolo-dev` CLI, and it never checks for updates, so it can never
+offer to replace itself with the release.
 
 The `macos-rebuild-dev` and `ios-rebuild-dev` skills wrap the rebuild-and-
 relaunch loop; prefer them over hand-rolling the commands.
@@ -231,8 +231,7 @@ must not get wrong even if you never open it.
   conventional-commit prefix and no trailing punctuation. Include a
   `Release Notes:` section in the body.
 - Never rewrite pushed history on `main`: the release build number is
-  `git rev-list --count HEAD`, and Sparkle treats a lower build number as older,
-  which breaks auto-update.
+  `git rev-list --count HEAD`, and it must only ever increase.
 
 ## Docs
 
@@ -264,7 +263,7 @@ are derived rather than written:
 
 Releases are cut by pushing a version tag; nothing in the repo needs editing.
 The tag is the version (`v0.3.0` → `CFBundleShortVersionString = 0.3.0`) and
-`.github/workflows/release.yml` handles signing, notarization, the DMG, the
-Sparkle appcast, and the GitHub Release. Use the `bump-version` skill. Details
-and the manual verification checklist live in `docs/RELEASING.md` and
-`docs/runbook/macos-release-runbook.md`.
+`.github/workflows/release.yml` builds the DMG, writes the `latest.json` the
+app's update check reads, publishes both on a GitHub Release, and bumps the
+Homebrew cask. Use the `bump-version` skill. Details, including how a release
+makes older versions update, live in `docs/RELEASING.md`.

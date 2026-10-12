@@ -119,4 +119,27 @@ final class SearchExcerptTests: XCTestCase {
         let text = "abc"
         XCTAssertEqual(ContentMatch.range(text, bytes: 1 ..< 1).map { String(text[$0]) }, "")
     }
+
+    // MARK: - The "files to include" field
+
+    func testIncludePatternsSplitOnCommasAndTrim() {
+        XCTAssertEqual(SearchIncludeField.patterns(" *.ts,src/** , !tests"),
+                       ["*.ts", "src/**", "!tests"])
+    }
+
+    /// A brace group is one alternation, not two patterns cut at its comma.
+    func testIncludePatternsKeepBraceGroupsWhole() {
+        XCTAssertEqual(SearchIncludeField.patterns("*.{ts,tsx}, docs"), ["*.{ts,tsx}", "docs"])
+        XCTAssertEqual(SearchIncludeField.patterns("a}, b"), ["a}", "b"],
+                       "a stray closing brace does not swallow the next comma")
+    }
+
+    /// What typing passes through on the way to a pattern must not start a
+    /// search of its own — the field's patterns are what a search is keyed on.
+    func testIncludePatternsIgnoreWhatIsNotYetAPattern() {
+        XCTAssertEqual(SearchIncludeField.patterns(""), [])
+        XCTAssertEqual(SearchIncludeField.patterns(" , ,"), [])
+        XCTAssertEqual(SearchIncludeField.patterns("*.ts, !"), ["*.ts"])
+        XCTAssertEqual(SearchIncludeField.patterns("*.ts,"), SearchIncludeField.patterns("*.ts"))
+    }
 }

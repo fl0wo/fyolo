@@ -466,6 +466,8 @@
 	<string>无法检查</string>
 	<key>Couldn’t change the Themes folder</key>
 	<string>无法修改主题文件夹</string>
+	<key>Couldn’t check for updates</key>
+	<string>无法检查更新</string>
 	<key>Couldn’t clone %@</key>
 	<string>无法克隆 %@</string>
 	<key>Couldn’t create the worktrees folder: %@</key>
@@ -486,6 +488,8 @@
 	<string>无法打开 Pull Request 页面</string>
 	<key>Couldn’t reach %@.</key>
 	<string>无法连接到 %@。</string>
+	<key>Couldn’t relaunch fyolo. Quit and open it again.</key>
+	<string>无法重新启动 fyolo。请退出后重新打开。</string>
 	<key>Couldn’t remove %@.</key>
 	<string>无法移除 %@。</string>
 	<key>Couldn’t remove worktree</key>
@@ -590,6 +594,10 @@
 	<string>完成</string>
 	<key>Don’t Compare</key>
 	<string>不对比</string>
+	<key>Downloading…</key>
+	<string>正在下载…</string>
+	<key>Downloads the new version.</key>
+	<string>将下载新版本。</string>
 	<key>Draft</key>
 	<string>草稿</string>
 	<key>Drag an agent onto another to reorder.</key>
@@ -648,6 +656,8 @@
 	<string>文件</string>
 	<key>Files changed</key>
 	<string>变更文件</string>
+	<key>Files to include, e.g. *.ts, !tests</key>
+	<string>要包含的文件，例如 *.ts, !tests</string>
 	<key>Filter</key>
 	<string>过滤</string>
 	<key>Find</key>
@@ -714,6 +724,8 @@
 	<string>GitHub 不再接受已保存的令牌。请重新连接。</string>
 	<key>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</key>
 	<string>GitHub 拒绝了这个令牌。请确认它已完整复制且未过期。</string>
+	<key>GitHub replied with HTTP %lld.</key>
+	<string>GitHub 返回了 HTTP %lld。</string>
 	<key>Grant Org Access…</key>
 	<string>授予组织访问权限…</string>
 	<key>Green</key>
@@ -736,6 +748,8 @@
 	<string>标注</string>
 	<key>History</key>
 	<string>历史</string>
+	<key>Homebrew couldn’t update fyolo. Run %@ in a terminal to see why.</key>
+	<string>Homebrew 无法更新 fyolo。请在终端中运行 %@ 查看原因。</string>
 	<key>Hooks</key>
 	<string>Hooks</string>
 	<key>Hooks and skill installed</key>
@@ -1134,6 +1148,8 @@
 	<string>在 GitHub 上打开</string>
 	<key>Open one to see how it is reached and what it runs.</key>
 	<string>打开一台可查看它的连接方式和运行内容。</string>
+	<key>Open the disk image and drag fyolo to Applications.</key>
+	<string>打开磁盘映像，将 fyolo 拖到“应用程序”文件夹。</string>
 	<key>Open the invite on your iPhone to install it with TestFlight.</key>
 	<string>在 iPhone 上打开邀请链接，用 TestFlight 安装。</string>
 	<key>Opened outside Fyolo on this device</key>
@@ -1252,6 +1268,8 @@
 	<string>请先将当前分支推送到仓库的远程，然后重试。（远程还需是 Fyolo 能识别的代码托管平台：GitHub、GitLab、Bitbucket 或 Gitea。）</string>
 	<key>Quit Fyolo</key>
 	<string>退出 Fyolo</string>
+	<key>Quit fyolo</key>
+	<string>退出 fyolo</string>
 	<key>Range</key>
 	<string>范围</string>
 	<key>Reachable</key>
@@ -1290,10 +1308,16 @@
 	<string>重新安装技能</string>
 	<key>Reinstalled</key>
 	<string>已重新安装</string>
+	<key>Relaunch</key>
+	<string>重新启动</string>
 	<key>Relaunch Fyolo to switch language?</key>
 	<string>重新启动 Fyolo 以切换语言？</string>
 	<key>Relaunch Now</key>
 	<string>立即重新启动</string>
+	<key>Relaunch to finish updating.</key>
+	<string>重新启动以完成更新。</string>
+	<key>Release Notes</key>
+	<string>发行说明</string>
 	<key>Reload</key>
 	<string>重新载入</string>
 	<key>Remote</key>
@@ -1348,6 +1372,8 @@
 	<string>重启隧道会更换地址，所有已配对的 iPhone 都需要重新扫码。</string>
 	<key>Restore Defaults</key>
 	<string>恢复默认</string>
+	<key>Reveal in Files</key>
+	<string>在“文件”中显示</string>
 	<key>Reveal in Finder</key>
 	<string>在“访达”中显示</string>
 	<key>Revoke Access</key>
@@ -1488,6 +1514,8 @@
 	<string>技能已安装</string>
 	<key>Skill reinstalled</key>
 	<string>技能已重新安装</string>
+	<key>Skip This Version</key>
+	<string>跳过此版本</string>
 	<key>Skip permission prompts</key>
 	<string>跳过权限确认</string>
 	<key>Somebody else wrote this file after you opened it. Overwriting replaces their version.</key>
@@ -1576,6 +1604,10 @@
 	<string>该设备无法读取这个对比。</string>
 	<key>The devices in your ~/.ssh/config, and the keys that reach them</key>
 	<string>~/.ssh/config 里的设备，以及连上它们的密钥</string>
+	<key>The download didn’t match the release. Nothing was installed.</key>
+	<string>下载的文件与发布版本不符，未安装任何内容。</string>
+	<key>The download failed.</key>
+	<string>下载失败。</string>
 	<key>The fyolo command-line tool, agent skill, and notifications</key>
 	<string>fyolo 命令行工具、Agent 技能与通知</string>
 	<key>The ignore rule couldn’t be added.</key>
@@ -1602,6 +1634,8 @@
 	<string>~/.ssh 中的公钥。可拷贝一个粘贴到服务器的 authorized_keys——私钥永远不会被读取。</string>
 	<key>The read failed.</key>
 	<string>读取失败。</string>
+	<key>The release’s update information couldn’t be read.</key>
+	<string>无法读取该版本的更新信息。</string>
 	<key>The search failed.</key>
 	<string>搜索失败。</string>
 	<key>The session host answered, but not with a pairing invite.</key>
@@ -1648,6 +1682,8 @@
 	<string>此分支还没有提交。</string>
 	<key>This branch has nothing the base branch doesn’t already have.</key>
 	<string>这个分支没有基础分支尚未包含的内容。</string>
+	<key>This build doesn’t check for updates.</key>
+	<string>此版本不检查更新。</string>
 	<key>This checkout has no other branch to compare with.</key>
 	<string>这个检出没有其他分支可以对比。</string>
 	<key>This device didn’t answer. Its fyolod may be too old to search.</key>
@@ -1686,6 +1722,8 @@
 	<string>该设备发来的名称文件树无法显示。</string>
 	<key>This machine’s fyolod is too old to browse files.</key>
 	<string>该设备上的 fyolod 版本过旧，无法浏览文件。</string>
+	<key>This machine’s fyolod is too old to filter by file. Clear the filter to search everything.</key>
+	<string>该设备上的 fyolod 版本过旧，无法按文件过滤。清除过滤条件即可搜索全部文件。</string>
 	<key>This machine’s fyolod is too old to install agent integration.</key>
 	<string>该设备上的 fyolod 版本过旧，无法安装 Agent 集成。</string>
 	<key>This machine’s fyolod is too old to list folders.</key>
@@ -1754,10 +1792,16 @@
 	<string>更新</string>
 	<key>Update Anyway</key>
 	<string>仍然更新</string>
+	<key>Update Required</key>
+	<string>需要更新</string>
 	<key>Update ready</key>
 	<string>更新已就绪</string>
 	<key>Updated.</key>
 	<string>已更新。</string>
+	<key>Updates with Homebrew.</key>
+	<string>将通过 Homebrew 更新。</string>
+	<key>Updating with Homebrew…</key>
+	<string>正在通过 Homebrew 更新…</string>
 	<key>Usage</key>
 	<string>用量</string>
 	<key>Usage statistics</key>
@@ -1838,12 +1882,18 @@
 	<string>昨天</string>
 	<key>You can restore it from the Trash.</key>
 	<string>可以从废纸篓恢复它。</string>
+	<key>You have %@.</key>
+	<string>你当前的版本是 %@。</string>
 	<key>Your Host entries from ~/.ssh/config — the same aliases `ssh` resolves. Right-click a host to connect.</key>
 	<string>来自 ~/.ssh/config 的 Host 条目，与 `ssh` 解析的别名一致。右键点按主机即可连接。</string>
 	<key>Your Repositories</key>
 	<string>你的仓库</string>
+	<key>Your sessions keep running while you update.</key>
+	<string>更新期间，你的会话会继续运行。</string>
 	<key>Your themes</key>
 	<string>你的主题</string>
+	<key>You’re up to date</key>
+	<string>已是最新版本</string>
 	<key>Zoom</key>
 	<string>缩放</string>
 	<key>Zoom Split</key>
@@ -1870,6 +1920,12 @@
 	<string>例如 JetBrains Mono</string>
 	<key>first %1$lld of %2$lld files</key>
 	<string>%2$lld 个文件中的前 %1$lld 个</string>
+	<key>fyolo %@ is available</key>
+	<string>fyolo %@ 现已推出</string>
+	<key>fyolo %@ is no longer supported. Update to %@ to keep using it.</key>
+	<string>fyolo %1$@ 已不再受支持。请更新到 %2$@ 以继续使用。</string>
+	<key>fyolo %@ is the newest version.</key>
+	<string>fyolo %@ 是最新版本。</string>
 	<key>fyolo can teach the agents you run (Claude Code, Codex, …) a `fyolo sessions` command so they can see, drive, and read each other's sessions in a project.
 
 Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks. You can turn it off anytime in Settings ▸ Agents.</key>
@@ -1886,6 +1942,8 @@ Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks
 %2$@</string>
 	<key>fyolod on this Mac didn’t answer.</key>
 	<string>这台 Mac 上的 fyolod 没有响应。</string>
+	<key>fyolod on this Mac is too old to filter by file. Clear the filter to search everything.</key>
+	<string>这台 Mac 上的 fyolod 版本过旧，不支持按文件过滤。清除过滤条件即可搜索全部文件。</string>
 	<key>fyolod on this Mac is too old to search.</key>
 	<string>这台 Mac 上的 fyolod 版本过旧，不支持搜索。</string>
 	<key>git can no longer inspect “%@”, and its folder still holds files. Delete the folder to remove the worktree.</key>

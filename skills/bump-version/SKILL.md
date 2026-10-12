@@ -7,8 +7,9 @@ description: "Cut a new fyolo macOS release by tagging main with the next versio
 
 fyolo is **trunk-based**: a release is nothing but a `vX.Y.Z` tag on `main`.
 Pushing the tag fires `.github/workflows/release.yml` (the **Release** workflow),
-which signs, notarizes, packages the DMG, updates the Sparkle appcast, and
-uploads to Cloudflare R2. There is no merge and no release branch.
+which packages the DMG, writes the `latest.json` installed apps check for
+updates, publishes both on a GitHub Release, and bumps the Homebrew cask. There
+is no merge and no release branch.
 
 Follow these steps in order. Stop and report if any precondition fails — never
 force past a failed check.
@@ -44,9 +45,15 @@ Decide `X.Y.Z` (semver, no `v` when talking, `v` in the tag):
   for features, `patch` for fixes) and confirm the number with the user before
   tagging.
 
-**The version must only ever go up** — the build number is
-`git rev-list --count HEAD`, and Sparkle treats a lower `CFBundleVersion` as
-older, which breaks auto-update. Never reuse or lower a version.
+**The version must only ever go up** — installed apps compare it to decide
+there is an update, and the build number (`git rev-list --count HEAD`) must
+only increase. Never reuse or lower a version.
+
+**Does this release retire older ones?** A new major (`1.0.0`) requires every
+older install to update on its own. Short of that, raise
+`packaging/minimum-version` — in a commit on `main`, before tagging — only when
+older versions must stop being used (a broken build, a protocol change they
+cannot speak). Ask the user; never raise it on your own.
 
 ## 3. Write the changelog entry
 
@@ -85,20 +92,18 @@ gh run watch --repo fl0wo/fyolo \
   "$(gh run list --repo fl0wo/fyolo -w Release -L1 --json databaseId -q '.[0].databaseId')"
 ```
 
-Report green/red to the user. If it fails, diagnose from the run log; the
-troubleshooting table is in `docs/runbook/macos-release-runbook.md`.
+Report green/red to the user. If it fails, diagnose from the run log.
 
 ## 6. Verify (when green)
 
 ```sh
 V=0.14.0
-curl -sI https://downloads.fyolo.sh/fyolo.dmg     | head -1   # 200
-curl -sI https://downloads.fyolo.sh/v$V/fyolo.dmg | head -1   # 200
-curl -s  https://downloads.fyolo.sh/appcast.xml | grep -i shortVersionString | head -1
+gh release view "v$V" --repo fl0wo/fyolo --json assets -q '.assets[].name'   # fyolo.dmg, latest.json
+curl -sL https://github.com/fl0wo/fyolo/releases/latest/download/latest.json  # "version": "$V"
 ```
 
-The newest appcast item should advertise the new version. Full verification
-(staple check, Gatekeeper, Sparkle end-to-end) lives in the runbook.
+`latest.json` is what installed apps read; if it does not name the new
+version, nobody is offered the update.
 
 ## Re-running a failed release
 

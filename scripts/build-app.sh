@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-# Assemble fyolo.app — a real macOS application bundle with a Dock icon and the
-# embedded Sparkle.framework that powers in-app auto-update.
+# Assemble fyolo.app — a real macOS application bundle with a Dock icon.
 #
 # fyolo is a plain SwiftPM executable; `swift run` produces a bare binary with
 # no bundle, so macOS shows a generic Dock icon. This script builds the release
 # binary and wraps it in a `.app` bundle whose Info.plist + AppIcon.icns give it
-# a proper name and Dock icon, then embeds Sparkle (which SwiftPM links but does
-# NOT bundle on its own) under Contents/Frameworks. It also builds the `fyolod`
+# a proper name and Dock icon. It also builds the `fyolod`
 # session daemon (Rust + a Zig-built VT engine) into Contents/Resources, so a
 # shipped app carries the session host it starts. The release bundle is universal
 # (arm64 + x86_64) so one DMG runs on Apple silicon and Intel Macs alike.
@@ -22,12 +20,12 @@
 #   FYOLO_CHANNEL   which identity to build; only two values exist. Unset (or
 #                    "release") builds ./fyolo.app. "dev" builds a side-by-side
 #                    fyolo-dev.app (bundle id ….dev, its own ~/.fyolo-dev state +
-#                    companion port 8788, Sparkle's update feed removed) so it runs
+#                    companion port 8788, never checks for updates) so it runs
 #                    beside an installed release build. Any other value is rejected —
 #                    see the channel check below for why.
 #   FYOLO_VERSION   CFBundleShortVersionString to stamp (default: keep Info.plist's)
 #   FYOLO_BUILD     CFBundleVersion to stamp; must increase across shipped builds
-#                    because Sparkle compares it (default: keep Info.plist's)
+#                    (default: keep Info.plist's)
 #   SIGN_IDENTITY    codesign identity, e.g. "Developer ID Application: …" for a
 #                    notarizable build (default: "-", ad-hoc, for local use)
 #
@@ -43,7 +41,7 @@ configuration="release"
 # wrapper and identity change per channel.
 product_name="fyolo"
 # FYOLO_CHANNEL=dev builds a side-by-side dev app (fyolo-dev.app, id ….dev, its
-# own state dir + port, no Sparkle update feed) so it can run beside an installed release.
+# own state dir + port, no update checks) so it can run beside an installed release.
 # Unset or "release" builds the shipped identity. Lower-cased the way AppChannel
 # lower-cases it at runtime, so the two agree on what a channel name is.
 channel="$(printf '%s' "${FYOLO_CHANNEL:-release}" | tr '[:upper:]' '[:lower:]')"
@@ -79,7 +77,6 @@ app_dir="$repo_root/${app_name}.app"
 contents_dir="$app_dir/Contents"
 macos_dir="$contents_dir/MacOS"
 resources_dir="$contents_dir/Resources"
-frameworks_dir="$contents_dir/Frameworks"
 # Signing identity resolution:
 #   - Explicit SIGN_IDENTITY always wins (the release runbook sets it).
 #   - Otherwise a dev build tries to auto-pick a real identity from the keychain,
@@ -124,9 +121,8 @@ fi
 # resolves the xcframework correctly.
 #
 # Each slice lands in its own `.build/<arch>-apple-macosx/<config>` directory. Only
-# the executable differs between them — Sparkle.framework already ships universal
-# from its xcframework, and the SwiftPM resource bundles are arch-independent — so
-# everything else is copied out of the first slice's directory.
+# the executable differs between them — the SwiftPM resource bundles are
+# arch-independent — so everything else is copied out of the first slice's directory.
 #
 # A dev build only ever runs on the machine that produced it, so it builds the host
 # slice alone and keeps the rebuild loop at one compile.
@@ -147,15 +143,9 @@ for arch in "${architectures[@]}"; do
     [[ -n "${bin_path:-}" ]] || bin_path="$slice_bin_path"
 done
 
-sparkle_src="$bin_path/Sparkle.framework"
-if [[ ! -d "$sparkle_src" ]]; then
-    echo "error: Sparkle.framework not found at $sparkle_src — did the SPM build run?" >&2
-    exit 1
-fi
-
 echo "==> Assembling bundle at $app_dir"
 rm -rf "$app_dir"
-mkdir -p "$macos_dir" "$resources_dir" "$frameworks_dir"
+mkdir -p "$macos_dir" "$resources_dir"
 lipo -create "${slice_binaries[@]}" -output "$macos_dir/$product_name"
 chmod +x "$macos_dir/$product_name"
 cp "$repo_root/packaging/Info.plist" "$contents_dir/Info.plist"
@@ -361,9 +351,7 @@ else
     fi
 fi
 
-# Stamp version / build number when the release workflow supplies them. The
-# binary's rpath already resolves @rpath/Sparkle.framework via @executable_path
-# below, so embedding is purely a copy + one rpath entry.
+# Stamp version / build number when the release workflow supplies them.
 plist="$contents_dir/Info.plist"
 if [[ -n "${FYOLO_VERSION:-}" ]]; then
     echo "==> Stamping CFBundleShortVersionString=$FYOLO_VERSION"
@@ -375,27 +363,17 @@ if [[ -n "${FYOLO_BUILD:-}" ]]; then
 fi
 
 # Dev channel: suffix the bundle id (so LaunchServices, UserDefaults, and
-# AppChannel's paths/port all diverge from the release build), rename it, and delete
-# Sparkle's update feed so the dev app can never auto-update itself onto the release
-# channel. The framework itself still ships: the binary links it on both channels, so
-# a bundle without it fails to launch. What changes is that there is no feed to check.
+# AppChannel's paths/port all diverge from the release build) and rename it. The
+# suffixed id is also what keeps it from checking for updates (`UpdateChecker`),
+# so it can never offer to replace itself with the release.
 if [[ "$channel" == "dev" ]]; then
     base_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$plist")"
-    echo "==> Dev channel: bundle id ${base_id}.dev, Sparkle update feed removed"
+    echo "==> Dev channel: bundle id ${base_id}.dev"
     /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier ${base_id}.dev" "$plist"
     /usr/libexec/PlistBuddy -c "Set :CFBundleName fyolo dev" "$plist"
     /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName fyolo dev" "$plist"
     /usr/libexec/PlistBuddy -c "Set :CFBundleURLTypes:0:CFBundleURLSchemes:0 fyolo-dev" "$plist"
-    /usr/libexec/PlistBuddy -c "Delete :SUFeedURL" "$plist" 2>/dev/null || true
-    /usr/libexec/PlistBuddy -c "Set :SUEnableAutomaticChecks false" "$plist" 2>/dev/null || true
 fi
-
-echo "==> Embedding Sparkle.framework"
-cp -R "$sparkle_src" "$frameworks_dir/"
-# SwiftPM links @rpath/Sparkle.framework with only an @loader_path rpath, which
-# would look beside the binary. Point @rpath at Contents/Frameworks so the
-# embedded copy is found at runtime. (Harmless if the entry already exists.)
-install_name_tool -add_rpath "@executable_path/../Frameworks" "$macos_dir/$product_name" 2>/dev/null || true
 
 if [[ -f "$source_icon" ]]; then
     echo "==> Generating AppIcon.icns from ${source_icon#$repo_root/}"
@@ -417,8 +395,8 @@ fi
 
 # Sign inside-out. A Developer ID identity (with the hardened runtime) makes the
 # bundle notarizable; the default "-" ad-hoc identity is enough for local runs.
-# Either way Sparkle's nested helpers must be sealed before the framework, and
-# the framework before the outer app, or codesign rejects the bundle.
+# Either way nested code must be sealed before the outer app, or codesign
+# rejects the bundle.
 sign_args=(--force --sign "$sign_identity")
 if [[ "$sign_identity" != "-" ]]; then
     sign_args+=(--options runtime)
@@ -428,18 +406,7 @@ if [[ "$sign_identity" != "-" ]]; then
 fi
 
 echo "==> Signing with identity: $sign_identity"
-sparkle="$frameworks_dir/Sparkle.framework"
-sparkle_version="$(readlink "$sparkle/Versions/Current" || echo B)"
-sparkle_v="$sparkle/Versions/$sparkle_version"
-for component in \
-    "$sparkle_v/XPCServices/Installer.xpc" \
-    "$sparkle_v/XPCServices/Downloader.xpc" \
-    "$sparkle_v/Autoupdate" \
-    "$sparkle_v/Updater.app"; do
-    [[ -e "$component" ]] && codesign "${sign_args[@]}" "$component"
-done
-codesign "${sign_args[@]}" "$sparkle"
-# The daemon is a nested Mach-O like Sparkle's helpers, so it is sealed before the
+# The daemon is a nested Mach-O, so it is sealed before the
 # outer app for the same reason — and with the same hardened runtime, because
 # notarization rejects any executable inside the bundle that lacks it.
 [[ -e "$daemon_dest" ]] && codesign "${sign_args[@]}" "$daemon_dest"
@@ -448,8 +415,8 @@ codesign "${sign_args[@]}" "$sparkle"
 if [[ -e "$resources_dir/$cli_name" ]] && file "$resources_dir/$cli_name" | grep -q "Mach-O"; then
     codesign "${sign_args[@]}" "$resources_dir/$cli_name"
 fi
-# Seal the outer app last so CodeResources covers the embedded framework. NOT
-# --deep: the framework's components are already individually signed above.
+# Seal the outer app last so CodeResources covers everything nested. NOT
+# --deep: the nested executables are already individually signed above.
 codesign "${sign_args[@]}" "$app_dir"
 # Not --deep here either: Apple deprecated it for verification, and it does not
 # check nested code the way the name suggests. --strict is what does.
