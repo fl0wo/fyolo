@@ -418,7 +418,8 @@ struct InspectorDetailContent: View {
                                    }
                                },
                                canAddToChat: { store.selectedSessionRunsAgent },
-                               runPluginCommand: { store.run($0) },
+                               onGutterAction: { store.perform($0) },
+                               runTasks: store.runTasks,
                                onClose: close)
                     .id(url)
             }

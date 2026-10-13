@@ -6,7 +6,12 @@ enum GitRoot {
     /// The work-tree root containing `url`, or `nil` outside a repo. Matches any `.git` entry —
     /// a directory in a normal clone, a *file* in linked worktrees and submodules.
     static func find(for url: URL) -> URL? {
-        var dir = url.standardizedFileURL.deletingLastPathComponent()
+        find(fromDirectory: url.standardizedFileURL.deletingLastPathComponent())
+    }
+
+    /// The work-tree root that is `directory` or one of its ancestors.
+    static func find(fromDirectory directory: URL) -> URL? {
+        var dir = directory.standardizedFileURL
         while dir.path != "/" {
             if FileManager.default.fileExists(atPath: dir.appendingPathComponent(".git").path) {
                 return dir

@@ -407,6 +407,8 @@ extension FyoloStore {
         // later close can journal it — the identity the roster sweep matches a
         // pending kill by (`journalClaims`).
         recordDaemonSessionID(information.id, for: id)
+        // The device leaves `foreground_job` out when it is false, so absent is idle.
+        runTasks.noteForegroundJob(information.foregroundJob == true, in: id)
         // `nil` argv is *unanswered*, so it never reaches `noteForegroundAgent` —
         // which reads its own `nil` as "a shell is in front now" and demotes.
         // An answered argv that matches nothing is that demotion, correctly.
@@ -476,6 +478,7 @@ extension FyoloStore {
     func applyFyolodStartRefused(for id: Session.ID, message: String,
                                   surface: InMemoryTerminalSession?) {
         fyolodLinks[id] = nil
+        runTasks.sessionEnded(id)
         // The one outcome retrying cannot fix, so the row stops claiming it is
         // being worked on: the daemon's own words below are what to act on.
         runtimes[id]?.connectionNotice = nil

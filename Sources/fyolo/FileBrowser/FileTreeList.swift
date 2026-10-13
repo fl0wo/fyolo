@@ -478,6 +478,12 @@ private struct RowContextMenu: NSViewRepresentable {
             }
             menu.addItem(menuItem(localized("Reveal in Finder"), #selector(revealInFinder)))
             menu.addItem(menuItem(localized("Open in Integrated Terminal"), #selector(openInTerminal)))
+            if !isDirectory, let task = actions?.wholeFileTask(target) {
+                let run = menuItem(localized("Run in Integrated Terminal"), #selector(runInTerminal(_:)))
+                run.representedObject = task
+                run.image = Self.runImage
+                menu.addItem(run)
+            }
             menu.addItem(.separator())
             menu.addItem(menuItem(localized("Copy Path"), #selector(copyPath)))
             menu.addItem(menuItem(localized("Copy Relative Path"), #selector(copyRelativePath)))
@@ -507,6 +513,18 @@ private struct RowContextMenu: NSViewRepresentable {
         @objc private func openInTerminal() {
             actions?.openInTerminal(isDirectory ? target : target.deletingLastPathComponent())
         }
+
+        @objc private func runInTerminal(_ sender: NSMenuItem) {
+            guard let task = sender.representedObject as? RunTask else { return }
+            actions?.runTask(task)
+        }
+
+        /// The green ▶ the editor's gutter draws for the same run.
+        private static let runImage: NSImage? = {
+            let configuration = NSImage.SymbolConfiguration(paletteColors: [.systemGreen])
+            return NSImage(systemSymbolName: "play.fill", accessibilityDescription: nil)?
+                .withSymbolConfiguration(configuration)
+        }()
 
         /// Reveals what the link points at, not the link — the Finder selects the target
         /// in its own folder, which is where "where does this actually live" gets

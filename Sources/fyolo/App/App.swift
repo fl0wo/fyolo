@@ -439,10 +439,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // hidden lets a mode *switch* (⌘⇧O while the ⌘⇧P palette is up) reuse
         // the live panel — the SwiftUI view tracks `paletteMode` itself; the
         // dedupe keeps the dismiss-path (panel close → nil → sink) from
-        // re-entering.
+        // re-entering. `@Published` emits on willSet, so without the hop the
+        // panel is built while `paletteMode` still reads nil: the view's first
+        // render falls back to `.commands`, and ⌘⇧O showed the Command Palette
+        // until a keystroke re-rendered it into Open Quickly.
         paletteObserver = store.$paletteMode
             .map { $0 != nil }
             .removeDuplicates()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] shown in
                 MainActor.assumeIsolated {
                     if shown { self?.presentCommandPalette() } else { self?.dismissCommandPalette() }
@@ -1356,7 +1360,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// while there is something to switch between. The tracking separator (which pins the switch to
     /// the inspector's left edge) is inserted and removed *with* the switch — otherwise it draws a
     /// stray vertical divider line in the toolbar while the inspector is collapsed. When open the
-    /// order is `… branchPicker, flex, [separator, switch, flex], toggle`.
+    /// order is `… branchPicker, flex, [separator, switch, flex], runTasks, toggle`.
     private func setInspectorSwitchVisible(_ visible: Bool) {
         guard let toolbar = window?.toolbar else { return }
         func index(of id: NSToolbarItem.Identifier) -> Int? {
@@ -1372,11 +1376,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSAnimationContext.current.duration = 0
         defer { NSAnimationContext.endGrouping() }
         if visible {
-            guard index(of: .inspectorTabs) == nil, let toggle = index(of: .toggleInspector) else { return }
-            // Insert in reverse at the toggle's index so the final order is separator, switch, flex.
-            toolbar.insertItem(withItemIdentifier: .flexibleSpace, at: toggle)
-            toolbar.insertItem(withItemIdentifier: .inspectorTabs, at: toggle)
-            toolbar.insertItem(withItemIdentifier: .inspectorTrackingSeparator, at: toggle)
+            // The trailing pair — run capsule, then toggle — stays together at the far right,
+            // so the switch goes in ahead of whichever of them comes first.
+            guard index(of: .inspectorTabs) == nil,
+                  let trailing = index(of: .runTasks) ?? index(of: .toggleInspector) else { return }
+            // Insert in reverse at that index so the final order is separator, switch, flex.
+            toolbar.insertItem(withItemIdentifier: .flexibleSpace, at: trailing)
+            toolbar.insertItem(withItemIdentifier: .inspectorTabs, at: trailing)
+            toolbar.insertItem(withItemIdentifier: .inspectorTrackingSeparator, at: trailing)
         } else {
             // Only clean up when the switch is actually present — otherwise (e.g. at launch with the
             // inspector already collapsed) there is nothing paired to remove, and stripping the
@@ -1384,10 +1391,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             guard let tabsIdx = index(of: .inspectorTabs) else { return }
             toolbar.removeItem(at: tabsIdx)
             if let i = index(of: .inspectorTrackingSeparator) { toolbar.removeItem(at: i) }
-            // Drop the flexible space that was paired with the switch (the one just before the toggle).
-            if let toggle = index(of: .toggleInspector), toggle > 0,
-               toolbar.items[toggle - 1].itemIdentifier == .flexibleSpace {
-                toolbar.removeItem(at: toggle - 1)
+            // Drop the flexible space that was paired with the switch (the one just before the
+            // trailing pair).
+            if let trailing = index(of: .runTasks) ?? index(of: .toggleInspector), trailing > 0,
+               toolbar.items[trailing - 1].itemIdentifier == .flexibleSpace {
+                toolbar.removeItem(at: trailing - 1)
             }
         }
     }
@@ -2659,7 +2667,7 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
         menu.delegate = self
         let panes: [(tab: InspectorTab, title: String)] = [
             (.files, localized("Project Files")), (.search, localized("Search Files")),
-            (.changes, localized("Changes")), (.info, localized("Info")),
+            (.changes, localized("Changes")),
         ] + (DockerService.isInstalled ? [(.docker, localized("Docker"))] : [])
         for pane in panes {
             let item = NSMenuItem(title: pane.title, action: #selector(setInspectorTab(_:)), keyEquivalent: "")
@@ -2669,6 +2677,11 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
         }
         menuItem.submenu = menu
         return menuItem
+    }
+
+    @objc private func toggleCurrentTask(_ sender: Any?) {
+        guard let task = store.runTasks.selectedRecord(in: store.runCapsuleRoot)?.task else { return }
+        if store.runTasks.isRunning(task) { store.stopTask(task) } else { store.runTask(task) }
     }
 
     @objc private func setInspectorTab(_ sender: NSMenuItem) {
@@ -2702,7 +2715,8 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
     // collapsed panel, and the sidebar's actions plus their flexible space
     // (`setNavigatorItemsVisible`) over-packed the row into NSToolbar's `»` overflow.
     private let defaultIdentifiers: [NSToolbarItem.Identifier] = [
-        .toggleNavigator, .sidebarTrackingSeparator, .branchPicker, .flexibleSpace, .toggleInspector,
+        .toggleNavigator, .sidebarTrackingSeparator, .branchPicker, .flexibleSpace, .runTasks,
+        .toggleInspector,
     ]
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
@@ -2774,7 +2788,7 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
             item.menu = makeNewSessionMenu()
             return item
         case .inspectorTabs:
-            // The inspector pane switch (Files / Search / Changes / Info), pinned to the inspector's
+            // The inspector pane switch (Files / Search / Changes / …), pinned to the inspector's
             // left edge by the tracking separator that precedes it in the item order. It's a
             // hand-drawn SwiftUI Liquid Glass segmented control (see `InspectorTabsToolbar`) rather
             // than a native `NSToolbarItemGroup`: over fyolo's transparent-over-terminal toolbar the
@@ -2782,7 +2796,7 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
             // our own track + sliding pill.
             let item = NSToolbarItem(itemIdentifier: .inspectorTabs)
             item.label = localized("Inspector")
-            item.toolTip = localized("Switch between project files, search, changes, and info")
+            item.toolTip = localized("Switch between project files, search, and changes")
             // The switch's host also carries the terminal ‖ inspector seam, which the opaque
             // fullscreen title bar would otherwise cover (see `InspectorTabsItemView`). It rides
             // this item because this item is the one the tracking separator pins to the divider,
@@ -2808,6 +2822,21 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
                 splitView: splitView,
                 dividerIndex: 1
             )
+        case .runTasks:
+            // The run capsule (see `RunCapsuleToolbar`). Always present, left of the inspector
+            // toggle, so it sits top-right whether the inspector is open or not.
+            let item = NSToolbarItem(itemIdentifier: .runTasks)
+            item.label = localized("Run")
+            item.toolTip = localized("Run or stop the current task")
+            let host = NSHostingView(rootView: RunCapsuleToolbar(runTasks: store.runTasks)
+                .environmentObject(store))
+            host.sizingOptions = [.intrinsicContentSize]
+            item.view = host
+            item.isBordered = false
+            // For the `»` overflow row, as on the toggles: runs or stops the capsule's task.
+            item.action = #selector(toggleCurrentTask(_:))
+            item.target = self
+            return item
         case .toggleInspector:
             // Hand-drawn (see `InspectorToggleToolbarView`) because this one button has to look
             // the same with and without its capsule; the trailing-sidebar glyph mirrors the
@@ -2858,6 +2887,7 @@ private extension NSToolbarItem.Identifier {
     static let toggleInspector = NSToolbarItem.Identifier("FyoloToggleInspector")
     static let inspectorTrackingSeparator = NSToolbarItem.Identifier("FyoloInspectorTrackingSeparator")
     static let branchPicker = NSToolbarItem.Identifier("FyoloBranchPicker")
+    static let runTasks = NSToolbarItem.Identifier("FyoloRunTasks")
 }
 
 /// The inspector pane switch, plus the terminal ‖ inspector seam that an opaque title bar covers.

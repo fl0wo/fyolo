@@ -73,9 +73,9 @@ final class PackageScriptsPluginTests: XCTestCase {
     }
 
     func testOddScriptNamesAreQuotedForTheShell() {
-        XCTAssertEqual(PackageScriptsPlugin.shellWord("build:prod"), "build:prod")
-        XCTAssertEqual(PackageScriptsPlugin.shellWord("say \"hi\""), "'say \"hi\"'")
-        XCTAssertEqual(PackageScriptsPlugin.shellWord("it's"), "'it'\\''s'")
+        XCTAssertEqual(RunTask.shellWord("build:prod"), "build:prod")
+        XCTAssertEqual(RunTask.shellWord("say \"hi\""), "'say \"hi\"'")
+        XCTAssertEqual(RunTask.shellWord("it's"), "'it'\\''s'")
     }
 
     func testOnlyPackageJsonGetsButtonsAndTheyRunInItsFolder() throws {
@@ -85,11 +85,10 @@ final class PackageScriptsPluginTests: XCTestCase {
         let file = directory.appendingPathComponent("package.json")
         let first = try XCTUnwrap(plugin.gutterActions(for: file, text: manifest).first)
         XCTAssertEqual(first.line, 5)
-        guard case let .runInTerminal(command, folder, _) = first.command else {
-            return XCTFail("expected a terminal run")
-        }
-        XCTAssertTrue(command.hasSuffix(" run dev"), command)
-        XCTAssertEqual(folder.standardizedFileURL.path, directory.standardizedFileURL.path)
+        let task = try XCTUnwrap(first.task)
+        XCTAssertEqual(task.name, "dev")
+        XCTAssertTrue(task.command.hasSuffix(" run dev"), task.command)
+        XCTAssertEqual(task.directory.standardizedFileURL.path, directory.standardizedFileURL.path)
     }
 
     func testTurningThePluginOffRemovesItsButtons() {

@@ -396,44 +396,111 @@ extension FyoloStore {
     /// Performs a plugin's request (see `PluginCommand`).
     func run(_ command: PluginCommand) {
         switch command {
-        case .runInTerminal(let commandLine, let directory, let title):
-            runInNewTerminal(commandLine, in: directory.path, title: title)
+        case .run(let task):
+            runTask(task)
         }
     }
 
+    /// A click on a plugin's gutter button: its task stops while it runs, else runs.
+    func perform(_ action: GutterAction) {
+        if let task = action.task, runTasks.isRunning(task) {
+            stopTask(task)
+        } else {
+            run(action.command)
+        }
+    }
+
+    /// The project a task belongs to in the run capsule's recents: the inspector's
+    /// checkout when the task runs inside it, else the repository around the
+    /// task's folder, else that folder.
+    func runRoot(for task: RunTask) -> String {
+        let directory = task.directory.standardizedFileURL.path
+        if let root = inspectorCheckout?.localRoot,
+           directory == root || directory.hasPrefix(root.hasSuffix("/") ? root : root + "/") {
+            return root
+        }
+        return GitRoot.find(fromDirectory: task.directory).map(\.path) ?? directory
+    }
+
+    /// The root whose recents the run capsule shows: the inspector's checkout on
+    /// this Mac. `nil` for a session on another machine — tasks run here.
+    var runCapsuleRoot: String? {
+        inspectorCheckout?.localRoot
+    }
+
+    /// Runs `task` in its own terminal: the one it last ran in while that is still
+    /// open with nothing in front of its shell, else a new split beside the
+    /// session in view (see `runInNewTerminal`).
+    func runTask(_ task: RunTask) {
+        let root = runRoot(for: task)
+        runTasks.willStart(task, in: root)
+        if let id = runTasks.session(of: task), let session = session(id),
+           fyolodLinks[id]?.latestInformation?.foregroundJob != true {
+            deliverTask(task, to: session, root: root, waitForBoot: false)
+            return
+        }
+        guard let session = runInNewTerminal(task.command, in: task.directory.path, title: task.command)
+        else {
+            Log.app.error("could not open a terminal for task \(task.command, privacy: .public)")
+            runTasks.didFail(task)
+            return
+        }
+        deliverTask(task, to: session, root: root, waitForBoot: true)
+    }
+
+    /// Interrupts `task` with the Ctrl-C a user would press in its terminal: the
+    /// line discipline signals the job, exactly as from the keyboard.
+    func stopTask(_ task: RunTask) {
+        guard let id = runTasks.session(of: task), let session = session(id),
+              let surface = Self.rawSurface(from: surface(for: session)),
+              let interrupt = SessionKeyPress.parse("ctrl-c")
+        else {
+            // Nothing left to interrupt: the terminal is gone.
+            runTasks.didFail(task)
+            return
+        }
+        Self.pressKey(interrupt, on: surface)
+    }
+
     /// Opens a terminal in `directory` as a split beside the session in view —
-    /// focus stays put, so the file the user clicked in stays open — names the row
-    /// `title`, and types `commandLine` into it once its shell is up. The same
-    /// path `fyolo sessions run` takes: boot-settle, then the bytes and a real
-    /// Return key.
-    func runInNewTerminal(_ commandLine: String, in directory: String, title: String) {
+    /// focus stays put, so the file the user clicked in stays open — and names the
+    /// row `title`. Returns the new session; typing into it is the caller's.
+    func runInNewTerminal(_ commandLine: String, in directory: String, title: String) -> Session? {
         let scope: ControlScope
         if let selected = selectedSessionID, let home = locate(selected) {
             scope = self.scope(at: home)
         } else {
             addTerminal(in: directory)
-            guard let id = selectedSessionID, let session = session(id) else { return }
+            guard let id = selectedSessionID, let session = session(id) else { return nil }
             updateSession(id) { $0.givenTitle = title }
-            deliverWhenReady(commandLine, to: session)
-            return
+            return session
         }
         guard let freshID = addSplitSession(
             in: scope, agent: .terminal, anchor: selectedSessionID, takeFocus: false,
             spawnDirectory: directory),
-            let fresh = session(freshID)
-        else { return }
+            session(freshID) != nil
+        else { return nil }
         updateSession(freshID) { $0.givenTitle = title }
-        deliverWhenReady(commandLine, to: fresh)
+        return session(freshID)
     }
 
-    private func deliverWhenReady(_ commandLine: String, to session: Session) {
+    /// Types the task's command into `session` — after the shell's first paint for
+    /// a fresh terminal, the path `fyolo sessions run` takes — and hands the
+    /// terminal to `runTasks` to watch.
+    private func deliverTask(_ task: RunTask, to session: Session, root: String, waitForBoot: Bool) {
         let state = surface(for: session)
         Task { [weak self] in
             guard let self else { return }
-            await self.waitForBootSettle(of: state)
-            if await !self.performDelivery(commandLine, to: session, state: state) {
-                Log.app.error("could not type a plugin command into \(session.id, privacy: .public)")
+            if waitForBoot { await self.waitForBootSettle(of: state) }
+            guard await self.performDelivery(task.command, to: session, state: state) else {
+                Log.app.error("could not type a task into \(session.id, privacy: .public)")
+                self.runTasks.didFail(task)
+                return
             }
+            // `@Published` fires on every set, so each OSC 133 `D` the shell sends
+            // arrives here even when two commands exit with the same status.
+            let finished = state.$lastCommandExitCode.dropFirst().map { _ in () }.eraseToAnyPublisher()
+            self.runTasks.didDeliver(task, to: session.id, in: root, commandFinished: finished)
         }
     }
 

@@ -17,11 +17,11 @@ struct PackageScriptsPlugin: FyoloPlugin {
         let directory = file.deletingLastPathComponent()
         let manager = Self.packageManager(declared: Self.declaredPackageManager(in: text), near: directory)
         return scripts.map { script in
-            let command = "\(manager) run \(Self.shellWord(script.name))"
+            let command = "\(manager) run \(RunTask.shellWord(script.name))"
             return GutterAction(
                 line: script.line,
                 help: command,
-                command: .runInTerminal(command: command, directory: directory, title: command)
+                command: .run(RunTask(name: script.name, command: command, directory: directory))
             )
         }
     }
@@ -144,13 +144,5 @@ struct PackageScriptsPlugin: FyoloPlugin {
             guard current != "/", !current.isEmpty else { return "npm" }
             current = (current as NSString).deletingLastPathComponent
         }
-    }
-
-    /// A script name as one shell word: bare when it is made of the characters
-    /// script names use (`build:prod`, `test/unit`), single-quoted otherwise.
-    static func shellWord(_ name: String) -> String {
-        let plain = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: ":._/-@+="))
-        if !name.isEmpty, name.unicodeScalars.allSatisfy({ plain.contains($0) }) { return name }
-        return "'" + name.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 }

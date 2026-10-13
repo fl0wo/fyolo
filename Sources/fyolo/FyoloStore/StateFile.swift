@@ -77,6 +77,9 @@ struct StateFile {
         /// still honored by the next launch's roster sweep. Optional so older
         /// state files still decode.
         var closedDaemonSessions: [ClosedDaemonSession]?
+        /// The run capsule's recents (see `RunHistory`). Optional so older state
+        /// files still decode.
+        var runHistory: RunHistory?
 
         init(
             workspaces: [Workspace]?,
@@ -87,7 +90,8 @@ struct StateFile {
             splitGroups: [SplitNode]?,
             inspectorLayouts: [String: InspectorLayout]?,
             workspaceSelections: [String: Session.ID]? = nil,
-            closedDaemonSessions: [ClosedDaemonSession]? = nil
+            closedDaemonSessions: [ClosedDaemonSession]? = nil,
+            runHistory: RunHistory? = nil
         ) {
             self.workspaces = workspaces
             self.currentWorkspaceID = currentWorkspaceID
@@ -98,11 +102,12 @@ struct StateFile {
             self.inspectorLayouts = inspectorLayouts
             self.workspaceSelections = workspaceSelections
             self.closedDaemonSessions = closedDaemonSessions
+            self.runHistory = runHistory
         }
 
         private enum CodingKeys: String, CodingKey {
             case workspaces, currentWorkspaceID, projects, selectedSessionID, splitRoot,
-                 splitGroups, inspectorLayouts, workspaceSelections, closedDaemonSessions
+                 splitGroups, inspectorLayouts, workspaceSelections, closedDaemonSessions, runHistory
         }
 
         /// `projects` is decoded twice on an upgrade — once as the live shape, once
@@ -126,6 +131,14 @@ struct StateFile {
                 [String: UUID].self, forKey: .workspaceSelections)
             closedDaemonSessions = try c.decodeIfPresent(
                 [ClosedDaemonSession].self, forKey: .closedDaemonSessions)
+            // Recents are a convenience: one that fails to read is dropped, never
+            // allowed to fail the snapshot and take the session tree with it.
+            do {
+                runHistory = try c.decodeIfPresent(RunHistory.self, forKey: .runHistory)
+            } catch {
+                Log.app.error("dropped unreadable run history: \(String(describing: error), privacy: .public)")
+                runHistory = nil
+            }
         }
 
         /// `legacyProjects` never round-trips: it is the same `projects` array read
@@ -140,6 +153,7 @@ struct StateFile {
             try c.encodeIfPresent(inspectorLayouts, forKey: .inspectorLayouts)
             try c.encodeIfPresent(workspaceSelections, forKey: .workspaceSelections)
             try c.encodeIfPresent(closedDaemonSessions, forKey: .closedDaemonSessions)
+            try c.encodeIfPresent(runHistory, forKey: .runHistory)
         }
     }
 

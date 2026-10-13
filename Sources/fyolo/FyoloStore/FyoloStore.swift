@@ -898,7 +898,10 @@ final class FyoloStore: ObservableObject {
     func syncRuntimes() {
         let live = Set(sessionSlots.sessionIDs)
         for id in live where runtimes[id] == nil { runtimes[id] = SessionRuntime() }
-        for id in runtimes.keys where !live.contains(id) { runtimes.removeValue(forKey: id) }
+        for id in runtimes.keys where !live.contains(id) {
+            runtimes.removeValue(forKey: id)
+            runTasks.sessionEnded(id)
+        }
         // A closed session's saved inspector layout goes with it, and so does its
         // claim on being the row a workspace comes back to.
         for id in inspectorStates.keys where !live.contains(id) { inspectorStates.removeValue(forKey: id) }
@@ -1035,6 +1038,9 @@ final class FyoloStore: ObservableObject {
     /// surface cache, for the same reason that one does: the model has to outlive
     /// the view that shows it. See `FileTreeCache`.
     let fileTrees = FileTreeCache()
+
+    /// The run capsule's recents and what is running now (see `RunTasks`).
+    let runTasks = RunTasks()
 
     var surfaces: [Session.ID: TerminalViewState] = [:]
     var monitors: [Session.ID: [AnyCancellable]] = [:]
@@ -1270,6 +1276,7 @@ final class FyoloStore: ObservableObject {
         // `syncRuntimes` reads it.
         rebuildSessionSlots()
         syncRuntimes()
+        runTasks.onHistoryChange = { [weak self] in self?.persistSoon() }
 
         // Re-style already-open terminals whenever appearance settings change.
         // `objectWillChange` fires *before* the new value lands, so we hop to the
@@ -1667,6 +1674,12 @@ final class FyoloStore: ObservableObject {
         // Closes made while a route was offline (or right before a crash) come
         // back as pending kills; the first roster refresh per route settles them.
         store.closedSessionJournal = snapshot.closedDaemonSessions ?? []
+        if var history = snapshot.runHistory {
+            history.prune { FileManager.default.fileExists(atPath: $0) }
+            let live = Set(store.allSessions.map(\.id))
+            history.forgetSessions { !live.contains($0) }
+            store.runTasks.restore(history)
+        }
         return store
     }
 
@@ -1698,7 +1711,8 @@ final class FyoloStore: ObservableObject {
             splitGroups: splitGroups,
             inspectorLayouts: layouts.isEmpty ? nil : layouts,
             workspaceSelections: selections.isEmpty ? nil : selections,
-            closedDaemonSessions: closedSessionJournal.isEmpty ? nil : closedSessionJournal
+            closedDaemonSessions: closedSessionJournal.isEmpty ? nil : closedSessionJournal,
+            runHistory: runTasks.history.records.isEmpty ? nil : runTasks.history
         ))
     }
 

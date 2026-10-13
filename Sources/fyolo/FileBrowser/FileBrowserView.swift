@@ -452,8 +452,6 @@ struct FileBrowserView: View {
             } else {
                 DockerView()
             }
-        case .info:
-            SessionInfoView()
         }
     }
 
@@ -607,7 +605,10 @@ struct FileBrowserView: View {
             delete: { delete($0) },
             addToChat: { _ = store.addPathToSelectedSessionPrompt($0) },
             canAddToChat: { store.selectedSessionRunsAgent },
-            openInTerminal: { store.addTerminal(in: $0.path) }
+            openInTerminal: { store.addTerminal(in: $0.path) },
+            // Tasks run on this Mac, so a tree on another machine offers none.
+            wholeFileTask: { deviceCheckout == nil ? PluginRegistry.wholeFileTask(for: $0, settings: settings) : nil },
+            runTask: { store.runTask($0) }
         )
     }
 

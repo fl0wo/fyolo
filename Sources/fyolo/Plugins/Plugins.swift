@@ -9,9 +9,31 @@ import Foundation
 /// arrive as a manifest instead of compiled code — it would produce the same
 /// values.
 enum PluginCommand: Hashable, Sendable {
-    /// Open a terminal in `directory` beside the session in view, named `title`,
-    /// and run `command` in it.
-    case runInTerminal(command: String, directory: URL, title: String)
+    /// Run `task` in a fyolo terminal, and remember it in the run capsule's recents.
+    case run(RunTask)
+}
+
+/// Something a plugin knows how to run: a script, a make target, a whole file.
+/// The run capsule, its recents and the stop button work on this value alone, so
+/// a new kind of runnable is a new plugin, never a change to how runs are run.
+struct RunTask: Hashable, Codable, Sendable, Identifiable {
+    /// What the capsule shows: `e2e`, `build`, `deploy.sh`.
+    let name: String
+    /// The shell line typed into the terminal.
+    let command: String
+    let directory: URL
+
+    /// Two runs of the same line in the same folder are one task — the recents
+    /// never hold it twice.
+    var id: String { directory.standardizedFileURL.path + "\u{0}" + command }
+
+    /// A word as one shell argument: bare when it is made of the characters names
+    /// and paths use (`build:prod`, `scripts/x.sh`), single-quoted otherwise.
+    static func shellWord(_ word: String) -> String {
+        let plain = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: ":._/-@+="))
+        if !word.isEmpty, word.unicodeScalars.allSatisfy({ plain.contains($0) }) { return word }
+        return "'" + word.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
 }
 
 /// A clickable marker in the editor's gutter, beside one line of the open file.
@@ -21,6 +43,13 @@ struct GutterAction: Hashable, Sendable {
     /// The tooltip — what clicking will do.
     let help: String
     let command: PluginCommand
+
+    /// The task behind the marker, so the gutter can show it running.
+    var task: RunTask? {
+        switch command {
+        case .run(let task): task
+        }
+    }
 }
 
 /// A fyolo plugin: a named feature the user can switch off in Settings ▸
@@ -37,6 +66,13 @@ protocol FyoloPlugin {
     /// `text` (the live buffer, unsaved edits included). Empty for a file the
     /// plugin has nothing to say about — the common case, so return early.
     func gutterActions(for file: URL, text: String) -> [GutterAction]
+    /// The task that runs `file` as a whole (a shell script), offered on the file
+    /// tree's right-click menu. `nil` for a file that isn't run that way.
+    func wholeFileTask(for file: URL) -> RunTask?
+}
+
+extension FyoloPlugin {
+    func wholeFileTask(for file: URL) -> RunTask? { nil }
 }
 
 // MARK: - Registry
@@ -46,6 +82,8 @@ protocol FyoloPlugin {
 enum PluginRegistry {
     static let all: [any FyoloPlugin] = [
         PackageScriptsPlugin(),
+        MakefilePlugin(),
+        ScriptFilePlugin(),
     ]
 
     static func enabled(in settings: AppSettings) -> [any FyoloPlugin] {
@@ -59,5 +97,10 @@ enum PluginRegistry {
         return enabled(in: settings)
             .flatMap { $0.gutterActions(for: file, text: text) }
             .filter { seenLines.insert($0.line).inserted }
+    }
+
+    /// How the first enabled plugin that runs `file` whole would run it.
+    static func wholeFileTask(for file: URL, settings: AppSettings) -> RunTask? {
+        enabled(in: settings).lazy.compactMap { $0.wholeFileTask(for: file) }.first
     }
 }

@@ -100,4 +100,8 @@ struct FileTreeActions {
     /// Opens a fyolo terminal already `cd`'d into the given directory — a folder
     /// row's own path, a file row's containing folder.
     let openInTerminal: (_ directory: URL) -> Void
+    /// How a plugin would run the file as a whole (a shell script), asked at
+    /// menu-open time; `nil` for a file nothing runs that way.
+    let wholeFileTask: (URL) -> RunTask?
+    let runTask: (RunTask) -> Void
 }

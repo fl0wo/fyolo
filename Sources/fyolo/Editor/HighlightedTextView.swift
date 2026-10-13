@@ -63,6 +63,8 @@ struct HighlightedTextView: NSViewRepresentable {
     /// one does. Empty for most files, which keeps the gutter its usual width.
     var gutterActions: [GutterAction] = []
     var onGutterAction: ((GutterAction) -> Void)? = nil
+    /// Which marked tasks are running, so their markers show a stop button.
+    var runTasks: RunTasks? = nil
     /// Invoked when the user presses ⌘S — flushes the buffer to disk immediately.
     let onSave: () -> Void
 
@@ -266,6 +268,7 @@ struct HighlightedTextView: NSViewRepresentable {
         )
         coordinator.ruler?.setMarkers(gutterActions)
         coordinator.ruler?.onMarkerClick = onGutterAction
+        coordinator.ruler?.runTasks = runTasks
 
         // A new jump target while the same file stays open (the user clicked another search hit).
         if jumpToLine != coordinator.appliedJumpLine {

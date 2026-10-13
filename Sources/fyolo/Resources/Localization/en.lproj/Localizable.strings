@@ -132,6 +132,8 @@
 	<string>A port is a number from 1 to 65535.</string>
 	<key>A run button beside each script in a package.json, using the project’s package manager.</key>
 	<string>A run button beside each script in a package.json, using the project’s package manager.</string>
+	<key>A run button beside each target in a Makefile.</key>
+	<string>A run button beside each target in a Makefile.</string>
 	<key>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</key>
 	<string>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</string>
 	<key>Activity</key>
@@ -160,8 +162,6 @@
 	<string>Address</string>
 	<key>Adds a Host block to ~/.ssh/config.</key>
 	<string>Adds a Host block to ~/.ssh/config.</string>
-	<key>Agent</key>
-	<string>Agent</string>
 	<key>Agent Unavailable</key>
 	<string>Agent Unavailable</string>
 	<key>Agent skill</key>
@@ -324,6 +324,8 @@
 	<string>Choose…</string>
 	<key>Clear</key>
 	<string>Clear</string>
+	<key>Clear Recent Runs</key>
+	<string>Clear Recent Runs</string>
 	<key>Clone</key>
 	<string>Clone</string>
 	<key>Clone %@</key>
@@ -1008,8 +1010,6 @@
 	<string>No Pull Requests</string>
 	<key>No Running Containers</key>
 	<string>No Running Containers</string>
-	<key>No Session</key>
-	<string>No Session</string>
 	<key>No agent CLIs on %@ yet. Install one there and it shows up here.</key>
 	<string>No agent CLIs on %@ yet. Install one there and it shows up here.</string>
 	<key>No bundled tool to install from.</key>
@@ -1288,6 +1288,8 @@
 	<string>Recent</string>
 	<key>Recent Activity</key>
 	<string>Recent Activity</string>
+	<key>Recent runs</key>
+	<string>Recent runs</string>
 	<key>Reconnect</key>
 	<string>Reconnect</string>
 	<key>Reconnect to sign in with a different account, or grant Fyolo access to the organization that owns this repository.</key>
@@ -1386,12 +1388,26 @@
 	<string>Rotate the pairing token?</string>
 	<key>Row padding</key>
 	<string>Row padding</string>
+	<key>Run</key>
+	<string>Run</string>
+	<key>Run %@</key>
+	<string>Run %@</string>
 	<key>Run Fyolo from the built app to install its command-line tool.</key>
 	<string>Run Fyolo from the built app to install its command-line tool.</string>
 	<key>Run a command…</key>
 	<string>Run a command…</string>
+	<key>Run a script from a package.json, a Makefile or a shell file to see it here</key>
+	<string>Run a script from a package.json, a Makefile or a shell file to see it here</string>
+	<key>Run a shell script, or any file that starts with #!, from its first line or the file tree.</key>
+	<string>Run a shell script, or any file that starts with #!, from its first line or the file tree.</string>
+	<key>Run in Integrated Terminal</key>
+	<string>Run in Integrated Terminal</string>
+	<key>Run or stop the current task</key>
+	<string>Run or stop the current task</string>
 	<key>Running terminal sessions will end. You can relaunch later instead.</key>
 	<string>Running terminal sessions will end. You can relaunch later instead.</string>
+	<key>Running · %@</key>
+	<string>Running · %@</string>
 	<key>Runs</key>
 	<string>Runs</string>
 	<key>Runs on %@</key>
@@ -1440,8 +1456,6 @@
 	<string>Select All</string>
 	<key>Select a session to browse its files.</key>
 	<string>Select a session to browse its files.</string>
-	<key>Select a session to see its info.</key>
-	<string>Select a session to see its info.</string>
 	<key>Select text in the document, then choose Highlight.</key>
 	<string>Select text in the document, then choose Highlight.</string>
 	<key>Selection</key>
@@ -1556,10 +1570,14 @@
 	<string>State</string>
 	<key>Status</key>
 	<string>Status</string>
+	<key>Stop</key>
+	<string>Stop</string>
+	<key>Stop %@</key>
+	<string>Stop %@</string>
 	<key>Style</key>
 	<string>Style</string>
-	<key>Switch between project files, search, changes, and info</key>
-	<string>Switch between project files, search, changes, and info</string>
+	<key>Switch between project files, search, and changes</key>
+	<string>Switch between project files, search, and changes</string>
 	<key>System</key>
 	<string>System</string>
 	<key>System (%@)</key>
@@ -1824,10 +1842,6 @@
 	<string>Version %@ on %@. Sessions keep running there after you disconnect.</string>
 	<key>View</key>
 	<string>View</string>
-	<key>View on %@</key>
-	<string>View on %@</string>
-	<key>Waiting for the agent’s first status report.</key>
-	<string>Waiting for the agent’s first status report.</string>
 	<key>Wants a password</key>
 	<string>Wants a password</string>
 	<key>WeChat</key>
@@ -1862,8 +1876,6 @@
 	<string>Which machine your iPhone connects to. Each one serves its own sessions.</string>
 	<key>Window</key>
 	<string>Window</string>
-	<key>Working Directory</key>
-	<string>Working Directory</string>
 	<key>Workspace</key>
 	<string>Workspace</string>
 	<key>Workspace Settings…</key>

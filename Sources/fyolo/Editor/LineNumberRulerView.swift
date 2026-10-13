@@ -1,11 +1,13 @@
 import AppKit
+import Combine
 
 /// An Xcode-style line-number gutter for the editor's text view: right-aligned numbers, one per
 /// logical line. A soft-wrapped line keeps a single number on its first visual row (drawn at the
 /// first line fragment of each paragraph), and a trailing empty line is numbered like Xcode's.
 ///
 /// Plugins can mark lines with a run button (`GutterAction`): a green ▶ drawn just right of the
-/// line's number, in a column the gutter only makes room for while some line is marked.
+/// line's number, in a column the gutter only makes room for while some line is marked. While
+/// the marker's task runs, it is a red ■ instead.
 final class LineNumberRulerView: NSRulerView {
     private var numberFont: NSFont
     private var numberColor: NSColor
@@ -27,6 +29,20 @@ final class LineNumberRulerView: NSRulerView {
     /// click or a hover is tested against.
     private var markerHitRects: [(rect: NSRect, action: GutterAction)] = []
     var onMarkerClick: ((GutterAction) -> Void)?
+
+    /// Where the markers learn whether their task is running. Watched directly rather than
+    /// through SwiftUI, so a task starting or stopping repaints the gutter alone — not the
+    /// text view, whose rebuild re-highlights the document.
+    var runTasks: RunTasks? {
+        didSet {
+            guard runTasks !== oldValue else { return }
+            runTasksObserver = runTasks?.$phases.removeDuplicates().sink { [weak self] _ in
+                // `$phases` fires before the new value lands; draw on the next turn.
+                DispatchQueue.main.async { self?.needsDisplay = true }
+            }
+        }
+    }
+    private var runTasksObserver: AnyCancellable?
 
     init(scrollView: NSScrollView, editorFont: NSFont, numberColor: NSColor, gutterColor: NSColor,
          baselineShift: CGFloat) {
@@ -80,7 +96,11 @@ final class LineNumberRulerView: NSRulerView {
     func updatePointer(for event: NSEvent) {
         let hit = marker(at: convert(event.locationInWindow, from: nil))
         (hit == nil ? NSCursor.arrow : NSCursor.pointingHand).set()
-        toolTip = hit?.help
+        if let task = hit?.task, runTasks?.isRunning(task) == true {
+            toolTip = localized("Stop \(task.command)")
+        } else {
+            toolTip = hit?.help
+        }
     }
 
     override func mouseExited(with event: NSEvent) {
@@ -206,21 +226,28 @@ final class LineNumberRulerView: NSRulerView {
         }
     }
 
-    /// A green ▶ in the marker column, centered on the number's text box (and so
-    /// on the code line), with a hit area the column's full width and the line's
-    /// height — a small glyph with a forgiving target.
+    /// A green ▶ in the marker column — a red ■ while its task runs — centered on the
+    /// number's text box (and so on the code line), with a hit area the column's full
+    /// width and the line's height: a small glyph with a forgiving target.
     private func drawMarker(_ action: GutterAction, besideNumberAt numberRect: NSRect) {
         let height = (numberFont.capHeight * 1.15).rounded()
         let width = (height * 0.9).rounded()
         let left = ruleThickness - Self.markerColumnWidth + (Self.markerColumnWidth - width) / 2 - 2
         let midY = numberRect.midY
-        let triangle = NSBezierPath()
-        triangle.move(to: NSPoint(x: left, y: midY - height / 2))
-        triangle.line(to: NSPoint(x: left + width, y: midY))
-        triangle.line(to: NSPoint(x: left, y: midY + height / 2))
-        triangle.close()
-        NSColor.systemGreen.setFill()
-        triangle.fill()
+        if let task = action.task, runTasks?.isRunning(task) == true {
+            let side = (height * 0.8).rounded()
+            let square = NSRect(x: left + (width - side) / 2, y: midY - side / 2, width: side, height: side)
+            NSColor.systemRed.setFill()
+            NSBezierPath(roundedRect: square, xRadius: 1.5, yRadius: 1.5).fill()
+        } else {
+            let triangle = NSBezierPath()
+            triangle.move(to: NSPoint(x: left, y: midY - height / 2))
+            triangle.line(to: NSPoint(x: left + width, y: midY))
+            triangle.line(to: NSPoint(x: left, y: midY + height / 2))
+            triangle.close()
+            NSColor.systemGreen.setFill()
+            triangle.fill()
+        }
         let hitRect = NSRect(
             x: ruleThickness - Self.markerColumnWidth - 2, y: numberRect.minY - 2,
             width: Self.markerColumnWidth + 2, height: numberRect.height + 4)

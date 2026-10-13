@@ -688,29 +688,10 @@ enum GitService {
 
 
     /// A recognized code-hosting forge, detected from the origin remote's hostname.
-    /// Each forge shapes its branch-tree URL differently, so a "view remote" link
-    /// must know which one it's talking to.
+    /// Each forge shapes its new-pull-request URL differently, so the link must
+    /// know which one it's talking to.
     enum Forge {
         case github, gitlab, bitbucket, gitea
-
-        var name: String {
-            switch self {
-            case .github: return "GitHub"
-            case .gitlab: return "GitLab"
-            case .bitbucket: return "Bitbucket"
-            case .gitea: return "Gitea"
-            }
-        }
-
-        /// The path that shows `branch`'s file tree, relative to the repo's web URL.
-        fileprivate func branchPath(_ branch: String) -> String {
-            switch self {
-            case .github: return "tree/\(branch)"
-            case .gitlab: return "-/tree/\(branch)"
-            case .bitbucket: return "src/\(branch)"
-            case .gitea: return "src/branch/\(branch)"
-            }
-        }
 
         /// The path that opens a pull/merge request from `branch`, relative to the
         /// repo's web URL. GitHub/GitLab/Bitbucket default the base branch on
@@ -736,35 +717,6 @@ enum GitService {
             default: return nil
             }
         }
-    }
-
-    struct RemotePage {
-        let forge: Forge
-        let url: URL
-    }
-
-    /// The forge web page for `dir`'s checkout — the current branch's tree when the
-    /// branch exists on the remote, else the repository root (an unpushed branch would
-    /// 404). `nil` when there is no repository or the origin remote isn't a forge we
-    /// can shape a URL for.
-    static func remotePage(in dir: String) async -> RemotePage? {
-        await offMain { resolveRemotePage(dir) }
-    }
-
-    private static func resolveRemotePage(_ dir: String) -> RemotePage? {
-        guard let remote = run(["remote", "get-url", "origin"], in: dir)?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-            let parsed = parseRemote(remote),
-            let forge = Forge(host: parsed.host),
-            let repo = URL(string: "https://\(parsed.host)/\(parsed.path)") else { return nil }
-        guard run(["rev-parse", "--abbrev-ref", "@{upstream}"], in: dir) != nil,
-              let branch = run(["rev-parse", "--abbrev-ref", "HEAD"], in: dir)?
-                  .trimmingCharacters(in: .whitespacesAndNewlines),
-              !branch.isEmpty, branch != "HEAD",
-              let escaped = branch.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
-        else { return RemotePage(forge: forge, url: repo) }
-        let branchURL = URL(string: "\(repo.absoluteString)/\(forge.branchPath(escaped))") ?? repo
-        return RemotePage(forge: forge, url: branchURL)
     }
 
     /// The forge page for opening a pull request from `dir`'s current branch —

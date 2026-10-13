@@ -621,6 +621,16 @@
         }
       }
     },
+    "A run button beside each target in a Makefile.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Makefile 的每个目标旁显示运行按钮。"
+          }
+        }
+      }
+    },
     "A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.": {
       "localizations": {
         "zh-Hans": {
@@ -757,16 +767,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 ~/.ssh/config 中添加一个 Host 配置块。"
-          }
-        }
-      }
-    },
-    "Agent": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Agent"
           }
         }
       }
@@ -1558,6 +1558,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "清除"
+          }
+        }
+      }
+    },
+    "Clear Recent Runs": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除最近运行"
           }
         }
       }
@@ -2849,6 +2859,116 @@
           "stringUnit": {
             "state": "translated",
             "value": "Docker 未能及时响应。"
+          }
+        }
+      }
+    },
+    "Recent runs": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近运行"
+          }
+        }
+      }
+    },
+    "Run": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行"
+          }
+        }
+      }
+    },
+    "Run %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行 %@"
+          }
+        }
+      }
+    },
+    "Run a script from a package.json, a Makefile or a shell file to see it here": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从 package.json、Makefile 或 shell 文件运行脚本后，会显示在这里"
+          }
+        }
+      }
+    },
+    "Run a shell script, or any file that starts with #!, from its first line or the file tree.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从首行或文件树运行 shell 脚本，或任何以 #! 开头的文件。"
+          }
+        }
+      }
+    },
+    "Run in Integrated Terminal": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在集成终端中运行"
+          }
+        }
+      }
+    },
+    "Run or stop the current task": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行或停止当前任务"
+          }
+        }
+      }
+    },
+    "Running · %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行中 · %@"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止"
+          }
+        }
+      }
+    },
+    "Stop %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止 %@"
+          }
+        }
+      }
+    },
+    "Switch between project files, search, and changes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在项目文件、搜索和更改之间切换"
           }
         }
       }
@@ -4970,16 +5090,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "没有运行中的容器"
-          }
-        }
-      }
-    },
-    "No Session": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "没有会话"
           }
         }
       }
@@ -7108,16 +7218,6 @@
         }
       }
     },
-    "Select a session to see its info.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "选择一个会话以查看其信息。"
-          }
-        }
-      }
-    },
     "Selection": {
       "localizations": {
         "zh-Hans": {
@@ -7674,16 +7774,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "样式"
-          }
-        }
-      }
-    },
-    "Switch between project files, search, changes, and info": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在项目文件、搜索、更改和信息之间切换"
           }
         }
       }
@@ -9089,26 +9179,6 @@
         }
       }
     },
-    "View on %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在 %@ 上查看"
-          }
-        }
-      }
-    },
-    "Waiting for the agent’s first status report.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在等待 Agent 的首次状态报告。"
-          }
-        }
-      }
-    },
     "Wants a password": {
       "localizations": {
         "zh-Hans": {
@@ -9275,16 +9345,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "窗口"
-          }
-        }
-      }
-    },
-    "Working Directory": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "工作目录"
           }
         }
       }
