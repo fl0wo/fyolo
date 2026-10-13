@@ -17,6 +17,22 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.5.0",
+    date: "2026-10-13",
+    title: "Run your scripts from the toolbar",
+    changes: {
+      new: [
+        "Run button: the top-right of the toolbar shows the last script you ran with a ▶ to run it again, and a ■ to stop it while it runs. Its menu lists your last ten runs in this project.",
+        "Makefile targets: a ▶ beside each target runs it.",
+        "Shell scripts: a ▶ on the first line of a shell file, or of any file that starts with #!, runs it. Right-click a script in the file tree for Run in Integrated Terminal.",
+      ],
+      improved: [
+        "Running a script again reuses its terminal instead of opening another one, and several scripts can run at once.",
+        "The Info tab is gone from the inspector; the run button takes its place in the toolbar.",
+      ],
+    },
+  },
+  {
     version: "0.4.0",
     date: "2026-10-12",
     title: "Search by file type, and updates that tell you",
