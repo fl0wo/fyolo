@@ -17,6 +17,20 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.9.0",
+    date: "2026-10-14",
+    title: "Your pull requests, one switch away",
+    changes: {
+      improved: [
+        "Filters: the GitHub pane's filter is now two switches — Mine (Assigned to Me for issues) and Open Only — with labels below them when the repository has any.",
+      ],
+      fixed: [
+        "Mine: filtering pull requests to your own showed nothing, because pull requests are rarely assigned. It now lists the ones you opened, are assigned to, or are asked to review.",
+        "Pull requests could be missing from busy repositories, crowded out of the list by issues.",
+      ],
+    },
+  },
+  {
     version: "0.8.0",
     date: "2026-10-14",
     title: "CI at a glance",
