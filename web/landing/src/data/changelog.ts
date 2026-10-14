@@ -17,6 +17,22 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.6.0",
+    date: "2026-10-14",
+    title: "A folder for your projects",
+    changes: {
+      new: [
+        "Projects folder: Open Project and Clone start in ~/FyoloProjects, created the first time you need it. Any other folder is still a click away.",
+      ],
+      improved: [
+        "When a project lives in your Documents, Desktop or Downloads folder, the macOS permission prompt now says why Fyolo is asking.",
+      ],
+      fixed: [
+        "Run button: pressing ■ while a new terminal was still starting did nothing, and the script ran anyway once the shell came up.",
+      ],
+    },
+  },
+  {
     version: "0.5.0",
     date: "2026-10-13",
     title: "Run your scripts from the toolbar",
