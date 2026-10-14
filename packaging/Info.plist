@@ -45,6 +45,12 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>Fyolo opens the projects you keep on your Desktop.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Fyolo opens the projects you keep in your Documents folder.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>Fyolo opens the projects you keep in your Downloads folder.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 </dict>

@@ -942,6 +942,27 @@ extension FyoloStore {
             .standardizedFileURL.path
     }
 
+    /// Where the Open and Clone panels start: a folder of Fyolo's own in the home
+    /// directory. Starting anywhere under `~/Documents` or `~/Desktop` would make
+    /// macOS ask for access to the whole folder before the user has picked anything.
+    static var projectsRoot: URL {
+        FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL
+            .appendingPathComponent("FyoloProjects", isDirectory: true)
+    }
+
+    /// Creates `projectsRoot` on first use. `nil` when it can't be created, which
+    /// leaves a panel on its own remembered folder instead.
+    private func ensureProjectsRoot() -> URL? {
+        let root = Self.projectsRoot
+        do {
+            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            return root
+        } catch {
+            Log.app.error("couldn't create \(root.path, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
+    }
+
     /// Creates the loose-chat directory and seeds its agent guidance, returning the
     /// path. Called before an agent is turned loose in it, never on read.
     @discardableResult
@@ -1033,7 +1054,9 @@ extension FyoloStore {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
+        panel.canCreateDirectories = true
         panel.allowsMultipleSelection = false
+        panel.directoryURL = ensureProjectsRoot()
         panel.prompt = localized("Open")
         panel.message = localized("Choose a project folder to open in Fyolo.")
         guard panel.runModal() == .OK, let url = panel.url else { return }
@@ -1154,15 +1177,15 @@ extension FyoloStore {
         }
     }
 
-    /// Asks which folder the clone goes in — `NSOpenPanel` reopens on the last one
-    /// chosen, so every clone after the first is a single click — then runs
-    /// `git clone` there and opens the result.
+    /// Asks which folder the clone goes in — starting in `projectsRoot`, so a clone
+    /// is a single click — then runs `git clone` there and opens the result.
     private func cloneOnThisMac(_ repository: GitHubRepository) {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.allowsMultipleSelection = false
+        panel.directoryURL = ensureProjectsRoot()
         panel.prompt = localized("Clone Here")
         panel.message = localized("Choose the folder to clone \(repository.fullName) into.")
         guard panel.runModal() == .OK, let parent = panel.url else { return }
