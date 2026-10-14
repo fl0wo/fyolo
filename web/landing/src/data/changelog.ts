@@ -17,10 +17,14 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
-    version: "0.6.1",
+    version: "0.7.0",
     date: "2026-10-14",
-    title: "A tidier search field",
+    title: "Linear tickets in the inspector",
     changes: {
+      new: [
+        "Linear: a new inspector pane lists your team's open tickets, yours first, ordered by priority. Sign in with Linear or paste an API key, and switch it off any time in Settings ▸ Plugins.",
+        "Pull requests on tickets: with GitHub connected, each ticket shows the pull requests whose titles name it, colored by status — draft, checks running or failing, in review, ready to merge, merged or closed.",
+      ],
       improved: [
         "Files to include: the filter now sits at the end of the search field as a button, and shrinks to its patterns once set. Its menu offers your last ten filters and a few common ones.",
       ],
