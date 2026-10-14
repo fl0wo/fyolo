@@ -253,7 +253,7 @@ final class FyoloStore: ObservableObject {
             // Cancelling the task that is *doing* the presenting is harmless:
             // the download is over by then, and the cache was written first.
             if oldValue != openFileURL { cancelRemoteFileOpen() }
-            if openFileURL != nil { openDiff = nil; openIssueDetail = nil; noteDetailOpened() }
+            if openFileURL != nil { openDiff = nil; openIssueDetail = nil; openWorkflowRun = nil; noteDetailOpened() }
             // Closing always returns to the editable default; a read-only open re-asserts the flag
             // immediately before setting the URL (see `openTerminalLink`). The jump line clears too,
             // so a later plain open of the same file doesn't scroll to a stale hit.
@@ -299,7 +299,7 @@ final class FyoloStore: ObservableObject {
     /// local one — the wire is the same speed either way.
     @Published private(set) var openingRemoteFile: RemoteFileOpening? {
         didSet {
-            if openingRemoteFile != nil { openDiff = nil; openIssueDetail = nil; noteDetailOpened() }
+            if openingRemoteFile != nil { openDiff = nil; openIssueDetail = nil; openWorkflowRun = nil; noteDetailOpened() }
             refreshDetailPresentation()
         }
     }
@@ -336,8 +336,28 @@ final class FyoloStore: ObservableObject {
     /// Unlike the others it deliberately COEXISTS with `openDiff`: a PR's file diff stacks on
     /// top of the detail, so closing the diff returns to the PR rather than the list.
     @Published var openIssueDetail: IssueSummary? {
-        didSet { if openIssueDetail != nil { openFileURL = nil; openDiff = nil; noteDetailOpened() }; refreshDetailPresentation() }
+        didSet { if openIssueDetail != nil { openFileURL = nil; openDiff = nil; openWorkflowRun = nil; noteDetailOpened() }; refreshDetailPresentation() }
     }
+
+    /// The GitHub Actions run whose jobs and logs are shown — the Issues pane's Actions
+    /// list and the toolbar's CI chip open it. Exclusive like the file detail: it closes
+    /// whatever else was open.
+    @Published var openWorkflowRun: WorkflowRunReference? {
+        didSet {
+            if openWorkflowRun != nil { openFileURL = nil; openDiff = nil; openIssueDetail = nil; noteDetailOpened() }
+            refreshDetailPresentation()
+        }
+    }
+
+    /// Opens `run` from outside the Issues pane (the toolbar's CI chip): the pane comes
+    /// up on its Actions list first, since a tab switch closes any open detail.
+    func showWorkflowRun(_ run: WorkflowRunReference) {
+        if inspectorTab != .issues { inspectorTab = .issues }
+        openWorkflowRun = run
+    }
+
+    /// The toolbar's CI chip state for the selected project's pinned workflows.
+    let actionsMonitor = PinnedWorkflowMonitor()
 
     /// True while any inspector detail (file, diff, PR/issue) is open. A render
     /// predicate — "is there content to show" — read by the inspector, the terminal context
@@ -433,7 +453,7 @@ final class FyoloStore: ObservableObject {
     /// state once nothing is left to show. Called from each detail setter's `didSet`.
     private func refreshDetailPresentation() {
         let presented = openFileURL != nil || openingRemoteFile != nil
-            || openDiff != nil || openIssueDetail != nil
+            || openDiff != nil || openIssueDetail != nil || openWorkflowRun != nil
         if isDetailPresented != presented { isDetailPresented = presented }
         if !presented {
             if inspectorMaximized { inspectorMaximized = false }
@@ -469,6 +489,7 @@ final class FyoloStore: ObservableObject {
         // back to the default Issues kind under whatever detail is open.
         if let outgoing = issuesModels[model.repoRoot], outgoing !== model {
             model.query = outgoing.query
+            model.showsActions = outgoing.showsActions
             // And the last-opened item: its row keeps the selected grey after the
             // detail closes, a memory that must survive the same remounts.
             model.openItem = outgoing.openItem
@@ -560,6 +581,7 @@ final class FyoloStore: ObservableObject {
             openFileURL = nil
             openDiff = nil
             openIssueDetail = nil
+            openWorkflowRun = nil
         }
     }
 
@@ -576,7 +598,7 @@ final class FyoloStore: ObservableObject {
     /// outside the tree's root (a terminal link to `/etc/hosts`, a staged copy
     /// with no origin). What decides whether the locate button is offered.
     var revealableOpenFilePath: String? {
-        guard openDiff == nil, openIssueDetail == nil, openingRemoteFile == nil,
+        guard openDiff == nil, openIssueDetail == nil, openWorkflowRun == nil, openingRemoteFile == nil,
               let checkout = inspectorCheckout, let root = checkout.root else { return nil }
         let path: String
         if let remote = openFileRemote {
@@ -752,6 +774,7 @@ final class FyoloStore: ObservableObject {
         var openFileReadOnly = false
         var openDiff: GitDiffRequest?
         var openIssueDetail: IssueSummary?
+        var openWorkflowRun: WorkflowRunReference?
         var listCollapsed = false
     }
 
@@ -824,6 +847,7 @@ final class FyoloStore: ObservableObject {
             openFileReadOnly: openFileReadOnly,
             openDiff: openDiff,
             openIssueDetail: openIssueDetail,
+            openWorkflowRun: openWorkflowRun,
             listCollapsed: inspectorListCollapsed
         )
     }
@@ -837,8 +861,9 @@ final class FyoloStore: ObservableObject {
         isRestatingDetail = true
         defer { isRestatingDetail = false }
         inspectorTab = state.tab
-        openFileURL = nil; openDiff = nil; openIssueDetail = nil
+        openFileURL = nil; openDiff = nil; openIssueDetail = nil; openWorkflowRun = nil
         openIssueDetail = state.openIssueDetail
+        openWorkflowRun = state.openWorkflowRun
         openFileReadOnly = state.openFileReadOnly
         openFileLine = state.openFileLine
         openFileURL = state.openFileURL

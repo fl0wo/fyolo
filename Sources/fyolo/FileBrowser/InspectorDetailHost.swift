@@ -370,6 +370,9 @@ struct InspectorDetailContent: View {
             GitDiffView(request: request, settings: settings, onClose: close,
                         onNavigate: { store.openDiff = $0 })
                 .id(request)
+        } else if let run = store.openWorkflowRun {
+            WorkflowRunDetailView(reference: run, settings: settings, onClose: close)
+                .id(run)
         } else if let item = store.openIssueDetail, let model = store.issuesModel {
             IssueDetailView(item: item, model: model, settings: settings, onBack: close)
                 .id(item.number)

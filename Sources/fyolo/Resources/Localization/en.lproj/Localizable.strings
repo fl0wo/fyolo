@@ -74,6 +74,8 @@
 	<string>%@ stays published only until you log out of it. Fyolo couldn’t set it to keep services running after that.</string>
 	<key>%@ tokens</key>
 	<string>%@ tokens</string>
+	<key>%@ · %@ on %@ · %@ ago</key>
+	<string>%@ · %@ on %@ · %@ ago</string>
 	<key>%@ · %@ tokens</key>
 	<string>%@ · %@ tokens</string>
 	<key>%@ — %@.</key>
@@ -108,8 +110,14 @@
 	<string>%lldd</string>
 	<key>%lldh</key>
 	<string>%lldh</string>
+	<key>%lldh %lldm</key>
+	<string>%lldh %lldm</string>
 	<key>%lldm</key>
 	<string>%lldm</string>
+	<key>%lldm %llds</key>
+	<string>%lldm %llds</string>
+	<key>%llds</key>
+	<string>%llds</string>
 	<key>%lldw</key>
 	<string>%lldw</string>
 	<key>1 result</key>
@@ -140,6 +148,8 @@
 	<string>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</string>
 	<key>API key</key>
 	<string>API key</string>
+	<key>Actions</key>
+	<string>Actions</string>
 	<key>Activity</key>
 	<string>Activity</string>
 	<key>Add</key>
@@ -264,6 +274,8 @@
 	<string>Built-in</string>
 	<key>Cancel</key>
 	<string>Cancel</string>
+	<key>Cancelled or Skipped</key>
+	<string>Cancelled or Skipped</string>
 	<key>Can’t Compare</key>
 	<string>Can’t Compare</string>
 	<key>Can’t Search</key>
@@ -428,6 +440,8 @@
 	<string>Connect Again</string>
 	<key>Connect GitHub</key>
 	<string>Connect GitHub</string>
+	<key>Connect GitHub from the Issues tab to see this run.</key>
+	<string>Connect GitHub from the Issues tab to see this run.</string>
 	<key>Connect to read issues and pull requests, and to clone your repositories.</key>
 	<string>Connect to read issues and pull requests, and to clone your repositories.</string>
 	<key>Connect to…</key>
@@ -676,6 +690,8 @@
 	<string>Enter an absolute path</string>
 	<key>Environment (%lld)</key>
 	<string>Environment (%lld)</string>
+	<key>Errors (%lld)</key>
+	<string>Errors (%lld)</string>
 	<key>Every iPhone paired with %@ is signed out and must re-scan the new QR to reconnect.</key>
 	<string>Every iPhone paired with %@ is signed out and must re-scan the new QR to reconnect.</string>
 	<key>Every paired iPhone is signed out and must re-scan the new QR to reconnect.</key>
@@ -686,6 +702,8 @@
 	<string>Exited with status %lld.</string>
 	<key>Expand Results</key>
 	<string>Expand Results</string>
+	<key>Failed</key>
+	<string>Failed</string>
 	<key>Family</key>
 	<string>Family</string>
 	<key>File</key>
@@ -728,6 +746,8 @@
 	<string>From your Ghostty config</string>
 	<key>From your session history</key>
 	<string>From your session history</string>
+	<key>Full log · %@</key>
+	<string>Full log · %@</string>
 	<key>Fyolo can show %@'s token usage and plan limits by reading its local session logs and its `auth.json` sign-in. Nothing is read until you allow it.</key>
 	<string>Fyolo can show %@'s token usage and plan limits by reading its local session logs and its `auth.json` sign-in. Nothing is read until you allow it.</string>
 	<key>Fyolo can show %@'s token usage and plan limits by reading its local session logs and its `credentials/kimi-code.json` sign-in. Nothing is read until you allow it.</key>
@@ -758,10 +778,16 @@
 	<string>GitHub</string>
 	<key>GitHub Account</key>
 	<string>GitHub Account</string>
+	<key>GitHub Actions isn’t available for this repository.</key>
+	<string>GitHub Actions isn’t available for this repository.</string>
 	<key>GitHub Issues</key>
 	<string>GitHub Issues</string>
 	<key>GitHub no longer accepts the saved token. Connect again.</key>
 	<string>GitHub no longer accepts the saved token. Connect again.</string>
+	<key>GitHub no longer has this job’s log.</key>
+	<string>GitHub no longer has this job’s log.</string>
+	<key>GitHub rejected the token. Reconnect from the Issues tab.</key>
+	<string>GitHub rejected the token. Reconnect from the Issues tab.</string>
 	<key>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</key>
 	<string>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</string>
 	<key>GitHub replied with HTTP %lld.</key>
@@ -822,6 +848,8 @@
 	<string>Ignore File (Add to .gitignore)</string>
 	<key>Image</key>
 	<string>Image</string>
+	<key>In Progress</key>
+	<string>In Progress</string>
 	<key>In Review</key>
 	<string>In Review</string>
 	<key>Increase Font Size</key>
@@ -860,6 +888,10 @@
 	<string>Issues</string>
 	<key>Issues a new token and revokes every paired iPhone.</key>
 	<string>Issues a new token and revokes every paired iPhone.</string>
+	<key>Job</key>
+	<string>Job</string>
+	<key>Jobs</key>
+	<string>Jobs</string>
 	<key>Join</key>
 	<string>Join</string>
 	<key>Jump to session, project, or file…</key>
@@ -882,6 +914,8 @@
 	<string>Language, GitHub, and privacy</string>
 	<key>Language, notifications, and GitHub</key>
 	<string>Language, notifications, and GitHub</string>
+	<key>Last %@ of %@</key>
+	<string>Last %@ of %@</string>
 	<key>Last 30 days</key>
 	<string>Last 30 days</string>
 	<key>Last 7 days</key>
@@ -928,6 +962,10 @@
 	<string>Live agent status</string>
 	<key>Live agent status is off</key>
 	<string>Live agent status is off</string>
+	<key>Load Earlier</key>
+	<string>Load Earlier</string>
+	<key>Loading…</key>
+	<string>Loading…</string>
 	<key>Local</key>
 	<string>Local</string>
 	<key>Login shell</key>
@@ -1062,6 +1100,8 @@
 	<string>No History</string>
 	<key>No Issues</key>
 	<string>No Issues</string>
+	<key>No Jobs</key>
+	<string>No Jobs</string>
 	<key>No Matches</key>
 	<string>No Matches</string>
 	<key>No Open Tickets</key>
@@ -1074,6 +1114,8 @@
 	<string>No Pull Requests</string>
 	<key>No Running Containers</key>
 	<string>No Running Containers</string>
+	<key>No Workflows</key>
+	<string>No Workflows</string>
 	<key>No agent CLIs on %@ yet. Install one there and it shows up here.</key>
 	<string>No agent CLIs on %@ yet. Install one there and it shows up here.</string>
 	<key>No bundled tool to install from.</key>
@@ -1112,6 +1154,8 @@
 	<string>No results</string>
 	<key>No route to host</key>
 	<string>No route to host</string>
+	<key>No runs yet.</key>
+	<string>No runs yet.</string>
 	<key>No textual changes to show.</key>
 	<string>No textual changes to show.</string>
 	<key>No theme matches “%@”</key>
@@ -1194,6 +1238,8 @@
 	<string>Open System Settings</string>
 	<key>Open Themes Folder…</key>
 	<string>Open Themes Folder…</string>
+	<key>Open This Job on GitHub</key>
+	<string>Open This Job on GitHub</string>
 	<key>Open a Folder</key>
 	<string>Open a Folder</string>
 	<key>Open a Project on %@</key>
@@ -1284,6 +1330,8 @@
 	<string>Pin Fyolo to a light or dark look, or follow the system. The light and dark terminal themes below apply to the matching appearance.</string>
 	<key>Pin to Top</key>
 	<string>Pin to Top</string>
+	<key>Pin to the top and the toolbar</key>
+	<string>Pin to the top and the toolbar</string>
 	<key>Pink</key>
 	<string>Pink</string>
 	<key>Pinned</key>
@@ -1338,6 +1386,8 @@
 	<string>Purple</string>
 	<key>Push the current branch to the repository’s remote first, then try again. (The remote also needs to be a forge Fyolo recognizes: GitHub, GitLab, Bitbucket, or Gitea.)</key>
 	<string>Push the current branch to the repository’s remote first, then try again. (The remote also needs to be a forge Fyolo recognizes: GitHub, GitLab, Bitbucket, or Gitea.)</string>
+	<key>Queued</key>
+	<string>Queued</string>
 	<key>Quit Fyolo</key>
 	<string>Quit Fyolo</string>
 	<key>Quit fyolo</key>
@@ -1572,6 +1622,8 @@
 	<string>Show</string>
 	<key>Show All</key>
 	<string>Show All</string>
+	<key>Show More</key>
+	<string>Show More</string>
 	<key>Show Original</key>
 	<string>Show Original</string>
 	<key>Show Project Files</key>
@@ -1654,6 +1706,10 @@
 	<string>State</string>
 	<key>Status</key>
 	<string>Status</string>
+	<key>Steps (%lld)</key>
+	<string>Steps (%lld)</string>
+	<key>Still Running</key>
+	<string>Still Running</string>
 	<key>Stop</key>
 	<string>Stop</string>
 	<key>Stop %@</key>
@@ -1662,6 +1718,8 @@
 	<string>Style</string>
 	<key>Sub-Issues</key>
 	<string>Sub-Issues</string>
+	<key>Succeeded</key>
+	<string>Succeeded</string>
 	<key>Switch between project files, search, and changes</key>
 	<string>Switch between project files, search, and changes</string>
 	<key>System</key>
@@ -1724,6 +1782,8 @@
 	<string>The install page — the same one whichever machine you are installing on.</string>
 	<key>The listing failed.</key>
 	<string>The listing failed.</string>
+	<key>The log appears when this job finishes.</key>
+	<string>The log appears when this job finishes.</string>
 	<key>The machine Fyolo is running on</key>
 	<string>The machine Fyolo is running on</string>
 	<key>The machine answered with no listing for that folder.</key>
@@ -1744,6 +1804,8 @@
 	<string>The read failed.</string>
 	<key>The release’s update information couldn’t be read.</key>
 	<string>The release’s update information couldn’t be read.</string>
+	<key>The rest is on GitHub.</key>
+	<string>The rest is on GitHub.</string>
 	<key>The search failed.</key>
 	<string>The search failed.</string>
 	<key>The session host answered, but not with a pairing invite.</key>
@@ -1774,6 +1836,8 @@
 	<string>Thicken glyphs</string>
 	<key>This GitHub account has no repositories yet.</key>
 	<string>This GitHub account has no repositories yet.</string>
+	<key>This GitHub sign-in can’t read Actions in this repository.</key>
+	<string>This GitHub sign-in can’t read Actions in this repository.</string>
 	<key>This Mac</key>
 	<string>This Mac</string>
 	<key>This Mac and the machines you reach from it</key>
@@ -1848,6 +1912,10 @@
 	<string>This pull request changes no files.</string>
 	<key>This relay has no valid URL pattern, so its address could never be read back.</key>
 	<string>This relay has no valid URL pattern, so its address could never be read back.</string>
+	<key>This repository has no active GitHub Actions workflows.</key>
+	<string>This repository has no active GitHub Actions workflows.</string>
+	<key>This run hasn’t started any jobs yet.</key>
+	<string>This run hasn’t started any jobs yet.</string>
 	<key>This session couldn’t be started.</key>
 	<string>This session couldn’t be started.</string>
 	<key>This week</key>
@@ -1974,6 +2042,10 @@
 	<string>Which machine your iPhone connects to. Each one serves its own sessions.</string>
 	<key>Window</key>
 	<string>Window</string>
+	<key>Workflow</key>
+	<string>Workflow</string>
+	<key>Workflows</key>
+	<string>Workflows</string>
 	<key>Workspace</key>
 	<string>Workspace</string>
 	<key>Workspace Settings…</key>

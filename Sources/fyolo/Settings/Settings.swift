@@ -93,7 +93,7 @@ final class AppSettings: ObservableObject {
         Key.agentCommands, Key.devices,
         Key.bypassPermissionAgents, Key.agentArguments, Key.disabledAgents, Key.disabledPlugins,
         Key.addedAgents, Key.agentOrder, Key.agentHooksEnabled,
-        Key.sessionControlEnabled, Key.githubIntegrationEnabled,
+        Key.sessionControlEnabled, Key.githubIntegrationEnabled, Key.pinnedWorkflows,
         Key.notifyTaskCompletion, Key.notificationSound,
         Key.analyticsEnabled,
         Key.projectSortOrder, Key.defaultChatAgent, Key.dimIgnoredFiles,
@@ -147,6 +147,7 @@ final class AppSettings: ObservableObject {
         static let usageAuthorizedAgents = "usage.authorizedAgents"
         static let claudeKeychainDeclined = "usage.claudeKeychainDeclined"
         static let githubIntegrationEnabled = "github.integrationEnabled"
+        static let pinnedWorkflows = "github.pinnedWorkflows"
         static let notifyTaskCompletion = "notifications.taskCompletion"
         static let notificationSound = "notifications.sound"
         static let analyticsEnabled = "privacy.analyticsEnabled"
@@ -406,6 +407,13 @@ final class AppSettings: ObservableObject {
         didSet { store.set(Array(disabledAgents), forKey: Key.disabledAgents) }
     }
 
+    /// GitHub Actions workflows pinned in the Issues pane's Actions list, by
+    /// repository: `owner/repo` → the workflow ids, space-separated. Pinned
+    /// workflows lead the list and feed the toolbar's CI chip.
+    @Published var pinnedWorkflows: [String: String] {
+        didSet { store.set(pinnedWorkflows.isEmpty ? nil : pinnedWorkflows, forKey: Key.pinnedWorkflows) }
+    }
+
     /// Plugins switched off in Settings ▸ Plugins, by `FyoloPlugin.id`. Stored as
     /// the disabled set, like `disabledAgents`, so a plugin is on until the user
     /// turns it off.
@@ -661,6 +669,7 @@ final class AppSettings: ObservableObject {
         agentArguments = store.stringDictionary(Key.agentArguments) ?? [:]
         disabledAgents = Set(store.stringArray(Key.disabledAgents) ?? [])
         disabledPlugins = Set(store.stringArray(Key.disabledPlugins) ?? [])
+        pinnedWorkflows = store.stringDictionary(Key.pinnedWorkflows) ?? [:]
         addedAgents = Set(store.stringArray(Key.addedAgents) ?? [])
         agentOrder = store.stringArray(Key.agentOrder) ?? []
         agentHooksEnabled = store.bool(Key.agentHooksEnabled)
@@ -799,6 +808,22 @@ final class AppSettings: ObservableObject {
 
     func isAgentEnabled(_ agent: AgentPreset) -> Bool {
         !disabledAgents.contains(agent.rawValue)
+    }
+
+    /// The workflow ids pinned in `repository` (`owner/repo`, any case), in the order pinned.
+    func pinnedWorkflowIDs(in repository: String) -> [Int] {
+        (pinnedWorkflows[repository.lowercased()] ?? "").split(separator: " ").compactMap { Int($0) }
+    }
+
+    func setWorkflow(_ id: Int, pinned: Bool, in repository: String) {
+        let key = repository.lowercased()
+        var ids = pinnedWorkflowIDs(in: key).filter { $0 != id }
+        if pinned { ids.append(id) }
+        if ids.isEmpty {
+            pinnedWorkflows.removeValue(forKey: key)
+        } else {
+            pinnedWorkflows[key] = ids.map(String.init).joined(separator: " ")
+        }
     }
 
     func isPluginEnabled(_ id: String) -> Bool {

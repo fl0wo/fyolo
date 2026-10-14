@@ -74,6 +74,8 @@
 	<string>%@ 只在你登录期间保持发布。Fyolo 无法让它在登出后继续运行服务。</string>
 	<key>%@ tokens</key>
 	<string>%@ token</string>
+	<key>%@ · %@ on %@ · %@ ago</key>
+	<string>%1$@ · %3$@ 上%2$@ · %4$@前</string>
 	<key>%@ · %@ tokens</key>
 	<string>%@ · %@ token</string>
 	<key>%@ — %@.</key>
@@ -108,8 +110,14 @@
 	<string>%lld 天</string>
 	<key>%lldh</key>
 	<string>%lld 小时</string>
+	<key>%lldh %lldm</key>
+	<string>%1$lld 小时 %2$lld 分</string>
 	<key>%lldm</key>
 	<string>%lld 分钟</string>
+	<key>%lldm %llds</key>
+	<string>%1$lld 分 %2$lld 秒</string>
+	<key>%llds</key>
+	<string>%lld 秒</string>
 	<key>%lldw</key>
 	<string>%lld 周</string>
 	<key>1 result</key>
@@ -140,6 +148,8 @@
 	<string>工作区把侧栏限定在归入它的项目和会话上，都在它所属的那台机器上。</string>
 	<key>API key</key>
 	<string>API 密钥</string>
+	<key>Actions</key>
+	<string>Actions</string>
 	<key>Activity</key>
 	<string>活动</string>
 	<key>Add</key>
@@ -264,6 +274,8 @@
 	<string>内置</string>
 	<key>Cancel</key>
 	<string>取消</string>
+	<key>Cancelled or Skipped</key>
+	<string>已取消或已跳过</string>
 	<key>Can’t Compare</key>
 	<string>无法对比</string>
 	<key>Can’t Search</key>
@@ -428,6 +440,8 @@
 	<string>重新连接</string>
 	<key>Connect GitHub</key>
 	<string>连接 GitHub</string>
+	<key>Connect GitHub from the Issues tab to see this run.</key>
+	<string>请在 Issues 标签页连接 GitHub 以查看此运行。</string>
 	<key>Connect to read issues and pull requests, and to clone your repositories.</key>
 	<string>连接后即可查看议题和拉取请求，并克隆你的仓库。</string>
 	<key>Connect to…</key>
@@ -676,6 +690,8 @@
 	<string>请输入绝对路径</string>
 	<key>Environment (%lld)</key>
 	<string>环境变量 (%lld)</string>
+	<key>Errors (%lld)</key>
+	<string>错误（%lld）</string>
 	<key>Every iPhone paired with %@ is signed out and must re-scan the new QR to reconnect.</key>
 	<string>所有与 %@ 配对的 iPhone 都会退出登录，需重新扫描新的二维码才能重新连接。</string>
 	<key>Every paired iPhone is signed out and must re-scan the new QR to reconnect.</key>
@@ -686,6 +702,8 @@
 	<string>退出状态 %lld。</string>
 	<key>Expand Results</key>
 	<string>展开结果</string>
+	<key>Failed</key>
+	<string>失败</string>
 	<key>Family</key>
 	<string>系列</string>
 	<key>File</key>
@@ -728,6 +746,8 @@
 	<string>来自 Ghostty 配置</string>
 	<key>From your session history</key>
 	<string>来自你的会话历史</string>
+	<key>Full log · %@</key>
+	<string>完整日志 · %@</string>
 	<key>Fyolo can show %@'s token usage and plan limits by reading its local session logs and its `auth.json` sign-in. Nothing is read until you allow it.</key>
 	<string>Fyolo 可通过读取 %@ 的本地会话日志及其 `auth.json` 登录信息，显示其 token 用量和套餐限额。在你允许之前不会读取任何内容。</string>
 	<key>Fyolo can show %@'s token usage and plan limits by reading its local session logs and its `credentials/kimi-code.json` sign-in. Nothing is read until you allow it.</key>
@@ -758,10 +778,16 @@
 	<string>GitHub</string>
 	<key>GitHub Account</key>
 	<string>GitHub 账户</string>
+	<key>GitHub Actions isn’t available for this repository.</key>
+	<string>此仓库无法使用 GitHub Actions。</string>
 	<key>GitHub Issues</key>
 	<string>GitHub Issues</string>
 	<key>GitHub no longer accepts the saved token. Connect again.</key>
 	<string>GitHub 不再接受已保存的令牌。请重新连接。</string>
+	<key>GitHub no longer has this job’s log.</key>
+	<string>GitHub 已不再保留此作业的日志。</string>
+	<key>GitHub rejected the token. Reconnect from the Issues tab.</key>
+	<string>GitHub 拒绝了令牌，请在 Issues 标签页重新连接。</string>
 	<key>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</key>
 	<string>GitHub 拒绝了这个令牌。请确认它已完整复制且未过期。</string>
 	<key>GitHub replied with HTTP %lld.</key>
@@ -822,6 +848,8 @@
 	<string>忽略文件（添加到 .gitignore）</string>
 	<key>Image</key>
 	<string>镜像</string>
+	<key>In Progress</key>
+	<string>进行中</string>
 	<key>In Review</key>
 	<string>审查中</string>
 	<key>Increase Font Size</key>
@@ -860,6 +888,10 @@
 	<string>Issues</string>
 	<key>Issues a new token and revokes every paired iPhone.</key>
 	<string>签发新的 Token 并撤销所有已配对的 iPhone。</string>
+	<key>Job</key>
+	<string>作业</string>
+	<key>Jobs</key>
+	<string>作业</string>
 	<key>Join</key>
 	<string>加入</string>
 	<key>Jump to session, project, or file…</key>
@@ -882,6 +914,8 @@
 	<string>语言、GitHub 和隐私</string>
 	<key>Language, notifications, and GitHub</key>
 	<string>语言、通知和 GitHub</string>
+	<key>Last %@ of %@</key>
+	<string>共 %2$@，显示最后 %1$@</string>
 	<key>Last 30 days</key>
 	<string>过去 30 天</string>
 	<key>Last 7 days</key>
@@ -928,6 +962,10 @@
 	<string>Agent 实时状态</string>
 	<key>Live agent status is off</key>
 	<string>Agent 实时状态已关闭</string>
+	<key>Load Earlier</key>
+	<string>加载更早内容</string>
+	<key>Loading…</key>
+	<string>正在载入…</string>
 	<key>Local</key>
 	<string>本地</string>
 	<key>Login shell</key>
@@ -1062,6 +1100,8 @@
 	<string>没有历史记录</string>
 	<key>No Issues</key>
 	<string>没有 Issues</string>
+	<key>No Jobs</key>
+	<string>没有作业</string>
 	<key>No Matches</key>
 	<string>无匹配项</string>
 	<key>No Open Tickets</key>
@@ -1074,6 +1114,8 @@
 	<string>没有 PR</string>
 	<key>No Running Containers</key>
 	<string>没有运行中的容器</string>
+	<key>No Workflows</key>
+	<string>没有工作流</string>
 	<key>No agent CLIs on %@ yet. Install one there and it shows up here.</key>
 	<string>%@ 上还没有 Agent 命令行工具。在那台机器上装一个，这里就会显示。</string>
 	<key>No bundled tool to install from.</key>
@@ -1112,6 +1154,8 @@
 	<string>没有结果</string>
 	<key>No route to host</key>
 	<string>无法到达主机</string>
+	<key>No runs yet.</key>
+	<string>尚无运行记录。</string>
 	<key>No textual changes to show.</key>
 	<string>没有可显示的文本更改。</string>
 	<key>No theme matches “%@”</key>
@@ -1194,6 +1238,8 @@
 	<string>打开“系统设置”</string>
 	<key>Open Themes Folder…</key>
 	<string>打开主题文件夹…</string>
+	<key>Open This Job on GitHub</key>
+	<string>在 GitHub 上打开此作业</string>
 	<key>Open a Folder</key>
 	<string>打开文件夹</string>
 	<key>Open a Project on %@</key>
@@ -1284,6 +1330,8 @@
 	<string>将 Fyolo 固定为浅色或深色外观，或跟随系统。下方的浅色与深色终端主题会应用到对应的外观。</string>
 	<key>Pin to Top</key>
 	<string>固定到顶部</string>
+	<key>Pin to the top and the toolbar</key>
+	<string>固定到顶部和工具栏</string>
 	<key>Pink</key>
 	<string>粉色</string>
 	<key>Pinned</key>
@@ -1338,6 +1386,8 @@
 	<string>紫色</string>
 	<key>Push the current branch to the repository’s remote first, then try again. (The remote also needs to be a forge Fyolo recognizes: GitHub, GitLab, Bitbucket, or Gitea.)</key>
 	<string>请先将当前分支推送到仓库的远程，然后重试。（远程还需是 Fyolo 能识别的代码托管平台：GitHub、GitLab、Bitbucket 或 Gitea。）</string>
+	<key>Queued</key>
+	<string>排队中</string>
 	<key>Quit Fyolo</key>
 	<string>退出 Fyolo</string>
 	<key>Quit fyolo</key>
@@ -1572,6 +1622,8 @@
 	<string>显示</string>
 	<key>Show All</key>
 	<string>全部显示</string>
+	<key>Show More</key>
+	<string>显示更多</string>
 	<key>Show Original</key>
 	<string>显示原身</string>
 	<key>Show Project Files</key>
@@ -1654,6 +1706,10 @@
 	<string>状态</string>
 	<key>Status</key>
 	<string>状态</string>
+	<key>Steps (%lld)</key>
+	<string>步骤（%lld）</string>
+	<key>Still Running</key>
+	<string>仍在运行</string>
 	<key>Stop</key>
 	<string>停止</string>
 	<key>Stop %@</key>
@@ -1662,6 +1718,8 @@
 	<string>样式</string>
 	<key>Sub-Issues</key>
 	<string>子工单</string>
+	<key>Succeeded</key>
+	<string>成功</string>
 	<key>Switch between project files, search, and changes</key>
 	<string>在项目文件、搜索和更改之间切换</string>
 	<key>System</key>
@@ -1724,6 +1782,8 @@
 	<string>安装页面 —— 无论装在哪台机器上都是同一个页面。</string>
 	<key>The listing failed.</key>
 	<string>读取目录失败。</string>
+	<key>The log appears when this job finishes.</key>
+	<string>作业完成后才会显示日志。</string>
 	<key>The machine Fyolo is running on</key>
 	<string>Fyolo 正在运行的设备</string>
 	<key>The machine answered with no listing for that folder.</key>
@@ -1744,6 +1804,8 @@
 	<string>读取失败。</string>
 	<key>The release’s update information couldn’t be read.</key>
 	<string>无法读取该版本的更新信息。</string>
+	<key>The rest is on GitHub.</key>
+	<string>其余内容请在 GitHub 上查看。</string>
 	<key>The search failed.</key>
 	<string>搜索失败。</string>
 	<key>The session host answered, but not with a pairing invite.</key>
@@ -1774,6 +1836,8 @@
 	<string>加粗字形</string>
 	<key>This GitHub account has no repositories yet.</key>
 	<string>这个 GitHub 账户还没有仓库。</string>
+	<key>This GitHub sign-in can’t read Actions in this repository.</key>
+	<string>当前 GitHub 登录无法读取此仓库的 Actions。</string>
 	<key>This Mac</key>
 	<string>本机</string>
 	<key>This Mac and the machines you reach from it</key>
@@ -1848,6 +1912,10 @@
 	<string>此 PR 未更改任何文件。</string>
 	<key>This relay has no valid URL pattern, so its address could never be read back.</key>
 	<string>这个中转没有有效的 URL 正则，它的地址永远读不回来。</string>
+	<key>This repository has no active GitHub Actions workflows.</key>
+	<string>此仓库没有启用的 GitHub Actions 工作流。</string>
+	<key>This run hasn’t started any jobs yet.</key>
+	<string>此运行尚未开始任何作业。</string>
 	<key>This session couldn’t be started.</key>
 	<string>这个会话没能启动。</string>
 	<key>This week</key>
@@ -1974,6 +2042,10 @@
 	<string>iPhone 连接到哪台机器。每台机器各自提供自己的会话。</string>
 	<key>Window</key>
 	<string>窗口</string>
+	<key>Workflow</key>
+	<string>工作流</string>
+	<key>Workflows</key>
+	<string>工作流</string>
 	<key>Workspace</key>
 	<string>工作区</string>
 	<key>Workspace Settings…</key>

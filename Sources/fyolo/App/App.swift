@@ -2829,8 +2829,14 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
             let item = NSToolbarItem(itemIdentifier: .runTasks)
             item.label = localized("Run")
             item.toolTip = localized("Run or stop the current task")
-            let host = NSHostingView(rootView: RunCapsuleToolbar(runTasks: store.runTasks)
-                .environmentObject(store))
+            // The CI chip rides the same item, left of the capsule: it is absent until a
+            // workflow is pinned, and an item of its own would leave a gap in its place.
+            let host = NSHostingView(rootView: HStack(spacing: 8) {
+                PinnedWorkflowChip(monitor: store.actionsMonitor)
+                RunCapsuleToolbar(runTasks: store.runTasks)
+            }
+                .environmentObject(store)
+                .environmentObject(settings))
             host.sizingOptions = [.intrinsicContentSize]
             item.view = host
             item.isBordered = false

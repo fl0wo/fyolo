@@ -33,6 +33,8 @@ final class IssuesPanelModel: ObservableObject {
     @Published private(set) var recovery: Recovery?
     /// The pushed-in detail (list → detail, like git pane file → diff).
     @Published var openItem: IssueSummary?
+    /// The pane shows the repository's GitHub Actions instead of its issues or PRs.
+    @Published var showsActions = false
     @Published private(set) var detail: IssueDetail?
     @Published private(set) var detailError: String?
 
@@ -72,6 +74,9 @@ final class IssuesPanelModel: ObservableObject {
     var host: String { provider?.connection.host ?? GitHubConnection.dotComHost }
 
     var capabilities: IssueCapabilities? { provider?.capabilities }
+
+    /// The GitHub connection the pane reads with, for the Actions list beside it.
+    var connection: GitHubConnection? { provider?.connection }
 
     /// Whether the one-time resolve-and-load has run for this model. The model is registered on
     /// the store (see `FyoloStore.registerIssuesModel`), whose `.task` re-fires on every remount

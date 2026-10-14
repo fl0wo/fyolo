@@ -21,6 +21,8 @@ struct IssuesView: View {
     @State private var selection: Int?
     @State private var filterHovering = false
     @State private var searchText = ""
+    /// Bumped by the refresh button while the Actions list is showing.
+    @State private var actionsRefresh = 0
 
     init(repoRoot: String) {
         self.repoRoot = repoRoot
@@ -40,6 +42,7 @@ struct IssuesView: View {
                 // registry can't cover — no predecessor model after a relaunch), with
                 // its row still selected. Pre-`start()` the kind write is inert: the
                 // query didSet's loadList bails until the phase is ready.
+                if store.openWorkflowRun != nil { model.showsActions = true }
                 if let open = store.openIssueDetail {
                     if model.query.kind != open.kind { model.query.kind = open.kind }
                     if selection != open.number { selection = open.number }
@@ -55,6 +58,9 @@ struct IssuesView: View {
                       let item = model.items.first(where: { $0.number == selected })
                 else { return }
                 store.openIssueDetail = item
+            }
+            .onChange(of: store.openWorkflowRun) { _, run in
+                if run != nil { model.showsActions = true }
             }
             .onChange(of: store.openIssueDetail) { was, item in
                 if item == nil {
@@ -85,8 +91,8 @@ struct IssuesView: View {
             searchField
             refreshButton
                 // Breathing room so refresh and filter don't read as one two-icon cluster.
-                .padding(.trailing, 8)
-            filterMenu
+                .padding(.trailing, model.showsActions ? 0 : 8)
+            if !model.showsActions { filterMenu }
         }
         .padding(.leading, 8)
         .padding(.trailing, 12)
@@ -132,7 +138,11 @@ struct IssuesView: View {
         // VS Code codicon refresh — the two-arrow ring reads more refined than the Hugeicons
         // single-arrow one, and matches the File Explorer header's four codicon actions.
         TreeHeaderButton(codicon: .refresh, help: localized("Refresh")) {
-            Task { await model.loadList(force: true) }
+            if model.showsActions {
+                actionsRefresh += 1
+            } else {
+                Task { await model.loadList(force: true) }
+            }
         }
     }
 
@@ -164,10 +174,31 @@ struct IssuesView: View {
         .help(localized("Choose which repository’s issues to show"))
     }
 
+    /// Issues and Pull Requests filter one list; Actions swaps in the repository's
+    /// workflows, so it is a flag beside the query rather than another kind.
+    private enum Section: Hashable { case issues, pullRequests, actions }
+
     private var kindSwitch: some View {
         CapsuleSwitch(
-            segments: [(localized("Issues"), IssueKind.issue), (localized("Pull Requests"), .pullRequest)],
-            selection: Binding(get: { model.query.kind }, set: { model.query.kind = $0 })
+            segments: [
+                (localized("Issues"), Section.issues),
+                (localized("Pull Requests"), .pullRequests),
+                (localized("Actions"), .actions),
+            ],
+            selection: Binding(
+                get: {
+                    if model.showsActions { return .actions }
+                    return model.query.kind == .issue ? .issues : .pullRequests
+                },
+                set: { section in
+                    model.showsActions = section == .actions
+                    switch section {
+                    case .issues: model.query.kind = .issue
+                    case .pullRequests: model.query.kind = .pullRequest
+                    case .actions: break
+                    }
+                }
+            )
         )
     }
 
@@ -274,7 +305,14 @@ struct IssuesView: View {
                     .controlSize(.small)
             }
         case .ready:
-            listBody
+            if model.showsActions, let repository = model.container?.id, let connection = model.connection {
+                ActionsListView(
+                    repository: repository, connection: connection,
+                    searchText: searchText, refreshToken: actionsRefresh)
+                    .id(repository)
+            } else {
+                listBody
+            }
         }
     }
 
@@ -1282,7 +1320,7 @@ final class GitHubAssetSchemeHandler: NSObject, WKURLSchemeHandler {
     }
 }
 
-private extension Date {
+extension Date {
     /// Compact age for the row's hover metadata — "5m", "3h", "2d", "6w".
     var issueRowAge: String {
         let seconds = max(0, -timeIntervalSinceNow)
