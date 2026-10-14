@@ -17,6 +17,21 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.8.0",
+    date: "2026-10-14",
+    title: "CI at a glance",
+    changes: {
+      new: [
+        "Actions: the GitHub pane gains an Actions tab beside Issues and Pull Requests. Each workflow shows its latest outcomes; open a run to read its jobs, steps and log without leaving Fyolo.",
+        "Pinned workflows: pin the workflows you care about and they lead the list, while a chip beside the Run button shows their state on the default branch — red when one fails, a spinner while one runs, green when all pass. Click it to open the run.",
+      ],
+      improved: [
+        "Long CI logs open at the end, where failures are, and load earlier output on request, so a huge log never stalls the app. An Errors menu jumps to each error line.",
+        "Linear: pull request chips load for your own tickets only, so big teams load faster, and your tickets find their pull requests however old they are. Open anyone else's ticket to see its pull requests.",
+      ],
+    },
+  },
+  {
     version: "0.7.0",
     date: "2026-10-14",
     title: "Linear tickets in the inspector",
