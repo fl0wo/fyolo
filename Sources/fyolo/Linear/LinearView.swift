@@ -164,8 +164,9 @@ struct LinearView: View {
         } else {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    section(localized("Assigned to Me"), mine)
-                    section(localized("Everyone Else"), others)
+                    section(localized("Assigned to Me"), mine, showsPullRequests: true)
+                    // Everyone else's pull requests load when a ticket is opened.
+                    section(localized("Everyone Else"), others, showsPullRequests: false)
                 }
                 .padding(.bottom, 8)
             }
@@ -173,7 +174,7 @@ struct LinearView: View {
     }
 
     @ViewBuilder
-    private func section(_ title: String, _ issues: [LinearIssue]) -> some View {
+    private func section(_ title: String, _ issues: [LinearIssue], showsPullRequests: Bool) -> some View {
         if !issues.isEmpty {
             Text(title.uppercased())
                 .font(.system(size: 10, weight: .semibold))
@@ -185,7 +186,7 @@ struct LinearView: View {
             ForEach(issues) { issue in
                 LinearIssueRow(
                     issue: issue,
-                    pullRequests: model.pullRequestIndex[issue.identifier] ?? [],
+                    pullRequests: showsPullRequests ? model.pullRequests(for: issue.identifier) : [],
                     font: settings.interfaceFont,
                     chrome: settings.chromeTheme(for: colorScheme)
                 ) { model.open(issue.id) }

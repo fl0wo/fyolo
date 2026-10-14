@@ -41,8 +41,9 @@ Access tokens last 24 hours. The refresh token renews them before expiry and onc
 The company rule is that a PR title names its ticket, so the title is the link. Shown only when GitHub is connected and the project has a GitHub remote.
 
 1. **Pattern from real keys.** Built from the workspace's team keys: `(?<![A-Za-z0-9])(ENG|OPS)-0*(\d+)(?![0-9])`, case-insensitive. Look-alikes such as `UTF-8` never match, and `eng-12` and `[ENG-012]` both resolve to `ENG-12`.
-2. **One request, one index.** A GitHub GraphQL request reads the bound repo's 100 most recently updated PRs. One pass over their titles builds `identifier → [PR]`, so each row's chips are a dictionary lookup.
-3. **Older PRs on demand.** Opening a ticket the index has nothing for runs one search: `"ENG-123" in:title is:pr user:<owner>`. It covers the owner's other repos, and its results are checked again with the pattern, because GitHub's search is fuzzy.
+2. **Chips only for the viewer's tickets.** The list looks up pull requests for "Assigned to Me" alone — its first 48 tickets in priority order — so what it costs follows how much work is yours, not how big the team is. Everyone else's tickets get theirs when opened. A fixed window of recent PRs was the first version; it did no better for a big team and missed any PR older than the window.
+3. **One request, batched searches.** Plain `ISSUE` title search scoped to the repository owner's account (`user:<owner>`, so the owner's other repositories count), six identifiers per search joined by `OR`, each batch an alias in one GraphQL request. Six is GitHub's limit: a seventh `OR`'d term makes the search return nothing, without an error. `ISSUE_ADVANCED` is not used: its `OR` escapes the `user:` scope and returns other people's repositories.
+4. **Re-checked locally.** Search matches words (`ENG-12` is `ENG` near `12`), so every hit is checked again against the pattern and filed only under the identifiers asked about. A ticket with no PR is recorded as such, and each answer is cached for 30 seconds per owner and identifier. Search can't find a zero-padded title (`ENG-012`); Linear's own branch and PR names never pad.
 
 **Status**, first match wins:
 
