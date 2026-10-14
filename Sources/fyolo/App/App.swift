@@ -2669,6 +2669,7 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
             (.files, localized("Project Files")), (.search, localized("Search Files")),
             (.changes, localized("Changes")),
         ] + (DockerService.isInstalled ? [(.docker, localized("Docker"))] : [])
+            + (settings.isPluginEnabled(LinearPlugin.id) ? [(.linear, localized("Linear"))] : [])
         for pane in panes {
             let item = NSMenuItem(title: pane.title, action: #selector(setInspectorTab(_:)), keyEquivalent: "")
             item.target = self

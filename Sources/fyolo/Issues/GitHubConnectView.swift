@@ -267,12 +267,15 @@ struct GitHubPrompt<Actions: View>: View {
     let title: String
     let message: String
     let errorMessage: String?
+    /// The mark above the title — GitHub's, unless another service borrows the prompt.
+    var icon: HugeIcon = .github
     private let actions: Actions
 
     init(
-        title: String, message: String, errorMessage: String?,
+        title: String, message: String, errorMessage: String?, icon: HugeIcon = .github,
         @ViewBuilder actions: () -> Actions
     ) {
+        self.icon = icon
         self.title = title
         self.message = message
         self.errorMessage = errorMessage
@@ -281,7 +284,7 @@ struct GitHubPrompt<Actions: View>: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            HugeIconView(icon: .github, size: 34, color: .secondary)
+            HugeIconView(icon: icon, size: 34, color: .secondary)
             Text(title).font(.system(size: 13, weight: .semibold))
             Text(message)
                 .font(.system(size: 11))

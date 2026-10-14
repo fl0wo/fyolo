@@ -72,6 +72,7 @@ protocol FyoloPlugin {
 }
 
 extension FyoloPlugin {
+    func gutterActions(for file: URL, text: String) -> [GutterAction] { [] }
     func wholeFileTask(for file: URL) -> RunTask? { nil }
 }
 
@@ -84,6 +85,7 @@ enum PluginRegistry {
         PackageScriptsPlugin(),
         MakefilePlugin(),
         ScriptFilePlugin(),
+        LinearPlugin(),
     ]
 
     static func enabled(in settings: AppSettings) -> [any FyoloPlugin] {
