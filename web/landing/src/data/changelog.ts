@@ -17,6 +17,16 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.6.1",
+    date: "2026-10-14",
+    title: "A tidier search field",
+    changes: {
+      improved: [
+        "Files to include: the filter now sits at the end of the search field as a button, and shrinks to its patterns once set. Its menu offers your last ten filters and a few common ones.",
+      ],
+    },
+  },
+  {
     version: "0.6.0",
     date: "2026-10-14",
     title: "A folder for your projects",
