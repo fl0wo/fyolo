@@ -100,6 +100,11 @@ final class RunTasks: ObservableObject {
 
     private var finishWatches: [UUID: AnyCancellable] = [:]
     private var startTimeouts: [String: Task<Void, Never>] = [:]
+    /// Runs asked for whose command is not yet typed — a fresh terminal waits for
+    /// its shell first — by task, with the attempt allowed to type it. A stop or a
+    /// newer run in that wait replaces or drops the entry, so the stale attempt
+    /// never types.
+    private var pendingDeliveries: [String: UUID] = [:]
     /// Long enough for the device's 2s foreground poll to report a job twice over.
     private static let startTimeout: Duration = .seconds(5)
 
@@ -140,11 +145,32 @@ final class RunTasks: ObservableObject {
     }
 
     /// A run was asked for: it shows as running at once and enters the recents.
-    func willStart(_ task: RunTask, in root: String) {
+    /// Returns the attempt to pass to `claimDelivery` before typing the command.
+    @discardableResult
+    func willStart(_ task: RunTask, in root: String) -> UUID {
         finish(task.id)
         phases[task.id] = .starting
+        let attempt = UUID()
+        pendingDeliveries[task.id] = attempt
         history.record(task, session: session(of: task), in: root)
         onHistoryChange?()
+        return attempt
+    }
+
+    /// Whether `attempt` may still type its command — false once the run was
+    /// stopped or asked for again while it waited.
+    func claimDelivery(_ task: RunTask, attempt: UUID) -> Bool {
+        guard pendingDeliveries[task.id] == attempt else { return false }
+        pendingDeliveries[task.id] = nil
+        return true
+    }
+
+    /// Drops a run whose command is not yet typed. Returns false when there is
+    /// none — the command is in a terminal and needs interrupting there.
+    func cancelPendingStart(_ task: RunTask) -> Bool {
+        guard pendingDeliveries[task.id] != nil else { return false }
+        finish(task.id)
+        return true
     }
 
     /// The command was typed into `session`. `commandFinished` fires each time the
@@ -205,6 +231,7 @@ final class RunTasks: ObservableObject {
     }
 
     private func finish(_ taskID: String) {
+        pendingDeliveries[taskID] = nil
         startTimeouts[taskID]?.cancel()
         startTimeouts[taskID] = nil
         if phases[taskID] != nil { phases[taskID] = nil }

@@ -70,4 +70,25 @@ final class RunHistoryTests: XCTestCase {
             StateFile.InspectorLayout.self, from: Data(#"{"tab":"info"}"#.utf8))
         XCTAssertEqual(layout.tab, .files)
     }
+
+    @MainActor
+    func testStoppingATaskBeforeItsCommandIsTypedKeepsItFromBeingTyped() {
+        let runTasks = RunTasks()
+        let build = task("build")
+        let attempt = runTasks.willStart(build, in: "/repo")
+        XCTAssertTrue(runTasks.cancelPendingStart(build))
+        XCTAssertFalse(runTasks.isRunning(build))
+        XCTAssertFalse(runTasks.claimDelivery(build, attempt: attempt))
+    }
+
+    @MainActor
+    func testRunningATaskAgainWhileItStartsTypesItOnce() {
+        let runTasks = RunTasks()
+        let build = task("build")
+        let first = runTasks.willStart(build, in: "/repo")
+        let second = runTasks.willStart(build, in: "/repo")
+        XCTAssertFalse(runTasks.claimDelivery(build, attempt: first))
+        XCTAssertTrue(runTasks.claimDelivery(build, attempt: second))
+        XCTAssertFalse(runTasks.cancelPendingStart(build), "a typed command is stopped in its terminal")
+    }
 }

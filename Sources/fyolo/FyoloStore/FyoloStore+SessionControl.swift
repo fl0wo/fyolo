@@ -433,10 +433,10 @@ extension FyoloStore {
     /// session in view (see `runInNewTerminal`).
     func runTask(_ task: RunTask) {
         let root = runRoot(for: task)
-        runTasks.willStart(task, in: root)
+        let attempt = runTasks.willStart(task, in: root)
         if let id = runTasks.session(of: task), let session = session(id),
            fyolodLinks[id]?.latestInformation?.foregroundJob != true {
-            deliverTask(task, to: session, root: root, waitForBoot: false)
+            deliverTask(task, attempt: attempt, to: session, root: root, waitForBoot: false)
             return
         }
         guard let session = runInNewTerminal(task.command, in: task.directory.path, title: task.command)
@@ -445,12 +445,15 @@ extension FyoloStore {
             runTasks.didFail(task)
             return
         }
-        deliverTask(task, to: session, root: root, waitForBoot: true)
+        deliverTask(task, attempt: attempt, to: session, root: root, waitForBoot: true)
     }
 
     /// Interrupts `task` with the Ctrl-C a user would press in its terminal: the
-    /// line discipline signals the job, exactly as from the keyboard.
+    /// line discipline signals the job, exactly as from the keyboard. A task whose
+    /// terminal is still starting has nothing to interrupt yet; stopping it means
+    /// its command is never typed.
     func stopTask(_ task: RunTask) {
+        if runTasks.cancelPendingStart(task) { return }
         guard let id = runTasks.session(of: task), let session = session(id),
               let surface = Self.rawSurface(from: surface(for: session)),
               let interrupt = SessionKeyPress.parse("ctrl-c")
@@ -487,11 +490,13 @@ extension FyoloStore {
     /// Types the task's command into `session` — after the shell's first paint for
     /// a fresh terminal, the path `fyolo sessions run` takes — and hands the
     /// terminal to `runTasks` to watch.
-    private func deliverTask(_ task: RunTask, to session: Session, root: String, waitForBoot: Bool) {
+    private func deliverTask(_ task: RunTask, attempt: UUID, to session: Session, root: String,
+                             waitForBoot: Bool) {
         let state = surface(for: session)
         Task { [weak self] in
             guard let self else { return }
             if waitForBoot { await self.waitForBootSettle(of: state) }
+            guard self.runTasks.claimDelivery(task, attempt: attempt) else { return }
             guard await self.performDelivery(task.command, to: session, state: state) else {
                 Log.app.error("could not type a task into \(session.id, privacy: .public)")
                 self.runTasks.didFail(task)
