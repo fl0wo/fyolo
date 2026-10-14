@@ -9944,6 +9944,466 @@
           }
         }
       }
+    },
+    "API key": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API 密钥"
+          }
+        }
+      }
+    },
+    "All Tickets": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部工单"
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
+      }
+    },
+    "Blocked By": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被以下工单阻塞"
+          }
+        }
+      }
+    },
+    "Blocks": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻塞"
+          }
+        }
+      }
+    },
+    "Checks Failing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查未通过"
+          }
+        }
+      }
+    },
+    "Checks Running": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查运行中"
+          }
+        }
+      }
+    },
+    "Choose a Team": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择团队"
+          }
+        }
+      }
+    },
+    "Choose which team’s tickets to show": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择要显示哪个团队的工单"
+          }
+        }
+      }
+    },
+    "Connect Again": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新连接"
+          }
+        }
+      }
+    },
+    "Couldn’t open the Linear sign-in.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法打开 Linear 登录。"
+          }
+        }
+      }
+    },
+    "Create a Key…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建密钥…"
+          }
+        }
+      }
+    },
+    "Disconnect Linear": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开 Linear 连接"
+          }
+        }
+      }
+    },
+    "Duplicate Of": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重复于"
+          }
+        }
+      }
+    },
+    "Duplicated By": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被以下工单重复"
+          }
+        }
+      }
+    },
+    "Everyone Else": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他人"
+          }
+        }
+      }
+    },
+    "High": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高"
+          }
+        }
+      }
+    },
+    "In Review": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审查中"
+          }
+        }
+      }
+    },
+    "Linear": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear"
+          }
+        }
+      }
+    },
+    "Linear no longer accepts this sign-in. Connect again.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear 不再接受此登录，请重新连接。"
+          }
+        }
+      }
+    },
+    "Linear rejected this key. Check that it was copied whole.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear 拒绝了此密钥，请检查是否完整复制。"
+          }
+        }
+      }
+    },
+    "Linear returned an unexpected reply.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear 返回了意外的响应。"
+          }
+        }
+      }
+    },
+    "Linear’s rate limit is exhausted. Wait a moment and try again.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear 的速率限制已用尽，请稍候再试。"
+          }
+        }
+      }
+    },
+    "Low": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低"
+          }
+        }
+      }
+    },
+    "Medium": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中"
+          }
+        }
+      }
+    },
+    "No Open Tickets": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有未完成的工单"
+          }
+        }
+      }
+    },
+    "No Priority": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无优先级"
+          }
+        }
+      }
+    },
+    "Open in Linear": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Linear 中打开"
+          }
+        }
+      }
+    },
+    "Parent": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "父工单"
+          }
+        }
+      }
+    },
+    "Paste a key first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先粘贴密钥。"
+          }
+        }
+      }
+    },
+    "Pick the Linear team whose tickets belong to this project. Fyolo remembers it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择此项目对应的 Linear 团队，Fyolo 会记住你的选择。"
+          }
+        }
+      }
+    },
+    "Ready to Merge": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可合并"
+          }
+        }
+      }
+    },
+    "Related": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相关"
+          }
+        }
+      }
+    },
+    "Shows this project’s Linear tickets in the inspector, with the pull requests that name them.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在检查器中显示此项目的 Linear 工单，以及标题中提到它们的 PR。"
+          }
+        }
+      }
+    },
+    "Sign In with Linear": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 Linear 登录"
+          }
+        }
+      }
+    },
+    "Sign in to see this project’s Linear tickets, with the pull requests that name them.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后即可查看此项目的 Linear 工单，以及标题中提到它们的 PR。"
+          }
+        }
+      }
+    },
+    "Sub-Issues": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "子工单"
+          }
+        }
+      }
+    },
+    "Team": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "团队"
+          }
+        }
+      }
+    },
+    "The Linear sign-in failed.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear 登录失败。"
+          }
+        }
+      }
+    },
+    "The sign-in reply didn’t match this request. Try again.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录响应与本次请求不匹配，请重试。"
+          }
+        }
+      }
+    },
+    "Unassigned": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未指派"
+          }
+        }
+      }
+    },
+    "Urgent": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紧急"
+          }
+        }
+      }
+    },
+    "Use an API Key Instead": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改用 API 密钥"
+          }
+        }
+      }
+    },
+    "%@ has nothing open right now.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 目前没有未完成的工单。"
+          }
+        }
+      }
+    },
+    "Linear replied with HTTP %lld.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear 返回了 HTTP %lld。"
+          }
+        }
+      }
+    },
+    "Linear declined the sign-in (%@).": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear 拒绝了登录（%@）。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

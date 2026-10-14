@@ -26,6 +26,8 @@
 	<string>%@ doesn’t answer like a GitHub server.</string>
 	<key>%@ exited — shell</key>
 	<string>%@ exited — shell</string>
+	<key>%@ has nothing open right now.</key>
+	<string>%@ has nothing open right now.</string>
 	<key>%@ has nothing to pair against</key>
 	<string>%@ has nothing to pair against</string>
 	<key>%@ is a dark theme in the %@ slot.</key>
@@ -136,6 +138,8 @@
 	<string>A run button beside each target in a Makefile.</string>
 	<key>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</key>
 	<string>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</string>
+	<key>API key</key>
+	<string>API key</string>
 	<key>Activity</key>
 	<string>Activity</string>
 	<key>Add</key>
@@ -184,6 +188,8 @@
 	<string>All</string>
 	<key>All Containers</key>
 	<string>All Containers</string>
+	<key>All Tickets</key>
+	<string>All Tickets</string>
 	<key>All caught up</key>
 	<string>All caught up</string>
 	<key>All changes to these %lld files will be lost. This cannot be undone.
@@ -224,6 +230,8 @@
 	<string>Auth failed</string>
 	<key>Available when Fyolo runs from the built app bundle.</key>
 	<string>Available when Fyolo runs from the built app bundle.</string>
+	<key>Back</key>
+	<string>Back</string>
 	<key>Bar</key>
 	<string>Bar</string>
 	<key>Base Branch Missing</key>
@@ -238,6 +246,10 @@
 	<string>Blink</string>
 	<key>Block</key>
 	<string>Block</string>
+	<key>Blocked By</key>
+	<string>Blocked By</string>
+	<key>Blocks</key>
+	<string>Blocks</string>
 	<key>Blue</key>
 	<string>Blue</string>
 	<key>Blur: %lld</key>
@@ -302,6 +314,12 @@
 	<string>Checking the token with GitHub.</string>
 	<key>Checking…</key>
 	<string>Checking…</string>
+	<key>Checks Failing</key>
+	<string>Checks Failing</string>
+	<key>Checks Running</key>
+	<string>Checks Running</string>
+	<key>Choose a Team</key>
+	<string>Choose a Team</string>
 	<key>Choose a different name.</key>
 	<string>Choose a different name.</string>
 	<key>Choose a name for this workspace.</key>
@@ -320,6 +338,8 @@
 	<string>Choose the folder to clone %@ into.</string>
 	<key>Choose which repository’s issues to show</key>
 	<string>Choose which repository’s issues to show</string>
+	<key>Choose which team’s tickets to show</key>
+	<string>Choose which team’s tickets to show</string>
 	<key>Choose…</key>
 	<string>Choose…</string>
 	<key>Clear</key>
@@ -404,6 +424,8 @@
 	<string>Config file</string>
 	<key>Connect</key>
 	<string>Connect</string>
+	<key>Connect Again</key>
+	<string>Connect Again</string>
 	<key>Connect GitHub</key>
 	<string>Connect GitHub</string>
 	<key>Connect to read issues and pull requests, and to clone your repositories.</key>
@@ -492,6 +514,8 @@
 	<string>Couldn’t load</string>
 	<key>Couldn’t open a pull request page</key>
 	<string>Couldn’t open a pull request page</string>
+	<key>Couldn’t open the Linear sign-in.</key>
+	<string>Couldn’t open the Linear sign-in.</string>
 	<key>Couldn’t reach %@.</key>
 	<string>Couldn’t reach %@.</string>
 	<key>Couldn’t relaunch fyolo. Quit and open it again.</key>
@@ -514,6 +538,8 @@
 	<string>Couldn’t write ~/.ssh/config: %@</string>
 	<key>Create</key>
 	<string>Create</string>
+	<key>Create a Key…</key>
+	<string>Create a Key…</string>
 	<key>Create a Token…</key>
 	<string>Create a Token…</string>
 	<key>Credentials</key>
@@ -582,6 +608,8 @@
 	<string>Disconnect</string>
 	<key>Disconnect GitHub</key>
 	<string>Disconnect GitHub</string>
+	<key>Disconnect Linear</key>
+	<string>Disconnect Linear</string>
 	<key>Discord</key>
 	<string>Discord</string>
 	<key>Discord, GitHub, and the WeChat group</key>
@@ -614,8 +642,12 @@
 	<string>Drag an agent onto another to reorder. Readiness covers every machine you work on.</string>
 	<key>Drag the list to change the order agents appear in.</key>
 	<string>Drag the list to change the order agents appear in.</string>
+	<key>Duplicate Of</key>
+	<string>Duplicate Of</string>
 	<key>Duplicate to Themes Folder</key>
 	<string>Duplicate to Themes Folder</string>
+	<key>Duplicated By</key>
+	<string>Duplicated By</string>
 	<key>Edit</key>
 	<string>Edit</string>
 	<key>Edit Manifest</key>
@@ -648,6 +680,8 @@
 	<string>Every iPhone paired with %@ is signed out and must re-scan the new QR to reconnect.</string>
 	<key>Every paired iPhone is signed out and must re-scan the new QR to reconnect.</key>
 	<string>Every paired iPhone is signed out and must re-scan the new QR to reconnect.</string>
+	<key>Everyone Else</key>
+	<string>Everyone Else</string>
 	<key>Exited with status %lld.</key>
 	<string>Exited with status %lld.</string>
 	<key>Expand Results</key>
@@ -750,6 +784,8 @@
 	<string>Hide or show the inspector</string>
 	<key>Hide or show the navigator</key>
 	<string>Hide or show the navigator</string>
+	<key>High</key>
+	<string>High</string>
 	<key>Highlights</key>
 	<string>Highlights</string>
 	<key>History</key>
@@ -786,6 +822,8 @@
 	<string>Ignore File (Add to .gitignore)</string>
 	<key>Image</key>
 	<string>Image</string>
+	<key>In Review</key>
+	<string>In Review</string>
 	<key>Increase Font Size</key>
 	<string>Increase Font Size</string>
 	<key>Info</key>
@@ -870,6 +908,20 @@
 	<string>Line height applies to the file editor and diffs; the terminal keeps the font’s own. Font and theme values you haven’t set here follow your Ghostty config.</string>
 	<key>Line height: %@×</key>
 	<string>Line height: %@×</string>
+	<key>Linear</key>
+	<string>Linear</string>
+	<key>Linear declined the sign-in (%@).</key>
+	<string>Linear declined the sign-in (%@).</string>
+	<key>Linear no longer accepts this sign-in. Connect again.</key>
+	<string>Linear no longer accepts this sign-in. Connect again.</string>
+	<key>Linear rejected this key. Check that it was copied whole.</key>
+	<string>Linear rejected this key. Check that it was copied whole.</string>
+	<key>Linear replied with HTTP %lld.</key>
+	<string>Linear replied with HTTP %lld.</string>
+	<key>Linear returned an unexpected reply.</key>
+	<string>Linear returned an unexpected reply.</string>
+	<key>Linear’s rate limit is exhausted. Wait a moment and try again.</key>
+	<string>Linear’s rate limit is exhausted. Wait a moment and try again.</string>
 	<key>Links `%@` into /usr/local/bin so you (and agents) can run `%@ sessions …` from any shell.</key>
 	<string>Links `%@` into /usr/local/bin so you (and agents) can run `%@ sessions …` from any shell.</string>
 	<key>Live agent status</key>
@@ -886,6 +938,8 @@
 	<string>Looking for agent CLIs…</string>
 	<key>Lost the connection to %@. The session is still running there — reconnecting…</key>
 	<string>Lost the connection to %@. The session is still running there — reconnecting…</string>
+	<key>Low</key>
+	<string>Low</string>
 	<key>Machine</key>
 	<string>Machine</string>
 	<key>Machines</key>
@@ -894,6 +948,8 @@
 	<string>Match Case</string>
 	<key>Match Whole Word</key>
 	<string>Match Whole Word</string>
+	<key>Medium</key>
+	<string>Medium</string>
 	<key>Merged</key>
 	<string>Merged</string>
 	<key>Minimize</key>
@@ -1008,6 +1064,10 @@
 	<string>No Issues</string>
 	<key>No Matches</key>
 	<string>No Matches</string>
+	<key>No Open Tickets</key>
+	<string>No Open Tickets</string>
+	<key>No Priority</key>
+	<string>No Priority</string>
 	<key>No Project</key>
 	<string>No Project</string>
 	<key>No Pull Requests</key>
@@ -1148,6 +1208,8 @@
 	<string>Open in Editor</string>
 	<key>Open in Integrated Terminal</key>
 	<string>Open in Integrated Terminal</string>
+	<key>Open in Linear</key>
+	<string>Open in Linear</string>
 	<key>Open on GitHub</key>
 	<string>Open on GitHub</string>
 	<key>Open one to see how it is reached and what it runs.</key>
@@ -1188,12 +1250,16 @@
 	<string>Pairs your iPhone straight to this Mac's session host. Projects with nothing running don't appear yet.</string>
 	<key>Panes</key>
 	<string>Panes</string>
+	<key>Parent</key>
+	<string>Parent</string>
 	<key>Passed to %@ every time a session starts.</key>
 	<string>Passed to %@ every time a session starts.</string>
 	<key>Password</key>
 	<string>Password</string>
 	<key>Paste</key>
 	<string>Paste</string>
+	<key>Paste a key first.</key>
+	<string>Paste a key first.</string>
 	<key>Paste a token first.</key>
 	<string>Paste a token first.</string>
 	<key>Paste a token with the repo scope. For GitHub Enterprise Server, change the host to yours.</key>
@@ -1208,6 +1274,8 @@
 	<string>Pick a file on the left to see its changes.</string>
 	<key>Pick how %@ is reached from outside. Fyolo runs it there over SSH and reads the address back — you never type one.</key>
 	<string>Pick how %@ is reached from outside. Fyolo runs it there over SSH and reads the address back — you never type one.</string>
+	<key>Pick the Linear team whose tickets belong to this project. Fyolo remembers it.</key>
+	<string>Pick the Linear team whose tickets belong to this project. Fyolo remembers it.</string>
 	<key>Pick the branch this one would merge into.</key>
 	<string>Pick the branch this one would merge into.</string>
 	<key>Pin</key>
@@ -1288,6 +1356,8 @@
 	<string>Reads ~/.ssh/config directly — Fyolo keeps no separate host list.</string>
 	<key>Ready</key>
 	<string>Ready</string>
+	<key>Ready to Merge</key>
+	<string>Ready to Merge</string>
 	<key>Recent</key>
 	<string>Recent</string>
 	<key>Recent Activity</key>
@@ -1316,6 +1386,8 @@
 	<string>Reinstall skill</string>
 	<key>Reinstalled</key>
 	<string>Reinstalled</string>
+	<key>Related</key>
+	<string>Related</string>
 	<key>Relaunch</key>
 	<string>Relaunch</string>
 	<key>Relaunch Fyolo to switch language?</key>
@@ -1516,12 +1588,18 @@
 	<string>Shows files and folders ignored by Git in a muted color.</string>
 	<key>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</key>
 	<string>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</string>
+	<key>Shows this project’s Linear tickets in the inspector, with the pull requests that name them.</key>
+	<string>Shows this project’s Linear tickets in the inspector, with the pull requests that name them.</string>
 	<key>Shows when an agent is working or waiting on you — the sidebar spinner and menu-bar pulse.</key>
 	<string>Shows when an agent is working or waiting on you — the sidebar spinner and menu-bar pulse.</string>
 	<key>Shows when an agent is working or waiting on you — the sidebar spinner and menu-bar pulse. Installs Fyolo’s hooks into each agent’s config.</key>
 	<string>Shows when an agent is working or waiting on you — the sidebar spinner and menu-bar pulse. Installs Fyolo’s hooks into each agent’s config.</string>
 	<key>Sidebar</key>
 	<string>Sidebar</string>
+	<key>Sign In with Linear</key>
+	<string>Sign In with Linear</string>
+	<key>Sign in to see this project’s Linear tickets, with the pull requests that name them.</key>
+	<string>Sign in to see this project’s Linear tickets, with the pull requests that name them.</string>
 	<key>Signs in with %@</key>
 	<string>Signs in with %@</string>
 	<key>Signs in with the keys ssh offers by default.</key>
@@ -1582,6 +1660,8 @@
 	<string>Stop %@</string>
 	<key>Style</key>
 	<string>Style</string>
+	<key>Sub-Issues</key>
+	<string>Sub-Issues</string>
 	<key>Switch between project files, search, and changes</key>
 	<string>Switch between project files, search, and changes</string>
 	<key>System</key>
@@ -1600,6 +1680,8 @@
 	<string>Task completion</string>
 	<key>Teaches agents the fyolo session commands.</key>
 	<string>Teaches agents the fyolo session commands.</string>
+	<key>Team</key>
+	<string>Team</string>
 	<key>Terminal</key>
 	<string>Terminal</string>
 	<key>Terminal default</key>
@@ -1614,6 +1696,8 @@
 	<string>Test Connection</string>
 	<key>The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.</key>
 	<string>The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.</string>
+	<key>The Linear sign-in failed.</key>
+	<string>The Linear sign-in failed.</string>
 	<key>The agent New Chat (⌘N) starts. “Last used” follows whichever agent you most recently chatted with.</key>
 	<string>The agent New Chat (⌘N) starts. “Last used” follows whichever agent you most recently chatted with.</string>
 	<key>The base branch has commits this branch doesn’t have, as of the last fetch.</key>
@@ -1672,6 +1756,8 @@
 	<string>The session host went away</string>
 	<key>The sidebar shows this workspace</key>
 	<string>The sidebar shows this workspace</string>
+	<key>The sign-in reply didn’t match this request. Try again.</key>
+	<string>The sign-in reply didn’t match this request. Try again.</string>
 	<key>The working tree is clean.</key>
 	<string>The working tree is clean.</string>
 	<key>The workspace is empty. Projects and sessions you open later go to another workspace.</key>
@@ -1800,6 +1886,8 @@
 	<string>Type this code at github.com/login/device to approve Fyolo. Waiting for approval…</string>
 	<key>URL Pattern</key>
 	<string>URL Pattern</string>
+	<key>Unassigned</key>
+	<string>Unassigned</string>
 	<key>Underline</key>
 	<string>Underline</string>
 	<key>Ungroup</key>
@@ -1826,6 +1914,8 @@
 	<string>Updates with Homebrew.</string>
 	<key>Updating with Homebrew…</key>
 	<string>Updating with Homebrew…</string>
+	<key>Urgent</key>
+	<string>Urgent</string>
 	<key>Usage</key>
 	<string>Usage</string>
 	<key>Usage statistics</key>
@@ -1838,6 +1928,8 @@
 	<string>Use Selection for Find</string>
 	<key>Use a Personal Access Token…</key>
 	<string>Use a Personal Access Token…</string>
+	<key>Use an API Key Instead</key>
+	<string>Use an API Key Instead</string>
 	<key>Used for this invite only. To make it stick, start the daemon there with --wss-origin.</key>
 	<string>Used for this invite only. To make it stick, start the daemon there with --wss-origin.</string>
 	<key>User</key>

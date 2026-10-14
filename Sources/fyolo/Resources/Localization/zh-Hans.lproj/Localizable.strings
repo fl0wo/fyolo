@@ -26,6 +26,8 @@
 	<string>%@ 的响应不像 GitHub 服务器。</string>
 	<key>%@ exited — shell</key>
 	<string>%@ 已退出——已回到 shell</string>
+	<key>%@ has nothing open right now.</key>
+	<string>%@ 目前没有未完成的工单。</string>
 	<key>%@ has nothing to pair against</key>
 	<string>%@ 上没有可配对的目标</string>
 	<key>%@ is a dark theme in the %@ slot.</key>
@@ -136,6 +138,8 @@
 	<string>在 Makefile 的每个目标旁显示运行按钮。</string>
 	<key>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</key>
 	<string>工作区把侧栏限定在归入它的项目和会话上，都在它所属的那台机器上。</string>
+	<key>API key</key>
+	<string>API 密钥</string>
 	<key>Activity</key>
 	<string>活动</string>
 	<key>Add</key>
@@ -184,6 +188,8 @@
 	<string>全部</string>
 	<key>All Containers</key>
 	<string>所有容器</string>
+	<key>All Tickets</key>
+	<string>全部工单</string>
 	<key>All caught up</key>
 	<string>全部处理完毕</string>
 	<key>All changes to these %lld files will be lost. This cannot be undone.
@@ -224,6 +230,8 @@
 	<string>认证失败</string>
 	<key>Available when Fyolo runs from the built app bundle.</key>
 	<string>仅当 Fyolo 从构建的应用包运行时可用。</string>
+	<key>Back</key>
+	<string>返回</string>
 	<key>Bar</key>
 	<string>竖线</string>
 	<key>Base Branch Missing</key>
@@ -238,6 +246,10 @@
 	<string>闪烁</string>
 	<key>Block</key>
 	<string>方块</string>
+	<key>Blocked By</key>
+	<string>被以下工单阻塞</string>
+	<key>Blocks</key>
+	<string>阻塞</string>
 	<key>Blue</key>
 	<string>蓝色</string>
 	<key>Blur: %lld</key>
@@ -302,6 +314,12 @@
 	<string>正在向 GitHub 验证令牌。</string>
 	<key>Checking…</key>
 	<string>检查中…</string>
+	<key>Checks Failing</key>
+	<string>检查未通过</string>
+	<key>Checks Running</key>
+	<string>检查运行中</string>
+	<key>Choose a Team</key>
+	<string>选择团队</string>
 	<key>Choose a different name.</key>
 	<string>请选取其他名称。</string>
 	<key>Choose a name for this workspace.</key>
@@ -320,6 +338,8 @@
 	<string>选择要将 %@ 克隆到的文件夹。</string>
 	<key>Choose which repository’s issues to show</key>
 	<string>选择显示哪个仓库的 issue</string>
+	<key>Choose which team’s tickets to show</key>
+	<string>选择要显示哪个团队的工单</string>
 	<key>Choose…</key>
 	<string>选取…</string>
 	<key>Clear</key>
@@ -404,6 +424,8 @@
 	<string>配置文件</string>
 	<key>Connect</key>
 	<string>连接</string>
+	<key>Connect Again</key>
+	<string>重新连接</string>
 	<key>Connect GitHub</key>
 	<string>连接 GitHub</string>
 	<key>Connect to read issues and pull requests, and to clone your repositories.</key>
@@ -492,6 +514,8 @@
 	<string>无法载入</string>
 	<key>Couldn’t open a pull request page</key>
 	<string>无法打开 Pull Request 页面</string>
+	<key>Couldn’t open the Linear sign-in.</key>
+	<string>无法打开 Linear 登录。</string>
 	<key>Couldn’t reach %@.</key>
 	<string>无法连接到 %@。</string>
 	<key>Couldn’t relaunch fyolo. Quit and open it again.</key>
@@ -514,6 +538,8 @@
 	<string>无法写入 ~/.ssh/config：%@</string>
 	<key>Create</key>
 	<string>创建</string>
+	<key>Create a Key…</key>
+	<string>创建密钥…</string>
 	<key>Create a Token…</key>
 	<string>创建令牌…</string>
 	<key>Credentials</key>
@@ -582,6 +608,8 @@
 	<string>断开连接</string>
 	<key>Disconnect GitHub</key>
 	<string>断开 GitHub 连接</string>
+	<key>Disconnect Linear</key>
+	<string>断开 Linear 连接</string>
 	<key>Discord</key>
 	<string>Discord</string>
 	<key>Discord, GitHub, and the WeChat group</key>
@@ -614,8 +642,12 @@
 	<string>把一个 Agent 拖到另一个上可重新排序。就绪状态涵盖你使用的每台设备。</string>
 	<key>Drag the list to change the order agents appear in.</key>
 	<string>拖动列表可以调整 Agent 出现的顺序。</string>
+	<key>Duplicate Of</key>
+	<string>重复于</string>
 	<key>Duplicate to Themes Folder</key>
 	<string>复制到主题文件夹</string>
+	<key>Duplicated By</key>
+	<string>被以下工单重复</string>
 	<key>Edit</key>
 	<string>编辑</string>
 	<key>Edit Manifest</key>
@@ -648,6 +680,8 @@
 	<string>所有与 %@ 配对的 iPhone 都会退出登录，需重新扫描新的二维码才能重新连接。</string>
 	<key>Every paired iPhone is signed out and must re-scan the new QR to reconnect.</key>
 	<string>所有已配对的 iPhone 都会退出登录，需重新扫描新的二维码才能重新连接。</string>
+	<key>Everyone Else</key>
+	<string>其他人</string>
 	<key>Exited with status %lld.</key>
 	<string>退出状态 %lld。</string>
 	<key>Expand Results</key>
@@ -750,6 +784,8 @@
 	<string>隐藏或显示检查器</string>
 	<key>Hide or show the navigator</key>
 	<string>隐藏或显示导航器</string>
+	<key>High</key>
+	<string>高</string>
 	<key>Highlights</key>
 	<string>标注</string>
 	<key>History</key>
@@ -786,6 +822,8 @@
 	<string>忽略文件（添加到 .gitignore）</string>
 	<key>Image</key>
 	<string>镜像</string>
+	<key>In Review</key>
+	<string>审查中</string>
 	<key>Increase Font Size</key>
 	<string>增大字体</string>
 	<key>Info</key>
@@ -870,6 +908,20 @@
 	<string>行高应用于文件编辑器和差异对比；终端保持字体自身的行高。此处未设置的字体与主题项将沿用你的 Ghostty 配置。</string>
 	<key>Line height: %@×</key>
 	<string>行高：%@×</string>
+	<key>Linear</key>
+	<string>Linear</string>
+	<key>Linear declined the sign-in (%@).</key>
+	<string>Linear 拒绝了登录（%@）。</string>
+	<key>Linear no longer accepts this sign-in. Connect again.</key>
+	<string>Linear 不再接受此登录，请重新连接。</string>
+	<key>Linear rejected this key. Check that it was copied whole.</key>
+	<string>Linear 拒绝了此密钥，请检查是否完整复制。</string>
+	<key>Linear replied with HTTP %lld.</key>
+	<string>Linear 返回了 HTTP %lld。</string>
+	<key>Linear returned an unexpected reply.</key>
+	<string>Linear 返回了意外的响应。</string>
+	<key>Linear’s rate limit is exhausted. Wait a moment and try again.</key>
+	<string>Linear 的速率限制已用尽，请稍候再试。</string>
 	<key>Links `%@` into /usr/local/bin so you (and agents) can run `%@ sessions …` from any shell.</key>
 	<string>将 `%@` 链接到 /usr/local/bin，让你（和 Agent）可在任意 shell 中运行 `%@ sessions …`。</string>
 	<key>Live agent status</key>
@@ -886,6 +938,8 @@
 	<string>正在查找 Agent 命令行工具…</string>
 	<key>Lost the connection to %@. The session is still running there — reconnecting…</key>
 	<string>与 %@ 的连接已断开。会话仍在那台机器上运行 —— 正在重连…</string>
+	<key>Low</key>
+	<string>低</string>
 	<key>Machine</key>
 	<string>设备</string>
 	<key>Machines</key>
@@ -894,6 +948,8 @@
 	<string>区分大小写</string>
 	<key>Match Whole Word</key>
 	<string>全字匹配</string>
+	<key>Medium</key>
+	<string>中</string>
 	<key>Merged</key>
 	<string>已合并</string>
 	<key>Minimize</key>
@@ -1008,6 +1064,10 @@
 	<string>没有 Issues</string>
 	<key>No Matches</key>
 	<string>无匹配项</string>
+	<key>No Open Tickets</key>
+	<string>没有未完成的工单</string>
+	<key>No Priority</key>
+	<string>无优先级</string>
 	<key>No Project</key>
 	<string>无项目</string>
 	<key>No Pull Requests</key>
@@ -1148,6 +1208,8 @@
 	<string>在编辑器中打开</string>
 	<key>Open in Integrated Terminal</key>
 	<string>在集成终端中打开</string>
+	<key>Open in Linear</key>
+	<string>在 Linear 中打开</string>
 	<key>Open on GitHub</key>
 	<string>在 GitHub 上打开</string>
 	<key>Open one to see how it is reached and what it runs.</key>
@@ -1188,12 +1250,16 @@
 	<string>让 iPhone 直接连到这台 Mac 的 Fyolo server。没有会话在跑的项目暂时不会出现。</string>
 	<key>Panes</key>
 	<string>窗格</string>
+	<key>Parent</key>
+	<string>父工单</string>
 	<key>Passed to %@ every time a session starts.</key>
 	<string>每次开启会话时传给 %@。</string>
 	<key>Password</key>
 	<string>密码</string>
 	<key>Paste</key>
 	<string>粘贴</string>
+	<key>Paste a key first.</key>
+	<string>请先粘贴密钥。</string>
 	<key>Paste a token first.</key>
 	<string>请先粘贴令牌。</string>
 	<key>Paste a token with the repo scope. For GitHub Enterprise Server, change the host to yours.</key>
@@ -1208,6 +1274,8 @@
 	<string>在左侧选择一个文件以查看其更改。</string>
 	<key>Pick how %@ is reached from outside. Fyolo runs it there over SSH and reads the address back — you never type one.</key>
 	<string>选择从外部访问 %@ 的方式。Fyolo 会通过 SSH 在那台机器上运行它，并把地址读回来——你不需要手输任何地址。</string>
+	<key>Pick the Linear team whose tickets belong to this project. Fyolo remembers it.</key>
+	<string>选择此项目对应的 Linear 团队，Fyolo 会记住你的选择。</string>
 	<key>Pick the branch this one would merge into.</key>
 	<string>选择这个分支将要合入的分支。</string>
 	<key>Pin</key>
@@ -1288,6 +1356,8 @@
 	<string>直接读取 ~/.ssh/config——Fyolo 不保留单独的主机列表。</string>
 	<key>Ready</key>
 	<string>已就绪</string>
+	<key>Ready to Merge</key>
+	<string>可合并</string>
 	<key>Recent</key>
 	<string>最近</string>
 	<key>Recent Activity</key>
@@ -1316,6 +1386,8 @@
 	<string>重新安装技能</string>
 	<key>Reinstalled</key>
 	<string>已重新安装</string>
+	<key>Related</key>
+	<string>相关</string>
 	<key>Relaunch</key>
 	<string>重新启动</string>
 	<key>Relaunch Fyolo to switch language?</key>
@@ -1516,12 +1588,18 @@
 	<string>以较淡的颜色显示 Git 忽略的文件和文件夹。</string>
 	<key>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</key>
 	<string>为远程仓库位于 GitHub 的项目在检查器中显示 Issues 窗格。</string>
+	<key>Shows this project’s Linear tickets in the inspector, with the pull requests that name them.</key>
+	<string>在检查器中显示此项目的 Linear 工单，以及标题中提到它们的 PR。</string>
 	<key>Shows when an agent is working or waiting on you — the sidebar spinner and menu-bar pulse.</key>
 	<string>显示 Agent 正在工作还是在等你 — 侧栏的转圈和菜单栏的脉冲。</string>
 	<key>Shows when an agent is working or waiting on you — the sidebar spinner and menu-bar pulse. Installs Fyolo’s hooks into each agent’s config.</key>
 	<string>显示 Agent 正在工作还是在等待你：侧栏的转圈指示和菜单栏的脉冲。会将 Fyolo 的 hooks 安装到各 Agent 的配置中。</string>
 	<key>Sidebar</key>
 	<string>侧栏</string>
+	<key>Sign In with Linear</key>
+	<string>使用 Linear 登录</string>
+	<key>Sign in to see this project’s Linear tickets, with the pull requests that name them.</key>
+	<string>登录后即可查看此项目的 Linear 工单，以及标题中提到它们的 PR。</string>
 	<key>Signs in with %@</key>
 	<string>使用 %@ 登录</string>
 	<key>Signs in with the keys ssh offers by default.</key>
@@ -1582,6 +1660,8 @@
 	<string>停止 %@</string>
 	<key>Style</key>
 	<string>样式</string>
+	<key>Sub-Issues</key>
+	<string>子工单</string>
 	<key>Switch between project files, search, and changes</key>
 	<string>在项目文件、搜索和更改之间切换</string>
 	<key>System</key>
@@ -1600,6 +1680,8 @@
 	<string>任务完成</string>
 	<key>Teaches agents the fyolo session commands.</key>
 	<string>教 Agent 使用 fyolo 的会话命令。</string>
+	<key>Team</key>
+	<string>团队</string>
 	<key>Terminal</key>
 	<string>终端</string>
 	<key>Terminal default</key>
@@ -1614,6 +1696,8 @@
 	<string>测试连接</string>
 	<key>The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.</key>
 	<string>GitHub CLI 没有提供令牌。请在终端中运行 gh auth login，然后重试。</string>
+	<key>The Linear sign-in failed.</key>
+	<string>Linear 登录失败。</string>
 	<key>The agent New Chat (⌘N) starts. “Last used” follows whichever agent you most recently chatted with.</key>
 	<string>新建聊天（⌘N）启动的 Agent。“上次使用”跟随你最近一次聊天所用的 Agent。</string>
 	<key>The base branch has commits this branch doesn’t have, as of the last fetch.</key>
@@ -1672,6 +1756,8 @@
 	<string>Fyolo server 消失了</string>
 	<key>The sidebar shows this workspace</key>
 	<string>侧栏显示的是这个工作区</string>
+	<key>The sign-in reply didn’t match this request. Try again.</key>
+	<string>登录响应与本次请求不匹配，请重试。</string>
 	<key>The working tree is clean.</key>
 	<string>工作树中没有任何更改。</string>
 	<key>The workspace is empty. Projects and sessions you open later go to another workspace.</key>
@@ -1800,6 +1886,8 @@
 	<string>在 github.com/login/device 输入此代码以授权 Fyolo。正在等待批准…</string>
 	<key>URL Pattern</key>
 	<string>URL 模式</string>
+	<key>Unassigned</key>
+	<string>未指派</string>
 	<key>Underline</key>
 	<string>下划线</string>
 	<key>Ungroup</key>
@@ -1826,6 +1914,8 @@
 	<string>将通过 Homebrew 更新。</string>
 	<key>Updating with Homebrew…</key>
 	<string>正在通过 Homebrew 更新…</string>
+	<key>Urgent</key>
+	<string>紧急</string>
 	<key>Usage</key>
 	<string>用量</string>
 	<key>Usage statistics</key>
@@ -1838,6 +1928,8 @@
 	<string>用所选内容查找</string>
 	<key>Use a Personal Access Token…</key>
 	<string>使用个人访问令牌…</string>
+	<key>Use an API Key Instead</key>
+	<string>改用 API 密钥</string>
 	<key>Used for this invite only. To make it stick, start the daemon there with --wss-origin.</key>
 	<string>仅用于本次邀请。要长期生效，请在那台机器上用 --wss-origin 启动守护进程。</string>
 	<key>User</key>
