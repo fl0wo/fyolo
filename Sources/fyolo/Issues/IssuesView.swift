@@ -20,6 +20,7 @@ struct IssuesView: View {
     @StateObject private var model: IssuesPanelModel
     @State private var selection: Int?
     @State private var filterHovering = false
+    @State private var showsFilters = false
     @State private var searchText = ""
     /// Bumped by the refresh button while the Actions list is showing.
     @State private var actionsRefresh = 0
@@ -203,63 +204,19 @@ struct IssuesView: View {
     }
 
     private var filterMenu: some View {
-        Menu {
-            // Each axis is its own submenu so the top level reads as the list of
-            // things you can filter by, not a flat pile of toggles. State and
-            // assignee are single-select (inline Picker = radio); labels stay
-            // multi-select with GitHub's AND semantics.
-            Menu(localized("State")) {
-                Picker(localized("State"), selection: Binding(
-                    get: { model.query.openOnly },
-                    set: { model.query.openOnly = $0 }
-                )) {
-                    Text(localized("issue.state.open")).tag(true)
-                    Text(localized("All")).tag(false)
-                }
-                .pickerStyle(.inline)
-            }
-            Menu(localized("Assignee")) {
-                Picker(localized("Assignee"), selection: Binding(
-                    get: { model.query.assignedToMe },
-                    set: { model.query.assignedToMe = $0 }
-                )) {
-                    Text(localized("Anyone")).tag(false)
-                    Text(localized("Assigned to Me")).tag(true)
-                }
-                .pickerStyle(.inline)
-            }
-            // The repo's full label set, checkmarked from the current query —
-            // only when the repo actually has labels to offer.
-            if !model.availableLabels.isEmpty {
-                Menu(localized("Labels")) {
-                    ForEach(model.availableLabels, id: \.name) { label in
-                        Toggle(label.name, isOn: Binding(
-                            get: { model.query.labels.contains(label.name) },
-                            set: { _ in model.toggleLabelFilter(label.name) }
-                        ))
-                    }
-                }
-            }
-        } label: {
-            // macOS flattens a Menu label to Text/Image and drops shape-drawn
-            // views — so the label is only a clear hit-area, and the chip + funnel
-            // are painted behind it (see .background below).
+        Button { showsFilters.toggle() } label: {
+            // The label is only a clear hit area; the chip and funnel are painted behind it,
+            // matching the refresh codicon beside it.
             Color.clear
                 .frame(width: 22, height: 22)
                 .contentShape(Rectangle())
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .fixedSize()
+        .buttonStyle(.plain)
+        .popover(isPresented: $showsFilters, arrowEdge: .bottom) { filterPopover }
         .background {
-            // The shared `TreeHeaderChip` fill (drawn here, not in the label, because the
-            // Menu drops shape-drawn label views) so the funnel hovers exactly like the
-            // refresh codicon beside it. On top of the chip:
-            // the funnel takes the accent color while any filter narrows the list (non-default
-            // state, an assignee, or a label), so a filtered view can't be mistaken for the full
-            // one — and only otherwise follows the secondary→primary hover of every header glyph.
-            // 1.0pt: the shared inspector-header Hugeicon weight, so the funnel matches the
-            // detail's window controls and the ↗ exactly and sits at the codicon refresh's weight.
+            // The funnel takes the accent color while any filter narrows the list, so a
+            // filtered view can't be mistaken for the full one. 1.0pt is the shared
+            // inspector-header Hugeicon weight.
             ZStack {
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
                     .fill(Color.primary.opacity(filterHovering ? 0.08 : 0))
@@ -274,6 +231,55 @@ struct IssuesView: View {
         }
         .onHover { filterHovering = $0 }
         .help(localized("Filter"))
+    }
+
+    /// Two switches, the ones people actually flip, with the repository's labels
+    /// below them when it has any.
+    private var filterPopover: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            filterSwitch(
+                model.query.kind == .pullRequest ? localized("Mine") : localized("Assigned to Me"),
+                help: model.query.kind == .pullRequest
+                    ? localized("Pull requests you opened, are assigned to, or are asked to review")
+                    : localized("Issues assigned to you"),
+                isOn: Binding(get: { model.query.assignedToMe }, set: { model.query.assignedToMe = $0 }))
+            filterSwitch(
+                localized("Open Only"),
+                help: localized("Hide closed and merged items"),
+                isOn: Binding(get: { model.query.openOnly }, set: { model.query.openOnly = $0 }))
+            if !model.availableLabels.isEmpty {
+                Divider()
+                Menu {
+                    ForEach(model.availableLabels, id: \.name) { label in
+                        Toggle(label.name, isOn: Binding(
+                            get: { model.query.labels.contains(label.name) },
+                            set: { _ in model.toggleLabelFilter(label.name) }
+                        ))
+                    }
+                } label: {
+                    Text(model.query.labels.isEmpty
+                         ? localized("Labels")
+                         : model.query.labels.sorted().joined(separator: ", "))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+                .menuStyle(.borderlessButton)
+                .font(.system(size: 12))
+            }
+        }
+        .padding(12)
+        .frame(width: 210)
+    }
+
+    private func filterSwitch(_ title: String, help: String, isOn: Binding<Bool>) -> some View {
+        Toggle(isOn: isOn) {
+            Text(title)
+                .font(.system(size: 12))
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .toggleStyle(.switch)
+        .controlSize(.mini)
+        .help(help)
     }
 
     /// Any axis narrowing the list away from its default (all open items, anyone,
@@ -417,6 +423,10 @@ struct IssuesView: View {
     }
 
     private var emptyMessage: String {
+        // "No open pull requests" would be false while Mine or a label hides the rest.
+        if model.query.assignedToMe || !model.query.labels.isEmpty {
+            return localized("Nothing matches these filters.")
+        }
         if model.query.kind == .issue {
             return model.query.openOnly
                 ? localized("No open issues right now.")

@@ -194,8 +194,6 @@
 	<string>别名</string>
 	<key>Alias → %@</key>
 	<string>替身 → %@</string>
-	<key>All</key>
-	<string>全部</string>
 	<key>All Containers</key>
 	<string>所有容器</string>
 	<key>All Tickets</key>
@@ -216,8 +214,6 @@
 	<string>允许访问用量</string>
 	<key>An older install points at %@. Update it to this version of Fyolo.</key>
 	<string>旧的安装指向 %@。请将其更新到此版本的 Fyolo。</string>
-	<key>Anyone</key>
-	<string>任何人</string>
 	<key>App language</key>
 	<string>应用语言</string>
 	<key>Appearance</key>
@@ -234,8 +230,6 @@
 	<string>正在询问 %@…</string>
 	<key>Assigned to Me</key>
 	<string>指派给我</string>
-	<key>Assignee</key>
-	<string>指派人</string>
 	<key>Auth failed</key>
 	<string>认证失败</string>
 	<key>Available when Fyolo runs from the built app bundle.</key>
@@ -806,6 +800,8 @@
 	<string>隐藏其他</string>
 	<key>Hide Replace</key>
 	<string>隐藏替换</string>
+	<key>Hide closed and merged items</key>
+	<string>隐藏已关闭和已合并的条目</string>
 	<key>Hide or show the inspector</key>
 	<string>隐藏或显示检查器</string>
 	<key>Hide or show the navigator</key>
@@ -888,6 +884,8 @@
 	<string>Issues</string>
 	<key>Issues a new token and revokes every paired iPhone.</key>
 	<string>签发新的 Token 并撤销所有已配对的 iPhone。</string>
+	<key>Issues assigned to you</key>
+	<string>指派给你的 Issue</string>
 	<key>Job</key>
 	<string>作业</string>
 	<key>Jobs</key>
@@ -990,6 +988,8 @@
 	<string>中</string>
 	<key>Merged</key>
 	<string>已合并</string>
+	<key>Mine</key>
+	<string>我的</string>
 	<key>Minimize</key>
 	<string>最小化</string>
 	<key>Missing on %lld devices</key>
@@ -1190,6 +1190,8 @@
 	<string>尚未运行。会话会启动它，并在你退出 Fyolo 后继续运行。</string>
 	<key>Not set up yet</key>
 	<string>尚未设置</string>
+	<key>Nothing matches these filters.</key>
+	<string>没有符合这些过滤条件的条目。</string>
 	<key>Nothing to Compare</key>
 	<string>没有可对比的分支</string>
 	<key>Nothing to install.</key>
@@ -1228,6 +1230,8 @@
 	<string>打开文件夹…</string>
 	<key>Open Link</key>
 	<string>打开链接</string>
+	<key>Open Only</key>
+	<string>仅显示开放</string>
 	<key>Open Project</key>
 	<string>打开项目</string>
 	<key>Open Project…</key>
@@ -1382,6 +1386,8 @@
 	<string>发布会重启 %@ 上的 fyolod</string>
 	<key>Pull Requests</key>
 	<string>PR</string>
+	<key>Pull requests you opened, are assigned to, or are asked to review</key>
+	<string>由你创建、指派给你或请你审查的 PR</string>
 	<key>Purple</key>
 	<string>紫色</string>
 	<key>Push the current branch to the repository’s remote first, then try again. (The remote also needs to be a forge Fyolo recognizes: GitHub, GitLab, Bitbucket, or Gitea.)</key>
@@ -1702,8 +1708,6 @@
 	<string>正在启动隧道…</string>
 	<key>Starting…</key>
 	<string>正在启动…</string>
-	<key>State</key>
-	<string>状态</string>
 	<key>Status</key>
 	<string>状态</string>
 	<key>Steps (%lld)</key>
