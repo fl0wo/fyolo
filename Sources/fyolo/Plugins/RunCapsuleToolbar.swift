@@ -11,7 +11,6 @@ struct RunCapsuleToolbar: View {
     @EnvironmentObject var store: FyoloStore
     @ObservedObject var runTasks: RunTasks
 
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.controlActiveState) private var controlActive
 
     private static let height = InspectorTabsToolbar.controlHeight
@@ -29,7 +28,7 @@ struct RunCapsuleToolbar: View {
             runButton
         }
         .frame(height: Self.height)
-        .background { if current != nil { capsuleBackground } }
+        .background { if current != nil { ToolbarCapsuleChrome() } }
         .fixedSize()
     }
 
@@ -94,9 +93,14 @@ struct RunCapsuleToolbar: View {
               ?? localized("Run a script from a package.json, a Makefile or a shell file to see it here"))
         .accessibilityLabel(running ? localized("Stop") : localized("Run"))
     }
+}
 
-    @ViewBuilder
-    private var capsuleBackground: some View {
+/// The glass capsule behind the toolbar's trailing chips — the run capsule and the
+/// CI chip beside it — so the two read as one family.
+struct ToolbarCapsuleChrome: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
         if #available(macOS 26.0, *) {
             Color.clear.glassEffect(.regular, in: .capsule)
         } else {

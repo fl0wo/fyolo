@@ -105,6 +105,7 @@ struct TerminalPane: View {
                 store.openFileURL = nil
                 store.cancelRemoteFileOpen()
                 store.openIssueDetail = nil
+                store.openWorkflowRun = nil
             }
             requestSelectedTerminalFocus(reason: .overlayClosed)
         }
