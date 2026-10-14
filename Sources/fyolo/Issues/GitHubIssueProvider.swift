@@ -35,6 +35,7 @@ struct GitHubIssueProvider: IssueProvider {
     }
 
     func issues(in container: IssueContainer, query: IssueQuery) async throws -> [IssueSummary] {
+        if query.kind == .pullRequest { return try await pullRequests(in: container, query: query) }
         var components = URLComponents(string: "\(connection.apiBase)/repos/\(container.id)/issues")!
         var items = [
             URLQueryItem(name: "state", value: query.openOnly ? "open" : "all"),
@@ -51,7 +52,26 @@ struct GitHubIssueProvider: IssueProvider {
         components.queryItems = items
         let raw: [RawIssue] = try await get(components.url!)
         return raw
-            .filter { ($0.pullRequest != nil) == (query.kind == .pullRequest) }
+            .filter { $0.pullRequest == nil }
+            .map { $0.summary() }
+    }
+
+    /// Pull requests come from `/pulls`, not `/issues`: on `/issues` they compete with
+    /// issues for the 100 rows, and its `assignee` filter misses the pull requests that
+    /// are someone's, since pull requests are rarely assigned. `/pulls` filters neither
+    /// assignee nor labels, so both apply here, over the rows it returns.
+    private func pullRequests(in container: IssueContainer, query: IssueQuery) async throws -> [IssueSummary] {
+        var components = URLComponents(string: "\(connection.apiBase)/repos/\(container.id)/pulls")!
+        components.queryItems = [
+            URLQueryItem(name: "state", value: query.openOnly ? "open" : "all"),
+            URLQueryItem(name: "sort", value: "updated"),
+            URLQueryItem(name: "direction", value: "desc"),
+            URLQueryItem(name: "per_page", value: "100"),
+        ]
+        let raw: [RawPullRequestListing] = try await get(components.url!)
+        let viewer: String? = query.assignedToMe ? try await login() ?? "" : nil
+        return raw
+            .filter { $0.matches(labels: query.labels, viewer: viewer) }
             .map { $0.summary() }
     }
 
@@ -281,6 +301,54 @@ private struct RawIssue: Decodable {
             identifier: "#\(number)",
             title: title,
             kind: kind,
+            state: itemState,
+            labels: labels.map { IssueLabel(name: $0.name, colorHex: $0.color ?? "") },
+            author: user?.login ?? "ghost",
+            updatedAt: updatedAt,
+            url: htmlUrl
+        )
+    }
+}
+
+/// One row of `/pulls`, which spells a merge as a top-level `merged_at` rather than
+/// `/issues`' nested `pull_request`.
+struct RawPullRequestListing: Decodable {
+    struct RawLabel: Decodable { let name: String; let color: String? }
+    struct RawUser: Decodable { let login: String }
+
+    let number: Int
+    let title: String
+    let state: String
+    let draft: Bool?
+    let mergedAt: Date?
+    let labels: [RawLabel]
+    let user: RawUser?
+    let assignees: [RawUser]?
+    let requestedReviewers: [RawUser]?
+    let updatedAt: Date
+    let htmlUrl: URL?
+
+    /// "Mine" for a pull request: the viewer opened it, is assigned to it, or is asked to
+    /// review it. A `nil` viewer means no such filter. Labels combine as AND, like GitHub's.
+    func matches(labels wanted: Set<String>, viewer: String?) -> Bool {
+        guard wanted.isSubset(of: labels.map(\.name)) else { return false }
+        guard let viewer else { return true }
+        let people = [user].compactMap { $0 } + (assignees ?? []) + (requestedReviewers ?? [])
+        return people.contains { $0.login.caseInsensitiveCompare(viewer) == .orderedSame }
+    }
+
+    func summary() -> IssueSummary {
+        let itemState: IssueItemState
+        if state == "open" {
+            itemState = draft == true ? .draft : .open
+        } else {
+            itemState = mergedAt != nil ? .merged : .closed
+        }
+        return IssueSummary(
+            number: number,
+            identifier: "#\(number)",
+            title: title,
+            kind: .pullRequest,
             state: itemState,
             labels: labels.map { IssueLabel(name: $0.name, colorHex: $0.color ?? "") },
             author: user?.login ?? "ghost",

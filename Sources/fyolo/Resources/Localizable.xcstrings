@@ -891,16 +891,6 @@
         }
       }
     },
-    "All": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全部"
-          }
-        }
-      }
-    },
     "All caught up": {
       "localizations": {
         "zh-Hans": {
@@ -967,16 +957,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "旧的安装指向 %@。请将其更新到此版本的 Fyolo。"
-          }
-        }
-      }
-    },
-    "Anyone": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "任何人"
           }
         }
       }
@@ -1058,16 +1038,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "指派给我"
-          }
-        }
-      }
-    },
-    "Assignee": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "指派人"
           }
         }
       }
@@ -7778,16 +7748,6 @@
         }
       }
     },
-    "State": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "状态"
-          }
-        }
-      }
-    },
     "Status": {
       "localizations": {
         "zh-Hans": {
@@ -10761,6 +10721,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "步骤（%lld）"
+          }
+        }
+      }
+    },
+    "Mine": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的"
+          }
+        }
+      }
+    },
+    "Open Only": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示开放"
+          }
+        }
+      }
+    },
+    "Pull requests you opened, are assigned to, or are asked to review": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由你创建、指派给你或请你审查的 PR"
+          }
+        }
+      }
+    },
+    "Issues assigned to you": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指派给你的 Issue"
+          }
+        }
+      }
+    },
+    "Hide closed and merged items": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏已关闭和已合并的条目"
+          }
+        }
+      }
+    },
+    "Nothing matches these filters.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有符合这些过滤条件的条目。"
           }
         }
       }

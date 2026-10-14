@@ -194,8 +194,6 @@
 	<string>Alias</string>
 	<key>Alias → %@</key>
 	<string>Alias → %@</string>
-	<key>All</key>
-	<string>All</string>
 	<key>All Containers</key>
 	<string>All Containers</string>
 	<key>All Tickets</key>
@@ -216,8 +214,6 @@
 	<string>Allow Usage Access</string>
 	<key>An older install points at %@. Update it to this version of Fyolo.</key>
 	<string>An older install points at %@. Update it to this version of Fyolo.</string>
-	<key>Anyone</key>
-	<string>Anyone</string>
 	<key>App language</key>
 	<string>App language</string>
 	<key>Appearance</key>
@@ -234,8 +230,6 @@
 	<string>Asking %@…</string>
 	<key>Assigned to Me</key>
 	<string>Assigned to Me</string>
-	<key>Assignee</key>
-	<string>Assignee</string>
 	<key>Auth failed</key>
 	<string>Auth failed</string>
 	<key>Available when Fyolo runs from the built app bundle.</key>
@@ -806,6 +800,8 @@
 	<string>Hide Others</string>
 	<key>Hide Replace</key>
 	<string>Hide Replace</string>
+	<key>Hide closed and merged items</key>
+	<string>Hide closed and merged items</string>
 	<key>Hide or show the inspector</key>
 	<string>Hide or show the inspector</string>
 	<key>Hide or show the navigator</key>
@@ -888,6 +884,8 @@
 	<string>Issues</string>
 	<key>Issues a new token and revokes every paired iPhone.</key>
 	<string>Issues a new token and revokes every paired iPhone.</string>
+	<key>Issues assigned to you</key>
+	<string>Issues assigned to you</string>
 	<key>Job</key>
 	<string>Job</string>
 	<key>Jobs</key>
@@ -990,6 +988,8 @@
 	<string>Medium</string>
 	<key>Merged</key>
 	<string>Merged</string>
+	<key>Mine</key>
+	<string>Mine</string>
 	<key>Minimize</key>
 	<string>Minimize</string>
 	<key>Missing on %lld devices</key>
@@ -1190,6 +1190,8 @@
 	<string>Not running yet. Sessions start it, and keep running after you quit Fyolo.</string>
 	<key>Not set up yet</key>
 	<string>Not set up yet</string>
+	<key>Nothing matches these filters.</key>
+	<string>Nothing matches these filters.</string>
 	<key>Nothing to Compare</key>
 	<string>Nothing to Compare</string>
 	<key>Nothing to install.</key>
@@ -1228,6 +1230,8 @@
 	<string>Open Folder…</string>
 	<key>Open Link</key>
 	<string>Open Link</string>
+	<key>Open Only</key>
+	<string>Open Only</string>
 	<key>Open Project</key>
 	<string>Open Project</string>
 	<key>Open Project…</key>
@@ -1382,6 +1386,8 @@
 	<string>Publishing restarts fyolod on %@</string>
 	<key>Pull Requests</key>
 	<string>Pull Requests</string>
+	<key>Pull requests you opened, are assigned to, or are asked to review</key>
+	<string>Pull requests you opened, are assigned to, or are asked to review</string>
 	<key>Purple</key>
 	<string>Purple</string>
 	<key>Push the current branch to the repository’s remote first, then try again. (The remote also needs to be a forge Fyolo recognizes: GitHub, GitLab, Bitbucket, or Gitea.)</key>
@@ -1702,8 +1708,6 @@
 	<string>Starting tunnel…</string>
 	<key>Starting…</key>
 	<string>Starting…</string>
-	<key>State</key>
-	<string>State</string>
 	<key>Status</key>
 	<string>Status</string>
 	<key>Steps (%lld)</key>
