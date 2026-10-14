@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Inspector pane switch
 
-/// The inspector's pane switch (Files / Search / Changes / Issues / Docker). It sits at the *left* edge of
+/// The inspector's pane switch (Files / Search / Changes / Issues / Docker / Linear). It sits at the *left* edge of
 /// the inspector in the toolbar — pinned there by an inspector tracking separator (see
 /// `MainToolbarDelegate`) — while the collapse button sits at the far right.
 ///
@@ -62,6 +62,7 @@ struct InspectorTabsToolbar: View {
         (.changes, .gitBranch, "Changes"),
         (.issues, .github, "Issues"),
         (.docker, .docker, "Docker"),
+        (.linear, .linear, "Linear"),
     ]
 
     /// Some segments exist only where they have something to show, rather than leading
@@ -77,6 +78,7 @@ struct InspectorTabsToolbar: View {
             case .issues: settings.githubIntegrationEnabled && hasGitHubRemote
             case .changes: isRepository
             case .docker: DockerService.isInstalled
+            case .linear: settings.isPluginEnabled(LinearPlugin.id)
             default: true
             }
         }
@@ -109,6 +111,10 @@ struct InspectorTabsToolbar: View {
                    !(settings.githubIntegrationEnabled && hasGitHubRemote) {
                     store.inspectorTab = .files
                 }
+            }
+            // A plugin switched off takes its pane with it.
+            .onChange(of: settings.isPluginEnabled(LinearPlugin.id)) { _, enabled in
+                if !enabled, store.inspectorTab == .linear { store.inspectorTab = .files }
             }
             // Same shape for Changes, keyed on the root alone — a `cd` in a loose
             // terminal moves this, so it re-runs there and not on GitHub's switch.

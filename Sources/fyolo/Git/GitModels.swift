@@ -5,10 +5,10 @@ import SwiftUI
 // MARK: - Models
 
 /// Which inspector pane the trailing column is showing — the file tree, the file
-/// search, the git changes list, the issue tracker, or Docker.
+/// search, the git changes list, the issue tracker, Docker, or Linear.
 /// Drives the segmented switch at the top of `FileBrowserView`.
 enum InspectorTab: String, Hashable, Sendable, Codable {
-    case files, search, changes, issues, docker
+    case files, search, changes, issues, docker, linear
 
     /// A tab this build no longer has (the old `info`) reads as Files. The tab is
     /// saved inside the state file, and a value that failed to decode would fail

@@ -875,6 +875,27 @@ enum GitService {
         }
     }
 
+    /// The Linear team the Linear pane reads for this checkout, recorded by the
+    /// pane's team menu. Local git config, like `fyolo.issuesRepo`, so every
+    /// worktree of the repository shares the choice.
+    static func linearTeam(in dir: String) async -> String? {
+        await offMain {
+            guard let value = run(["config", "--local", "--get", "fyolo.linearTeam"], in: dir)?
+                .trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty
+            else { return nil }
+            return value
+        }
+    }
+
+    /// Records the team picked in the Linear pane. `false` when the folder has no
+    /// git config to write to.
+    @discardableResult
+    static func setLinearTeam(_ teamID: String, in dir: String) async -> Bool {
+        await offMain {
+            run(["config", "--local", "fyolo.linearTeam", teamID], in: dir) != nil
+        }
+    }
+
     /// What "Clone to <device>…" needs to know about a checkout: the `origin`
     /// URL to hand `git clone` on the remote, a repo name derived from it (the
     /// clone's directory), and how many local commits are ahead of the upstream

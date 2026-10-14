@@ -452,6 +452,17 @@ struct FileBrowserView: View {
             } else {
                 DockerView()
             }
+        case .linear:
+            // The team pick is kept in the checkout's git config, which only a
+            // local checkout has.
+            if let deviceCheckout {
+                unavailable(pane: localized("Linear"), on: deviceCheckout)
+            } else if let projectPath {
+                LinearView(projectRoot: projectPath, settings: settings)
+                    .id(projectPath)
+            } else {
+                noProject
+            }
         }
     }
 

@@ -36,6 +36,14 @@ struct GitHubConnection: Codable, Equatable, Sendable {
         return "https://\(host)/api/v3"
     }
 
+    /// The GraphQL endpoint, which sits beside the REST root rather than under it
+    /// on GitHub Enterprise Server.
+    var graphQLURL: URL? {
+        if isDotCom { return URL(string: "https://api.github.com/graphql") }
+        if host.hasSuffix(".ghe.com") { return URL(string: "https://api.\(host)/graphql") }
+        return URL(string: "https://\(host)/api/graphql")
+    }
+
     /// Where the user changes what this credential can reach — the place a 403 on
     /// an organization's private repository gets fixed. For the browser sign-in
     /// that is the OAuth app's grant page; for a token, the token list, where

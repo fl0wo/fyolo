@@ -44,6 +44,7 @@ from the real front matter).
 | active | design | [iOS TestFlight runbook — build, upload, and drive ASC from the API](runbook/ios-testflight-runbook.md) |
 | active | design | [Issue tracker 集成：inspector Issues tab（GitHub / Linear，per-project provider）](design/20260726-issue-tracker-integration.md) |
 | active | design | [Keyboard and command design](design/20260812-keyboard-command-design.md) |
+| active | design | [Linear plugin: inspector pane, OAuth PKCE, pull requests linked by title](design/20261014-linear-plugin.md) |
 | active | design | [Remote-access design lessons: sleep reachability, stable domains, identity, monetization](design/20260705-remote-access-lessons.md) |
 | active | design | [Research brief — fyolod Session Protocol (for design agent)](design/20260730-_research-session-protocol-brief.md) |
 | active | design | [Sessions CLI v2 — reliability & command design](design/20260724-sessions-cli-v2.md) |

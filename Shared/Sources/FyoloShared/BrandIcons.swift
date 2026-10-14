@@ -229,6 +229,7 @@ public enum HugeIcon: Hashable, Sendable {
     case inbox
     case github
     case docker
+    case linear
     case puzzle
     case voice
     case close
@@ -457,6 +458,11 @@ public enum HugeIcon: Hashable, Sendable {
             // grid of crates on the 3.5–12.5 band, over a hull from the tail at 2 to
             // the spout at 22 — the inspector's Docker segment.
             return "M5 12.5V9.5H14V12.5 M8 9.5V12.5 M11 9.5V12.5 M8 9.5V6.5H14V9.5 M11 6.5V9.5 M11 6.5V3.5H14V6.5 M2 12.5H18.5C19.2 11.4 20.5 10.8 22 11.2C21.6 12.4 20.6 13.1 19.4 13.3C18 17.6 14.2 20.5 9.5 20.5C5.4 20.5 2.6 17.8 2 12.5Z"
+        case .linear:
+            // Linear's mark in the set's stroke style (Hugeicons ships none): the disc
+            // cut by a chord, with two shorter parallel strokes stepping out toward
+            // the lower left — the inspector's Linear segment.
+            return "M4.32 7.32A9 9 0 1 1 16.69 19.69Z M3.11 10.61L13.39 20.89 M3.3 14.3L9.7 20.7"
         case .puzzle:
             // A jigsaw piece with a knob on top and one on the right, in the set's stroke
             // style — the Plugins settings tab.

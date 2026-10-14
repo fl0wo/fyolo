@@ -943,25 +943,25 @@ enum IssueDetailHTML {
     /// `github.com/user-attachments/…`, which 404s anonymously and only returns bytes
     /// with the connect token attached (see `GitHubAssetSchemeHandler`). Only `src`/
     /// `srcset` are rewritten, so `href` links still open in the browser as before.
-    private static func routeImages(_ html: String) -> String {
+    static func routeImages(_ html: String) -> String {
         let scheme = GitHubAssetSchemeHandler.scheme
         return html
             .replacingOccurrences(of: "src=\"https://", with: "src=\"\(scheme)://")
             .replacingOccurrences(of: "srcset=\"https://", with: "srcset=\"\(scheme)://")
     }
 
-    private static func avatar(_ url: URL?) -> String {
+    static func avatar(_ url: URL?) -> String {
         guard let url, url.scheme == "https" else { return "" }
         return "<img class=\"avatar\" src=\"\(escape(url.absoluteString))\" alt=\"\">"
     }
 
-    private static func relative(_ date: Date) -> String {
+    static func relative(_ date: Date) -> String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
         return escape(formatter.localizedString(for: date, relativeTo: Date()))
     }
 
-    private static func css(_ theme: DocumentTheme) -> String {
+    static func css(_ theme: DocumentTheme) -> String {
         """
         \(MarkdownSkin.highlightTheme(dark: theme.isDark))
         \(MarkdownSkin.css(scope: ""))
@@ -1016,7 +1016,7 @@ enum IssueDetailHTML {
         """
     }
 
-    private static func escape(_ s: String) -> String {
+    static func escape(_ s: String) -> String {
         s.replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
@@ -1024,10 +1024,13 @@ enum IssueDetailHTML {
     }
 }
 
-/// A minimal `WKWebView` host, declared privately for the detail
-/// page: transparent while loading, links open in the browser.
-private struct IssueWebView: NSViewRepresentable {
+/// A minimal `WKWebView` host for the detail page: transparent while loading,
+/// links open in the browser unless `openLink` claims them first.
+struct IssueWebView: NSViewRepresentable {
     let html: String
+    /// Gets first refusal on a clicked link — `true` means handled in the app,
+    /// so the browser never opens. The Linear pane uses it to push a linked ticket.
+    var openLink: ((URL) -> Bool)? = nil
     /// "Add to Chat" in the conversation's right-click menu — selection as pasted
     /// snippet, `nil` (no selection) as the item's GitHub URL. Injected by
     /// `IssueDetailView`, which holds both the item and the store.
@@ -1050,6 +1053,7 @@ private struct IssueWebView: NSViewRepresentable {
         view.canAddToChat = canAddToChat
         view.setValue(false, forKey: "drawsBackground")
         view.navigationDelegate = context.coordinator
+        context.coordinator.openLink = openLink
         view.loadHTMLString(html, baseURL: nil)
         return view
     }
@@ -1059,6 +1063,7 @@ private struct IssueWebView: NSViewRepresentable {
         // click swaps in place.
         (view as? IssueDetailWKWebView)?.addToChat = addToChat
         (view as? IssueDetailWKWebView)?.canAddToChat = canAddToChat
+        context.coordinator.openLink = openLink
         if context.coordinator.lastHTML != html {
             context.coordinator.lastHTML = html
             context.coordinator.assetHandler.forgetMedia()
@@ -1070,6 +1075,7 @@ private struct IssueWebView: NSViewRepresentable {
 
     final class Coordinator: NSObject, WKNavigationDelegate {
         var lastHTML: String
+        var openLink: ((URL) -> Bool)?
         let assetHandler = GitHubAssetSchemeHandler()
         init(lastHTML: String) { self.lastHTML = lastHTML }
 
@@ -1077,7 +1083,7 @@ private struct IssueWebView: NSViewRepresentable {
                      decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void) {
             if navigationAction.navigationType == .linkActivated,
                let url = navigationAction.request.url {
-                NSWorkspace.shared.open(url)
+                if openLink?(url) != true { NSWorkspace.shared.open(url) }
                 decisionHandler(.cancel)
             } else {
                 decisionHandler(.allow)
@@ -1194,6 +1200,11 @@ final class GitHubAssetSchemeHandler: NSObject, WKURLSchemeHandler {
                ? host == "github.com" || host.hasSuffix(".githubusercontent.com")
                : host == connection.host || host.hasSuffix("." + connection.host) {
             request.setValue("Bearer \(connection.token)", forHTTPHeaderField: "Authorization")
+        } else if url.host?.lowercased() == "uploads.linear.app",
+                  let linear = LinearAuth.storedConnection() {
+            // Linear's uploads are private to the workspace, the same problem as
+            // GitHub's attachments, answered the same way.
+            request.setValue(linear.authorizationHeader, forHTTPHeaderField: "Authorization")
         }
 
         // The scheme task must never leave the main actor (WebKit traps on
