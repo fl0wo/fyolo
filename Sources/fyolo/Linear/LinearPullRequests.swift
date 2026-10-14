@@ -132,14 +132,27 @@ struct LinearTicketPattern: Sendable {
         }
         return index
     }
+
+    /// What a search for `identifiers` found, filed under each identifier asked
+    /// about — and only those, since a fuzzy hit can name a ticket nobody asked
+    /// for. A ticket with no pull request maps to an empty list, which records
+    /// that it was looked up.
+    func index(_ pullRequests: [LinkedPullRequest], for identifiers: [String]) -> [String: [LinkedPullRequest]] {
+        let found = index(pullRequests)
+        return Dictionary(identifiers.map { ($0, found[$0] ?? []) }, uniquingKeysWith: { first, _ in first })
+    }
 }
 
 // MARK: - GitHub lookups
 
-/// The two GitHub reads behind the chips, both GraphQL so a PR's review and
-/// check state arrive with it instead of costing a request each.
+/// The GitHub read behind the chips: a title search, in GraphQL so each PR's
+/// review and check state arrive with it instead of costing a request each.
 struct GitHubPullRequestLookup: Sendable {
     let connection: GitHubConnection
+
+    /// How many identifiers share one search. GitHub's issue search allows five
+    /// `OR`s; a sixth makes it answer with nothing at all rather than an error.
+    static let identifiersPerSearch = 6
 
     private static let fields = """
     number title url state isDraft reviewDecision mergeStateStatus
@@ -147,48 +160,40 @@ struct GitHubPullRequestLookup: Sendable {
     repository { nameWithOwner }
     """
 
-    /// The repository's most recently updated pull requests, open or not — the
-    /// window the list's chips come from.
-    func recent(in slug: String, limit: Int = 100) async throws -> [LinkedPullRequest] {
-        struct Reply: Decodable {
-            struct Repository: Decodable { let pullRequests: LinearNodes<RawPullRequest> }
-            let repository: Repository?
+    /// The search strings for `identifiers`, six to a query, each scoped to the
+    /// pull requests of `owner`'s account. Pure, so the batching and the scope
+    /// can be pinned in tests.
+    static func searchQueries(for identifiers: [String], owner: String) -> [String] {
+        stride(from: 0, to: identifiers.count, by: identifiersPerSearch).map { start in
+            let batch = identifiers[start..<min(start + identifiersPerSearch, identifiers.count)]
+            let terms = batch.map { "\"\($0)\"" }.joined(separator: " OR ")
+            return "is:pr user:\(owner) in:title \(terms)"
         }
-        let parts = slug.split(separator: "/", maxSplits: 1).map(String.init)
-        guard parts.count == 2 else { return [] }
-        let document = """
-        query($owner: String!, $name: String!, $limit: Int!) {
-          repository(owner: $owner, name: $name) {
-            pullRequests(first: $limit, orderBy: { field: UPDATED_AT, direction: DESC }) {
-              nodes { \(Self.fields) }
-            }
-          }
-        }
-        """
-        let reply: Reply = try await query(
-            document, variables: ["owner": parts[0], "name": parts[1], "limit": min(limit, 100)])
-        return reply.repository?.pullRequests.nodes.compactMap(\.linked) ?? []
     }
 
-    /// Pull requests anywhere under `owner` whose title names `identifier` — the
-    /// fallback for a ticket whose PR is older than the recent window, or lives in
-    /// another of the owner's repositories. Search is fuzzy (it splits `ENG-123`
-    /// into words), so the caller re-checks every hit against the pattern.
-    func mentioning(_ identifier: String, owner: String) async throws -> [LinkedPullRequest] {
-        struct Reply: Decodable {
-            struct Search: Decodable { let nodes: [RawPullRequest] }
-            let search: Search
-        }
-        let document = """
-        query($query: String!) {
-          search(query: $query, type: ISSUE, first: 20) {
-            nodes { ... on PullRequest { \(Self.fields) } }
-          }
-        }
-        """
-        let search = "\"\(identifier)\" in:title is:pr user:\(owner)"
-        let reply: Reply = try await query(document, variables: ["query": search])
-        return reply.search.nodes.compactMap(\.linked)
+    /// Pull requests anywhere under `owner` whose titles name any of
+    /// `identifiers` — one request, holding one aliased search per batch of six.
+    /// Plain `ISSUE` search on purpose: `ISSUE_ADVANCED` lets `OR` escape the
+    /// `user:` scope and answers with other people's repositories. Search matches
+    /// words rather than tokens (`ENG-12` is `ENG` near `12`), so the caller
+    /// re-checks every title against the ticket pattern.
+    func mentioning(_ identifiers: [String], owner: String) async throws -> [LinkedPullRequest] {
+        struct Search: Decodable { let nodes: [RawPullRequest] }
+        let queries = Self.searchQueries(for: identifiers, owner: owner)
+        guard !queries.isEmpty else { return [] }
+        let declarations = queries.indices.map { "$q\($0): String!" }.joined(separator: ", ")
+        let searches = queries.indices.map { index in
+            "s\(index): search(query: $q\(index), type: ISSUE, first: 50) { nodes { ... on PullRequest { \(Self.fields) } } }"
+        }.joined(separator: "\n")
+        var variables: [String: any Sendable] = [:]
+        for (index, query) in queries.enumerated() { variables["q\(index)"] = query }
+        let reply: [String: Search] = try await query(
+            "query(\(declarations)) {\n\(searches)\n}", variables: variables)
+        // A PR naming tickets from two batches comes back twice.
+        var seen = Set<URL>()
+        return reply.keys.sorted().flatMap { reply[$0]?.nodes ?? [] }
+            .compactMap(\.linked)
+            .filter { seen.insert($0.url).inserted }
     }
 
     private func query<T: Decodable>(_ document: String, variables: [String: any Sendable]) async throws -> T {

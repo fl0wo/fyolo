@@ -62,6 +62,46 @@ final class LinearPluginTests: XCTestCase {
         XCTAssertEqual(index.count, 2)
     }
 
+    // MARK: Searching
+
+    func testSearchesBatchSixIdentifiersEachInsideTheOwnersScope() {
+        let identifiers = (1...13).map { "ENG-\($0)" }
+        let queries = GitHubPullRequestLookup.searchQueries(for: identifiers, owner: "acme")
+        // GitHub answers a seventh OR'd term with nothing, so no query may hold one.
+        XCTAssertEqual(queries.count, 3)
+        XCTAssertEqual(
+            queries[0],
+            #"is:pr user:acme in:title "ENG-1" OR "ENG-2" OR "ENG-3" OR "ENG-4" OR "ENG-5" OR "ENG-6""#)
+        XCTAssertEqual(queries[2], #"is:pr user:acme in:title "ENG-13""#)
+        XCTAssertTrue(queries.allSatisfy { $0.components(separatedBy: " OR ").count <= 6 })
+    }
+
+    func testNoIdentifiersMeansNoSearch() {
+        XCTAssertEqual(GitHubPullRequestLookup.searchQueries(for: [], owner: "acme"), [])
+    }
+
+    func testSearchResultsFileUnderOnlyTheTicketsAskedAbout() throws {
+        func pullRequest(_ number: Int, _ title: String) throws -> LinkedPullRequest {
+            LinkedPullRequest(
+                number: number, title: title,
+                url: try XCTUnwrap(URL(string: "https://github.com/acme/app/pull/\(number)")),
+                repository: "acme/app", status: .open)
+        }
+        // Search is fuzzy: #2 came back for ENG-1 but names ENG-12, and #3 names a
+        // ticket that wasn't asked about.
+        let found = try [
+            pullRequest(1, "ENG-1 fix"),
+            pullRequest(2, "ENG-12 unrelated"),
+            pullRequest(3, "OPS-4 and ENG-1"),
+        ]
+        let filed = try pattern().index(found, for: ["ENG-1", "ENG-2"])
+        XCTAssertEqual(filed["ENG-1"]?.map(\.number), [1, 3])
+        // Asked about and found nothing: recorded, so it isn't searched again.
+        XCTAssertEqual(filed["ENG-2"]?.count, 0)
+        XCTAssertNil(filed["ENG-12"])
+        XCTAssertNil(filed["OPS-4"])
+    }
+
     // MARK: Status
 
     private func status(
