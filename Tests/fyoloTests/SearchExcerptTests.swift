@@ -142,4 +142,35 @@ final class SearchExcerptTests: XCTestCase {
         XCTAssertEqual(SearchIncludeField.patterns("*.ts, !"), ["*.ts"])
         XCTAssertEqual(SearchIncludeField.patterns("*.ts,"), SearchIncludeField.patterns("*.ts"))
     }
+
+    func testRememberingMovesAFilterToTheFrontOnce() {
+        let history = ["src", "*.ts, !tests", "docs"]
+        XCTAssertEqual(SearchIncludeField.remembering("*.ts,!tests ", in: history),
+                       ["*.ts, !tests", "src", "docs"],
+                       "spelling differences that the daemon ignores are one entry")
+    }
+
+    func testRememberingKeepsOnlyTheMostRecent() {
+        let history = (0 ..< SearchIncludeField.historyLimit).map { "dir\($0)" }
+        let remembered = SearchIncludeField.remembering("*.swift", in: history)
+        XCTAssertEqual(remembered.count, SearchIncludeField.historyLimit)
+        XCTAssertEqual(remembered.first, "*.swift")
+        XCTAssertFalse(remembered.contains("dir\(SearchIncludeField.historyLimit - 1)"))
+    }
+
+    /// The starters are stored as remembered entries; one the normalizer would
+    /// rewrite would sit in the menu beside its own rewritten twin once used.
+    func testStarterFiltersAreAlreadyRemembered() {
+        let starters = SearchIncludeField.starterHistory
+        XCTAssertLessThanOrEqual(starters.count, SearchIncludeField.historyLimit)
+        for starter in starters {
+            XCTAssertEqual(SearchIncludeField.remembering(starter, in: starters).first, starter)
+            XCTAssertEqual(SearchIncludeField.remembering(starter, in: starters).count, starters.count)
+        }
+    }
+
+    func testRememberingIgnoresWhatIsNotAFilter() {
+        XCTAssertEqual(SearchIncludeField.remembering(" , !", in: ["src"]), ["src"])
+        XCTAssertEqual(SearchIncludeField.remembering("a\nb", in: ["src"]), ["src"])
+    }
 }

@@ -1,6 +1,36 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Clear Filter": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除过滤"
+          }
+        }
+      }
+    },
+    "Clear Recent Filters": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除最近过滤"
+          }
+        }
+      }
+    },
+    "Recent Filters": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近过滤"
+          }
+        }
+      }
+    },
     "\n…and %lld more": {
       "localizations": {
         "zh-Hans": {

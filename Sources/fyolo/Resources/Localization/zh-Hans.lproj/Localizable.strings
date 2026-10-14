@@ -324,6 +324,10 @@
 	<string>选取…</string>
 	<key>Clear</key>
 	<string>清除</string>
+	<key>Clear Filter</key>
+	<string>清除过滤</string>
+	<key>Clear Recent Filters</key>
+	<string>清除最近过滤</string>
 	<key>Clear Recent Runs</key>
 	<string>清除最近运行</string>
 	<key>Clone</key>
@@ -1288,6 +1292,8 @@
 	<string>最近</string>
 	<key>Recent Activity</key>
 	<string>最近活动</string>
+	<key>Recent Filters</key>
+	<string>最近过滤</string>
 	<key>Recent runs</key>
 	<string>最近运行</string>
 	<key>Reconnect</key>

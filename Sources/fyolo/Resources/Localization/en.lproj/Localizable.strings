@@ -324,6 +324,10 @@
 	<string>Choose…</string>
 	<key>Clear</key>
 	<string>Clear</string>
+	<key>Clear Filter</key>
+	<string>Clear Filter</string>
+	<key>Clear Recent Filters</key>
+	<string>Clear Recent Filters</string>
 	<key>Clear Recent Runs</key>
 	<string>Clear Recent Runs</string>
 	<key>Clone</key>
@@ -1288,6 +1292,8 @@
 	<string>Recent</string>
 	<key>Recent Activity</key>
 	<string>Recent Activity</string>
+	<key>Recent Filters</key>
+	<string>Recent Filters</string>
 	<key>Recent runs</key>
 	<string>Recent runs</string>
 	<key>Reconnect</key>

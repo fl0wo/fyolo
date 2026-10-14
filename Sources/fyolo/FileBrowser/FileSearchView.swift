@@ -78,6 +78,27 @@ enum SearchIncludeField {
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty && $0 != "!" }
     }
+
+    /// How many filters the field's menu offers again.
+    static let historyLimit = 10
+
+    /// What the menu offers before the user has filtered anything: ordinary
+    /// history entries, not a fixed list, so editing one remembers the edit and
+    /// the user's own filters push these out as they are used.
+    static let starterHistory = [
+        "*.{ts,tsx}", "*.{js,jsx}", "*.json", "*.go", "*.{cpp,hpp,h}", "*.cs", "*.sh",
+    ]
+
+    /// `history` with `text` moved to the front, most recent first. Entries are
+    /// stored as their patterns rejoined, so `*.ts,src` and `*.ts, src` — one
+    /// filter to the daemon — are one entry in the menu too.
+    static func remembering(_ text: String, in history: [String]) -> [String] {
+        let entry = patterns(text).joined(separator: ", ")
+        // The history persists newline-separated; a pasted newline would split
+        // one filter into two on the next launch.
+        guard !entry.isEmpty, !entry.contains(where: \.isNewline) else { return history }
+        return Array(([entry] + history.filter { $0 != entry }).prefix(historyLimit))
+    }
 }
 
 /// Which machine the Search pane searches, and therefore what a hit opens. The
@@ -160,6 +181,17 @@ struct FileSearchView: View {
     /// `includePatterns`, so a stray comma or space starts no new search.
     @State private var include = ""
     @State private var includeFocused = false
+    /// Bumped by the filter button. Starts at `neverFocused` so the field, which
+    /// is always in the tree, does not take focus when the pane appears.
+    @State private var includeFocusRequest = NativeSearchField.neverFocused
+    /// Filters used before, newline-separated, most recent first — shared by
+    /// every project, since `*.ts` means the same thing in all of them. The
+    /// starters apply only while the key is absent: a cleared history is stored
+    /// empty and stays that way.
+    @AppStorage("searchIncludeHistory") private var includeHistoryStorage =
+        SearchIncludeField.starterHistory.joined(separator: "\n")
+    /// The query capsule's width, which the embedded filter takes a share of.
+    @State private var capsuleWidth: CGFloat = 0
     @State private var matches: [ContentMatch] = []
     @State private var isSearching = false
     /// What the device said when it refused to search — shown in place of the
@@ -185,6 +217,9 @@ struct FileSearchView: View {
         }
         .onChange(of: query) { scheduleSearch() }
         .onChange(of: includePatterns) { scheduleSearch() }
+        // A filter is worth offering again once the user moves on from it, not
+        // on every keystroke that passes through it.
+        .onChange(of: includeFocused) { if !includeFocused { rememberInclude() } }
         .onChange(of: store.searchFocusRequest) { claimFocus(attempt: 0) }
         .onDisappear {
             isVisible = false
@@ -239,17 +274,17 @@ struct FileSearchView: View {
                     .buttonStyle(.plain)
                     .help(localized("Clear"))
                 }
+                includeControls
             }
-            .padding(.horizontal, 9)
+            .padding(.leading, 9)
+            .padding(.trailing, 7)
             .frame(height: 28)
             .background { CapsuleFieldChrome() }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { capsuleWidth = $0 }
+            .animation(.snappy(duration: 0.18), value: includeWidth)
             .padding(.horizontal, 8)
             .padding(.top, 7)
-            .padding(.bottom, 5)
-
-            includeField
-                .padding(.horizontal, 8)
-                .padding(.bottom, trimmedQuery.isEmpty ? 7 : 4)
+            .padding(.bottom, trimmedQuery.isEmpty ? 7 : 5)
 
             if !trimmedQuery.isEmpty {
                 HStack(spacing: 5) {
@@ -268,21 +303,40 @@ struct FileSearchView: View {
         }
     }
 
-    /// Narrows the search to some files — `*.ts`, `src`, `!tests` — on the daemon,
-    /// before any file is opened. Never takes focus on its own: the query field is
-    /// what the pane is for.
-    private var includeField: some View {
-        HStack(spacing: 5) {
-            Image(systemName: "line.3.horizontal.decrease")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(includePatterns.isEmpty ? .tertiary : .secondary)
-                .frame(width: 13)
+    /// Example globs, not prose: the filter button's tooltip carries the sentence.
+    private static let includePlaceholder = "*.ts, !tests"
+
+    /// The "files to include" filter, embedded at the end of the query capsule —
+    /// `*.ts`, `src`, `!tests`, narrowed on the daemon before any file is opened.
+    /// At rest it is only the filter button, so the query keeps the width; it
+    /// opens on focus and, once set, stays as wide as its patterns with the
+    /// button tinted, so a narrowed search never passes for a whole one. Never
+    /// takes focus on its own: the query field is what the pane is for.
+    private var includeControls: some View {
+        HStack(spacing: 3) {
+            Rectangle()
+                .fill(Color.primary.opacity(0.12))
+                .frame(width: 1, height: 14)
+            Button { includeFocusRequest += 1 } label: {
+                Image(systemName: "line.3.horizontal.decrease")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(includePatterns.isEmpty
+                                     ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tint))
+                    .frame(width: 16, height: 20)
+                    .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .help(localized("Files to include, e.g. *.ts, !tests"))
+            // Always in the tree, collapsed to nothing at rest: Tab from the query
+            // still reaches it and opens it, and the button focuses the field it
+            // already has instead of one that is still being built.
             NativeSearchField(
                 text: $include,
                 isFocused: $includeFocused,
-                focusRequest: NativeSearchField.neverFocused,
-                placeholder: localized("Files to include, e.g. *.ts, !tests"),
+                focusRequest: includeFocusRequest,
+                placeholder: Self.includePlaceholder,
                 onSubmit: {
+                    rememberInclude()
                     if let first = matches.first { open(first) }
                 },
                 // Esc empties this field first, then behaves as it does in the
@@ -297,19 +351,72 @@ struct FileSearchView: View {
                     }
                 }
             )
-            if !include.isEmpty {
-                Button { include = "" } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .help(localized("Clear"))
+            .frame(width: includeWidth)
+            .opacity(includeWidth > 0 ? 1 : 0)
+            .clipped()
+            if !includeHistory.isEmpty || !include.isEmpty {
+                includeMenu
             }
         }
-        .padding(.horizontal, 9)
-        .frame(height: 24)
-        .background { CapsuleFieldChrome() }
+    }
+
+    /// Recent filters to pick again, and the ways to clear.
+    private var includeMenu: some View {
+        Menu {
+            if !includeHistory.isEmpty {
+                Section(localized("Recent Filters")) {
+                    let current = includePatterns.joined(separator: ", ")
+                    ForEach(includeHistory, id: \.self) { entry in
+                        Toggle(entry, isOn: Binding(
+                            get: { entry == current },
+                            set: { _ in
+                                include = entry
+                                rememberInclude()
+                            }
+                        ))
+                    }
+                }
+                Divider()
+            }
+            if !include.isEmpty {
+                Button(localized("Clear Filter")) { include = "" }
+            }
+            if !includeHistory.isEmpty {
+                Button(localized("Clear Recent Filters")) { includeHistoryStorage = "" }
+            }
+        } label: {
+            Image(systemName: "chevron.down")
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 12, height: 20)
+                .contentShape(.rect)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(localized("Recent Filters"))
+    }
+
+    /// Nothing at rest; half the capsule while being edited, a steady width the
+    /// field editor can scroll in; and once set, just its patterns — capped, so
+    /// a long filter never squeezes out the query it narrows.
+    private var includeWidth: CGFloat {
+        if includeFocused { return max(capsuleWidth * 0.5, 60) }
+        guard !include.isEmpty else { return 0 }
+        let font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+        let fitted = (include as NSString).size(withAttributes: [.font: font]).width.rounded(.up) + 6
+        return min(fitted, max(capsuleWidth * 0.4, 48))
+    }
+
+    private var includeHistory: [String] {
+        includeHistoryStorage.split(separator: "\n").map(String.init)
+    }
+
+    private func rememberInclude() {
+        let remembered = SearchIncludeField.remembering(include, in: includeHistory)
+        guard remembered != includeHistory else { return }
+        includeHistoryStorage = remembered.joined(separator: "\n")
     }
 
     private var includePatterns: [String] {
@@ -586,6 +693,9 @@ struct FileSearchView: View {
     /// never edited in place.
     private func open(_ match: ContentMatch, at line: Int? = nil) {
         let target = line ?? match.line
+        // Opening a hit is the filter having done its job, even when the click
+        // leaves the field focused.
+        rememberInclude()
         guard case .device(let provider, let host, _) = scope else {
             store.openFileInEditor(match.url, at: target)
             return
@@ -660,7 +770,8 @@ private struct NativeSearchField: NSViewRepresentable {
         // also what sidesteps the field's appearance animations (the focus-ring
         // bloom and the centered-placeholder slide) that replayed on every
         // auto-focused appearance of the pane.
-        let field = NSTextField()
+        let field = FocusReportingTextField()
+        field.onFocus = { [weak coordinator = context.coordinator] in coordinator?.reportFocus() }
         field.delegate = context.coordinator
         field.placeholderString = placeholder
         field.controlSize = .small
@@ -725,6 +836,10 @@ private struct NativeSearchField: NSViewRepresentable {
         }
 
         func controlTextDidBeginEditing(_ notification: Notification) {
+            reportFocus()
+        }
+
+        func reportFocus() {
             if !parent.isFocused { parent.isFocused = true }
         }
 
@@ -754,6 +869,19 @@ private struct NativeSearchField: NSViewRepresentable {
             guard parent.text != field.stringValue else { return }
             parent.text = field.stringValue
         }
+    }
+}
+
+/// Says when it takes focus. `controlTextDidBeginEditing` waits for the first
+/// keystroke, and the include field has to open as soon as it is focused — an
+/// empty filter would otherwise be typed into at zero width.
+private final class FocusReportingTextField: NSTextField {
+    var onFocus: (() -> Void)?
+
+    override func becomeFirstResponder() -> Bool {
+        let became = super.becomeFirstResponder()
+        if became { onFocus?() }
+        return became
     }
 }
 
