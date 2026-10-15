@@ -63,7 +63,7 @@ struct InspectorTabsToolbar: View {
         (.issues, .github, "Issues"),
         (.docker, .docker, "Docker"),
         (.linear, .linear, "Linear"),
-        (.monitoring, .siren, "Monitoring"),
+        (.monitoring, .alertDiamond, "Monitoring"),
     ]
 
     /// Some segments exist only where they have something to show, rather than leading

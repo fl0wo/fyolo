@@ -230,7 +230,7 @@ public enum HugeIcon: Hashable, Sendable {
     case github
     case docker
     case linear
-    case siren
+    case alertDiamond
     case puzzle
     case voice
     case close
@@ -464,11 +464,13 @@ public enum HugeIcon: Hashable, Sendable {
             // cut by a chord, with two shorter parallel strokes stepping out toward
             // the lower left — the inspector's Linear segment.
             return "M4.32 7.32A9 9 0 1 1 16.69 19.69Z M3.11 10.61L13.39 20.89 M3.3 14.3L9.7 20.7"
-        case .siren:
-            // A siren in the set's stroke style: the dome on its base, a glint on the
-            // dome, and five short rays above — the inspector's Monitoring segment,
-            // read as "incident" rather than the notification bell.
-            return "M6 17V12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12V17 M4.5 21V19C4.5 17.8954 5.39543 17 6.5 17H17.5C18.6046 17 19.5 17.8954 19.5 19V21H4.5Z M12 9.5C10.6193 9.5 9.5 10.6193 9.5 12V13.5 M12 2V3.5 M4.75 4.75L5.75 5.75 M19.25 4.75L18.25 5.75 M2 11.5H3.5 M20.5 11.5H22"
+        case .alertDiamond:
+            // Hugeicons-style "alert-diamond": a rounded diamond around an
+            // exclamation mark — the inspector's Monitoring segment. Chosen over a
+            // siren, whose rays and glint blur into a bug shape at 15pt; the
+            // diamond stays crisp and reads as "alert" without echoing the
+            // triangle the panes use for a failed load.
+            return "M10.6 2.9C11.4 2.1 12.6 2.1 13.4 2.9L21.1 10.6C21.9 11.4 21.9 12.6 21.1 13.4L13.4 21.1C12.6 21.9 11.4 21.9 10.6 21.1L2.9 13.4C2.1 12.6 2.1 11.4 2.9 10.6Z M12 7.5V12.5 M12 16.25V16.5"
         case .puzzle:
             // A jigsaw piece with a knob on top and one on the right, in the set's stroke
             // style — the Plugins settings tab.

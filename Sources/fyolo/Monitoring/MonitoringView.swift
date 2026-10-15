@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 
 // MARK: - Plugin
 
-/// The Monitoring pane, as a plugin: the inspector's siren segment, and the
+/// The Monitoring pane, as a plugin: the inspector's alert segment, and the
 /// incident watcher, exist only while this is switched on in Settings ▸ Plugins.
 struct MonitoringPlugin: FyoloPlugin {
     static let id = "monitoring"
@@ -264,7 +264,7 @@ struct MonitoringView: View {
         let hidden = placed.filter(\.isHidden)
         if placed.isEmpty {
             PaneEmptyState(
-                localized("No Panels"), icon: .siren,
+                localized("No Panels"), icon: .alertDiamond,
                 message: localized("Add a panel from the … menu, or import a profile."))
         } else {
             ScrollView {
@@ -293,8 +293,7 @@ struct MonitoringView: View {
                     Text(placed.panel.title).font(.system(size: 11)).foregroundStyle(.secondary)
                     Spacer()
                     Button(localized("Show")) { model.setHidden(false, panel: placed.id) }
-                        .buttonStyle(.link)
-                        .controlSize(.small)
+                        .buttonStyle(MonitorChipButtonStyle())
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 3)
@@ -478,8 +477,7 @@ private struct MonitorSiftedList<Item, Row: View>: View {
             }
             if !showsAll, sifting.shown.count > Self.pageSize {
                 Button(localized("Show \(sifting.shown.count - Self.pageSize) more")) { showsAll = true }
-                    .buttonStyle(.link)
-                    .controlSize(.small)
+                    .buttonStyle(MonitorChipButtonStyle())
                     .padding(.horizontal, 14)
                     .padding(.vertical, 3)
             }
@@ -856,7 +854,7 @@ private struct MonitorNotice: View {
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             if let actionTitle, let action {
-                Button(actionTitle, action: action).buttonStyle(.link).controlSize(.small)
+                Button(actionTitle, action: action).buttonStyle(MonitorChipButtonStyle())
             }
             if let dismiss {
                 Button(action: dismiss) {
@@ -927,6 +925,58 @@ private struct MonitorItemMenu: View {
         Button(localized("Copy")) { copy(subject.text) }
         if let link {
             Button(localized("Open in Browser")) { NSWorkspace.shared.open(link) }
+        }
+    }
+}
+
+/// The pane's own button: a quiet capsule in the same grey as its variable
+/// pills, secondary text that comes up to primary under the pointer, and an
+/// optional SF Symbol drawn a step smaller than the text. System push buttons
+/// and blue links read as foreign in a pane whose every other control is a
+/// muted chip. `isOn` fills the chip a step further for a toggle that is set,
+/// like Unpin on a pinned item.
+struct MonitorChipButtonStyle: ButtonStyle {
+    var isOn = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        Chip(configuration: configuration, isOn: isOn)
+    }
+
+    private struct Chip: View {
+        let configuration: Configuration
+        let isOn: Bool
+        @State private var isHovering = false
+        @Environment(\.isEnabled) private var isEnabled
+
+        private var fill: Double {
+            if configuration.isPressed { return 0.16 }
+            if isOn { return isHovering ? 0.15 : 0.12 }
+            return isHovering ? 0.1 : 0.06
+        }
+
+        var body: some View {
+            configuration.label
+                .labelStyle(ChipLabel())
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(isHovering || isOn ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+                .lineLimit(1)
+                .padding(.horizontal, 9)
+                .frame(height: 22)
+                .background(Capsule(style: .continuous).fill(Color.primary.opacity(fill)))
+                .contentShape(Capsule(style: .continuous))
+                .opacity(isEnabled ? 1 : 0.45)
+                .onHover { isHovering = $0 && isEnabled }
+                .animation(.easeOut(duration: 0.12), value: isHovering)
+                .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
+        }
+    }
+
+    private struct ChipLabel: LabelStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack(spacing: 4) {
+                configuration.icon.font(.system(size: 10, weight: .medium))
+                configuration.title
+            }
         }
     }
 }
@@ -1031,16 +1081,28 @@ private struct MonitorDetailView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     if let subject {
-                        HStack(spacing: 10) {
-                            Button(localized("Hide Similar…")) { ruleDraft = MonitorRuleDraft(subject: subject, action: .hide) }
+                        let isPinned = model.isPinned(subject.fingerprint)
+                        HStack(spacing: 6) {
+                            Button {
+                                ruleDraft = MonitorRuleDraft(subject: subject, action: .hide)
+                            } label: {
+                                Label(localized("Hide Similar…"), systemImage: "eye.slash")
+                            }
                             if subject.tab == .incidents {
-                                Button(localized("Notify Me…")) { ruleDraft = MonitorRuleDraft(subject: subject, action: .notify) }
+                                Button {
+                                    ruleDraft = MonitorRuleDraft(subject: subject, action: .notify)
+                                } label: {
+                                    Label(localized("Notify Me…"), systemImage: "bell")
+                                }
                             }
-                            Button(model.isPinned(subject.fingerprint) ? localized("Unpin") : localized("Pin")) {
+                            Button {
                                 model.togglePin(item: subject.fingerprint)
+                            } label: {
+                                Label(isPinned ? localized("Unpin") : localized("Pin"), systemImage: isPinned ? "pin.slash" : "pin")
                             }
+                            .buttonStyle(MonitorChipButtonStyle(isOn: isPinned))
                         }
-                        .controlSize(.small)
+                        .buttonStyle(MonitorChipButtonStyle())
                     }
                     Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10, verticalSpacing: 4) {
                         ForEach(fields, id: \.0) { key, value in
@@ -1487,7 +1549,7 @@ struct MonitoringConnectView: View {
             title: localized("Monitoring"),
             message: localized("Connect New Relic to see your services’ logs, metrics and incidents here. More backends will follow."),
             errorMessage: model.connectError,
-            icon: .siren
+            icon: .alertDiamond
         ) {
             VStack(spacing: 8) {
                 if model.pendingAccounts.isEmpty {
