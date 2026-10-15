@@ -36,6 +36,7 @@ struct IssuesView: View {
         // List only — the detail opens in the center over the terminal (like the file
         // editor and diff), driven by `store.openIssueDetail`, not pushed in here.
         listPane
+            .paneSettled(model.isSettled)
             .task(id: repoRoot) {
                 store.registerIssuesModel(model)
                 // An already-open detail dictates the list it sits over: exiting a PR
@@ -299,6 +300,9 @@ struct IssuesView: View {
     @ViewBuilder
     private var content: some View {
         switch model.phase {
+        case .resolving:
+            // The inspector's loading cover sits over this until the pane settles.
+            Color.clear
         case .disconnected:
             GitHubConnectView(
                 connector: model.connector,

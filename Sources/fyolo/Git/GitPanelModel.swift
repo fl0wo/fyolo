@@ -36,7 +36,8 @@ final class GitPanelModel: ObservableObject {
 
     /// The commit history, loaded lazily the first time the History tab is shown.
     @Published var commits: [GitCommit] = []
-    @Published var isLoadingHistory = false
+    /// Starts true: History drawn before its first read is waiting, not empty.
+    @Published var isLoadingHistory = true
     private var didLoadHistory = false
 
     /// The branch and the refs it can be compared against, for the Compare tab's base

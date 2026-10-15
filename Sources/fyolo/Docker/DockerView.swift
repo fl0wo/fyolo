@@ -52,6 +52,8 @@ struct DockerView: View {
                 listPane
             }
         }
+        // Honest from the first frame: the model starts in `.loading`.
+        .paneSettled()
         .task {
             while !Task.isCancelled {
                 if store.inspectorVisible { await model.refresh() }

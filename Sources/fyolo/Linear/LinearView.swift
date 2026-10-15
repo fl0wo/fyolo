@@ -47,6 +47,8 @@ struct LinearView: View {
                 listPane
             }
         }
+        // Honest from the first frame: the model starts in `.loading`.
+        .paneSettled()
         .task(id: projectRoot) { await model.start() }
         .onChange(of: settings.githubIntegrationEnabled) { _, _ in
             Task { await model.loadPullRequests(force: false) }

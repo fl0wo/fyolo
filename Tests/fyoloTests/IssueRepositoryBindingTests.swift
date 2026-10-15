@@ -232,4 +232,13 @@ final class IssueRepositoryBindingTests: XCTestCase {
             XCTAssertNil(GitService.gitHubSlug(fromRemote: remote), "failed for \(remote)")
         }
     }
+
+    /// A remount builds a fresh model, and its first frame draws before `start()` has
+    /// read anything — that frame must be covered, not a Connect screen.
+    @MainActor
+    func testFreshModelIsUnsettledUntilItHasCheckedAnything() {
+        let model = IssuesPanelModel(repoRoot: "/nonexistent")
+        XCTAssertEqual(model.phase, .resolving)
+        XCTAssertFalse(model.isSettled)
+    }
 }

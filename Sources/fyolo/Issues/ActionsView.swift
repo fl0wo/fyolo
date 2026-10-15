@@ -71,6 +71,13 @@ final class ActionsListModel: ObservableObject {
     init(repository: String, connection: GitHubConnection) {
         self.repository = repository
         client = GitHubActionsClient(connection: connection)
+        // Settle the first frame here, not in `load()`: the view's `.task` runs a frame
+        // after it draws, and an empty, idle model draws as "No Workflows".
+        if let cached = Self.cache[repository] {
+            apply(cached.workflows, cached.runs)
+        } else {
+            isLoading = true
+        }
     }
 
     /// Any run on screen still queued or running — the list keeps polling only then.

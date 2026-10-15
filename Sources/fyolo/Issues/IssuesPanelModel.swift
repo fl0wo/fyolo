@@ -12,6 +12,10 @@ final class IssuesPanelModel: ObservableObject {
     /// Where the pane is in the connect → bind → read ladder; each step has a
     /// zero state except `.ready`.
     enum Phase: Equatable {
+        /// Nothing checked yet — the stored token and the checkout's remotes are
+        /// still being read. Not `.disconnected`: a fresh model (every remount)
+        /// would otherwise draw Connect until the read lands.
+        case resolving
         /// No connection — show Connect (the connector owns its own steps).
         case disconnected
         /// Connected, but none of the project's remotes is on the connected server.
@@ -19,11 +23,24 @@ final class IssuesPanelModel: ObservableObject {
         case ready
     }
 
-    @Published private(set) var phase: Phase = .disconnected
+    @Published private(set) var phase: Phase = .resolving
     @Published private(set) var container: IssueContainer?
     @Published private(set) var items: [IssueSummary] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
+    /// The list has had its first answer — cached, fetched, or an error. Until then an
+    /// empty `items` is "not read yet", not "no issues".
+    @Published private(set) var hasLoadedList = false
+
+    /// Whether what the pane draws is an answer (see `PaneSettledKey`). The Actions
+    /// list beside the issues settles itself.
+    var isSettled: Bool {
+        switch phase {
+        case .resolving: false
+        case .ready: hasLoadedList || showsActions
+        case .disconnected, .unbound: true
+        }
+    }
 
     /// How the user can recover from a failed load, so the error state offers the *right* action.
     /// `reauthorize` (the reconnect / grant-org path) is reserved for a genuine access 403 — a
@@ -137,6 +154,7 @@ final class IssuesPanelModel: ObservableObject {
     private func resetConnection() {
         provider = nil
         items = []
+        hasLoadedList = false
         candidates = []
         openItem = nil
         detail = nil
@@ -337,6 +355,7 @@ final class IssuesPanelModel: ObservableObject {
         // list immediately instead of reloading it.
         if !force, let cached = cache?.list(container, query) {
             items = cached.items
+            hasLoadedList = true
             errorMessage = nil
             recovery = nil
             guard Date().timeIntervalSince(cached.fetchedAt) >= Self.revalidateAfter else { return }
@@ -364,6 +383,7 @@ final class IssuesPanelModel: ObservableObject {
         } catch {
             handleListError(error)
         }
+        hasLoadedList = true
         isLoading = false
     }
 

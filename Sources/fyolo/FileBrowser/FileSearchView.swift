@@ -211,6 +211,7 @@ struct FileSearchView: View {
             searchField
             resultList
         }
+        .paneSettled()
         .onAppear {
             isVisible = true
             claimFocus(attempt: 0)

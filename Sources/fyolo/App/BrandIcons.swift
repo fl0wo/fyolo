@@ -233,6 +233,53 @@ struct PaneEmptyState: View {
     }
 }
 
+/// Whether an inspector pane's current frame is an answer rather than a default. A
+/// pane remounts on every tab switch and its `.task` load lands a frame later, so a
+/// model whose initial state reads as a result — "not connected", "nothing here" —
+/// flashes that claim first. The inspector covers a pane with `PaneLoadingCover`
+/// until it declares itself through `paneSettled(_:)`; undeclared means covered, so
+/// a new pane that forgets shows a spinner from its first run instead of shipping
+/// the flash.
+struct PaneSettledKey: PreferenceKey {
+    static let defaultValue = false
+
+    // A sibling that declares nothing can't veto the pane that did.
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
+    }
+}
+
+extension View {
+    func paneSettled(_ settled: Bool = true) -> some View {
+        preference(key: PaneSettledKey.self, value: settled)
+    }
+}
+
+/// What an unsettled pane shows: its background, and a spinner only once the wait
+/// is long enough to notice. Most panes settle within a frame or two, and a spinner
+/// that blinks in and out is a flash of its own.
+struct PaneLoadingCover: View {
+    let background: Color
+    @State private var showsSpinner = false
+
+    var body: some View {
+        background
+            .overlay {
+                if showsSpinner {
+                    ProgressView().controlSize(.small)
+                }
+            }
+            .task {
+                do {
+                    try await Task.sleep(for: .milliseconds(150))
+                } catch {
+                    return  // the pane settled and the cover went away first
+                }
+                showsSpinner = true
+            }
+    }
+}
+
 // `HugeIconView` / `HugeIconShape` live in `FyoloShared` (shared with iOS);
 // see the typealiases in `Models.swift`.
 

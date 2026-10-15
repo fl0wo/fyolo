@@ -86,6 +86,8 @@ struct GitChangesView: View {
                 notARepository
             }
         }
+        // Honest from the first frame: the status read starts as a spinner.
+        .paneSettled()
         .task(id: repoRoot) {
             // Resume the remembered inner mode, then let an open overlay override it:
             // the detail dictates the list it sits over (the Issues pane's rule), so a

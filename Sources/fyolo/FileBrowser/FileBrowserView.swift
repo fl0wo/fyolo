@@ -77,6 +77,11 @@ struct FileBrowserView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     // Opaque terminal background so the live tree never shows through.
                     .background(Color(nsColor: settings.terminalBackgroundColor).ignoresSafeArea())
+                    .overlayPreferenceValue(PaneSettledKey.self) { settled in
+                        if !settled {
+                            PaneLoadingCover(background: Color(nsColor: settings.terminalBackgroundColor))
+                        }
+                    }
             }
         }
         // The file column lives on the terminal side, so it takes the terminal's own background
@@ -481,6 +486,7 @@ struct FileBrowserView: View {
             icon: .serverStack,
             message: localized("\(pane) isn’t available on this machine yet.")
         )
+        .paneSettled()
     }
 
     /// The empty state the Files and Search panes share when no session is selected.
@@ -490,6 +496,7 @@ struct FileBrowserView: View {
             icon: .folder,
             message: localized("Select a session to browse its files.")
         )
+        .paneSettled()
     }
 
     /// The VS Code-style explorer header: the root folder's name, and trailing
