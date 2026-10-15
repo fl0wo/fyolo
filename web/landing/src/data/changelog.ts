@@ -17,6 +17,23 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.10.0",
+    date: "2026-10-15",
+    title: "Reviews waiting on you, first",
+    changes: {
+      new: [
+        "To Review: open pull requests waiting on your review — asked of you or of a team you're on — get their own section at the top of Pull Requests, even when they aren't yours. Turn it off in the filter.",
+      ],
+      improved: [
+        "Pull Requests now opens filtered to Mine and Open Only. Issues still opens unfiltered, and each tab remembers its own Mine switch.",
+      ],
+      fixed: [
+        "Switching to the GitHub pane briefly showed the Connect screen before your issues loaded. Inspector panes now show a quiet loading state until they have something real to show.",
+        "Actions and History no longer flash \"No Workflows\" or \"No History\" while they load.",
+      ],
+    },
+  },
+  {
     version: "0.9.0",
     date: "2026-10-14",
     title: "Your pull requests, one switch away",
