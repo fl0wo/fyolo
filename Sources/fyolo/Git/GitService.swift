@@ -896,6 +896,26 @@ enum GitService {
         }
     }
 
+    /// The Monitoring profile picked for this checkout (`fyolo.monitoringProfile`),
+    /// local git config like `fyolo.linearTeam`, so every worktree shares it.
+    static func monitoringProfile(in dir: String) async -> String? {
+        await offMain {
+            guard let value = run(["config", "--local", "--get", "fyolo.monitoringProfile"], in: dir)?
+                .trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty
+            else { return nil }
+            return value
+        }
+    }
+
+    /// Records the profile picked in the Monitoring pane. `false` when the folder
+    /// has no git config to write to.
+    @discardableResult
+    static func setMonitoringProfile(_ choice: String, in dir: String) async -> Bool {
+        await offMain {
+            run(["config", "--local", "fyolo.monitoringProfile", choice], in: dir) != nil
+        }
+    }
+
     /// What "Clone to <device>…" needs to know about a checkout: the `origin`
     /// URL to hand `git clone` on the remote, a repo name derived from it (the
     /// clone's directory), and how many local commits are ahead of the upstream

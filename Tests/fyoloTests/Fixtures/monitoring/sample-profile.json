@@ -1,0 +1,112 @@
+{
+  "fyoloMonitoring": 1,
+  "id": "sample-checkout",
+  "name": "Sample · checkout",
+  "connectors": [
+    { "ref": "nr", "type": "newrelic", "accountId": 1234567, "region": "US" }
+  ],
+  "variables": [
+    { "name": "env", "title": "Environment", "type": "string", "options": ["production", "staging"], "default": "production" },
+    { "name": "service", "title": "Service", "type": "string", "default": "checkout" },
+    { "name": "window", "title": "Window", "type": "duration", "options": ["15m", "1h", "3h", "24h", "7d"], "default": "1h" }
+  ],
+  "observability": [
+    {
+      "id": "error-groups", "title": "Error Groups", "kind": "events", "source": "nr", "group": true,
+      "query": "SELECT timestamp, severity.text, severity.number, message, exception.type, trace.id FROM Log WHERE service.name = {{service}} AND environment = {{env}} AND severity.number >= 13 SINCE {{window}} LIMIT 1000",
+      "map": { "attributes": ["exception.type"] }
+    },
+    {
+      "id": "failing-spans", "title": "Failing Spans", "kind": "events", "source": "nr", "group": true,
+      "query": "SELECT timestamp, name, span.kind, server.address, http.response.status_code, otel.status_description, trace.id FROM Span WHERE service.name = {{service}} AND environment = {{env}} AND otel.status_code = 'ERROR' SINCE {{window}} LIMIT 1000",
+      "map": { "message": "otel.status_description", "defaultSeverity": "error" }
+    },
+    {
+      "id": "logs", "title": "Log Tail", "kind": "events", "source": "nr",
+      "query": "SELECT timestamp, severity.text, severity.number, message, exception.type, exception.message, trace.id FROM Log WHERE service.name = {{service}} AND environment = {{env}} AND severity.number >= 13 SINCE {{window}} LIMIT 300"
+    }
+  ],
+  "metrics": [
+    {
+      "id": "overview", "title": "Golden Signals", "kind": "stat", "source": "nr",
+      "query": "SELECT rate(count(http.server.request.duration), 1 minute) AS 'rpm', percentage(count(*), WHERE http.response.status_code >= 500) AS 'err5xx', percentile(http.server.request.duration, 95, 99) AS 'lat' FROM Metric WHERE metricName = 'http.server.request.duration' AND service.name = {{service}} AND environment = {{env}} AND http.route != '/health' SINCE {{window}}",
+      "columns": [
+        { "field": "rpm", "title": "Requests/min", "format": "count" },
+        { "field": "lat.95", "title": "p95", "format": "seconds", "warn": 0.5, "crit": 1 },
+        { "field": "lat.99", "title": "p99", "format": "seconds", "warn": 1, "crit": 2 },
+        { "field": "err5xx", "title": "HTTP 5xx", "format": "percent", "warn": 0.5, "crit": 2 }
+      ]
+    },
+    {
+      "id": "pods", "title": "Pods", "kind": "stat", "source": "nr",
+      "query": "SELECT uniqueCount(k8s.pod.name) AS 'pods', latest(service.version) AS 'version' FROM Metric WHERE metricName = 'http.server.request.duration' AND service.name = {{service}} AND environment = {{env}} SINCE 5 minutes ago",
+      "columns": [
+        { "field": "pods", "title": "Pods", "format": "count", "crit": 1, "below": true },
+        { "field": "version", "title": "Version", "format": "text" }
+      ]
+    },
+    {
+      "id": "routes", "title": "Routes", "kind": "table", "source": "nr", "sort": "calls",
+      "query": "SELECT count(*) AS 'calls', percentage(count(*), WHERE http.response.status_code >= 500) AS 'err5xx', percentile(http.server.request.duration, 95) AS 'p95' FROM Metric WHERE metricName = 'http.server.request.duration' AND service.name = {{service}} AND environment = {{env}} AND http.route != '/health' FACET http.route SINCE {{window}} LIMIT 100",
+      "columns": [
+        { "field": "facet", "title": "Route" },
+        { "field": "calls", "format": "count" },
+        { "field": "err5xx", "title": "5xx", "format": "percent", "warn": 0.1, "crit": 1 },
+        { "field": "p95", "format": "seconds", "warn": 0.5, "crit": 1 }
+      ]
+    },
+    {
+      "id": "dependencies", "title": "Dependencies", "kind": "table", "source": "nr", "sort": "calls",
+      "query": "SELECT count(*) AS 'calls', percentage(count(*), WHERE otel.status_code = 'ERROR') AS 'errors', percentile(duration.ms, 95) AS 'p95' FROM Span WHERE service.name = {{service}} AND environment = {{env}} AND span.kind = 'client' FACET server.address SINCE {{window}} LIMIT 50",
+      "columns": [
+        { "field": "facet", "title": "Host" },
+        { "field": "calls", "format": "count" },
+        { "field": "errors", "format": "percent", "warn": 1, "crit": 5 },
+        { "field": "p95", "format": "milliseconds" }
+      ]
+    },
+    {
+      "id": "orders", "title": "Orders", "kind": "stat", "source": "nr",
+      "query": "SELECT filter(count(*), WHERE order.status = 'completed') AS 'completed', filter(count(*), WHERE order.status = 'failed') AS 'failed', filter(sum(order.total), WHERE order.status = 'completed') AS 'revenue' FROM Span WHERE name = 'Order.Complete' AND environment = {{env}} SINCE {{window}}",
+      "columns": [
+        { "field": "completed", "title": "Completed", "format": "count" },
+        { "field": "failed", "title": "Failed", "format": "count", "warn": 0 },
+        { "field": "revenue", "title": "Revenue", "format": "money" }
+      ]
+    },
+    {
+      "id": "orders-by-region", "title": "Orders by Region", "kind": "table", "source": "nr", "sort": "completed",
+      "query": "SELECT filter(count(*), WHERE order.status = 'completed') AS 'completed', filter(count(*), WHERE order.status = 'failed') AS 'failed' FROM Span WHERE name = 'Order.Complete' AND environment = {{env}} FACET order.region SINCE {{window}} LIMIT 50",
+      "columns": [
+        { "field": "facet", "title": "Region" },
+        { "field": "completed", "title": "Done", "format": "count" },
+        { "field": "failed", "title": "Failed", "format": "count", "warn": 0 }
+      ]
+    }
+  ],
+  "incidents": [
+    {
+      "id": "incidents", "title": "Incidents", "kind": "incidents", "source": "nr",
+      "filter": "policyName = '{{service:raw}} [{{env:raw}}]'"
+    },
+    {
+      "id": "alerts", "title": "Alert Conditions", "kind": "checks", "source": "nr",
+      "checks": [
+        {
+          "id": "error-rate", "name": "HTTP 5xx rate", "format": "percent", "warn": 1, "crit": 5,
+          "query": "SELECT percentage(count(*), WHERE http.response.status_code >= 500) FROM Metric WHERE metricName = 'http.server.request.duration' AND service.name = {{service}} AND environment = {{env}} SINCE 360 seconds ago UNTIL 60 seconds ago"
+        },
+        {
+          "id": "restarts", "name": "Pod restarts", "format": "count", "warn": 0, "crit": 3,
+          "query": "SELECT max(kube_pod_container_status_restarts_total) FROM Metric WHERE metricName = 'kube_pod_container_status_restarts_total' AND k8s.pod.name LIKE '{{service:raw}}-%' SINCE 10 minutes ago"
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "hide-health-checks", "name": "Health checks",
+      "match": { "contains": "/health" }, "action": "hide"
+    }
+  ]
+}

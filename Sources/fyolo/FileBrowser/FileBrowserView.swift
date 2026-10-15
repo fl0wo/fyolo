@@ -468,6 +468,11 @@ struct FileBrowserView: View {
             } else {
                 noProject
             }
+        case .monitoring:
+            // Monitoring belongs to the person, not the project; a local checkout
+            // only adds the profile its repository may share.
+            MonitoringView(projectRoot: deviceCheckout == nil ? projectPath : nil)
+                .id(deviceCheckout == nil ? projectPath ?? "" : "")
         }
     }
 

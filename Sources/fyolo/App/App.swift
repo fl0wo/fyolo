@@ -185,6 +185,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Task-completion notifications: the delegate must be installed before a
         // notification click can arrive, so wire it before any session runs.
         TaskNotificationCenter.shared.activate(store: store)
+        // Incident notifications the person opted into with a Monitoring rule.
+        MonitoringIncidentWatcher.shared.start { [weak settings] in
+            settings?.isPluginEnabled(MonitoringPlugin.id) ?? false
+        }
         // Count this install as active today, and keep counting across midnight
         // for a Mac that is left running (see `Analytics`).
         Analytics.start(settings: settings)
@@ -2670,6 +2674,7 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
             (.changes, localized("Changes")),
         ] + (DockerService.isInstalled ? [(.docker, localized("Docker"))] : [])
             + (settings.isPluginEnabled(LinearPlugin.id) ? [(.linear, localized("Linear"))] : [])
+            + (settings.isPluginEnabled(MonitoringPlugin.id) ? [(.monitoring, localized("Monitoring"))] : [])
         for pane in panes {
             let item = NSMenuItem(title: pane.title, action: #selector(setInspectorTab(_:)), keyEquivalent: "")
             item.target = self

@@ -86,6 +86,7 @@ enum PluginRegistry {
         MakefilePlugin(),
         ScriptFilePlugin(),
         LinearPlugin(),
+        MonitoringPlugin(),
     ]
 
     static func enabled(in settings: AppSettings) -> [any FyoloPlugin] {

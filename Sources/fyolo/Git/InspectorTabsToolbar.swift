@@ -63,6 +63,7 @@ struct InspectorTabsToolbar: View {
         (.issues, .github, "Issues"),
         (.docker, .docker, "Docker"),
         (.linear, .linear, "Linear"),
+        (.monitoring, .siren, "Monitoring"),
     ]
 
     /// Some segments exist only where they have something to show, rather than leading
@@ -79,6 +80,7 @@ struct InspectorTabsToolbar: View {
             case .changes: isRepository
             case .docker: DockerService.isInstalled
             case .linear: settings.isPluginEnabled(LinearPlugin.id)
+            case .monitoring: settings.isPluginEnabled(MonitoringPlugin.id)
             default: true
             }
         }
@@ -115,6 +117,9 @@ struct InspectorTabsToolbar: View {
             // A plugin switched off takes its pane with it.
             .onChange(of: settings.isPluginEnabled(LinearPlugin.id)) { _, enabled in
                 if !enabled, store.inspectorTab == .linear { store.inspectorTab = .files }
+            }
+            .onChange(of: settings.isPluginEnabled(MonitoringPlugin.id)) { _, enabled in
+                if !enabled, store.inspectorTab == .monitoring { store.inspectorTab = .files }
             }
             // Same shape for Changes, keyed on the root alone — a `cd` in a loose
             // terminal moves this, so it re-runs there and not on GitHub's switch.
