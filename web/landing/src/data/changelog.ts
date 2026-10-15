@@ -17,6 +17,21 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.12.0",
+    date: "2026-10-15",
+    title: "A notes page for every project",
+    changes: {
+      new: [
+        "Notes: the notes button beside the inspector toggle, or ⌥⌘N, opens a notes page over the terminal and the inspector. Each project has its own note, and each worktree its own, so a branch's notes stay with it. Pick another project or session in the sidebar and the page turns to that note.",
+        "Notes save as you type and live as Markdown files in ~/.fyolo/notes, so they survive a restart and an agent can read them. Links open on click, `- [ ]` checkboxes tick on click, pasted or dropped images are kept beside the note, and other dropped files are linked where they are.",
+        "Pinch to zoom a note on the trackpad. Zoomed in, swipe sideways to read the rest of a line.",
+      ],
+      fixed: [
+        "The Monitoring pane now appears in Chinese when the app is set to Chinese. In 0.11.0 it stayed in English.",
+      ],
+    },
+  },
+  {
     version: "0.11.0",
     date: "2026-10-15",
     title: "Production, minus the noise",
