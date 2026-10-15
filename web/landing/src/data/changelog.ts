@@ -17,6 +17,18 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.11.0",
+    date: "2026-10-15",
+    title: "Production, minus the noise",
+    changes: {
+      new: [
+        "Monitoring: a new inspector pane, behind the alert icon, for your New Relic account. Observability, Metrics and Incidents list your services' health, error groups, a log tail, tables of numbers and open incidents. Connect with a New Relic User key; it stays in your Keychain.",
+        "Hide Similar: right-click any line, row or incident to hide, group or pin everything like it. A slider sets how alike it must be, and the sheet shows what the rule would catch before you save it. Whatever a rule hides is counted under its panel, one click from coming back.",
+        "Monitoring profiles: a profile is a JSON file of panels, their NRQL queries and rules. Import one, export yours, or commit it to a repository as .fyolo/monitoring.json so your team opens the same view. Your own arrangement and rules stay yours when the team's profile changes.",
+      ],
+    },
+  },
+  {
     version: "0.10.0",
     date: "2026-10-15",
     title: "Reviews waiting on you, first",
