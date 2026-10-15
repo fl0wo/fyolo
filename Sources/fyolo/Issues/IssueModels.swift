@@ -114,8 +114,28 @@ struct IssueRepositoryCandidate: Hashable, Identifiable, Sendable {
 struct IssueQuery: Hashable, Sendable {
     var kind: IssueKind = .issue
     var openOnly = true
-    var assignedToMe = false
     var labels: Set<String> = []
+    /// Pull requests only: list the open ones waiting on your review above the rest,
+    /// whatever Mine and Open Only say.
+    var toReview = true
+    /// Kept per kind so each tab has its own default: the pull requests that need
+    /// you are the ones you care about, while an issue tracker is read as a whole.
+    private var issuesAssignedToMe = false
+    private var pullRequestsMine = true
+
+    var assignedToMe: Bool {
+        get { kind == .pullRequest ? pullRequestsMine : issuesAssignedToMe }
+        set {
+            if kind == .pullRequest { pullRequestsMine = newValue } else { issuesAssignedToMe = newValue }
+        }
+    }
+
+    /// Whether the active kind's switches differ from where a fresh pane starts them.
+    var isNarrowedFromDefault: Bool {
+        let fresh = IssueQuery(kind: kind)
+        return openOnly != fresh.openOnly || assignedToMe != fresh.assignedToMe || !labels.isEmpty
+            || (kind == .pullRequest && toReview != fresh.toReview)
+    }
 }
 
 /// One row of the list. `identifier` is the provider-native short handle —
@@ -130,6 +150,9 @@ struct IssueSummary: Identifiable, Hashable, Sendable {
     let author: String
     let updatedAt: Date
     let url: URL?
+    /// A pull request with your review still pending, asked of you or of a team
+    /// you're on. The list shows these in their own section above the rest.
+    var awaitsYourReview = false
 
     var id: Int { number }
 

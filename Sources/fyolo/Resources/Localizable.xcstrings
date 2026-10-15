@@ -10784,6 +10784,26 @@
           }
         }
       }
+    },
+    "To Review": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待审查"
+          }
+        }
+      }
+    },
+    "List open pull requests waiting on your review first, even ones that aren’t yours": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "优先列出等待你审查的开放 PR，包括不属于你的"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

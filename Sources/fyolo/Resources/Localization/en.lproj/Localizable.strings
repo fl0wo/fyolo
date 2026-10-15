@@ -956,6 +956,8 @@
 	<string>Linear’s rate limit is exhausted. Wait a moment and try again.</string>
 	<key>Links `%@` into /usr/local/bin so you (and agents) can run `%@ sessions …` from any shell.</key>
 	<string>Links `%@` into /usr/local/bin so you (and agents) can run `%@ sessions …` from any shell.</string>
+	<key>List open pull requests waiting on your review first, even ones that aren’t yours</key>
+	<string>List open pull requests waiting on your review first, even ones that aren’t yours</string>
 	<key>Live agent status</key>
 	<string>Live agent status</string>
 	<key>Live agent status is off</key>
@@ -1928,6 +1930,8 @@
 	<string>This workspace is no longer on your list.</string>
 	<key>Timed out</key>
 	<string>Timed out</string>
+	<key>To Review</key>
+	<string>To Review</string>
 	<key>Today</key>
 	<string>Today</string>
 	<key>Toggle Full Screen</key>

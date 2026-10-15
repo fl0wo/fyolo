@@ -132,6 +132,9 @@ struct IssuesView: View {
         model.items.filter { $0.matches(search: searchText) }
     }
 
+    private var visibleAwaitingReview: [IssueSummary] { visibleItems.filter(\.awaitsYourReview) }
+    private var visibleRest: [IssueSummary] { visibleItems.filter { !$0.awaitsYourReview } }
+
     /// Manual reload of the current query — the GitHub Desktop refresh affordance.
     /// The list is otherwise fetch-on-interaction, so this is the "prove it's
     /// current" escape hatch when something changed on GitHub out of band.
@@ -233,10 +236,16 @@ struct IssuesView: View {
         .help(localized("Filter"))
     }
 
-    /// Two switches, the ones people actually flip, with the repository's labels
-    /// below them when it has any.
+    /// The switches people actually flip, with the repository's labels below them
+    /// when it has any.
     private var filterPopover: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if model.query.kind == .pullRequest {
+                filterSwitch(
+                    localized("To Review"),
+                    help: localized("List open pull requests waiting on your review first, even ones that aren’t yours"),
+                    isOn: Binding(get: { model.query.toReview }, set: { model.query.toReview = $0 }))
+            }
             filterSwitch(
                 model.query.kind == .pullRequest ? localized("Mine") : localized("Assigned to Me"),
                 help: model.query.kind == .pullRequest
@@ -282,11 +291,8 @@ struct IssuesView: View {
         .help(help)
     }
 
-    /// Any axis narrowing the list away from its default (all open items, anyone,
-    /// no labels) — drives the funnel's accent tint.
-    private var isFiltered: Bool {
-        !model.query.openOnly || model.query.assignedToMe || !model.query.labels.isEmpty
-    }
+    /// Any switch moved away from the tab's default — drives the funnel's accent tint.
+    private var isFiltered: Bool { model.query.isNarrowedFromDefault }
 
     // MARK: Content per phase
 
@@ -378,38 +384,29 @@ struct IssuesView: View {
         } else {
             // Native `List` selection as the click handler, like the changes list —
             // a selected row opens its detail in the center (see `body`'s onChange).
-            List(visibleItems, selection: $selection) { item in
-                IssueRow(
-                    item: item,
-                    font: settings.interfaceFont,
-                    chrome: chrome,
-                    // `openItem` outlives the closed overlay, so the last-opened row
-                    // keeps the selected grey — back from a full-screen detail, the
-                    // list still shows which item it was. (`selection` itself is
-                    // released on close so clicking the same row can reopen it.)
-                    isSelected: selection == item.number
-                        || model.openItem?.number == item.number
-                )
-                // Drag a row out as its GitHub URL — the terminal pane catches the
-                // drop and inserts the full link at the prompt (see
-                // `TerminalPane.dropToken`), so you can hand an agent "look at #123"
-                // without leaving the keyboard-mouse flow. The custom preview names
-                // the item so the lift reads as "this issue", not a bare link chip —
-                // and doubles as the affordance that the row is draggable at all.
-                .draggableIssueLink(item)
-                // Right-click menu via an AppKit `NSMenu`, NOT SwiftUI's
-                // `.contextMenu` — the latter rings the targeted row with an
-                // un-styleable accent border (the file tree learned the same, see
-                // `FileTreeList.RowContextMenu`). A secondary-click recognizer on the
-                // row's own view pops the menu, so nothing emphasizes the row.
-                .background(IssueRowContextMenu(
-                    url: item.url,
-                    addToChat: { [weak store] in
-                        guard let url = item.url else { return }
-                        _ = store?.addPathToSelectedSessionPrompt(url)
-                    },
-                    canAddToChat: { [weak store] in store?.selectedSessionRunsAgent ?? false }
-                ))
+            // Pull requests awaiting your review get a headed section of their own above
+            // the rest, so they read as a separate to-do rather than a few top rows.
+            List(selection: $selection) {
+                let awaiting = visibleAwaitingReview
+                if awaiting.isEmpty {
+                    ForEach(visibleItems) { row(for: $0) }
+                } else {
+                    SwiftUI.Section {
+                        ForEach(awaiting) { row(for: $0) }
+                    } header: {
+                        listSectionHeader(localized("To Review"), count: awaiting.count)
+                    }
+                    let rest = visibleRest
+                    if !rest.isEmpty {
+                        SwiftUI.Section {
+                            ForEach(rest) { row(for: $0) }
+                        } header: {
+                            listSectionHeader(
+                                model.query.assignedToMe ? localized("Mine") : localized("Pull Requests"),
+                                count: rest.count)
+                        }
+                    }
+                }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
@@ -420,6 +417,54 @@ struct IssuesView: View {
             // Revalidating the same query keeps its identity, so no flicker.
             .id(model.query)
         }
+    }
+
+    private func row(for item: IssueSummary) -> some View {
+        IssueRow(
+            item: item,
+            font: settings.interfaceFont,
+            chrome: chrome,
+            // `openItem` outlives the closed overlay, so the last-opened row
+            // keeps the selected grey — back from a full-screen detail, the
+            // list still shows which item it was. (`selection` itself is
+            // released on close so clicking the same row can reopen it.)
+            isSelected: selection == item.number
+                || model.openItem?.number == item.number
+        )
+        // Drag a row out as its GitHub URL — the terminal pane catches the
+        // drop and inserts the full link at the prompt (see
+        // `TerminalPane.dropToken`), so you can hand an agent "look at #123"
+        // without leaving the keyboard-mouse flow. The custom preview names
+        // the item so the lift reads as "this issue", not a bare link chip —
+        // and doubles as the affordance that the row is draggable at all.
+        .draggableIssueLink(item)
+        // Right-click menu via an AppKit `NSMenu`, NOT SwiftUI's
+        // `.contextMenu` — the latter rings the targeted row with an
+        // un-styleable accent border (the file tree learned the same, see
+        // `FileTreeList.RowContextMenu`). A secondary-click recognizer on the
+        // row's own view pops the menu, so nothing emphasizes the row.
+        .background(IssueRowContextMenu(
+            url: item.url,
+            addToChat: { [weak store] in
+                guard let url = item.url else { return }
+                _ = store?.addPathToSelectedSessionPrompt(url)
+            },
+            canAddToChat: { [weak store] in store?.selectedSessionRunsAgent ?? false }
+        ))
+    }
+
+    private func listSectionHeader(_ title: String, count: Int) -> some View {
+        HStack(spacing: 6) {
+            Text(title)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text("\(count)")
+                .font(.system(size: 11, weight: .medium).monospacedDigit())
+                .foregroundStyle(.tertiary)
+        }
+        .textCase(nil)
+        .padding(.top, 6)
+        .padding(.bottom, 2)
     }
 
     private var emptyMessage: String {

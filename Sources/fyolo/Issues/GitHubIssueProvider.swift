@@ -59,7 +59,8 @@ struct GitHubIssueProvider: IssueProvider {
     /// Pull requests come from `/pulls`, not `/issues`: on `/issues` they compete with
     /// issues for the 100 rows, and its `assignee` filter misses the pull requests that
     /// are someone's, since pull requests are rarely assigned. `/pulls` filters neither
-    /// assignee nor labels, so both apply here, over the rows it returns.
+    /// assignee nor labels, so both apply here, over the rows it returns. The ones
+    /// awaiting your review lead the list and are left out of the rest.
     private func pullRequests(in container: IssueContainer, query: IssueQuery) async throws -> [IssueSummary] {
         var components = URLComponents(string: "\(connection.apiBase)/repos/\(container.id)/pulls")!
         components.queryItems = [
@@ -68,11 +69,41 @@ struct GitHubIssueProvider: IssueProvider {
             URLQueryItem(name: "direction", value: "desc"),
             URLQueryItem(name: "per_page", value: "100"),
         ]
-        let raw: [RawPullRequestListing] = try await get(components.url!)
+        async let listing: [RawPullRequestListing] = get(components.url!)
+        async let requested: [IssueSummary] = query.toReview
+            ? reviewRequests(in: container, labels: query.labels) : []
         let viewer: String? = query.assignedToMe ? try await login() ?? "" : nil
-        return raw
-            .filter { $0.matches(labels: query.labels, viewer: viewer) }
+        let awaiting = try await requested
+        let awaitingNumbers = Set(awaiting.map(\.number))
+        return try await awaiting + listing
+            .filter { !awaitingNumbers.contains($0.number) && $0.matches(labels: query.labels, viewer: viewer) }
             .map { $0.summary() }
+    }
+
+    /// Open pull requests with your review pending. Search's `review-requested:@me`
+    /// covers a request made of a team you're on, which the `/pulls` rows can't
+    /// answer: listing your teams needs `read:org`, beyond the `repo` scope fyolo
+    /// asks for. GitHub drops the request once the review is in, so a reviewed pull
+    /// request leaves this list until someone asks again.
+    private func reviewRequests(in container: IssueContainer, labels: Set<String>) async throws -> [IssueSummary] {
+        struct SearchResult: Decodable { let items: [RawIssue] }
+        var components = URLComponents(string: "\(connection.apiBase)/search/issues")
+        components?.queryItems = [
+            URLQueryItem(name: "q", value: "repo:\(container.id) is:pr is:open review-requested:@me"),
+            URLQueryItem(name: "sort", value: "updated"),
+            URLQueryItem(name: "order", value: "desc"),
+            URLQueryItem(name: "per_page", value: "100"),
+        ]
+        guard let url = components?.url else { return [] }
+        let result: SearchResult = try await get(url)
+        return result.items
+            .map { $0.summary() }
+            .filter { labels.isSubset(of: $0.labels.map(\.name)) }
+            .map { item in
+                var item = item
+                item.awaitsYourReview = true
+                return item
+            }
     }
 
     func detail(_ number: Int, in container: IssueContainer) async throws -> IssueDetail {

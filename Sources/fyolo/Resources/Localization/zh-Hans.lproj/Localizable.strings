@@ -956,6 +956,8 @@
 	<string>Linear 的速率限制已用尽，请稍候再试。</string>
 	<key>Links `%@` into /usr/local/bin so you (and agents) can run `%@ sessions …` from any shell.</key>
 	<string>将 `%@` 链接到 /usr/local/bin，让你（和 Agent）可在任意 shell 中运行 `%@ sessions …`。</string>
+	<key>List open pull requests waiting on your review first, even ones that aren’t yours</key>
+	<string>优先列出等待你审查的开放 PR，包括不属于你的</string>
 	<key>Live agent status</key>
 	<string>Agent 实时状态</string>
 	<key>Live agent status is off</key>
@@ -1928,6 +1930,8 @@
 	<string>这个工作区已不在你的列表中。</string>
 	<key>Timed out</key>
 	<string>连接超时</string>
+	<key>To Review</key>
+	<string>待审查</string>
 	<key>Today</key>
 	<string>今天</string>
 	<key>Toggle Full Screen</key>

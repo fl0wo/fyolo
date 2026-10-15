@@ -72,4 +72,36 @@ final class IssueSearchTests: XCTestCase {
         XCTAssertEqual(summary.kind, .pullRequest)
         XCTAssertEqual(summary.author, "Author")
     }
+
+    func testPullRequestsStartMineAndOpenWhileIssuesStartUnfiltered() {
+        var query = IssueQuery()
+        XCTAssertTrue(query.openOnly)
+        XCTAssertFalse(query.assignedToMe)
+        query.kind = .pullRequest
+        XCTAssertTrue(query.openOnly)
+        XCTAssertTrue(query.assignedToMe)
+        XCTAssertFalse(query.isNarrowedFromDefault)
+    }
+
+    func testMineSwitchIsRememberedPerTab() {
+        var query = IssueQuery()
+        query.kind = .pullRequest
+        query.assignedToMe = false
+        XCTAssertTrue(query.isNarrowedFromDefault)
+        query.kind = .issue
+        XCTAssertFalse(query.assignedToMe)
+        query.assignedToMe = true
+        query.kind = .pullRequest
+        XCTAssertFalse(query.assignedToMe)
+    }
+
+    func testToReviewStartsOnAndOnlyTintsThePullRequestTab() {
+        var query = IssueQuery()
+        query.kind = .pullRequest
+        XCTAssertTrue(query.toReview)
+        query.toReview = false
+        XCTAssertTrue(query.isNarrowedFromDefault)
+        query.kind = .issue
+        XCTAssertFalse(query.isNarrowedFromDefault)
+    }
 }
