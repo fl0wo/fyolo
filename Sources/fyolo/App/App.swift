@@ -69,6 +69,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // The trailing file-browser inspector item, retained so the toolbar button and the
     // View menu can collapse/expand it. Starts collapsed (see `makeContentSplitViewController`).
     private var filesInspectorItem: NSSplitViewItem?
+    /// The notes page laid over the terminal and inspector (see `NotesOverlay`).
+    private var notesOverlay: NotesOverlay?
     // The leading sidebar item, retained so the sidebar's own toolbar actions (sort + new-terminal)
     // can ride with it — inserted when the navigator opens, stripped when it collapses.
     private weak var sidebarSplitItem: NSSplitViewItem?
@@ -654,6 +656,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Tree edits are debounced (see `persistSoon`), so flush before the
         // process goes away or the last selection change is lost.
         store.persistNow()
+        // Notes save half a second after typing stops; the last half-second goes now.
+        notesOverlay?.saveAll()
         store.detachAllSessions()
         RemotePreviewStorage.cleanup()
     }
@@ -765,6 +769,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         splitViewController.addSplitViewItem(inspectorItem)
         splitViewController.splitView.autosaveName = "FyoloContentSplit"
         self.splitViewController = splitViewController
+        notesOverlay = NotesOverlay(
+            store: store, settings: settings, container: splitViewController.view, leadingView: detail.view)
         return splitViewController
     }
 
@@ -1327,6 +1333,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// View ▸ Show Project Files (and the toolbar's trailing inspector button) —
     /// collapses or expands the file-tree inspector. Reached via the responder chain
     /// (the menu item and toolbar item both target `nil`), like the other app actions.
+    /// Opens or closes the notes page for whatever the sidebar has selected.
+    @objc func toggleNotes(_ sender: Any?) {
+        store.notesVisible.toggle()
+    }
+
     @objc func toggleFilesInspector(_ sender: Any?) {
         guard let item = filesInspectorItem else { return }
         let willOpen = item.isCollapsed
@@ -2722,7 +2733,7 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
     // (`setNavigatorItemsVisible`) over-packed the row into NSToolbar's `»` overflow.
     private let defaultIdentifiers: [NSToolbarItem.Identifier] = [
         .toggleNavigator, .sidebarTrackingSeparator, .branchPicker, .flexibleSpace, .runTasks,
-        .toggleInspector,
+        .toggleNotes, .toggleInspector,
     ]
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
@@ -2863,6 +2874,16 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
             // Kept for the overflow menu and validation, as on the navigator toggle above.
             item.action = #selector(AppDelegate.toggleFilesInspector(_:))
             return item
+        case .toggleNotes:
+            let item = NSToolbarItem(itemIdentifier: .toggleNotes)
+            item.label = localized("Notes")
+            item.toolTip = localized("Show or hide notes for this project")
+            let host = NSHostingView(rootView: NotesToggleToolbarView().environmentObject(store))
+            host.sizingOptions = [.intrinsicContentSize]
+            item.view = host
+            item.isBordered = false
+            item.action = #selector(AppDelegate.toggleNotes(_:))
+            return item
         case .branchPicker:
             let item = NSToolbarItem(itemIdentifier: .branchPicker)
             let hosting = NSHostingView(rootView: BranchPickerToolbarView()
@@ -2897,6 +2918,7 @@ private extension NSToolbarItem.Identifier {
     static let newTerminal = NSToolbarItem.Identifier("FyoloNewTerminal")
     static let inspectorTabs = NSToolbarItem.Identifier("FyoloInspectorTabs")
     static let toggleInspector = NSToolbarItem.Identifier("FyoloToggleInspector")
+    static let toggleNotes = NSToolbarItem.Identifier("FyoloToggleNotes")
     static let inspectorTrackingSeparator = NSToolbarItem.Identifier("FyoloInspectorTrackingSeparator")
     static let branchPicker = NSToolbarItem.Identifier("FyoloBranchPicker")
     static let runTasks = NSToolbarItem.Identifier("FyoloRunTasks")
@@ -3410,6 +3432,23 @@ private struct InspectorToggleToolbarView: View {
     }
 }
 
+/// The notes toggle: a page of lines, in a capsule while the notes page is open, like the
+/// inspector toggle beside it.
+private struct NotesToggleToolbarView: View {
+    @EnvironmentObject var store: FyoloStore
+
+    var body: some View {
+        PaneToggleToolbarView(
+            symbol: "note.text",
+            showsCapsule: store.notesVisible,
+            help: localized("Show or hide notes for this project"),
+            label: localized("Notes")
+        ) {
+            NSApp.sendAction(#selector(AppDelegate.toggleNotes(_:)), to: nil, from: nil)
+        }
+    }
+}
+
 @MainActor
 private func buildMainMenu() -> NSMenu {
     let mainMenu = NSMenu()
@@ -3667,6 +3706,11 @@ private func buildMainMenu() -> NSMenu {
         withTitle: KeyCommandCatalog.info(.searchFiles).title,
         action: #selector(AppDelegate.searchFiles(_:)),
         command: .searchFiles
+    )
+    viewMenu.addItem(
+        withTitle: KeyCommandCatalog.info(.toggleNotes).title,
+        action: #selector(AppDelegate.toggleNotes(_:)),
+        command: .toggleNotes
     )
     viewMenu.addItem(.separator())
     // Safari-style terminal font size: ⌘= bigger, ⌘- smaller, ⌘0 default. Drives

@@ -382,6 +382,10 @@ struct CommandPaletteView: View {
                              icon: .sidebarRight, shortcut: keys.display(for: .toggleProjectFiles)) { _ in
             NSApp.sendAction(#selector(AppDelegate.toggleFilesInspector(_:)), to: nil, from: nil)
         })
+        actions.append(.init(id: "toggle-notes", title: localized("Toggle Notes"),
+                             icon: nil, symbol: "note.text", shortcut: keys.display(for: .toggleNotes)) { _ in
+            NSApp.sendAction(#selector(AppDelegate.toggleNotes(_:)), to: nil, from: nil)
+        })
         actions.append(.init(id: "search-files", title: localized("Search Files"),
                              icon: .search, shortcut: keys.display(for: .searchFiles)) { _ in
             NSApp.sendAction(#selector(AppDelegate.searchFiles(_:)), to: nil, from: nil)

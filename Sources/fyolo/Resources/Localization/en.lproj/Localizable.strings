@@ -412,6 +412,8 @@
 	<string>Close All Chats</string>
 	<key>Close All Terminals</key>
 	<string>Close All Terminals</string>
+	<key>Close Notes</key>
+	<string>Close Notes</string>
 	<key>Close Session</key>
 	<string>Close Session</string>
 	<key>Close Window</key>
@@ -726,6 +728,8 @@
 	<string>Edit in Config</string>
 	<key>Edit source</key>
 	<string>Edit source</string>
+	<key>Editing</key>
+	<string>Editing</string>
 	<key>Edit…</key>
 	<string>Edit…</string>
 	<key>Enable</key>
@@ -1346,8 +1350,12 @@
 	<string>Not pushed to upstream</string>
 	<key>Not running yet. Sessions start it, and keep running after you quit Fyolo.</key>
 	<string>Not running yet. Sessions start it, and keep running after you quit Fyolo.</string>
+	<key>Not saved: %@</key>
+	<string>Not saved: %@</string>
 	<key>Not set up yet</key>
 	<string>Not set up yet</string>
+	<key>Notes</key>
+	<string>Notes</string>
 	<key>Nothing in this window.</key>
 	<string>Nothing in this window.</string>
 	<key>Nothing matches these filters.</key>
@@ -1492,6 +1500,8 @@
 	<string>Paste a token first.</string>
 	<key>Paste a token with the repo scope. For GitHub Enterprise Server, change the host to yours.</key>
 	<string>Paste a token with the repo scope. For GitHub Enterprise Server, change the host to yours.</string>
+	<key>Pasted image</key>
+	<string>Pasted image</string>
 	<key>Path</key>
 	<string>Path</string>
 	<key>Permissions</key>
@@ -1754,12 +1764,18 @@
 	<string>Save Highlights into PDF</string>
 	<key>Save failed: %@</key>
 	<string>Save failed: %@</string>
+	<key>Saved</key>
+	<string>Saved</string>
+	<key>Saved as you type</key>
+	<string>Saved as you type</string>
 	<key>Saved to %@. Commit it to share it with the team.</key>
 	<string>Saved to %@. Commit it to share it with the team.</string>
 	<key>Saving to %@…</key>
 	<string>Saving to %@…</string>
 	<key>Scan the QR code with WeChat to join the Chinese community group.</key>
 	<string>Scan the QR code with WeChat to join the Chinese community group.</string>
+	<key>Scratch</key>
+	<string>Scratch</string>
 	<key>Scrollback history and text selection</key>
 	<string>Scrollback history and text selection</string>
 	<key>Scrollback: %lld MB</key>
@@ -1836,6 +1852,8 @@
 	<string>Show Hidden Panels</string>
 	<key>Show More</key>
 	<string>Show More</string>
+	<key>Show Notes</key>
+	<string>Show Notes</string>
 	<key>Show Original</key>
 	<string>Show Original</string>
 	<key>Show Project Files</key>
@@ -1844,8 +1862,12 @@
 	<string>Show Replace</string>
 	<key>Show another file in this diff</key>
 	<string>Show another file in this diff</string>
+	<key>Show in Finder</key>
+	<string>Show in Finder</string>
 	<key>Show one column (inline diff)</key>
 	<string>Show one column (inline diff)</string>
+	<key>Show or hide notes for this project</key>
+	<string>Show or hide notes for this project</string>
 	<key>Show two columns (side-by-side diff)</key>
 	<string>Show two columns (side-by-side diff)</string>
 	<key>Showing everything. Right-click anything that isn’t yours and choose Hide Similar.</key>
@@ -2146,6 +2168,8 @@
 	<string>This machine’s fyolod is too old to report its agents.</string>
 	<key>This month</key>
 	<string>This month</string>
+	<key>This note changed on disk while you were typing. Both are kept; the other version is %@.</key>
+	<string>This note changed on disk while you were typing. Both are kept; the other version is %@.</string>
 	<key>This panel</key>
 	<string>This panel</string>
 	<key>This panel has no query.</key>
@@ -2180,6 +2204,8 @@
 	<string>Today</string>
 	<key>Toggle Full Screen</key>
 	<string>Toggle Full Screen</string>
+	<key>Toggle Notes</key>
+	<string>Toggle Notes</string>
 	<key>Toggle Project Files</key>
 	<string>Toggle Project Files</string>
 	<key>Toggle Sidebar</key>

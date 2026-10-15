@@ -744,6 +744,9 @@ final class FyoloStore: ObservableObject {
     /// (and any `@StateObject` in it) alive, which left the git pane's auto-refresh
     /// spawning `git status` for a pane nobody could see.
     @Published var inspectorVisible = false
+    /// Whether the notes page covers the terminal and the inspector (see `NotesOverlay`).
+    /// While it does, no terminal takes keyboard focus.
+    @Published var notesVisible = false
 
     /// Whether the leading project sidebar is expanded. Mirrored from its AppKit split item the
     /// same way `inspectorVisible` is. A maximized detail reads it to know whether the traffic

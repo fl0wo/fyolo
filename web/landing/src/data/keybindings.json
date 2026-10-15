@@ -173,6 +173,11 @@
           "id": "toggleProjectFiles",
           "title": "Show Project Files",
           "shortcut": "⌥⌘0"
+        },
+        {
+          "id": "toggleNotes",
+          "title": "Show Notes",
+          "shortcut": "⌥⌘N"
         }
       ]
     }

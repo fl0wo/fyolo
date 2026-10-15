@@ -412,6 +412,8 @@
 	<string>关闭所有聊天</string>
 	<key>Close All Terminals</key>
 	<string>关闭所有终端</string>
+	<key>Close Notes</key>
+	<string>关闭笔记</string>
 	<key>Close Session</key>
 	<string>关闭会话</string>
 	<key>Close Window</key>
@@ -726,6 +728,8 @@
 	<string>在配置中编辑</string>
 	<key>Edit source</key>
 	<string>编辑源代码</string>
+	<key>Editing</key>
+	<string>正在编辑</string>
 	<key>Edit…</key>
 	<string>编辑…</string>
 	<key>Enable</key>
@@ -1346,8 +1350,12 @@
 	<string>尚未推送到上游</string>
 	<key>Not running yet. Sessions start it, and keep running after you quit Fyolo.</key>
 	<string>尚未运行。会话会启动它，并在你退出 Fyolo 后继续运行。</string>
+	<key>Not saved: %@</key>
+	<string>未存储：%@</string>
 	<key>Not set up yet</key>
 	<string>尚未设置</string>
+	<key>Notes</key>
+	<string>笔记</string>
 	<key>Nothing in this window.</key>
 	<string>此时间范围内没有内容。</string>
 	<key>Nothing matches these filters.</key>
@@ -1492,6 +1500,8 @@
 	<string>请先粘贴令牌。</string>
 	<key>Paste a token with the repo scope. For GitHub Enterprise Server, change the host to yours.</key>
 	<string>粘贴一个具有 repo 权限的令牌。如果使用 GitHub Enterprise Server，请把主机改成你的服务器。</string>
+	<key>Pasted image</key>
+	<string>粘贴的图像</string>
 	<key>Path</key>
 	<string>路径</string>
 	<key>Permissions</key>
@@ -1754,12 +1764,18 @@
 	<string>将标注存入 PDF</string>
 	<key>Save failed: %@</key>
 	<string>存储失败：%@</string>
+	<key>Saved</key>
+	<string>已存储</string>
+	<key>Saved as you type</key>
+	<string>输入时自动存储</string>
 	<key>Saved to %@. Commit it to share it with the team.</key>
 	<string>已存储到 %@。提交它即可与团队共享。</string>
 	<key>Saving to %@…</key>
 	<string>正在保存到 %@…</string>
 	<key>Scan the QR code with WeChat to join the Chinese community group.</key>
 	<string>用微信扫描二维码加入中文社区群。</string>
+	<key>Scratch</key>
+	<string>草稿</string>
 	<key>Scrollback history and text selection</key>
 	<string>回滚历史与文本选择</string>
 	<key>Scrollback: %lld MB</key>
@@ -1836,6 +1852,8 @@
 	<string>显示已隐藏的面板</string>
 	<key>Show More</key>
 	<string>显示更多</string>
+	<key>Show Notes</key>
+	<string>显示笔记</string>
 	<key>Show Original</key>
 	<string>显示原身</string>
 	<key>Show Project Files</key>
@@ -1844,8 +1862,12 @@
 	<string>显示替换</string>
 	<key>Show another file in this diff</key>
 	<string>在此差异中显示另一个文件</string>
+	<key>Show in Finder</key>
+	<string>在访达中显示</string>
 	<key>Show one column (inline diff)</key>
 	<string>显示单栏（行内差异）</string>
+	<key>Show or hide notes for this project</key>
+	<string>显示或隐藏此项目的笔记</string>
 	<key>Show two columns (side-by-side diff)</key>
 	<string>显示双栏（并排差异）</string>
 	<key>Showing everything. Right-click anything that isn’t yours and choose Hide Similar.</key>
@@ -2146,6 +2168,8 @@
 	<string>该设备上的 fyolod 版本过旧，无法查询其 Agent。</string>
 	<key>This month</key>
 	<string>本月</string>
+	<key>This note changed on disk while you were typing. Both are kept; the other version is %@.</key>
+	<string>你输入时，此笔记在磁盘上被修改了。两个版本都已保留，另一个版本为 %@。</string>
 	<key>This panel</key>
 	<string>此面板</string>
 	<key>This panel has no query.</key>
@@ -2180,6 +2204,8 @@
 	<string>今天</string>
 	<key>Toggle Full Screen</key>
 	<string>切换全屏幕</string>
+	<key>Toggle Notes</key>
+	<string>切换笔记</string>
 	<key>Toggle Project Files</key>
 	<string>切换项目文件</string>
 	<key>Toggle Sidebar</key>

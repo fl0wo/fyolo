@@ -69,6 +69,11 @@ struct TerminalPane: View {
         .onChange(of: store.paletteMode) { _, mode in
             if mode == nil { requestSelectedTerminalFocus(reason: .paletteClosed) }
         }
+        // The notes page holds the keyboard while it is open; closing it hands
+        // focus back to the terminal it covered.
+        .onChange(of: store.notesVisible) { _, visible in
+            if !visible { requestSelectedTerminalFocus(reason: .overlayClosed) }
+        }
         // Every visible pane must be mounted — with splits that is all the
         // tree's leaves, not just the selection.
         .onChange(of: store.visiblePaneIDs, initial: true) { _, ids in
@@ -293,6 +298,7 @@ struct TerminalPane: View {
                     && store.openingRemoteFile == nil
                     && store.openDiff == nil
                     && store.paletteMode == nil
+                    && !store.notesVisible
             }
         )
     }

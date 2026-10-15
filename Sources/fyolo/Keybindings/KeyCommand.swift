@@ -40,6 +40,7 @@ enum KeyCommandID: String, CaseIterable, Identifiable {
     case closeWindow = "window.close"
     // Interface
     case toggleProjectFiles = "ui.toggle-project-files"
+    case toggleNotes = "ui.toggle-notes"
 
     var id: String { rawValue }
 }
@@ -143,6 +144,10 @@ enum KeyCommandCatalog {
         // Interface
         .init(id: .toggleProjectFiles, category: localized("Interface"), title: localized("Show Project Files"),
               defaultShortcut: .init(modifiers: [.command, .option], key: .char("0"))),
+        // ⌥⌘N, beside the inspector's ⌥⌘0. ⌘J would have been shorter, but it is
+        // Ghostty's scroll-to-selection, which the terminal layer keeps.
+        .init(id: .toggleNotes, category: localized("Interface"), title: localized("Show Notes"),
+              defaultShortcut: .init(modifiers: [.command, .option], key: .char("n"))),
     ]
 
     static let byID: [KeyCommandID: KeyCommandInfo] =
