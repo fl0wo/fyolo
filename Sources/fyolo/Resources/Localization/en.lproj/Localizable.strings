@@ -10,6 +10,8 @@
 	<string> Cost is estimated at API rates.</string>
 	<key>%1$@ changed on %2$@</key>
 	<string>%1$@ changed on %2$@</string>
+	<key>%@ (from this repository)</key>
+	<string>%@ (from this repository)</string>
 	<key>%@ and %@</key>
 	<string>%@ and %@</string>
 	<key>%@ answered as a different machine than %@. Its address is being served by something else.</key>
@@ -92,6 +94,10 @@
 	<string>%lld file</string>
 	<key>%lld files</key>
 	<string>%lld files</string>
+	<key>%lld hidden by rules</key>
+	<string>%lld hidden by rules</string>
+	<key>%lld hidden panels</key>
+	<string>%lld hidden panels</string>
 	<key>%lld in your Themes folder</key>
 	<string>%lld in your Themes folder</string>
 	<key>%lld installed</key>
@@ -104,6 +110,8 @@
 	<string>%lld pt</string>
 	<key>%lld results</key>
 	<string>%lld results</string>
+	<key>%lld rows</key>
+	<string>%lld rows</string>
 	<key>%lld%@ matches in %lld files</key>
 	<string>%lld%@ matches in %lld files</string>
 	<key>%lldd</key>
@@ -120,6 +128,10 @@
 	<string>%llds</string>
 	<key>%lldw</key>
 	<string>%lldw</string>
+	<key>%lld× %@</key>
+	<string>%lld× %@</string>
+	<key>(no message)</key>
+	<string>(no message)</string>
 	<key>1 result</key>
 	<string>1 result</string>
 	<key>A box can only be paired with once its fyolod is running and reachable from outside — a tunnel, or a proxy in front of it.</key>
@@ -164,12 +176,18 @@
 	<string>Add Host</string>
 	<key>Add Host…</key>
 	<string>Add Host…</string>
+	<key>Add Panel</key>
+	<string>Add Panel</string>
+	<key>Add Panel…</key>
+	<string>Add Panel…</string>
 	<key>Add Remote Host</key>
 	<string>Add Remote Host</string>
 	<key>Add SSH Host</key>
 	<string>Add SSH Host</string>
 	<key>Add a host you reach over SSH and Fyolo can run sessions on it, with agents that keep working after you disconnect.</key>
 	<string>Add a host you reach over SSH and Fyolo can run sessions on it, with agents that keep working after you disconnect.</string>
+	<key>Add a panel from the … menu, or import a profile.</key>
+	<string>Add a panel from the … menu, or import a profile.</string>
 	<key>Add to Chat</key>
 	<string>Add to Chat</string>
 	<key>Address</key>
@@ -212,6 +230,8 @@
 	<string>Allow Keychain Access…</string>
 	<key>Allow Usage Access</key>
 	<string>Allow Usage Access</string>
+	<key>Almost the same text</key>
+	<string>Almost the same text</string>
 	<key>An older install points at %@. Update it to this version of Fyolo.</key>
 	<string>An older install points at %@. Update it to this version of Fyolo.</string>
 	<key>App language</key>
@@ -220,6 +240,8 @@
 	<string>Appearance</string>
 	<key>Appends a Host block to ~/.ssh/config, so the alias works in plain `ssh %@` too.</key>
 	<string>Appends a Host block to ~/.ssh/config, so the alias works in plain `ssh %@` too.</string>
+	<key>Applies to</key>
+	<string>Applies to</string>
 	<key>Apply</key>
 	<string>Apply</string>
 	<key>Arguments</key>
@@ -324,6 +346,8 @@
 	<string>Checks Failing</string>
 	<key>Checks Running</key>
 	<string>Checks Running</string>
+	<key>Choose a Monitoring profile to add</key>
+	<string>Choose a Monitoring profile to add</string>
 	<key>Choose a Team</key>
 	<string>Choose a Team</string>
 	<key>Choose a different name.</key>
@@ -346,6 +370,8 @@
 	<string>Choose which repository’s issues to show</string>
 	<key>Choose which team’s tickets to show</key>
 	<string>Choose which team’s tickets to show</string>
+	<key>Choose, import or share a Monitoring profile</key>
+	<string>Choose, import or share a Monitoring profile</string>
 	<key>Choose…</key>
 	<string>Choose…</string>
 	<key>Clear</key>
@@ -426,16 +452,22 @@
 	<string>Compare to branch</string>
 	<key>Compose</key>
 	<string>Compose</string>
+	<key>Condition</key>
+	<string>Condition</string>
 	<key>Config file</key>
 	<string>Config file</string>
 	<key>Connect</key>
 	<string>Connect</string>
 	<key>Connect Again</key>
 	<string>Connect Again</string>
+	<key>Connect Another Account…</key>
+	<string>Connect Another Account…</string>
 	<key>Connect GitHub</key>
 	<string>Connect GitHub</string>
 	<key>Connect GitHub from the Issues tab to see this run.</key>
 	<string>Connect GitHub from the Issues tab to see this run.</string>
+	<key>Connect New Relic to see your services’ logs, metrics and incidents here. More backends will follow.</key>
+	<string>Connect New Relic to see your services’ logs, metrics and incidents here. More backends will follow.</string>
 	<key>Connect to read issues and pull requests, and to clone your repositories.</key>
 	<string>Connect to read issues and pull requests, and to clone your repositories.</string>
 	<key>Connect to…</key>
@@ -460,6 +492,8 @@
 	<string>Connection failed</string>
 	<key>Connection refused</key>
 	<string>Connection refused</string>
+	<key>Connect…</key>
+	<string>Connect…</string>
 	<key>Container</key>
 	<string>Container</string>
 	<key>Containers</key>
@@ -486,6 +520,8 @@
 	<string>Copy Path</string>
 	<key>Copy Paths</key>
 	<string>Copy Paths</string>
+	<key>Copy Query</key>
+	<string>Copy Query</string>
 	<key>Copy Relative Path</key>
 	<string>Copy Relative Path</string>
 	<key>Copy Relative Paths</key>
@@ -510,6 +546,8 @@
 	<string>Couldn’t create the worktrees folder: %@</string>
 	<key>Couldn’t create worktree session</key>
 	<string>Couldn’t create worktree session</string>
+	<key>Couldn’t export: %@</key>
+	<string>Couldn’t export: %@</string>
 	<key>Couldn’t inspect worktree</key>
 	<string>Couldn’t inspect worktree</string>
 	<key>Couldn’t install %@ on %@.
@@ -526,6 +564,8 @@
 	<string>Couldn’t open the Linear sign-in.</string>
 	<key>Couldn’t reach %@.</key>
 	<string>Couldn’t reach %@.</string>
+	<key>Couldn’t reach New Relic: %@</key>
+	<string>Couldn’t reach New Relic: %@</string>
 	<key>Couldn’t relaunch fyolo. Quit and open it again.</key>
 	<string>Couldn’t relaunch fyolo. Quit and open it again.</string>
 	<key>Couldn’t remove %@.</key>
@@ -534,6 +574,10 @@
 	<string>Couldn’t remove worktree</string>
 	<key>Couldn’t save the password to your Keychain.</key>
 	<string>Couldn’t save the password to your Keychain.</string>
+	<key>Couldn’t save the profile: %@</key>
+	<string>Couldn’t save the profile: %@</string>
+	<key>Couldn’t save to the repository: %@</key>
+	<string>Couldn’t save to the repository: %@</string>
 	<key>Couldn’t start %@ on %@.</key>
 	<string>Couldn’t start %@ on %@.</string>
 	<key>Couldn’t start fyolod on %@ with a listener.</key>
@@ -544,6 +588,8 @@
 	<string>Couldn’t update .gitignore</string>
 	<key>Couldn’t write ~/.ssh/config: %@</key>
 	<string>Couldn’t write ~/.ssh/config: %@</string>
+	<key>Count</key>
+	<string>Count</string>
 	<key>Create</key>
 	<string>Create</string>
 	<key>Create a Key…</key>
@@ -552,6 +598,8 @@
 	<string>Create a Token…</string>
 	<key>Credentials</key>
 	<string>Credentials</string>
+	<key>Critical</key>
+	<string>Critical</string>
 	<key>Current workspace</key>
 	<string>Current workspace</string>
 	<key>Cursor</key>
@@ -582,6 +630,8 @@
 	<string>Delete %@?</string>
 	<key>Delete Agent</key>
 	<string>Delete Agent</string>
+	<key>Delete Profile</key>
+	<string>Delete Profile</string>
 	<key>Deletes the custom agent’s manifest from this Mac.</key>
 	<string>Deletes the custom agent’s manifest from this Mac.</string>
 	<key>Delete…</key>
@@ -614,6 +664,8 @@
 	<string>Discard Changes…</string>
 	<key>Disconnect</key>
 	<string>Disconnect</string>
+	<key>Disconnect %@</key>
+	<string>Disconnect %@</string>
 	<key>Disconnect GitHub</key>
 	<string>Disconnect GitHub</string>
 	<key>Disconnect Linear</key>
@@ -622,6 +674,8 @@
 	<string>Discord</string>
 	<key>Discord, GitHub, and the WeChat group</key>
 	<string>Discord, GitHub, and the WeChat group</string>
+	<key>Dismiss</key>
+	<string>Dismiss</string>
 	<key>Docker</key>
 	<string>Docker</string>
 	<key>Docker didn’t answer in time.</key>
@@ -656,10 +710,18 @@
 	<string>Duplicate to Themes Folder</string>
 	<key>Duplicated By</key>
 	<string>Duplicated By</string>
+	<key>Each item takes the first rule that matches it, once for where it shows and once for whether it notifies.</key>
+	<string>Each item takes the first rule that matches it, once for where it shows and once for whether it notifies.</string>
 	<key>Edit</key>
 	<string>Edit</string>
 	<key>Edit Manifest</key>
 	<string>Edit Manifest</string>
+	<key>Edit Profile File</key>
+	<string>Edit Profile File</string>
+	<key>Edit Query</key>
+	<string>Edit Query</string>
+	<key>Edit Query…</key>
+	<string>Edit Query…</string>
 	<key>Edit in Config</key>
 	<string>Edit in Config</string>
 	<key>Edit source</key>
@@ -682,22 +744,38 @@
 	<string>Enter a path that starts with “/”. “~/” works too, once %@ has said where home is.</string>
 	<key>Enter an absolute path</key>
 	<string>Enter an absolute path</string>
+	<key>Entity</key>
+	<string>Entity</string>
 	<key>Environment (%lld)</key>
 	<string>Environment (%lld)</string>
+	<key>Errors</key>
+	<string>Errors</string>
 	<key>Errors (%lld)</key>
 	<string>Errors (%lld)</string>
+	<key>Even slightly similar</key>
+	<string>Even slightly similar</string>
 	<key>Every iPhone paired with %@ is signed out and must re-scan the new QR to reconnect.</key>
 	<string>Every iPhone paired with %@ is signed out and must re-scan the new QR to reconnect.</string>
 	<key>Every paired iPhone is signed out and must re-scan the new QR to reconnect.</key>
 	<string>Every paired iPhone is signed out and must re-scan the new QR to reconnect.</string>
+	<key>Every tab</key>
+	<string>Every tab</string>
 	<key>Everyone Else</key>
 	<string>Everyone Else</string>
+	<key>Everything</key>
+	<string>Everything</string>
 	<key>Exited with status %lld.</key>
 	<string>Exited with status %lld.</string>
 	<key>Expand Results</key>
 	<string>Expand Results</string>
+	<key>Export Profile…</key>
+	<string>Export Profile…</string>
+	<key>Export Without My Changes…</key>
+	<string>Export Without My Changes…</string>
 	<key>Failed</key>
 	<string>Failed</string>
+	<key>Failing Operations</key>
+	<string>Failing Operations</string>
 	<key>Family</key>
 	<string>Family</string>
 	<key>File</key>
@@ -722,6 +800,8 @@
 	<string>Find…</string>
 	<key>Finish updating Fyolo’s session host?</key>
 	<string>Finish updating Fyolo’s session host?</string>
+	<key>First seen</key>
+	<string>First seen</string>
 	<key>Focus Pane Down</key>
 	<string>Focus Pane Down</string>
 	<key>Focus Pane Left</key>
@@ -736,6 +816,8 @@
 	<string>Font</string>
 	<key>Font name</key>
 	<string>Font name</string>
+	<key>From the profile</key>
+	<string>From the profile</string>
 	<key>From your Ghostty config</key>
 	<string>From your Ghostty config</string>
 	<key>From your session history</key>
@@ -786,26 +868,50 @@
 	<string>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</string>
 	<key>GitHub replied with HTTP %lld.</key>
 	<string>GitHub replied with HTTP %lld.</string>
+	<key>Golden Signals</key>
+	<string>Golden Signals</string>
 	<key>Grant Org Access…</key>
 	<string>Grant Org Access…</string>
 	<key>Green</key>
 	<string>Green</string>
+	<key>Group</key>
+	<string>Group</string>
+	<key>Group Similar</key>
+	<string>Group Similar</string>
+	<key>Group Similar…</key>
+	<string>Group Similar…</string>
+	<key>Group lines that say the same thing</key>
+	<string>Group lines that say the same thing</string>
+	<key>Group name</key>
+	<string>Group name</string>
 	<key>Group with</key>
 	<string>Group with</string>
+	<key>Health</key>
+	<string>Health</string>
+	<key>Hidden Panels</key>
+	<string>Hidden Panels</string>
 	<key>Hide</key>
 	<string>Hide</string>
 	<key>Hide Fyolo</key>
 	<string>Hide Fyolo</string>
 	<key>Hide Others</key>
 	<string>Hide Others</string>
+	<key>Hide Panel</key>
+	<string>Hide Panel</string>
 	<key>Hide Replace</key>
 	<string>Hide Replace</string>
+	<key>Hide Similar</key>
+	<string>Hide Similar</string>
+	<key>Hide Similar…</key>
+	<string>Hide Similar…</string>
 	<key>Hide closed and merged items</key>
 	<string>Hide closed and merged items</string>
 	<key>Hide or show the inspector</key>
 	<string>Hide or show the inspector</string>
 	<key>Hide or show the navigator</key>
 	<string>Hide or show the navigator</string>
+	<key>Hide the %lld hidden by rules</key>
+	<string>Hide the %lld hidden by rules</string>
 	<key>High</key>
 	<string>High</string>
 	<key>Highlights</key>
@@ -844,10 +950,16 @@
 	<string>Ignore File (Add to .gitignore)</string>
 	<key>Image</key>
 	<string>Image</string>
+	<key>Import Profile…</key>
+	<string>Import Profile…</string>
+	<key>Imported “%@”. Connect the accounts it names to fill it in.</key>
+	<string>Imported “%@”. Connect the accounts it names to fill it in.</string>
 	<key>In Progress</key>
 	<string>In Progress</string>
 	<key>In Review</key>
 	<string>In Review</string>
+	<key>Incidents</key>
+	<string>Incidents</string>
 	<key>Increase Font Size</key>
 	<string>Increase Font Size</string>
 	<key>Info</key>
@@ -918,6 +1030,8 @@
 	<string>Last 30 days</string>
 	<key>Last 7 days</key>
 	<string>Last 7 days</string>
+	<key>Last seen</key>
+	<string>Last seen</string>
 	<key>Last used</key>
 	<string>Last used</string>
 	<key>Later</key>
@@ -932,6 +1046,8 @@
 	<string>Lets an agent see and drive its sibling sessions in this project via the `fyolo sessions` command.</string>
 	<key>Lets an agent see and drive its sibling sessions in this project via the `fyolo sessions` command. Installs the fyolo skill into each agent's skills folder.</key>
 	<string>Lets an agent see and drive its sibling sessions in this project via the `fyolo sessions` command. Installs the fyolo skill into each agent's skills folder.</string>
+	<key>Level</key>
+	<string>Level</string>
 	<key>Light</key>
 	<string>Light</string>
 	<key>Line height applies to the file editor and diffs; the terminal keeps the font’s own.</key>
@@ -968,6 +1084,10 @@
 	<string>Loading…</string>
 	<key>Local</key>
 	<string>Local</string>
+	<key>Log Errors</key>
+	<string>Log Errors</string>
+	<key>Log lines</key>
+	<string>Log lines</string>
 	<key>Login shell</key>
 	<string>Login shell</string>
 	<key>Logs</key>
@@ -986,10 +1106,14 @@
 	<string>Match Case</string>
 	<key>Match Whole Word</key>
 	<string>Match Whole Word</string>
+	<key>Matches %lld of %lld items on screen</key>
+	<string>Matches %lld of %lld items on screen</string>
 	<key>Medium</key>
 	<string>Medium</string>
 	<key>Merged</key>
 	<string>Merged</string>
+	<key>Metrics</key>
+	<string>Metrics</string>
 	<key>Mine</key>
 	<string>Mine</string>
 	<key>Minimize</key>
@@ -1002,6 +1126,8 @@
 	<string>Mobile</string>
 	<key>Mobile Access</key>
 	<string>Mobile Access</string>
+	<key>Monitoring</key>
+	<string>Monitoring</string>
 	<key>Mounts</key>
 	<string>Mounts</string>
 	<key>Move Down</key>
@@ -1016,6 +1142,10 @@
 	<string>Move “%@” to the Trash?</string>
 	<key>My Agent</key>
 	<string>My Agent</string>
+	<key>My Profile</key>
+	<string>My Profile</string>
+	<key>NRQL. Use {{%@}} for the header’s values.</key>
+	<string>NRQL. Use {{%@}} for the header’s values.</string>
 	<key>Name</key>
 	<string>Name</string>
 	<key>Name the workspace. It starts empty; sessions and projects you open on %@ from now on are filed under it.</key>
@@ -1052,6 +1182,14 @@
 	<string>New Folder</string>
 	<key>New Pull Request</key>
 	<string>New Pull Request</string>
+	<key>New Relic User key (NRAK-…)</key>
+	<string>New Relic User key (NRAK-…)</string>
+	<key>New Relic rejected the key. Use a User key (NRAK-…) that can read this account.</key>
+	<string>New Relic rejected the key. Use a User key (NRAK-…) that can read this account.</string>
+	<key>New Relic replied with HTTP %lld.</key>
+	<string>New Relic replied with HTTP %lld.</string>
+	<key>New Relic returned an unexpected reply.</key>
+	<string>New Relic returned an unexpected reply.</string>
 	<key>New SSH Connection</key>
 	<string>New SSH Connection</string>
 	<key>New SSH Connection…</key>
@@ -1108,6 +1246,8 @@
 	<string>No Matches</string>
 	<key>No Open Tickets</key>
 	<string>No Open Tickets</string>
+	<key>No Panels</key>
+	<string>No Panels</string>
 	<key>No Priority</key>
 	<string>No Priority</string>
 	<key>No Project</key>
@@ -1124,8 +1264,14 @@
 	<string>No bundled tool to install from.</string>
 	<key>No command to run.</key>
 	<string>No command to run.</string>
+	<key>No connected account matches this profile.</key>
+	<string>No connected account matches this profile.</string>
+	<key>No connected account matches “%@”.</key>
+	<string>No connected account matches “%@”.</string>
 	<key>No contents</key>
 	<string>No contents</string>
+	<key>No data returned.</key>
+	<string>No data returned.</string>
 	<key>No description provided.</key>
 	<string>No description provided.</string>
 	<key>No file changes</key>
@@ -1140,8 +1286,12 @@
 	<string>No local usage yet — run `%@` once, then Refresh.</string>
 	<key>No matches</key>
 	<string>No matches</string>
+	<key>No matches.</key>
+	<string>No matches.</string>
 	<key>No network address found. Join a network, then reopen this pane.</key>
 	<string>No network address found. Join a network, then reopen this pane.</string>
+	<key>No open incidents.</key>
+	<string>No open incidents.</string>
 	<key>No open issues right now.</key>
 	<string>No open issues right now.</string>
 	<key>No open pull requests right now.</key>
@@ -1156,8 +1306,12 @@
 	<string>No results</string>
 	<key>No route to host</key>
 	<string>No route to host</string>
+	<key>No rows in this window.</key>
+	<string>No rows in this window.</string>
 	<key>No runs yet.</key>
 	<string>No runs yet.</string>
+	<key>No services found.</key>
+	<string>No services found.</string>
 	<key>No textual changes to show.</key>
 	<string>No textual changes to show.</string>
 	<key>No theme matches “%@”</key>
@@ -1172,6 +1326,8 @@
 	<string>None of this project’s remotes point at %@, so there is no issue tracker to show.</string>
 	<key>None of this project’s remotes point at github.com, so there is no issue tracker to show.</key>
 	<string>None of this project’s remotes point at github.com, so there is no issue tracker to show.</string>
+	<key>None yet. Right-click an item to add one.</key>
+	<string>None yet. Right-click an item to add one.</string>
 	<key>Not Now</key>
 	<string>Not Now</string>
 	<key>Not a Git Repository</key>
@@ -1192,6 +1348,8 @@
 	<string>Not running yet. Sessions start it, and keep running after you quit Fyolo.</string>
 	<key>Not set up yet</key>
 	<string>Not set up yet</string>
+	<key>Nothing in this window.</key>
+	<string>Nothing in this window.</string>
 	<key>Nothing matches these filters.</key>
 	<string>Nothing matches these filters.</string>
 	<key>Nothing to Compare</key>
@@ -1204,8 +1362,20 @@
 	<string>Notifications</string>
 	<key>Notifications for Fyolo are turned off in System Settings.</key>
 	<string>Notifications for Fyolo are turned off in System Settings.</string>
+	<key>Notify Me</key>
+	<string>Notify Me</string>
+	<key>Notify Me About Similar Incidents</key>
+	<string>Notify Me About Similar Incidents</string>
+	<key>Notify Me About Similar…</key>
+	<string>Notify Me About Similar…</string>
+	<key>Notify Me…</key>
+	<string>Notify Me…</string>
+	<key>Numbers</key>
+	<string>Numbers</string>
 	<key>OK</key>
 	<string>OK</string>
+	<key>Observability</key>
+	<string>Observability</string>
 	<key>Off — LAN only</key>
 	<string>Off — LAN only</string>
 	<key>Off — SSH only</key>
@@ -1218,6 +1388,8 @@
 	<string>On iPhone, tap the Mac pill ▸ Scan QR Code. The tunnel address works from any network, and terminates on the provider's servers. Pick Custom to run your own relay instead.</string>
 	<key>On iPhone, tap the Mac pill ▸ Scan QR Code. Traffic crosses the relay you run yourself — no third party in the path.</key>
 	<string>On iPhone, tap the Mac pill ▸ Scan QR Code. Traffic crosses the relay you run yourself — no third party in the path.</string>
+	<key>Only from %@</key>
+	<string>Only from %@</string>
 	<key>Only regular files can be previewed.</key>
 	<string>Only regular files can be previewed.</string>
 	<key>Only the first %lld items are shown — update fyolo on this device to list them all.</key>
@@ -1270,6 +1442,8 @@
 	<string>Open the disk image and drag fyolo to Applications.</string>
 	<key>Open the invite on your iPhone to install it with TestFlight.</key>
 	<string>Open the invite on your iPhone to install it with TestFlight.</string>
+	<key>Opened</key>
+	<string>Opened</string>
 	<key>Opened outside Fyolo on this device</key>
 	<string>Opened outside Fyolo on this device</string>
 	<key>Opening the listener needs the daemon restarted, which ends what it is hosting:
@@ -1300,6 +1474,8 @@
 	<string>Pairing Token</string>
 	<key>Pairs your iPhone straight to this Mac's session host. Projects with nothing running don't appear yet.</key>
 	<string>Pairs your iPhone straight to this Mac's session host. Projects with nothing running don't appear yet.</string>
+	<key>Panels, rules and accounts</key>
+	<string>Panels, rules and accounts</string>
 	<key>Panes</key>
 	<string>Panes</string>
 	<key>Parent</key>
@@ -1352,6 +1528,8 @@
 	<string>Plugins</string>
 	<key>Pointing fyolod at %@…</key>
 	<string>Pointing fyolod at %@…</string>
+	<key>Policy</key>
+	<string>Policy</string>
 	<key>Port</key>
 	<string>Port</string>
 	<key>Ports</key>
@@ -1368,10 +1546,14 @@
 	<string>Previous Match</string>
 	<key>Previous Session</key>
 	<string>Previous Session</string>
+	<key>Priority</key>
+	<string>Priority</string>
 	<key>Privacy</key>
 	<string>Privacy</string>
 	<key>Private</key>
 	<string>Private</string>
+	<key>Profile</key>
+	<string>Profile</string>
 	<key>Project Files</key>
 	<string>Project Files</string>
 	<key>Projects</key>
@@ -1434,6 +1616,8 @@
 	<string>Record Shortcut</string>
 	<key>Refresh</key>
 	<string>Refresh</string>
+	<key>Region</key>
+	<string>Region</string>
 	<key>Reinstall</key>
 	<string>Reinstall</string>
 	<key>Reinstall Hooks and Skill</key>
@@ -1498,6 +1682,8 @@
 	<string>Replace All</string>
 	<key>Report each agent’s status back to Fyolo.</key>
 	<string>Report each agent’s status back to Fyolo.</string>
+	<key>Reporting</key>
+	<string>Reporting</string>
 	<key>Repository</key>
 	<string>Repository</string>
 	<key>Request Permission</key>
@@ -1524,6 +1710,12 @@
 	<string>Rotate the pairing token?</string>
 	<key>Row padding</key>
 	<string>Row padding</string>
+	<key>Rule</key>
+	<string>Rule</string>
+	<key>Rules</key>
+	<string>Rules</string>
+	<key>Rules…</key>
+	<string>Rules…</string>
 	<key>Run</key>
 	<string>Run</string>
 	<key>Run %@</key>
@@ -1562,6 +1754,8 @@
 	<string>Save Highlights into PDF</string>
 	<key>Save failed: %@</key>
 	<string>Save failed: %@</string>
+	<key>Saved to %@. Commit it to share it with the team.</key>
+	<string>Saved to %@. Commit it to share it with the team.</string>
 	<key>Saving to %@…</key>
 	<string>Saving to %@…</string>
 	<key>Scan the QR code with WeChat to join the Chinese community group.</key>
@@ -1600,6 +1794,10 @@
 	<string>Sends one anonymous event a day so the project can count active installs. No project paths, no terminal contents, no account.</string>
 	<key>Server</key>
 	<string>Server</string>
+	<key>Service</key>
+	<string>Service</string>
+	<key>Services</key>
+	<string>Services</string>
 	<key>Serving</key>
 	<string>Serving</string>
 	<key>Session</key>
@@ -1624,12 +1822,18 @@
 	<string>Settings</string>
 	<key>Settings…</key>
 	<string>Settings…</string>
+	<key>Share to Repository</key>
+	<string>Share to Repository</string>
 	<key>Shortcuts must include ⌘ so they can’t shadow a key an agent or the shell needs. While recording, press ⌫ to remove a shortcut, or esc to cancel.</key>
 	<string>Shortcuts must include ⌘ so they can’t shadow a key an agent or the shell needs. While recording, press ⌫ to remove a shortcut, or esc to cancel.</string>
 	<key>Show</key>
 	<string>Show</string>
+	<key>Show %lld more</key>
+	<string>Show %lld more</string>
 	<key>Show All</key>
 	<string>Show All</string>
+	<key>Show Hidden Panels</key>
+	<string>Show Hidden Panels</string>
 	<key>Show More</key>
 	<string>Show More</string>
 	<key>Show Original</key>
@@ -1644,8 +1848,14 @@
 	<string>Show one column (inline diff)</string>
 	<key>Show two columns (side-by-side diff)</key>
 	<string>Show two columns (side-by-side diff)</string>
+	<key>Showing everything. Right-click anything that isn’t yours and choose Hide Similar.</key>
+	<string>Showing everything. Right-click anything that isn’t yours and choose Hide Similar.</string>
+	<key>Shows</key>
+	<string>Shows</string>
 	<key>Shows files and folders ignored by Git in a muted color.</key>
 	<string>Shows files and folders ignored by Git in a muted color.</string>
+	<key>Shows logs, metrics and incidents from New Relic in the inspector, filtered down to what you care about.</key>
+	<string>Shows logs, metrics and incidents from New Relic in the inspector, filtered down to what you care about.</string>
 	<key>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</key>
 	<string>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</string>
 	<key>Shows this project’s Linear tickets in the inspector, with the pull requests that name them.</key>
@@ -1688,6 +1898,10 @@
 	<string>Something went wrong loading your repositories. Try again in a moment.</string>
 	<key>Sort</key>
 	<string>Sort</string>
+	<key>Source</key>
+	<string>Source</string>
+	<key>Sources</key>
+	<string>Sources</string>
 	<key>Special files can’t be previewed</key>
 	<string>Special files can’t be previewed</string>
 	<key>Split Down</key>
@@ -1710,6 +1924,8 @@
 	<string>Starting tunnel…</string>
 	<key>Starting…</key>
 	<string>Starting…</string>
+	<key>State</key>
+	<string>State</string>
 	<key>Status</key>
 	<string>Status</string>
 	<key>Steps (%lld)</key>
@@ -1734,6 +1950,8 @@
 	<string>System (%@)</string>
 	<key>System monospace</key>
 	<string>System monospace</string>
+	<key>Table</key>
+	<string>Table</string>
 	<key>Takes %@ out of the new-session menu. Its settings are kept.</key>
 	<string>Takes %@ out of the new-session menu. Its settings are kept.</string>
 	<key>Takes effect after Fyolo relaunches.</key>
@@ -1758,6 +1976,8 @@
 	<string>Test</string>
 	<key>Test Connection</key>
 	<string>Test Connection</string>
+	<key>Text</key>
+	<string>Text</string>
 	<key>The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.</key>
 	<string>The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.</string>
 	<key>The Linear sign-in failed.</key>
@@ -1802,14 +2022,22 @@
 	<string>The machine everything filed under this workspace lives on.</string>
 	<key>The machines you reach from this Mac</key>
 	<string>The machines you reach from this Mac</string>
+	<key>The profile as it was shared, without your changes. API keys are never included.</key>
+	<string>The profile as it was shared, without your changes. API keys are never included.</string>
+	<key>The profile with your panel arrangement and rules. API keys are never included.</key>
+	<string>The profile with your panel arrangement and rules. API keys are never included.</string>
 	<key>The project and session list. Kept separate from the terminal font, and need not be monospaced.</key>
 	<string>The project and session list. Kept separate from the terminal font, and need not be monospaced.</string>
 	<key>The public keys in ~/.ssh. Copy one to paste into a server’s authorized_keys — private keys are never read.</key>
 	<string>The public keys in ~/.ssh. Copy one to paste into a server’s authorized_keys — private keys are never read.</string>
+	<key>The query uses {{%@}}, which this profile doesn’t define.</key>
+	<string>The query uses {{%@}}, which this profile doesn’t define.</string>
 	<key>The read failed.</key>
 	<string>The read failed.</string>
 	<key>The release’s update information couldn’t be read.</key>
 	<string>The release’s update information couldn’t be read.</string>
+	<key>The repository’s %@ can’t be read: %@</key>
+	<string>The repository’s %@ can’t be read: %@</string>
 	<key>The rest is on GitHub.</key>
 	<string>The rest is on GitHub.</string>
 	<key>The search failed.</key>
@@ -1896,6 +2124,10 @@
 	<string>This host takes a password. Fyolo signs in with keys, and ~/.ssh has none that ssh offers on its own — run ssh-keygen to make one, then set it up here.</string>
 	<key>This host takes a password. Fyolo signs in with keys, so set yours up once and every session, file tree and remote terminal can reach it.</key>
 	<string>This host takes a password. Fyolo signs in with keys, so set yours up once and every session, file tree and remote terminal can reach it.</string>
+	<key>This isn’t a Monitoring profile fyolo can read: %@</key>
+	<string>This isn’t a Monitoring profile fyolo can read: %@</string>
+	<key>This key can’t read any account.</key>
+	<string>This key can’t read any account.</string>
 	<key>This machine didn’t answer. Its fyolod may be too old to search.</key>
 	<string>This machine didn’t answer. Its fyolod may be too old to search.</string>
 	<key>This machine sent a name the file tree can’t show.</key>
@@ -1914,6 +2146,14 @@
 	<string>This machine’s fyolod is too old to report its agents.</string>
 	<key>This month</key>
 	<string>This month</string>
+	<key>This panel</key>
+	<string>This panel</string>
+	<key>This panel has no query.</key>
+	<string>This panel has no query.</string>
+	<key>This profile reads %@, which isn’t connected.</key>
+	<string>This profile reads %@, which isn’t connected.</string>
+	<key>This profile was made by a newer fyolo (format %lld). Update fyolo to open it.</key>
+	<string>This profile was made by a newer fyolo (format %lld). Update fyolo to open it.</string>
 	<key>This pull request changes no files.</key>
 	<string>This pull request changes no files.</string>
 	<key>This relay has no valid URL pattern, so its address could never be read back.</key>
@@ -1928,8 +2168,12 @@
 	<string>This week</string>
 	<key>This workspace is no longer on your list.</key>
 	<string>This workspace is no longer on your list.</string>
+	<key>Time</key>
+	<string>Time</string>
 	<key>Timed out</key>
 	<string>Timed out</string>
+	<key>Title</key>
+	<string>Title</string>
 	<key>To Review</key>
 	<string>To Review</string>
 	<key>Today</key>
@@ -1946,6 +2190,8 @@
 	<string>Token usage</string>
 	<key>Token usage for your connected agents</key>
 	<string>Token usage for your connected agents</string>
+	<key>Trace</key>
+	<string>Trace</string>
 	<key>Try Again</key>
 	<string>Try Again</string>
 	<key>Try another search term.</key>
@@ -2012,12 +2258,16 @@
 	<string>User</string>
 	<key>Uses %@</key>
 	<string>Uses %@</string>
+	<key>Value</key>
+	<string>Value</string>
 	<key>Version %@ on %@. Sessions keep running there after you disconnect.</key>
 	<string>Version %@ on %@. Sessions keep running there after you disconnect.</string>
 	<key>View</key>
 	<string>View</string>
 	<key>Wants a password</key>
 	<string>Wants a password</string>
+	<key>Warning</key>
+	<string>Warning</string>
 	<key>WeChat</key>
 	<string>WeChat</string>
 	<key>WeChat group</key>
@@ -2044,6 +2294,8 @@
 	<string>Whether you want these at all, and putting them on this Mac.</string>
 	<key>Whether you want these at all. Fyolo puts them on each machine as you set it up.</key>
 	<string>Whether you want these at all. Fyolo puts them on each machine as you set it up.</string>
+	<key>Which account?</key>
+	<string>Which account?</string>
 	<key>Which agent CLIs are on %@, where each launches from, and what Fyolo installed into their configs.</key>
 	<string>Which agent CLIs are on %@, where each launches from, and what Fyolo installed into their configs.</string>
 	<key>Which machine your iPhone connects to. Each one serves its own sessions.</key>
@@ -2066,6 +2318,10 @@
 	<string>Worktree has changes</string>
 	<key>Worktree is locked</key>
 	<string>Worktree is locked</string>
+	<key>Worst facet</key>
+	<string>Worst facet</string>
+	<key>Writes %@ so the team gets this profile with the code.</key>
+	<string>Writes %@ so the team gets this profile with the code.</string>
 	<key>Yellow</key>
 	<string>Yellow</string>
 	<key>Yesterday</key>
@@ -2082,6 +2338,10 @@
 	<string>Your sessions keep running while you update.</string>
 	<key>Your themes</key>
 	<string>Your themes</string>
+	<key>Yours</key>
+	<string>Yours</string>
+	<key>You’ll be notified about incidents like this</key>
+	<string>You’ll be notified about incidents like this</string>
 	<key>You’re up to date</key>
 	<string>You’re up to date</string>
 	<key>Zoom</key>
@@ -2094,8 +2354,14 @@
 	<string>`fyolod` on %@ isn’t answering.</string>
 	<key>agents</key>
 	<string>agents</string>
+	<key>and %lld more</key>
+	<string>and %lld more</string>
 	<key>binary</key>
 	<string>binary</string>
+	<key>closed</key>
+	<string>closed</string>
+	<key>contains “%@”</key>
+	<string>contains “%@”</string>
 	<key>couldn’t install %@: %@</key>
 	<string>couldn’t install %@: %@</string>
 	<key>couldn’t launch %@: %@</key>
@@ -2108,6 +2374,8 @@
 	<string>docker exited with an error.</string>
 	<key>e.g. JetBrains Mono</key>
 	<string>e.g. JetBrains Mono</string>
+	<key>error</key>
+	<string>error</string>
 	<key>first %1$lld of %2$lld files</key>
 	<string>first %1$lld of %2$lld files</string>
 	<key>fyolo %@ is available</key>
@@ -2156,6 +2424,8 @@ Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks
 	<string>macOS hasn’t been asked to allow Fyolo’s notifications yet.</string>
 	<key>machines</key>
 	<string>machines</string>
+	<key>no</key>
+	<string>no</string>
 	<key>not published</key>
 	<string>not published</string>
 	<key>nothing</key>
@@ -2166,19 +2436,35 @@ Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks
 	<string>optional — ~/.ssh/id_ed25519</string>
 	<key>set a command and URL pattern for the custom relay</key>
 	<string>set a command and URL pattern for the custom relay</string>
+	<key>similarity %lld</key>
+	<string>similarity %lld</string>
 	<key>ssh unavailable</key>
 	<string>ssh unavailable</string>
+	<key>the file isn’t valid JSON.</key>
+	<string>the file isn’t valid JSON.</string>
+	<key>the value at %@ has the wrong type.</key>
+	<string>the value at %@ has the wrong type.</string>
+	<key>the value at %@ is unreadable.</key>
+	<string>the value at %@ is unreadable.</string>
 	<key>this Mac</key>
 	<string>this Mac</string>
+	<key>yes</key>
+	<string>yes</string>
 	<key>· resets %@</key>
 	<string>· resets %@</string>
 	<key>“%@” already exists.</key>
 	<string>“%@” already exists.</string>
 	<key>“%@” is already in your config.</key>
 	<string>“%@” is already in your config.</string>
+	<key>“%@” is missing at %@.</key>
+	<string>“%@” is missing at %@.</string>
 	<key>“%@” isn’t a supported image.</key>
 	<string>“%@” isn’t a supported image.</string>
+	<key>“%@” isn’t a window for {{%@}}. Use a value like 15m, 1h or 7d.</key>
+	<string>“%@” isn’t a window for {{%@}}. Use a value like 15m, 1h or 7d.</string>
 	<key>“%@” isn’t installed — showing the system default.</key>
 	<string>“%@” isn’t installed — showing the system default.</string>
+	<key>“%@” panels need a newer fyolo.</key>
+	<string>“%@” panels need a newer fyolo.</string>
 </dict>
 </plist>

@@ -10,6 +10,8 @@
 	<string>费用按 API 价格估算。</string>
 	<key>%1$@ changed on %2$@</key>
 	<string>%1$@ 在 %2$@ 上已被修改</string>
+	<key>%@ (from this repository)</key>
+	<string>%@（来自此仓库）</string>
 	<key>%@ and %@</key>
 	<string>%1$@ 和 %2$@</string>
 	<key>%@ answered as a different machine than %@. Its address is being served by something else.</key>
@@ -92,6 +94,10 @@
 	<string>%lld 个文件</string>
 	<key>%lld files</key>
 	<string>%lld 个文件</string>
+	<key>%lld hidden by rules</key>
+	<string>%lld 项被规则隐藏</string>
+	<key>%lld hidden panels</key>
+	<string>%lld 个隐藏的面板</string>
 	<key>%lld in your Themes folder</key>
 	<string>主题文件夹里有 %lld 个</string>
 	<key>%lld installed</key>
@@ -104,6 +110,8 @@
 	<string>%lld 点</string>
 	<key>%lld results</key>
 	<string>%lld 个结果</string>
+	<key>%lld rows</key>
+	<string>%lld 行</string>
 	<key>%lld%@ matches in %lld files</key>
 	<string>在 %3$lld 个文件中找到 %1$lld%2$@ 个匹配项</string>
 	<key>%lldd</key>
@@ -120,6 +128,10 @@
 	<string>%lld 秒</string>
 	<key>%lldw</key>
 	<string>%lld 周</string>
+	<key>%lld× %@</key>
+	<string>%1$lld× %2$@</string>
+	<key>(no message)</key>
+	<string>（无消息）</string>
 	<key>1 result</key>
 	<string>1 个结果</string>
 	<key>A box can only be paired with once its fyolod is running and reachable from outside — a tunnel, or a proxy in front of it.</key>
@@ -164,12 +176,18 @@
 	<string>添加主机</string>
 	<key>Add Host…</key>
 	<string>添加主机…</string>
+	<key>Add Panel</key>
+	<string>添加面板</string>
+	<key>Add Panel…</key>
+	<string>添加面板…</string>
 	<key>Add Remote Host</key>
 	<string>添加远程主机</string>
 	<key>Add SSH Host</key>
 	<string>添加 SSH 主机</string>
 	<key>Add a host you reach over SSH and Fyolo can run sessions on it, with agents that keep working after you disconnect.</key>
 	<string>添加一台你用 SSH 连接的主机，Fyolo 就能在上面运行会话；断开连接后 Agent 仍会继续工作。</string>
+	<key>Add a panel from the … menu, or import a profile.</key>
+	<string>从 … 菜单添加面板，或导入配置。</string>
 	<key>Add to Chat</key>
 	<string>添加到聊天</string>
 	<key>Address</key>
@@ -212,6 +230,8 @@
 	<string>允许访问钥匙串…</string>
 	<key>Allow Usage Access</key>
 	<string>允许访问用量</string>
+	<key>Almost the same text</key>
+	<string>几乎相同的文本</string>
 	<key>An older install points at %@. Update it to this version of Fyolo.</key>
 	<string>旧的安装指向 %@。请将其更新到此版本的 Fyolo。</string>
 	<key>App language</key>
@@ -220,6 +240,8 @@
 	<string>外观</string>
 	<key>Appends a Host block to ~/.ssh/config, so the alias works in plain `ssh %@` too.</key>
 	<string>将 Host 块追加到 ~/.ssh/config，该别名也可直接用于 `ssh %@`。</string>
+	<key>Applies to</key>
+	<string>适用于</string>
 	<key>Apply</key>
 	<string>应用</string>
 	<key>Arguments</key>
@@ -324,6 +346,8 @@
 	<string>检查未通过</string>
 	<key>Checks Running</key>
 	<string>检查运行中</string>
+	<key>Choose a Monitoring profile to add</key>
+	<string>选择要添加的监控配置</string>
 	<key>Choose a Team</key>
 	<string>选择团队</string>
 	<key>Choose a different name.</key>
@@ -346,6 +370,8 @@
 	<string>选择显示哪个仓库的 issue</string>
 	<key>Choose which team’s tickets to show</key>
 	<string>选择要显示哪个团队的工单</string>
+	<key>Choose, import or share a Monitoring profile</key>
+	<string>选择、导入或共享监控配置</string>
 	<key>Choose…</key>
 	<string>选取…</string>
 	<key>Clear</key>
@@ -426,16 +452,22 @@
 	<string>对比分支</string>
 	<key>Compose</key>
 	<string>Compose</string>
+	<key>Condition</key>
+	<string>条件</string>
 	<key>Config file</key>
 	<string>配置文件</string>
 	<key>Connect</key>
 	<string>连接</string>
 	<key>Connect Again</key>
 	<string>重新连接</string>
+	<key>Connect Another Account…</key>
+	<string>连接其他账户…</string>
 	<key>Connect GitHub</key>
 	<string>连接 GitHub</string>
 	<key>Connect GitHub from the Issues tab to see this run.</key>
 	<string>请在 Issues 标签页连接 GitHub 以查看此运行。</string>
+	<key>Connect New Relic to see your services’ logs, metrics and incidents here. More backends will follow.</key>
+	<string>连接 New Relic，在这里查看服务的日志、指标和事件。之后会支持更多后端。</string>
 	<key>Connect to read issues and pull requests, and to clone your repositories.</key>
 	<string>连接后即可查看议题和拉取请求，并克隆你的仓库。</string>
 	<key>Connect to…</key>
@@ -460,6 +492,8 @@
 	<string>连接失败</string>
 	<key>Connection refused</key>
 	<string>连接被拒绝</string>
+	<key>Connect…</key>
+	<string>连接…</string>
 	<key>Container</key>
 	<string>容器</string>
 	<key>Containers</key>
@@ -486,6 +520,8 @@
 	<string>拷贝路径</string>
 	<key>Copy Paths</key>
 	<string>拷贝路径</string>
+	<key>Copy Query</key>
+	<string>拷贝查询</string>
 	<key>Copy Relative Path</key>
 	<string>拷贝相对路径</string>
 	<key>Copy Relative Paths</key>
@@ -510,6 +546,8 @@
 	<string>无法创建 worktrees 文件夹：%@</string>
 	<key>Couldn’t create worktree session</key>
 	<string>无法创建 worktree 会话</string>
+	<key>Couldn’t export: %@</key>
+	<string>无法导出：%@</string>
 	<key>Couldn’t inspect worktree</key>
 	<string>无法检查 worktree</string>
 	<key>Couldn’t install %@ on %@.
@@ -526,6 +564,8 @@
 	<string>无法打开 Linear 登录。</string>
 	<key>Couldn’t reach %@.</key>
 	<string>无法连接到 %@。</string>
+	<key>Couldn’t reach New Relic: %@</key>
+	<string>无法连接 New Relic：%@</string>
 	<key>Couldn’t relaunch fyolo. Quit and open it again.</key>
 	<string>无法重新启动 fyolo。请退出后重新打开。</string>
 	<key>Couldn’t remove %@.</key>
@@ -534,6 +574,10 @@
 	<string>无法移除 worktree</string>
 	<key>Couldn’t save the password to your Keychain.</key>
 	<string>无法把密码保存到钥匙串。</string>
+	<key>Couldn’t save the profile: %@</key>
+	<string>无法存储配置：%@</string>
+	<key>Couldn’t save to the repository: %@</key>
+	<string>无法存储到仓库：%@</string>
 	<key>Couldn’t start %@ on %@.</key>
 	<string>无法在 %2$@ 上启动 %1$@。</string>
 	<key>Couldn’t start fyolod on %@ with a listener.</key>
@@ -544,6 +588,8 @@
 	<string>无法更新 .gitignore</string>
 	<key>Couldn’t write ~/.ssh/config: %@</key>
 	<string>无法写入 ~/.ssh/config：%@</string>
+	<key>Count</key>
+	<string>数量</string>
 	<key>Create</key>
 	<string>创建</string>
 	<key>Create a Key…</key>
@@ -552,6 +598,8 @@
 	<string>创建令牌…</string>
 	<key>Credentials</key>
 	<string>登录凭据</string>
+	<key>Critical</key>
+	<string>严重</string>
 	<key>Current workspace</key>
 	<string>当前工作区</string>
 	<key>Cursor</key>
@@ -582,6 +630,8 @@
 	<string>删除“%@”？</string>
 	<key>Delete Agent</key>
 	<string>删除 Agent</string>
+	<key>Delete Profile</key>
+	<string>删除配置</string>
 	<key>Deletes the custom agent’s manifest from this Mac.</key>
 	<string>从这台 Mac 上删除该自定义 Agent 的 manifest。</string>
 	<key>Delete…</key>
@@ -614,6 +664,8 @@
 	<string>放弃更改…</string>
 	<key>Disconnect</key>
 	<string>断开连接</string>
+	<key>Disconnect %@</key>
+	<string>断开 %@</string>
 	<key>Disconnect GitHub</key>
 	<string>断开 GitHub 连接</string>
 	<key>Disconnect Linear</key>
@@ -622,6 +674,8 @@
 	<string>Discord</string>
 	<key>Discord, GitHub, and the WeChat group</key>
 	<string>Discord、GitHub 与微信群</string>
+	<key>Dismiss</key>
+	<string>关闭</string>
 	<key>Docker</key>
 	<string>Docker</string>
 	<key>Docker didn’t answer in time.</key>
@@ -656,10 +710,18 @@
 	<string>复制到主题文件夹</string>
 	<key>Duplicated By</key>
 	<string>被以下工单重复</string>
+	<key>Each item takes the first rule that matches it, once for where it shows and once for whether it notifies.</key>
+	<string>每一项采用第一条匹配它的规则：一次决定它显示在哪里，一次决定它是否发送通知。</string>
 	<key>Edit</key>
 	<string>编辑</string>
 	<key>Edit Manifest</key>
 	<string>编辑清单</string>
+	<key>Edit Profile File</key>
+	<string>编辑配置文件</string>
+	<key>Edit Query</key>
+	<string>编辑查询</string>
+	<key>Edit Query…</key>
+	<string>编辑查询…</string>
 	<key>Edit in Config</key>
 	<string>在配置中编辑</string>
 	<key>Edit source</key>
@@ -682,22 +744,38 @@
 	<string>请输入以“/”开头的路径。等 %@ 报出主目录之后，“~/”也可以用。</string>
 	<key>Enter an absolute path</key>
 	<string>请输入绝对路径</string>
+	<key>Entity</key>
+	<string>实体</string>
 	<key>Environment (%lld)</key>
 	<string>环境变量 (%lld)</string>
+	<key>Errors</key>
+	<string>错误</string>
 	<key>Errors (%lld)</key>
 	<string>错误（%lld）</string>
+	<key>Even slightly similar</key>
+	<string>略微相似即可</string>
 	<key>Every iPhone paired with %@ is signed out and must re-scan the new QR to reconnect.</key>
 	<string>所有与 %@ 配对的 iPhone 都会退出登录，需重新扫描新的二维码才能重新连接。</string>
 	<key>Every paired iPhone is signed out and must re-scan the new QR to reconnect.</key>
 	<string>所有已配对的 iPhone 都会退出登录，需重新扫描新的二维码才能重新连接。</string>
+	<key>Every tab</key>
+	<string>所有标签页</string>
 	<key>Everyone Else</key>
 	<string>其他人</string>
+	<key>Everything</key>
+	<string>全部</string>
 	<key>Exited with status %lld.</key>
 	<string>退出状态 %lld。</string>
 	<key>Expand Results</key>
 	<string>展开结果</string>
+	<key>Export Profile…</key>
+	<string>导出配置…</string>
+	<key>Export Without My Changes…</key>
+	<string>导出（不含我的更改）…</string>
 	<key>Failed</key>
 	<string>失败</string>
+	<key>Failing Operations</key>
+	<string>失败的操作</string>
 	<key>Family</key>
 	<string>系列</string>
 	<key>File</key>
@@ -722,6 +800,8 @@
 	<string>查找…</string>
 	<key>Finish updating Fyolo’s session host?</key>
 	<string>要完成 Fyolo server 的更新吗？</string>
+	<key>First seen</key>
+	<string>首次出现</string>
 	<key>Focus Pane Down</key>
 	<string>聚焦下方窗格</string>
 	<key>Focus Pane Left</key>
@@ -736,6 +816,8 @@
 	<string>字体</string>
 	<key>Font name</key>
 	<string>字体名称</string>
+	<key>From the profile</key>
+	<string>来自配置</string>
 	<key>From your Ghostty config</key>
 	<string>来自 Ghostty 配置</string>
 	<key>From your session history</key>
@@ -786,26 +868,50 @@
 	<string>GitHub 拒绝了这个令牌。请确认它已完整复制且未过期。</string>
 	<key>GitHub replied with HTTP %lld.</key>
 	<string>GitHub 返回了 HTTP %lld。</string>
+	<key>Golden Signals</key>
+	<string>黄金指标</string>
 	<key>Grant Org Access…</key>
 	<string>授予组织访问权限…</string>
 	<key>Green</key>
 	<string>绿色</string>
+	<key>Group</key>
+	<string>分组</string>
+	<key>Group Similar</key>
+	<string>将相似项分组</string>
+	<key>Group Similar…</key>
+	<string>将相似项分组…</string>
+	<key>Group lines that say the same thing</key>
+	<string>将内容相同的行分组</string>
+	<key>Group name</key>
+	<string>分组名称</string>
 	<key>Group with</key>
 	<string>编组到</string>
+	<key>Health</key>
+	<string>健康状况</string>
+	<key>Hidden Panels</key>
+	<string>已隐藏的面板</string>
 	<key>Hide</key>
 	<string>隐藏</string>
 	<key>Hide Fyolo</key>
 	<string>隐藏 Fyolo</string>
 	<key>Hide Others</key>
 	<string>隐藏其他</string>
+	<key>Hide Panel</key>
+	<string>隐藏面板</string>
 	<key>Hide Replace</key>
 	<string>隐藏替换</string>
+	<key>Hide Similar</key>
+	<string>隐藏相似项</string>
+	<key>Hide Similar…</key>
+	<string>隐藏相似项…</string>
 	<key>Hide closed and merged items</key>
 	<string>隐藏已关闭和已合并的条目</string>
 	<key>Hide or show the inspector</key>
 	<string>隐藏或显示检查器</string>
 	<key>Hide or show the navigator</key>
 	<string>隐藏或显示导航器</string>
+	<key>Hide the %lld hidden by rules</key>
+	<string>隐藏被规则隐藏的 %lld 项</string>
 	<key>High</key>
 	<string>高</string>
 	<key>Highlights</key>
@@ -844,10 +950,16 @@
 	<string>忽略文件（添加到 .gitignore）</string>
 	<key>Image</key>
 	<string>镜像</string>
+	<key>Import Profile…</key>
+	<string>导入配置…</string>
+	<key>Imported “%@”. Connect the accounts it names to fill it in.</key>
+	<string>已导入“%@”。连接其中指定的账户以载入数据。</string>
 	<key>In Progress</key>
 	<string>进行中</string>
 	<key>In Review</key>
 	<string>审查中</string>
+	<key>Incidents</key>
+	<string>事件</string>
 	<key>Increase Font Size</key>
 	<string>增大字体</string>
 	<key>Info</key>
@@ -918,6 +1030,8 @@
 	<string>过去 30 天</string>
 	<key>Last 7 days</key>
 	<string>过去 7 天</string>
+	<key>Last seen</key>
+	<string>最近出现</string>
 	<key>Last used</key>
 	<string>上次使用</string>
 	<key>Later</key>
@@ -932,6 +1046,8 @@
 	<string>让 Agent 通过 `fyolo sessions` 命令查看并驱动本项目中的同级会话。</string>
 	<key>Lets an agent see and drive its sibling sessions in this project via the `fyolo sessions` command. Installs the fyolo skill into each agent's skills folder.</key>
 	<string>允许 Agent 通过 `fyolo sessions` 命令查看并驱动本项目中的其他会话。会将 fyolo 技能安装到各 Agent 的技能文件夹中。</string>
+	<key>Level</key>
+	<string>级别</string>
 	<key>Light</key>
 	<string>浅色</string>
 	<key>Line height applies to the file editor and diffs; the terminal keeps the font’s own.</key>
@@ -968,6 +1084,10 @@
 	<string>正在载入…</string>
 	<key>Local</key>
 	<string>本地</string>
+	<key>Log Errors</key>
+	<string>日志错误</string>
+	<key>Log lines</key>
+	<string>日志行</string>
 	<key>Login shell</key>
 	<string>登录 shell</string>
 	<key>Logs</key>
@@ -986,10 +1106,14 @@
 	<string>区分大小写</string>
 	<key>Match Whole Word</key>
 	<string>全字匹配</string>
+	<key>Matches %lld of %lld items on screen</key>
+	<string>匹配屏幕上 %2$lld 项中的 %1$lld 项</string>
 	<key>Medium</key>
 	<string>中</string>
 	<key>Merged</key>
 	<string>已合并</string>
+	<key>Metrics</key>
+	<string>指标</string>
 	<key>Mine</key>
 	<string>我的</string>
 	<key>Minimize</key>
@@ -1002,6 +1126,8 @@
 	<string>手机</string>
 	<key>Mobile Access</key>
 	<string>移动访问</string>
+	<key>Monitoring</key>
+	<string>监控</string>
 	<key>Mounts</key>
 	<string>挂载</string>
 	<key>Move Down</key>
@@ -1016,6 +1142,10 @@
 	<string>要将“%@”移到废纸篓吗？</string>
 	<key>My Agent</key>
 	<string>我的 Agent</string>
+	<key>My Profile</key>
+	<string>我的配置</string>
+	<key>NRQL. Use {{%@}} for the header’s values.</key>
+	<string>NRQL。使用 {{%@}} 引用顶部栏中的值。</string>
 	<key>Name</key>
 	<string>名称</string>
 	<key>Name the workspace. It starts empty; sessions and projects you open on %@ from now on are filed under it.</key>
@@ -1052,6 +1182,14 @@
 	<string>新建文件夹</string>
 	<key>New Pull Request</key>
 	<string>新建 Pull Request</string>
+	<key>New Relic User key (NRAK-…)</key>
+	<string>New Relic 用户密钥（NRAK-…）</string>
+	<key>New Relic rejected the key. Use a User key (NRAK-…) that can read this account.</key>
+	<string>New Relic 拒绝了该密钥。请使用可读取此账户的用户密钥（NRAK-…）。</string>
+	<key>New Relic replied with HTTP %lld.</key>
+	<string>New Relic 返回了 HTTP %lld。</string>
+	<key>New Relic returned an unexpected reply.</key>
+	<string>New Relic 返回了意外的响应。</string>
 	<key>New SSH Connection</key>
 	<string>新建 SSH 连接</string>
 	<key>New SSH Connection…</key>
@@ -1108,6 +1246,8 @@
 	<string>无匹配项</string>
 	<key>No Open Tickets</key>
 	<string>没有未完成的工单</string>
+	<key>No Panels</key>
+	<string>没有面板</string>
 	<key>No Priority</key>
 	<string>无优先级</string>
 	<key>No Project</key>
@@ -1124,8 +1264,14 @@
 	<string>应用包中没有可安装的工具。</string>
 	<key>No command to run.</key>
 	<string>没有可运行的命令。</string>
+	<key>No connected account matches this profile.</key>
+	<string>没有已连接的账户与此配置匹配。</string>
+	<key>No connected account matches “%@”.</key>
+	<string>没有已连接的账户与“%@”匹配。</string>
 	<key>No contents</key>
 	<string>没有目录</string>
+	<key>No data returned.</key>
+	<string>没有返回数据。</string>
 	<key>No description provided.</key>
 	<string>未提供描述。</string>
 	<key>No file changes</key>
@@ -1140,8 +1286,12 @@
 	<string>暂无本地用量——运行一次 `%@`，然后点按“刷新”。</string>
 	<key>No matches</key>
 	<string>无匹配结果</string>
+	<key>No matches.</key>
+	<string>没有匹配项。</string>
 	<key>No network address found. Join a network, then reopen this pane.</key>
 	<string>未找到网络地址。接入网络后重新打开此面板。</string>
+	<key>No open incidents.</key>
+	<string>没有未解决的事件。</string>
 	<key>No open issues right now.</key>
 	<string>目前没有开放的 issues。</string>
 	<key>No open pull requests right now.</key>
@@ -1156,8 +1306,12 @@
 	<string>没有结果</string>
 	<key>No route to host</key>
 	<string>无法到达主机</string>
+	<key>No rows in this window.</key>
+	<string>此时间范围内没有数据行。</string>
 	<key>No runs yet.</key>
 	<string>尚无运行记录。</string>
+	<key>No services found.</key>
+	<string>未找到服务。</string>
 	<key>No textual changes to show.</key>
 	<string>没有可显示的文本更改。</string>
 	<key>No theme matches “%@”</key>
@@ -1172,6 +1326,8 @@
 	<string>这个项目的远程仓库都不指向 %@，因此没有可显示的议题追踪。</string>
 	<key>None of this project’s remotes point at github.com, so there is no issue tracker to show.</key>
 	<string>该项目的远程仓库都未指向 github.com，因此没有可显示的 issue 跟踪器。</string>
+	<key>None yet. Right-click an item to add one.</key>
+	<string>暂无。右键点按某一项来添加。</string>
 	<key>Not Now</key>
 	<string>以后再说</string>
 	<key>Not a Git Repository</key>
@@ -1192,6 +1348,8 @@
 	<string>尚未运行。会话会启动它，并在你退出 Fyolo 后继续运行。</string>
 	<key>Not set up yet</key>
 	<string>尚未设置</string>
+	<key>Nothing in this window.</key>
+	<string>此时间范围内没有内容。</string>
 	<key>Nothing matches these filters.</key>
 	<string>没有符合这些过滤条件的条目。</string>
 	<key>Nothing to Compare</key>
@@ -1204,8 +1362,20 @@
 	<string>通知</string>
 	<key>Notifications for Fyolo are turned off in System Settings.</key>
 	<string>Fyolo 的通知已在“系统设置”中关闭。</string>
+	<key>Notify Me</key>
+	<string>通知我</string>
+	<key>Notify Me About Similar Incidents</key>
+	<string>相似事件时通知我</string>
+	<key>Notify Me About Similar…</key>
+	<string>相似事件时通知我…</string>
+	<key>Notify Me…</key>
+	<string>通知我…</string>
+	<key>Numbers</key>
+	<string>数值</string>
 	<key>OK</key>
 	<string>好</string>
+	<key>Observability</key>
+	<string>可观测性</string>
 	<key>Off — LAN only</key>
 	<string>关闭 — 仅局域网</string>
 	<key>Off — SSH only</key>
@@ -1218,6 +1388,8 @@
 	<string>在 iPhone 上轻点 Mac 胶囊按钮 ▸ 扫描二维码。隧道地址可在任意网络使用，并终结于服务商的服务器。若要改用自己的中继，请选择“自定义”。</string>
 	<key>On iPhone, tap the Mac pill ▸ Scan QR Code. Traffic crosses the relay you run yourself — no third party in the path.</key>
 	<string>在 iPhone 上轻点 Mac 胶囊按钮 ▸ 扫描二维码。流量经由你自己运行的中继，路径中没有第三方。</string>
+	<key>Only from %@</key>
+	<string>仅来自 %@</string>
 	<key>Only regular files can be previewed.</key>
 	<string>只能预览普通文件。</string>
 	<key>Only the first %lld items are shown — update fyolo on this device to list them all.</key>
@@ -1270,6 +1442,8 @@
 	<string>打开磁盘映像，将 fyolo 拖到“应用程序”文件夹。</string>
 	<key>Open the invite on your iPhone to install it with TestFlight.</key>
 	<string>在 iPhone 上打开邀请链接，用 TestFlight 安装。</string>
+	<key>Opened</key>
+	<string>开始时间</string>
 	<key>Opened outside Fyolo on this device</key>
 	<string>在这台设备上由 Fyolo 之外打开</string>
 	<key>Opening the listener needs the daemon restarted, which ends what it is hosting:
@@ -1300,6 +1474,8 @@
 	<string>配对 Token</string>
 	<key>Pairs your iPhone straight to this Mac's session host. Projects with nothing running don't appear yet.</key>
 	<string>让 iPhone 直接连到这台 Mac 的 Fyolo server。没有会话在跑的项目暂时不会出现。</string>
+	<key>Panels, rules and accounts</key>
+	<string>面板、规则和账户</string>
 	<key>Panes</key>
 	<string>窗格</string>
 	<key>Parent</key>
@@ -1352,6 +1528,8 @@
 	<string>插件</string>
 	<key>Pointing fyolod at %@…</key>
 	<string>正在把 fyolod 指向 %@…</string>
+	<key>Policy</key>
+	<string>策略</string>
 	<key>Port</key>
 	<string>端口</string>
 	<key>Ports</key>
@@ -1368,10 +1546,14 @@
 	<string>上一个匹配项</string>
 	<key>Previous Session</key>
 	<string>上一个会话</string>
+	<key>Priority</key>
+	<string>优先级</string>
 	<key>Privacy</key>
 	<string>隐私</string>
 	<key>Private</key>
 	<string>私有</string>
+	<key>Profile</key>
+	<string>配置</string>
 	<key>Project Files</key>
 	<string>项目文件</string>
 	<key>Projects</key>
@@ -1434,6 +1616,8 @@
 	<string>录制快捷键</string>
 	<key>Refresh</key>
 	<string>刷新</string>
+	<key>Region</key>
+	<string>区域</string>
 	<key>Reinstall</key>
 	<string>重新安装</string>
 	<key>Reinstall Hooks and Skill</key>
@@ -1498,6 +1682,8 @@
 	<string>全部替换</string>
 	<key>Report each agent’s status back to Fyolo.</key>
 	<string>把每个 Agent 的状态报告回 Fyolo。</string>
+	<key>Reporting</key>
+	<string>正在上报</string>
 	<key>Repository</key>
 	<string>仓库</string>
 	<key>Request Permission</key>
@@ -1524,6 +1710,12 @@
 	<string>要更换配对 Token 吗？</string>
 	<key>Row padding</key>
 	<string>行边距</string>
+	<key>Rule</key>
+	<string>规则</string>
+	<key>Rules</key>
+	<string>规则</string>
+	<key>Rules…</key>
+	<string>规则…</string>
 	<key>Run</key>
 	<string>运行</string>
 	<key>Run %@</key>
@@ -1562,6 +1754,8 @@
 	<string>将标注存入 PDF</string>
 	<key>Save failed: %@</key>
 	<string>存储失败：%@</string>
+	<key>Saved to %@. Commit it to share it with the team.</key>
+	<string>已存储到 %@。提交它即可与团队共享。</string>
 	<key>Saving to %@…</key>
 	<string>正在保存到 %@…</string>
 	<key>Scan the QR code with WeChat to join the Chinese community group.</key>
@@ -1600,6 +1794,10 @@
 	<string>每天发送一条匿名事件，用于统计活跃安装数。不含项目路径、终端内容和账号。</string>
 	<key>Server</key>
 	<string>Fyolo server</string>
+	<key>Service</key>
+	<string>服务</string>
+	<key>Services</key>
+	<string>服务</string>
 	<key>Serving</key>
 	<string>对外服务</string>
 	<key>Session</key>
@@ -1624,12 +1822,18 @@
 	<string>设置</string>
 	<key>Settings…</key>
 	<string>设置…</string>
+	<key>Share to Repository</key>
+	<string>共享到仓库</string>
 	<key>Shortcuts must include ⌘ so they can’t shadow a key an agent or the shell needs. While recording, press ⌫ to remove a shortcut, or esc to cancel.</key>
 	<string>快捷键必须包含 ⌘，以免遮蔽 Agent 或 shell 所需的按键。录制时按 ⌫ 可移除快捷键，按 esc 取消。</string>
 	<key>Show</key>
 	<string>显示</string>
+	<key>Show %lld more</key>
+	<string>再显示 %lld 项</string>
 	<key>Show All</key>
 	<string>全部显示</string>
+	<key>Show Hidden Panels</key>
+	<string>显示已隐藏的面板</string>
 	<key>Show More</key>
 	<string>显示更多</string>
 	<key>Show Original</key>
@@ -1644,8 +1848,14 @@
 	<string>显示单栏（行内差异）</string>
 	<key>Show two columns (side-by-side diff)</key>
 	<string>显示双栏（并排差异）</string>
+	<key>Showing everything. Right-click anything that isn’t yours and choose Hide Similar.</key>
+	<string>正在显示全部内容。右键点按与你无关的项，然后选择“隐藏相似项”。</string>
+	<key>Shows</key>
+	<string>显示</string>
 	<key>Shows files and folders ignored by Git in a muted color.</key>
 	<string>以较淡的颜色显示 Git 忽略的文件和文件夹。</string>
+	<key>Shows logs, metrics and incidents from New Relic in the inspector, filtered down to what you care about.</key>
+	<string>在检查器中显示 New Relic 的日志、指标和事件，只保留你关心的内容。</string>
 	<key>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</key>
 	<string>为远程仓库位于 GitHub 的项目在检查器中显示 Issues 窗格。</string>
 	<key>Shows this project’s Linear tickets in the inspector, with the pull requests that name them.</key>
@@ -1688,6 +1898,10 @@
 	<string>加载你的仓库时出错。请稍后重试。</string>
 	<key>Sort</key>
 	<string>排序</string>
+	<key>Source</key>
+	<string>来源</string>
+	<key>Sources</key>
+	<string>来源</string>
 	<key>Special files can’t be previewed</key>
 	<string>特殊文件无法预览</string>
 	<key>Split Down</key>
@@ -1710,6 +1924,8 @@
 	<string>正在启动隧道…</string>
 	<key>Starting…</key>
 	<string>正在启动…</string>
+	<key>State</key>
+	<string>状态</string>
 	<key>Status</key>
 	<string>状态</string>
 	<key>Steps (%lld)</key>
@@ -1734,6 +1950,8 @@
 	<string>跟随系统（%@）</string>
 	<key>System monospace</key>
 	<string>系统等宽字体</string>
+	<key>Table</key>
+	<string>表格</string>
 	<key>Takes %@ out of the new-session menu. Its settings are kept.</key>
 	<string>将 %@ 从新建会话菜单中移除，其设置会保留。</string>
 	<key>Takes effect after Fyolo relaunches.</key>
@@ -1758,6 +1976,8 @@
 	<string>测试</string>
 	<key>Test Connection</key>
 	<string>测试连接</string>
+	<key>Text</key>
+	<string>文本</string>
 	<key>The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.</key>
 	<string>GitHub CLI 没有提供令牌。请在终端中运行 gh auth login，然后重试。</string>
 	<key>The Linear sign-in failed.</key>
@@ -1802,14 +2022,22 @@
 	<string>归入这个工作区的一切所在的机器。</string>
 	<key>The machines you reach from this Mac</key>
 	<string>你从这台 Mac 连接的设备</string>
+	<key>The profile as it was shared, without your changes. API keys are never included.</key>
+	<string>按共享时的原样导出配置，不含你的更改。绝不会包含 API 密钥。</string>
+	<key>The profile with your panel arrangement and rules. API keys are never included.</key>
+	<string>导出包含你的面板排列和规则的配置。绝不会包含 API 密钥。</string>
 	<key>The project and session list. Kept separate from the terminal font, and need not be monospaced.</key>
 	<string>项目与会话列表。与终端字体分开设置，无需等宽字体。</string>
 	<key>The public keys in ~/.ssh. Copy one to paste into a server’s authorized_keys — private keys are never read.</key>
 	<string>~/.ssh 中的公钥。可拷贝一个粘贴到服务器的 authorized_keys——私钥永远不会被读取。</string>
+	<key>The query uses {{%@}}, which this profile doesn’t define.</key>
+	<string>查询使用了 {{%@}}，但此配置没有定义它。</string>
 	<key>The read failed.</key>
 	<string>读取失败。</string>
 	<key>The release’s update information couldn’t be read.</key>
 	<string>无法读取该版本的更新信息。</string>
+	<key>The repository’s %@ can’t be read: %@</key>
+	<string>无法读取仓库的 %1$@：%2$@</string>
 	<key>The rest is on GitHub.</key>
 	<string>其余内容请在 GitHub 上查看。</string>
 	<key>The search failed.</key>
@@ -1896,6 +2124,10 @@
 	<string>这台主机接受密码登录。Fyolo 用密钥登录，而 ~/.ssh 里没有 ssh 会自动尝试的密钥——先用 ssh-keygen 生成一个，再回到这里设置。</string>
 	<key>This host takes a password. Fyolo signs in with keys, so set yours up once and every session, file tree and remote terminal can reach it.</key>
 	<string>这台主机接受密码登录。Fyolo 用密钥登录，设置一次之后，会话、文件树和远程终端都能连上它。</string>
+	<key>This isn’t a Monitoring profile fyolo can read: %@</key>
+	<string>这不是 Fyolo 可以读取的监控配置：%@</string>
+	<key>This key can’t read any account.</key>
+	<string>此密钥无法读取任何账户。</string>
 	<key>This machine didn’t answer. Its fyolod may be too old to search.</key>
 	<string>该设备没有响应。它的 fyolod 版本可能过旧，无法搜索。</string>
 	<key>This machine sent a name the file tree can’t show.</key>
@@ -1914,6 +2146,14 @@
 	<string>该设备上的 fyolod 版本过旧，无法查询其 Agent。</string>
 	<key>This month</key>
 	<string>本月</string>
+	<key>This panel</key>
+	<string>此面板</string>
+	<key>This panel has no query.</key>
+	<string>此面板没有查询。</string>
+	<key>This profile reads %@, which isn’t connected.</key>
+	<string>此配置需要读取 %@，但尚未连接。</string>
+	<key>This profile was made by a newer fyolo (format %lld). Update fyolo to open it.</key>
+	<string>此配置由更新版本的 Fyolo 创建（格式 %lld）。请更新 Fyolo 后再打开。</string>
 	<key>This pull request changes no files.</key>
 	<string>此 PR 未更改任何文件。</string>
 	<key>This relay has no valid URL pattern, so its address could never be read back.</key>
@@ -1928,8 +2168,12 @@
 	<string>本周</string>
 	<key>This workspace is no longer on your list.</key>
 	<string>这个工作区已不在你的列表中。</string>
+	<key>Time</key>
+	<string>时间</string>
 	<key>Timed out</key>
 	<string>连接超时</string>
+	<key>Title</key>
+	<string>标题</string>
 	<key>To Review</key>
 	<string>待审查</string>
 	<key>Today</key>
@@ -1946,6 +2190,8 @@
 	<string>Token 用量</string>
 	<key>Token usage for your connected agents</key>
 	<string>已连接 Agent 的 token 用量</string>
+	<key>Trace</key>
+	<string>Trace</string>
 	<key>Try Again</key>
 	<string>重试</string>
 	<key>Try another search term.</key>
@@ -2012,12 +2258,16 @@
 	<string>用户</string>
 	<key>Uses %@</key>
 	<string>使用 %@</string>
+	<key>Value</key>
+	<string>数值</string>
 	<key>Version %@ on %@. Sessions keep running there after you disconnect.</key>
 	<string>%@ 上的版本 %@。断开连接后，会话仍在那里继续运行。</string>
 	<key>View</key>
 	<string>显示</string>
 	<key>Wants a password</key>
 	<string>需要密码</string>
+	<key>Warning</key>
+	<string>警告</string>
 	<key>WeChat</key>
 	<string>微信</string>
 	<key>WeChat group</key>
@@ -2044,6 +2294,8 @@
 	<string>是否启用这些功能，以及把它们装到这台 Mac 上。</string>
 	<key>Whether you want these at all. Fyolo puts them on each machine as you set it up.</key>
 	<string>是否启用这些功能。Fyolo 会在你设置每台设备时装上它们。</string>
+	<key>Which account?</key>
+	<string>使用哪个账户？</string>
 	<key>Which agent CLIs are on %@, where each launches from, and what Fyolo installed into their configs.</key>
 	<string>%@ 上有哪些 Agent 命令行工具、各自从哪里启动，以及 Fyolo 往它们的配置里装了什么。</string>
 	<key>Which machine your iPhone connects to. Each one serves its own sessions.</key>
@@ -2066,6 +2318,10 @@
 	<string>Worktree 存在更改</string>
 	<key>Worktree is locked</key>
 	<string>Worktree 已锁定</string>
+	<key>Worst facet</key>
+	<string>最差分组</string>
+	<key>Writes %@ so the team gets this profile with the code.</key>
+	<string>写入 %@，让团队随代码一起获得此配置。</string>
 	<key>Yellow</key>
 	<string>黄色</string>
 	<key>Yesterday</key>
@@ -2082,6 +2338,10 @@
 	<string>更新期间，你的会话会继续运行。</string>
 	<key>Your themes</key>
 	<string>你的主题</string>
+	<key>Yours</key>
+	<string>你的</string>
+	<key>You’ll be notified about incidents like this</key>
+	<string>出现类似事件时你会收到通知</string>
 	<key>You’re up to date</key>
 	<string>已是最新版本</string>
 	<key>Zoom</key>
@@ -2094,8 +2354,14 @@
 	<string>%@ 上的 `fyolod` 没有响应。</string>
 	<key>agents</key>
 	<string>个 Agent</string>
+	<key>and %lld more</key>
+	<string>以及另外 %lld 项</string>
 	<key>binary</key>
 	<string>二进制</string>
+	<key>closed</key>
+	<string>已关闭</string>
+	<key>contains “%@”</key>
+	<string>包含“%@”</string>
 	<key>couldn’t install %@: %@</key>
 	<string>无法安装 %1$@：%2$@</string>
 	<key>couldn’t launch %@: %@</key>
@@ -2108,6 +2374,8 @@
 	<string>docker 以错误退出。</string>
 	<key>e.g. JetBrains Mono</key>
 	<string>例如 JetBrains Mono</string>
+	<key>error</key>
+	<string>错误</string>
 	<key>first %1$lld of %2$lld files</key>
 	<string>%2$lld 个文件中的前 %1$lld 个</string>
 	<key>fyolo %@ is available</key>
@@ -2156,6 +2424,8 @@ Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks
 	<string>macOS 尚未请求允许 Fyolo 发送通知。</string>
 	<key>machines</key>
 	<string>台设备</string>
+	<key>no</key>
+	<string>否</string>
 	<key>not published</key>
 	<string>未发布</string>
 	<key>nothing</key>
@@ -2166,19 +2436,35 @@ Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks
 	<string>可选 — ~/.ssh/id_ed25519</string>
 	<key>set a command and URL pattern for the custom relay</key>
 	<string>为自定义中继设置命令和 URL 模式</string>
+	<key>similarity %lld</key>
+	<string>相似度 %lld</string>
 	<key>ssh unavailable</key>
 	<string>ssh 不可用</string>
+	<key>the file isn’t valid JSON.</key>
+	<string>文件不是有效的 JSON。</string>
+	<key>the value at %@ has the wrong type.</key>
+	<string>%@ 处的值类型错误。</string>
+	<key>the value at %@ is unreadable.</key>
+	<string>%@ 处的值无法读取。</string>
 	<key>this Mac</key>
 	<string>本机</string>
+	<key>yes</key>
+	<string>是</string>
 	<key>· resets %@</key>
 	<string>· 重置于 %@</string>
 	<key>“%@” already exists.</key>
 	<string>“%@”已存在。</string>
 	<key>“%@” is already in your config.</key>
 	<string>“%@”已存在于你的配置中。</string>
+	<key>“%@” is missing at %@.</key>
+	<string>%2$@ 处缺少“%1$@”。</string>
 	<key>“%@” isn’t a supported image.</key>
 	<string>“%@”不是受支持的图片。</string>
+	<key>“%@” isn’t a window for {{%@}}. Use a value like 15m, 1h or 7d.</key>
+	<string>“%1$@”不是 {{%2$@}} 的有效时间范围。请使用 15m、1h 或 7d 这样的值。</string>
 	<key>“%@” isn’t installed — showing the system default.</key>
 	<string>“%@”未安装，正在显示系统默认字体。</string>
+	<key>“%@” panels need a newer fyolo.</key>
+	<string>“%@”面板需要更新版本的 Fyolo。</string>
 </dict>
 </plist>

@@ -10804,6 +10804,1436 @@
           }
         }
       }
+    },
+    "(no message)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "（无消息）"
+          }
+        }
+      }
+    },
+    "Add Panel": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加面板"
+          }
+        }
+      }
+    },
+    "Add Panel…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加面板…"
+          }
+        }
+      }
+    },
+    "Add a panel from the … menu, or import a profile.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从 … 菜单添加面板，或导入配置。"
+          }
+        }
+      }
+    },
+    "Almost the same text": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "几乎相同的文本"
+          }
+        }
+      }
+    },
+    "Applies to": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适用于"
+          }
+        }
+      }
+    },
+    "Choose a Monitoring profile to add": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择要添加的监控配置"
+          }
+        }
+      }
+    },
+    "Choose, import or share a Monitoring profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择、导入或共享监控配置"
+          }
+        }
+      }
+    },
+    "Condition": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条件"
+          }
+        }
+      }
+    },
+    "Connect Another Account…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接其他账户…"
+          }
+        }
+      }
+    },
+    "Connect New Relic to see your services’ logs, metrics and incidents here. More backends will follow.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接 New Relic，在这里查看服务的日志、指标和事件。之后会支持更多后端。"
+          }
+        }
+      }
+    },
+    "Connect…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接…"
+          }
+        }
+      }
+    },
+    "Copy Query": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷贝查询"
+          }
+        }
+      }
+    },
+    "Count": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数量"
+          }
+        }
+      }
+    },
+    "Critical": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "严重"
+          }
+        }
+      }
+    },
+    "Delete Profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除配置"
+          }
+        }
+      }
+    },
+    "Dismiss": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "Each item takes the first rule that matches it, once for where it shows and once for whether it notifies.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每一项采用第一条匹配它的规则：一次决定它显示在哪里，一次决定它是否发送通知。"
+          }
+        }
+      }
+    },
+    "Edit Profile File": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑配置文件"
+          }
+        }
+      }
+    },
+    "Edit Query": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑查询"
+          }
+        }
+      }
+    },
+    "Edit Query…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑查询…"
+          }
+        }
+      }
+    },
+    "Entity": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实体"
+          }
+        }
+      }
+    },
+    "Errors": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "错误"
+          }
+        }
+      }
+    },
+    "Even slightly similar": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "略微相似即可"
+          }
+        }
+      }
+    },
+    "Every tab": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有标签页"
+          }
+        }
+      }
+    },
+    "Everything": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部"
+          }
+        }
+      }
+    },
+    "Export Profile…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出配置…"
+          }
+        }
+      }
+    },
+    "Export Without My Changes…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出（不含我的更改）…"
+          }
+        }
+      }
+    },
+    "Failing Operations": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失败的操作"
+          }
+        }
+      }
+    },
+    "First seen": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首次出现"
+          }
+        }
+      }
+    },
+    "From the profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自配置"
+          }
+        }
+      }
+    },
+    "Golden Signals": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "黄金指标"
+          }
+        }
+      }
+    },
+    "Group": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分组"
+          }
+        }
+      }
+    },
+    "Group Similar": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将相似项分组"
+          }
+        }
+      }
+    },
+    "Group Similar…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将相似项分组…"
+          }
+        }
+      }
+    },
+    "Group lines that say the same thing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将内容相同的行分组"
+          }
+        }
+      }
+    },
+    "Group name": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分组名称"
+          }
+        }
+      }
+    },
+    "Health": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "健康状况"
+          }
+        }
+      }
+    },
+    "Hidden Panels": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已隐藏的面板"
+          }
+        }
+      }
+    },
+    "Hide Panel": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏面板"
+          }
+        }
+      }
+    },
+    "Hide Similar": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏相似项"
+          }
+        }
+      }
+    },
+    "Hide Similar…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏相似项…"
+          }
+        }
+      }
+    },
+    "Import Profile…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入配置…"
+          }
+        }
+      }
+    },
+    "Incidents": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "事件"
+          }
+        }
+      }
+    },
+    "Last seen": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近出现"
+          }
+        }
+      }
+    },
+    "Level": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "级别"
+          }
+        }
+      }
+    },
+    "Log Errors": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日志错误"
+          }
+        }
+      }
+    },
+    "Log lines": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日志行"
+          }
+        }
+      }
+    },
+    "Metrics": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指标"
+          }
+        }
+      }
+    },
+    "Monitoring": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "监控"
+          }
+        }
+      }
+    },
+    "My Profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的配置"
+          }
+        }
+      }
+    },
+    "New Relic User key (NRAK-…)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Relic 用户密钥（NRAK-…）"
+          }
+        }
+      }
+    },
+    "New Relic rejected the key. Use a User key (NRAK-…) that can read this account.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Relic 拒绝了该密钥。请使用可读取此账户的用户密钥（NRAK-…）。"
+          }
+        }
+      }
+    },
+    "New Relic returned an unexpected reply.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Relic 返回了意外的响应。"
+          }
+        }
+      }
+    },
+    "No Panels": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有面板"
+          }
+        }
+      }
+    },
+    "No connected account matches this profile.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有已连接的账户与此配置匹配。"
+          }
+        }
+      }
+    },
+    "No data returned.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有返回数据。"
+          }
+        }
+      }
+    },
+    "No matches.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有匹配项。"
+          }
+        }
+      }
+    },
+    "No open incidents.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有未解决的事件。"
+          }
+        }
+      }
+    },
+    "No rows in this window.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此时间范围内没有数据行。"
+          }
+        }
+      }
+    },
+    "No services found.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到服务。"
+          }
+        }
+      }
+    },
+    "None yet. Right-click an item to add one.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无。右键点按某一项来添加。"
+          }
+        }
+      }
+    },
+    "Nothing in this window.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此时间范围内没有内容。"
+          }
+        }
+      }
+    },
+    "Notify Me": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知我"
+          }
+        }
+      }
+    },
+    "Notify Me About Similar Incidents": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相似事件时通知我"
+          }
+        }
+      }
+    },
+    "Notify Me About Similar…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相似事件时通知我…"
+          }
+        }
+      }
+    },
+    "Notify Me…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知我…"
+          }
+        }
+      }
+    },
+    "Numbers": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数值"
+          }
+        }
+      }
+    },
+    "Observability": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可观测性"
+          }
+        }
+      }
+    },
+    "Opened": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始时间"
+          }
+        }
+      }
+    },
+    "Panels, rules and accounts": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "面板、规则和账户"
+          }
+        }
+      }
+    },
+    "Policy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "策略"
+          }
+        }
+      }
+    },
+    "Priority": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "优先级"
+          }
+        }
+      }
+    },
+    "Profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置"
+          }
+        }
+      }
+    },
+    "Region": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "区域"
+          }
+        }
+      }
+    },
+    "Reporting": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在上报"
+          }
+        }
+      }
+    },
+    "Rule": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则"
+          }
+        }
+      }
+    },
+    "Rules": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则"
+          }
+        }
+      }
+    },
+    "Rules…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则…"
+          }
+        }
+      }
+    },
+    "Service": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务"
+          }
+        }
+      }
+    },
+    "Services": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务"
+          }
+        }
+      }
+    },
+    "Share to Repository": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共享到仓库"
+          }
+        }
+      }
+    },
+    "Show Hidden Panels": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示已隐藏的面板"
+          }
+        }
+      }
+    },
+    "Showing everything. Right-click anything that isn’t yours and choose Hide Similar.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在显示全部内容。右键点按与你无关的项，然后选择“隐藏相似项”。"
+          }
+        }
+      }
+    },
+    "Shows": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示"
+          }
+        }
+      }
+    },
+    "Shows logs, metrics and incidents from New Relic in the inspector, filtered down to what you care about.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在检查器中显示 New Relic 的日志、指标和事件，只保留你关心的内容。"
+          }
+        }
+      }
+    },
+    "Source": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源"
+          }
+        }
+      }
+    },
+    "Sources": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源"
+          }
+        }
+      }
+    },
+    "State": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态"
+          }
+        }
+      }
+    },
+    "Table": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表格"
+          }
+        }
+      }
+    },
+    "Text": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本"
+          }
+        }
+      }
+    },
+    "The profile as it was shared, without your changes. API keys are never included.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按共享时的原样导出配置，不含你的更改。绝不会包含 API 密钥。"
+          }
+        }
+      }
+    },
+    "The profile with your panel arrangement and rules. API keys are never included.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出包含你的面板排列和规则的配置。绝不会包含 API 密钥。"
+          }
+        }
+      }
+    },
+    "This key can’t read any account.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此密钥无法读取任何账户。"
+          }
+        }
+      }
+    },
+    "This panel": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此面板"
+          }
+        }
+      }
+    },
+    "This panel has no query.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此面板没有查询。"
+          }
+        }
+      }
+    },
+    "Time": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间"
+          }
+        }
+      }
+    },
+    "Title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标题"
+          }
+        }
+      }
+    },
+    "Trace": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trace"
+          }
+        }
+      }
+    },
+    "Value": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数值"
+          }
+        }
+      }
+    },
+    "Warning": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "警告"
+          }
+        }
+      }
+    },
+    "Which account?": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用哪个账户？"
+          }
+        }
+      }
+    },
+    "Worst facet": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最差分组"
+          }
+        }
+      }
+    },
+    "Yours": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的"
+          }
+        }
+      }
+    },
+    "You’ll be notified about incidents like this": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出现类似事件时你会收到通知"
+          }
+        }
+      }
+    },
+    "closed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已关闭"
+          }
+        }
+      }
+    },
+    "error": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "错误"
+          }
+        }
+      }
+    },
+    "no": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "否"
+          }
+        }
+      }
+    },
+    "the file isn’t valid JSON.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件不是有效的 JSON。"
+          }
+        }
+      }
+    },
+    "yes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
+          }
+        }
+      }
+    },
+    "“%@” panels need a newer fyolo.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@”面板需要更新版本的 Fyolo。"
+          }
+        }
+      }
+    },
+    "Couldn’t export: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法导出：%@"
+          }
+        }
+      }
+    },
+    "Couldn’t save the profile: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法存储配置：%@"
+          }
+        }
+      }
+    },
+    "Couldn’t save to the repository: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法存储到仓库：%@"
+          }
+        }
+      }
+    },
+    "Imported “%@”. Connect the accounts it names to fill it in.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已导入“%@”。连接其中指定的账户以载入数据。"
+          }
+        }
+      }
+    },
+    "No connected account matches “%@”.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有已连接的账户与“%@”匹配。"
+          }
+        }
+      }
+    },
+    "Saved to %@. Commit it to share it with the team.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已存储到 %@。提交它即可与团队共享。"
+          }
+        }
+      }
+    },
+    "“%@” is missing at %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@ 处缺少“%1$@”。"
+          }
+        }
+      }
+    },
+    "“%@” isn’t a window for {{%@}}. Use a value like 15m, 1h or 7d.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@”不是 {{%2$@}} 的有效时间范围。请使用 15m、1h 或 7d 这样的值。"
+          }
+        }
+      }
+    },
+    "The query uses {{%@}}, which this profile doesn’t define.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询使用了 {{%@}}，但此配置没有定义它。"
+          }
+        }
+      }
+    },
+    "the value at %@ has the wrong type.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 处的值类型错误。"
+          }
+        }
+      }
+    },
+    "the value at %@ is unreadable.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 处的值无法读取。"
+          }
+        }
+      }
+    },
+    "This isn’t a Monitoring profile fyolo can read: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这不是 Fyolo 可以读取的监控配置：%@"
+          }
+        }
+      }
+    },
+    "This profile was made by a newer fyolo (format %lld). Update fyolo to open it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此配置由更新版本的 Fyolo 创建（格式 %lld）。请更新 Fyolo 后再打开。"
+          }
+        }
+      }
+    },
+    "%lld× %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld× %2$@"
+          }
+        }
+      }
+    },
+    "%lld hidden panels": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个隐藏的面板"
+          }
+        }
+      }
+    },
+    "%@ (from this repository)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@（来自此仓库）"
+          }
+        }
+      }
+    },
+    "%lld rows": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 行"
+          }
+        }
+      }
+    },
+    "%lld hidden by rules": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 项被规则隐藏"
+          }
+        }
+      }
+    },
+    "and %lld more": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以及另外 %lld 项"
+          }
+        }
+      }
+    },
+    "contains “%@”": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含“%@”"
+          }
+        }
+      }
+    },
+    "Disconnect %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开 %@"
+          }
+        }
+      }
+    },
+    "Hide the %lld hidden by rules": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏被规则隐藏的 %lld 项"
+          }
+        }
+      }
+    },
+    "Matches %lld of %lld items on screen": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匹配屏幕上 %2$lld 项中的 %1$lld 项"
+          }
+        }
+      }
+    },
+    "Only from %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅来自 %@"
+          }
+        }
+      }
+    },
+    "Show %lld more": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再显示 %lld 项"
+          }
+        }
+      }
+    },
+    "similarity %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相似度 %lld"
+          }
+        }
+      }
+    },
+    "The repository’s %@ can’t be read: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取仓库的 %1$@：%2$@"
+          }
+        }
+      }
+    },
+    "Writes %@ so the team gets this profile with the code.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写入 %@，让团队随代码一起获得此配置。"
+          }
+        }
+      }
+    },
+    "Couldn’t reach New Relic: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连接 New Relic：%@"
+          }
+        }
+      }
+    },
+    "New Relic replied with HTTP %lld.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Relic 返回了 HTTP %lld。"
+          }
+        }
+      }
+    },
+    "This profile reads %@, which isn’t connected.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此配置需要读取 %@，但尚未连接。"
+          }
+        }
+      }
+    },
+    "NRQL. Use {{%@}} for the header’s values.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NRQL。使用 {{%@}} 引用顶部栏中的值。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
