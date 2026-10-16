@@ -17,6 +17,20 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.13.0",
+    date: "2026-10-16",
+    title: "Sessions grouped by the task they're for",
+    changes: {
+      new: [
+        "Group by Task: turn it on in the sidebar's sort menu and each project's chats and terminals sit under the task they belong to, by worktree, branch, the ticket a branch names, or the session they were opened from. Work on main stays a plain row unless something ties it to a task.",
+        "Right-click a session to Move to Task, Remove from Task, or hand it back with Group Automatically. A task's tooltip says why its sessions are together.",
+      ],
+      improved: [
+        "The sidebar shows the standard spinner while an agent is working, the same one the GitHub panes show while they load.",
+      ],
+    },
+  },
+  {
     version: "0.12.0",
     date: "2026-10-15",
     title: "A notes page for every project",
