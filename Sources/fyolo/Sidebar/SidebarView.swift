@@ -143,6 +143,9 @@ struct SidebarView: View {
     // fold and omit the collapsed project's rows.
     @State private var collapsedProjects: Set<Project.ID> = []
     @State private var collapsedWorktrees: Set<Worktree.ID> = []
+    /// Folded tasks, keyed by project and task so one task id in two projects
+    /// (a ticket worked in both repos) folds independently.
+    @State private var collapsedTasks: Set<String> = []
     @State private var pinnedCollapsed = false
     @State private var projectsCollapsed = false
     @State private var terminalsCollapsed = false
@@ -387,7 +390,9 @@ struct SidebarView: View {
             toggleCollapsed: { toggleCollapsed(project.id) },
             chrome: chrome
         )
-        if !collapsedProjects.contains(project.id) {
+        if !collapsedProjects.contains(project.id), settings.groupSessionsByTask {
+            taskRows(for: project, marksDevice: marksDevice)
+        } else if !collapsedProjects.contains(project.id) {
             let primarySessions = primarySessions(for: project)
             let primarySplitMarks = splitLinkMarks(for: primarySessions)
             ForEach(primarySessions) { session in
@@ -418,6 +423,74 @@ struct SidebarView: View {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    /// Group by Task's body for one project: each task's header and sessions,
+    /// then the sessions no task claims at the project's own indent, then any
+    /// worktree nobody has opened a session in yet — its header is the only
+    /// place to start one there.
+    @ViewBuilder
+    private func taskRows(for project: Project, marksDevice: Bool) -> some View {
+        let sessions = groupableSessions(for: project)
+        let layout = store.taskLayout(for: project, sessions: sessions)
+        let byID = Dictionary(sessions.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        ForEach(layout.groups) { task in
+            let key = "\(project.id)|\(task.id)"
+            TaskHeader(
+                project: project,
+                task: task,
+                isCollapsed: collapsedTasks.contains(key),
+                toggleCollapsed: { toggleTaskCollapsed(key) },
+                chrome: chrome
+            )
+            if !collapsedTasks.contains(key) {
+                let members = task.sessionIDs.compactMap { byID[$0] }
+                let splitMarks = splitLinkMarks(for: members)
+                ForEach(members) { session in
+                    SessionRow(session: session, chrome: chrome, leadingIndent: 32,
+                               splitLink: splitMarks[session.id], marksDevice: marksDevice)
+                }
+            }
+        }
+        let loose = layout.loose.compactMap { byID[$0] }
+        let looseMarks = splitLinkMarks(for: loose)
+        ForEach(loose) { session in
+            SessionRow(session: session, chrome: chrome,
+                       splitLink: looseMarks[session.id], marksDevice: marksDevice)
+        }
+        let occupied = Set(sessions.compactMap(\.worktreePath))
+        ForEach(project.worktrees.filter { !occupied.contains($0.path) }) { worktree in
+            ProjectHeader(
+                project: project,
+                worktree: worktree,
+                isCollapsed: true,
+                toggleCollapsed: {},
+                chrome: chrome,
+                leadingIndent: 16
+            )
+        }
+    }
+
+    /// The sessions the checkout tree would draw for `project` — every main
+    /// checkout session, and each worktree's sessions on this device — in roster
+    /// order, so grouping by task never shows or hides a row the tree wouldn't.
+    private func groupableSessions(for project: Project) -> [Session] {
+        let worktreePaths = Set(project.worktrees.map(\.path))
+        return project.sessions.filter { session in
+            guard !project.worktrees.isEmpty, let path = session.worktreePath, path != project.path
+            else { return true }
+            return worktreePaths.contains(path) && store.isOnCurrentDevice(session)
+        }
+    }
+
+    private func toggleTaskCollapsed(_ key: String) {
+        withAnimation(.easeInOut(duration: 0.18)) {
+            if collapsedTasks.contains(key) {
+                collapsedTasks.remove(key)
+            } else {
+                collapsedTasks.insert(key)
             }
         }
     }
@@ -1078,6 +1151,126 @@ private struct ProjectHeader: View {
     }
 }
 
+/// A task's row in Group by Task: what the work is (its tickets, then the
+/// tracker's title or the branch), above the sessions doing it. Shaped like a
+/// worktree header one level down — same indent, same hover quick-add — with a
+/// target glyph instead of a folder, since a task is not a place on disk.
+private struct TaskHeader: View {
+    @EnvironmentObject var store: FyoloStore
+    @EnvironmentObject var settings: AppSettings
+    let project: Project
+    let task: TaskGroup
+    let isCollapsed: Bool
+    let toggleCollapsed: () -> Void
+    let chrome: ChromeTheme?
+    @State private var isHovering = false
+    @State private var isMenuOpen = false
+
+    private var presets: [AgentPreset] { headerSessionPresets(settings) }
+
+    private var quickAddClusterWidth: CGFloat {
+        let count = presets.count
+        guard count > 0 else { return 0 }
+        return CGFloat(count) * 22 + CGFloat(count - 1) * 3
+    }
+
+    /// Why these sessions are together, one line per piece of evidence.
+    private var reasonsHelp: String {
+        task.reasons.map { reason in
+            switch reason {
+            case .worktree(let name): localized("Worktree \(name)")
+            case .branch(let branch): localized("Branch \(branch)")
+            case .ticketInBranch(let ticket, let branch): localized("\(branch) names \(ticket)")
+            case .ticketBranch(let ticket, let branch): localized("Linear’s branch for \(ticket) is \(branch)")
+            case .pullRequest(let number, let branch): localized("Pull request #\(number) from \(branch)")
+            case .ticketInPullRequest(let ticket, let number): localized("Pull request #\(number) names \(ticket)")
+            case .mentioned(let ticket): localized("A prompt named \(ticket)")
+            case .moved: localized("Includes a session moved here by hand")
+            }
+        }.joined(separator: "\n")
+    }
+
+    private func addSession(_ preset: AgentPreset) {
+        store.addSession(to: project.id, agent: preset, inTask: task)
+    }
+
+    private var menuItems: [SidebarMenuItem] {
+        var items: [SidebarMenuItem] = [
+            .action(localized("New Terminal")) { addSession(.terminal) },
+            .submenu(localized("New Agent Session"), enabledAgentPresets(settings)
+                .filter { $0 != .terminal }
+                .map { preset in .agent(preset) { addSession(preset) } }),
+        ]
+        if let branch = task.branches.first {
+            items.append(.separator)
+            items.append(.action(localized("Copy Branch Name")) {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(branch, forType: .string)
+            })
+        }
+        return items
+    }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            HugeIconView(icon: task.isFinished ? .checkCircle : .target, size: 15,
+                         color: chrome?.foreground ?? .primary)
+                .frame(width: 16)
+            if let prefix = task.ticketPrefix {
+                Text(prefix)
+                    .font(settings.interfaceFont)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            Text(task.headline)
+                .font(settings.interfaceFont)
+                .foregroundStyle(chrome.map { AnyShapeStyle($0.foreground) } ?? AnyShapeStyle(.primary))
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Spacer(minLength: 4)
+            if let number = task.pullRequests.first {
+                Text("#\(number)")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        // Finished work stays reachable but steps back.
+        .opacity(task.isFinished ? 0.55 : 1)
+        // The same label fade under the hover cluster as `ProjectHeader`.
+        .mask(
+            HStack(spacing: 0) {
+                Rectangle().fill(.black)
+                LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: isHovering ? 18 : 0)
+                Color.clear.frame(width: isHovering ? quickAddClusterWidth + 6 : 0)
+            }
+        )
+        .overlay(alignment: .trailing) {
+            HStack(spacing: 3) {
+                ForEach(presets) { preset in
+                    AgentQuickAddButton(preset: preset, chrome: chrome) { addSession(preset) }
+                }
+            }
+            .opacity(isHovering ? 1 : 0)
+            .allowsHitTesting(isHovering)
+        }
+        .padding(.vertical, 3)
+        .padding(.leading, 16 - sidebarLeadingTrim)
+        .contentShape(Rectangle())
+        .help(reasonsHelp)
+        .onHover { isHovering = $0 }
+        .onTapGesture { toggleCollapsed() }
+        .background(SidebarRowContextMenu(items: { menuItems }) { isMenuOpen = $0 })
+        .background(OutlineViewFixups())
+        .listRowBackground(
+            SidebarRowHighlight(isSelected: false, isHovering: isMenuOpen, chrome: chrome)
+                .animation(.easeInOut(duration: 0.12), value: isMenuOpen)
+        )
+        .animation(.easeInOut(duration: 0.12), value: isHovering)
+    }
+}
+
 @MainActor
 func enabledAgentPresets(_ settings: AppSettings) -> [AgentPreset] {
     settings.orderedAgents(AgentPreset.allCases.filter(settings.isAgentEnabled))
@@ -1382,6 +1575,7 @@ private struct SessionRow: View {
                 }
             }))
         }
+        items.append(contentsOf: taskMenuItems)
         items.append(contentsOf: [
             .separator,
             .action(session.pinned ? localized("Unpin") : localized("Pin")) { store.toggleSessionPinned(session.id) },
@@ -1389,6 +1583,35 @@ private struct SessionRow: View {
             .action(localized("Close Session")) { store.requestCloseSession(session.id) },
         ])
         return items
+    }
+
+    /// Group by Task's hand corrections, for a project session while the mode is on.
+    private var taskMenuItems: [SidebarMenuItem] {
+        guard settings.groupSessionsByTask,
+              case .project(let projectIndex, _)? = store.locate(session.id),
+              store.projects.indices.contains(projectIndex)
+        else { return [] }
+        let project = store.projects[projectIndex]
+        let layout = store.taskLayout(for: project, sessions: project.sessions)
+        let current = layout.group(containing: session.id)
+        let targets = layout.groups.filter { $0.id != current?.id }
+        var items: [SidebarMenuItem] = []
+        if !targets.isEmpty {
+            items.append(.submenu(localized("Move to Task"), targets.map { task in
+                .action([task.ticketPrefix, task.headline].compactMap { $0 }.joined(separator: " ")) {
+                    store.moveSession(session.id, toTask: task.id)
+                }
+            }))
+        }
+        if current != nil {
+            items.append(.action(localized("Remove from Task")) { store.removeSessionFromTask(session.id) })
+        }
+        if session.taskOverride != nil {
+            items.append(.action(localized("Group Automatically")) {
+                store.groupSessionAutomatically(session.id)
+            })
+        }
+        return items.isEmpty ? [] : [.separator] + items
     }
 
     var body: some View {

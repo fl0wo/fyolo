@@ -60,6 +60,8 @@
 	<string>%@ 尚未发布</string>
 	<key>%@ keeps exiting — retrying every %llds</key>
 	<string>%1$@ 反复退出——每 %2$lld 秒重试一次</string>
+	<key>%@ names %@</key>
+	<string>%1$@ 提到了 %2$@</string>
 	<key>%@ never answered on its published address.</key>
 	<string>%@ 始终没有在它发布的地址上回应。</string>
 	<key>%@ opened %@</key>
@@ -152,6 +154,8 @@
 	<string>手机也可以直接连到其中一台，这台 Mac 睡眠时仍能继续用。</string>
 	<key>A port is a number from 1 to 65535.</key>
 	<string>端口是 1 到 65535 之间的数字。</string>
+	<key>A prompt named %@</key>
+	<string>提示词中提到了 %@</string>
 	<key>A run button beside each script in a package.json, using the project’s package manager.</key>
 	<string>在 package.json 的每个脚本旁显示运行按钮，使用项目自己的包管理器。</string>
 	<key>A run button beside each target in a Makefile.</key>
@@ -282,6 +286,8 @@
 	<string>模糊：%lld</string>
 	<key>Branch</key>
 	<string>分支</string>
+	<key>Branch %@</key>
+	<string>分支 %@</string>
 	<key>Bring All to Front</key>
 	<string>前置全部窗口</string>
 	<key>Built In</key>
@@ -510,6 +516,8 @@
 	<string>已拷贝</string>
 	<key>Copy</key>
 	<string>拷贝</string>
+	<key>Copy Branch Name</key>
+	<string>拷贝分支名称</string>
 	<key>Copy Diff</key>
 	<string>拷贝差异</string>
 	<key>Copy Image</key>
@@ -880,10 +888,14 @@
 	<string>绿色</string>
 	<key>Group</key>
 	<string>分组</string>
+	<key>Group Automatically</key>
+	<string>自动分组</string>
 	<key>Group Similar</key>
 	<string>将相似项分组</string>
 	<key>Group Similar…</key>
 	<string>将相似项分组…</string>
+	<key>Group by Task</key>
+	<string>按任务分组</string>
 	<key>Group lines that say the same thing</key>
 	<string>将内容相同的行分组</string>
 	<key>Group name</key>
@@ -964,6 +976,8 @@
 	<string>审查中</string>
 	<key>Incidents</key>
 	<string>事件</string>
+	<key>Includes a session moved here by hand</key>
+	<string>包含手动移入的会话</string>
 	<key>Increase Font Size</key>
 	<string>增大字体</string>
 	<key>Info</key>
@@ -1072,6 +1086,8 @@
 	<string>Linear 返回了 HTTP %lld。</string>
 	<key>Linear returned an unexpected reply.</key>
 	<string>Linear 返回了意外的响应。</string>
+	<key>Linear’s branch for %@ is %@</key>
+	<string>%1$@ 在 Linear 中的分支是 %2$@</string>
 	<key>Linear’s rate limit is exhausted. Wait a moment and try again.</key>
 	<string>Linear 的速率限制已用尽，请稍候再试。</string>
 	<key>Links `%@` into /usr/local/bin so you (and agents) can run `%@ sessions …` from any shell.</key>
@@ -1138,6 +1154,8 @@
 	<string>下移</string>
 	<key>Move Up</key>
 	<string>上移</string>
+	<key>Move to Task</key>
+	<string>移到任务</string>
 	<key>Move to Trash</key>
 	<string>移到废纸篓</string>
 	<key>Move to Workspace</key>
@@ -1580,6 +1598,10 @@
 	<string>发布会重启 %@ 上的 fyolod</string>
 	<key>Pull Requests</key>
 	<string>PR</string>
+	<key>Pull request #%lld from %@</key>
+	<string>来自 %2$@ 的拉取请求 #%1$lld</string>
+	<key>Pull request #%lld names %@</key>
+	<string>拉取请求 #%1$lld 提到了 %2$@</string>
 	<key>Pull requests you opened, are assigned to, or are asked to review</key>
 	<string>由你创建、指派给你或请你审查的 PR</string>
 	<key>Purple</key>
@@ -1668,6 +1690,8 @@
 	<string>移除 Worktree</string>
 	<key>Remove from List</key>
 	<string>从列表中移除</string>
+	<key>Remove from Task</key>
+	<string>移出任务</string>
 	<key>Remove “%@”?</key>
 	<string>移除“%@”？</string>
 	<key>Removed from PATH.</key>
@@ -2340,6 +2364,8 @@
 	<string>工作区不可用</string>
 	<key>Workspaces</key>
 	<string>工作区</string>
+	<key>Worktree %@</key>
+	<string>工作树 %@</string>
 	<key>Worktree has changes</key>
 	<string>Worktree 存在更改</string>
 	<key>Worktree is locked</key>

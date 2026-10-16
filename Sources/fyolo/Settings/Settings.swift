@@ -96,7 +96,7 @@ final class AppSettings: ObservableObject {
         Key.sessionControlEnabled, Key.githubIntegrationEnabled, Key.pinnedWorkflows,
         Key.notifyTaskCompletion, Key.notificationSound,
         Key.analyticsEnabled,
-        Key.projectSortOrder, Key.defaultChatAgent, Key.dimIgnoredFiles,
+        Key.projectSortOrder, Key.groupSessionsByTask, Key.defaultChatAgent, Key.dimIgnoredFiles,
         Key.diffSplitView,
     ]
 
@@ -154,6 +154,7 @@ final class AppSettings: ObservableObject {
         static let dimIgnoredFiles = "files.dimIgnoredFiles"
         static let diffSplitView = "diff.splitView"
         static let projectSortOrder = "sidebar.projectSortOrder"
+        static let groupSessionsByTask = "sidebar.groupByTask"
         static let recentProjects = "welcome.recentProjects"
         static let lastChatAgent = "chats.lastAgent"
         static let defaultChatAgent = "chats.defaultAgent"
@@ -217,6 +218,12 @@ final class AppSettings: ObservableObject {
     /// Driven by the sort menu in the sidebar's toolbar.
     @Published var projectSortOrder: ProjectSortOrder {
         didSet { store.set(projectSortOrder.rawValue, forKey: Key.projectSortOrder) }
+    }
+
+    /// Whether each project's sessions are arranged into tasks (see
+    /// `TaskResolver`) rather than by checkout. Set from the sort menu.
+    @Published var groupSessionsByTask: Bool {
+        didSet { store.set(groupSessionsByTask, forKey: Key.groupSessionsByTask) }
     }
 
     /// Folders the user has opened, most-recent first, so the welcome page's
@@ -620,6 +627,9 @@ final class AppSettings: ObservableObject {
             // with a GitHub remote, so there is nothing to opt into until then.
             Key.githubIntegrationEnabled: true,
             Key.projectSortOrder: "name",
+            // Off until the grouping has earned trust on real trees: a wrong
+            // automatic grouping moves rows nobody asked to move.
+            Key.groupSessionsByTask: false,
             // Notifications ship on (macOS's own permission prompt is the real
             // gate); the sound stays opt-in so a finishing agent is never noisy
             // by default.
@@ -681,6 +691,7 @@ final class AppSettings: ObservableObject {
         notificationSoundEnabled = store.bool(Key.notificationSound)
         analyticsEnabled = store.bool(Key.analyticsEnabled)
         projectSortOrder = store.string(Key.projectSortOrder).flatMap(ProjectSortOrder.init) ?? .name
+        groupSessionsByTask = store.bool(Key.groupSessionsByTask)
         recentProjects = defaults.data(forKey: Key.recentProjects)
             .flatMap { try? JSONDecoder().decode([RecentProject].self, from: $0) } ?? []
         lastChatAgentID = defaults.string(forKey: Key.lastChatAgent)

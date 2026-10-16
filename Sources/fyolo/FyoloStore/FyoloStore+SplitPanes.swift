@@ -59,6 +59,7 @@ extension FyoloStore {
         // this Mac: the pane sits beside its origin and reads as the same
         // place, so it has to be the same place.
         newSession.inheritDevice(from: session(focusedID))
+        newSession.taskAnchor = taskAnchor(checkout: checkoutFolder(of: focusedID), origin: focusedID)
         // The directory rule holds over there too. `inheritDevice` carried the
         // directory the origin was *started* in; the daemon on that box says
         // where its shell has since walked to.
@@ -160,6 +161,7 @@ extension FyoloStore {
         // And the anchor's device, for the same reason: a split of a session on
         // another machine stays on that machine.
         newSession.inheritDevice(from: session(anchorID))
+        newSession.taskAnchor = taskAnchor(checkout: checkoutFolder(of: anchorID), origin: anchorID)
         if agent == .terminal, let remote = remoteWorkingDirectory(for: anchorID) {
             newSession.fyolodRemoteCwd = remote
         }

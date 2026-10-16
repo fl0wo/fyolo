@@ -2615,7 +2615,16 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
             item.representedObject = order.rawValue
             menu.addItem(item)
         }
+        menu.addItem(.separator())
+        let grouping = NSMenuItem(title: localized("Group by Task"),
+                                  action: #selector(toggleGroupSessionsByTask), keyEquivalent: "")
+        grouping.target = self
+        menu.addItem(grouping)
         return menu
+    }
+
+    @objc private func toggleGroupSessionsByTask() {
+        settings.groupSessionsByTask.toggle()
     }
 
     @objc private func setProjectSortOrder(_ sender: NSMenuItem) {
@@ -2710,7 +2719,9 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
     // sort items carry a `ProjectSortOrder` raw string, pane items an `InspectorTab`.
     func menuNeedsUpdate(_ menu: NSMenu) {
         for item in menu.items {
-            if let raw = item.representedObject as? String {
+            if item.action == #selector(toggleGroupSessionsByTask) {
+                item.state = settings.groupSessionsByTask ? .on : .off
+            } else if let raw = item.representedObject as? String {
                 item.state = raw == settings.projectSortOrder.rawValue ? .on : .off
             } else if let tab = item.representedObject as? InspectorTab {
                 item.state = tab == store.inspectorTab ? .on : .off

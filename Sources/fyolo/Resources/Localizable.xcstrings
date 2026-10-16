@@ -12364,6 +12364,136 @@
           }
         }
       }
+    },
+    "Group by Task": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按任务分组"
+          }
+        }
+      }
+    },
+    "Move to Task": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移到任务"
+          }
+        }
+      }
+    },
+    "Remove from Task": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移出任务"
+          }
+        }
+      }
+    },
+    "Group Automatically": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动分组"
+          }
+        }
+      }
+    },
+    "Copy Branch Name": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷贝分支名称"
+          }
+        }
+      }
+    },
+    "Worktree %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作树 %@"
+          }
+        }
+      }
+    },
+    "Branch %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分支 %@"
+          }
+        }
+      }
+    },
+    "%@ names %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 提到了 %2$@"
+          }
+        }
+      }
+    },
+    "Linear’s branch for %@ is %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 在 Linear 中的分支是 %2$@"
+          }
+        }
+      }
+    },
+    "Pull request #%lld from %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自 %2$@ 的拉取请求 #%1$lld"
+          }
+        }
+      }
+    },
+    "Pull request #%lld names %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拉取请求 #%1$lld 提到了 %2$@"
+          }
+        }
+      }
+    },
+    "A prompt named %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示词中提到了 %@"
+          }
+        }
+      }
+    },
+    "Includes a session moved here by hand": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含手动移入的会话"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
