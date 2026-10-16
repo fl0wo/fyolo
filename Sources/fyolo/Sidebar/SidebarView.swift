@@ -1410,9 +1410,8 @@ private struct SessionRow: View {
         // status, and reading it three times is three lookups for one fact.
         let status = store.status(for: session.id)
         return HStack(spacing: 6) {
-            // While the agent is working, the leading mark becomes a small rotating
-            // nine-dot grid — the row's own "thinking" spinner — and reverts to the
-            // brand mark when the turn ends. No ambient tint on the brand mark: it
+            // While the agent is working, the leading mark becomes a small system
+            // spinner and reverts to the brand mark when the turn ends. No ambient tint on the brand mark: it
             // must keep its own vendor color (the same full-strength logo the
             // settings page shows), and the plain terminal symbol carries its own
             // muted grey from AgentIconView.
@@ -1427,15 +1426,15 @@ private struct SessionRow: View {
                     // equal size is what makes the glyphs read as one family.
                     HugeIconView(icon: .serverStack, size: 15, color: .secondary)
                 } else if status == .working {
-                    // The spinner carries no status color — its motion already
+                    // The system spinner, the same one the GitHub panes show
+                    // while a page loads, so "in flight" reads one way across
+                    // the app. It carries no status color — its motion already
                     // says "working", so color stays reserved for the states
                     // that need the user (the green done / orange attention
-                    // dots, whose only channel is color), and per-agent brand
-                    // tints read as noise. It draws in the same primary ink as
-                    // the sidebar's folder and terminal glyphs; the comet's own
-                    // opacity ramp provides all the fade, so the head reads at
-                    // full icon strength instead of a double-discounted grey.
-                    WorkingIndicator(tint: .sidebarWorkingInk)
+                    // rings, whose only channel is color). AppKit animates it
+                    // on its own layer, so a working row never ticks SwiftUI.
+                    ProgressView()
+                        .controlSize(.small)
                 } else {
                     AgentIconView(agent: store.effectiveAgent(for: session), size: 15)
                 }
@@ -1726,17 +1725,6 @@ private struct StatusRing: View {
     private var color: Color {
         status == .needsAttention ? .orange : .green
     }
-}
-
-extension Color {
-    /// Pure ink for the sidebar's working spinner: `labelColor` keeps ~15%
-    /// transparency and the sidebar's vibrancy lightens it again, which left even
-    /// the comet's full-opacity head reading grey. Appearance-adaptive
-    /// black/white punches through both. The shared `WorkingIndicator` takes its
-    /// tint from the caller so iOS can pass an agent brand color instead.
-    static let sidebarWorkingInk = Color(nsColor: NSColor(name: nil) { appearance in
-        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? .white : .black
-    })
 }
 
 /// Sidebar nudge shown when agents run with the status hooks disabled. Low-alarm by
