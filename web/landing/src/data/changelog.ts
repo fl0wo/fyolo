@@ -17,6 +17,20 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.14.0",
+    date: "2026-10-16",
+    title: "Tasks named after their tickets and pull requests",
+    changes: {
+      improved: [
+        "Group by Task: with GitHub or Linear connected, a task takes its Linear ticket's or pull request's title and shows the pull request's number and status. Merged or completed tasks dim and sink to the bottom.",
+        "Right-click a task to open its pull request, open its ticket in Linear, or copy its branch name.",
+      ],
+      fixed: [
+        "The Enable button on the \"Live agent status is off\" card is readable in dark mode.",
+      ],
+    },
+  },
+  {
     version: "0.13.0",
     date: "2026-10-16",
     title: "Sessions grouped by the task they're for",
