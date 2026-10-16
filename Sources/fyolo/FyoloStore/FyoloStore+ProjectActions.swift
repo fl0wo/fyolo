@@ -17,6 +17,7 @@ extension FyoloStore {
         agent: AgentPreset = .terminal,
         worktreePath: String? = nil,
         spawnDirectory: String? = nil,
+        origin: Session.ID? = nil,
         takeFocus: Bool = true
     ) -> Session.ID? {
         guard let index = projects.firstIndex(where: { $0.id == projectID }) else { return nil }
@@ -32,6 +33,7 @@ extension FyoloStore {
         var session = Session(title: title, agent: agent)
         session.worktreePath = worktreePath
         session.spawnDirectory = spawnDirectory
+        session.taskAnchor = taskAnchor(checkout: worktreePath ?? project.path, origin: origin)
         projects[index].sessions.append(session)
         if takeFocus {
             selectedSessionID = session.id
@@ -747,7 +749,8 @@ extension FyoloStore {
             return
         }
         addSession(to: projects[index].id, agent: .terminal,
-                   worktreePath: self[slot].worktreePath, spawnDirectory: directory)
+                   worktreePath: self[slot].worktreePath, spawnDirectory: directory,
+                   origin: self[slot].id)
     }
 
     /// The agent a bare **New Chat** launches, resolved in priority order:

@@ -616,6 +616,17 @@ struct Session: Identifiable, Hashable, Codable {
     /// Fyolo wins over both. Cleared when the agent rotates to a new conversation.
     var promptTitle: String?
 
+    /// What this session was opened with that says which task it belongs to — the
+    /// branch, the session it was opened from, the tickets its first prompt named.
+    /// Stamped when the facts happen and never recomputed, so the sidebar's
+    /// Group by Task keeps a row where it was put when a checkout later moves on
+    /// (see `TaskResolver`). `nil` on sessions written before the feature existed.
+    var taskAnchor: TaskAnchor?
+
+    /// Where the user put this session by hand, which outranks everything
+    /// `taskAnchor` implies. `nil` leaves the grouping automatic.
+    var taskOverride: TaskOverride?
+
     /// When the agent was first launched, used to correlate Codex/OpenCode's own
     /// session record (matched by working directory) back to *this* session — their
     /// CLIs won't accept an id up front, so the id is discovered afterward from the
@@ -633,7 +644,7 @@ struct Session: Identifiable, Hashable, Codable {
         case id, title, agent, createdAt, worktreePath, resumeID, launched, launchedAt,
              liveTitle, promptTitle, lastWorkingDirectory, spawnDirectory, sshHost, pinned,
              fyolodRemoteHost, fyolodRemoteCwd, deviceID, fyolodSessionName,
-             fyolodDaemonID, givenTitle
+             fyolodDaemonID, givenTitle, taskAnchor, taskOverride
     }
 
     /// The name to recover from a state file written before `givenTitle` existed,
@@ -686,6 +697,8 @@ struct Session: Identifiable, Hashable, Codable {
         fyolodDaemonID = try container.decodeIfPresent(String.self, forKey: .fyolodDaemonID)
         givenTitle = try container.decodeIfPresent(String.self, forKey: .givenTitle)
             ?? Self.recoveredGivenTitle(title, agent: agent, remoteHost: fyolodRemoteHost)
+        taskAnchor = try container.decodeIfPresent(TaskAnchor.self, forKey: .taskAnchor)
+        taskOverride = try container.decodeIfPresent(TaskOverride.self, forKey: .taskOverride)
     }
 }
 

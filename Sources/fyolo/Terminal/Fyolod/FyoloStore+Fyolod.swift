@@ -259,6 +259,7 @@ extension FyoloStore {
         // own hook socket and reach only agents on this Mac. One report path
         // means a device agent gets it too.
         if let candidate = report.promptTitle {
+            recordTaskPrompt(candidate, for: id)
             recordPromptTitle(candidate, for: id)
         }
         // The workstream title is the agent's own label for what it is doing.

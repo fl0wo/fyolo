@@ -60,6 +60,8 @@
 	<string>%@ isn’t published yet</string>
 	<key>%@ keeps exiting — retrying every %llds</key>
 	<string>%@ keeps exiting — retrying every %llds</string>
+	<key>%@ names %@</key>
+	<string>%@ names %@</string>
 	<key>%@ never answered on its published address.</key>
 	<string>%@ never answered on its published address.</string>
 	<key>%@ opened %@</key>
@@ -152,6 +154,8 @@
 	<string>A phone can attach straight to one of these instead, and keep working when this Mac is asleep.</string>
 	<key>A port is a number from 1 to 65535.</key>
 	<string>A port is a number from 1 to 65535.</string>
+	<key>A prompt named %@</key>
+	<string>A prompt named %@</string>
 	<key>A run button beside each script in a package.json, using the project’s package manager.</key>
 	<string>A run button beside each script in a package.json, using the project’s package manager.</string>
 	<key>A run button beside each target in a Makefile.</key>
@@ -282,6 +286,8 @@
 	<string>Blur: %lld</string>
 	<key>Branch</key>
 	<string>Branch</string>
+	<key>Branch %@</key>
+	<string>Branch %@</string>
 	<key>Bring All to Front</key>
 	<string>Bring All to Front</string>
 	<key>Built In</key>
@@ -510,6 +516,8 @@
 	<string>Copied</string>
 	<key>Copy</key>
 	<string>Copy</string>
+	<key>Copy Branch Name</key>
+	<string>Copy Branch Name</string>
 	<key>Copy Diff</key>
 	<string>Copy Diff</string>
 	<key>Copy Image</key>
@@ -880,10 +888,14 @@
 	<string>Green</string>
 	<key>Group</key>
 	<string>Group</string>
+	<key>Group Automatically</key>
+	<string>Group Automatically</string>
 	<key>Group Similar</key>
 	<string>Group Similar</string>
 	<key>Group Similar…</key>
 	<string>Group Similar…</string>
+	<key>Group by Task</key>
+	<string>Group by Task</string>
 	<key>Group lines that say the same thing</key>
 	<string>Group lines that say the same thing</string>
 	<key>Group name</key>
@@ -964,6 +976,8 @@
 	<string>In Review</string>
 	<key>Incidents</key>
 	<string>Incidents</string>
+	<key>Includes a session moved here by hand</key>
+	<string>Includes a session moved here by hand</string>
 	<key>Increase Font Size</key>
 	<string>Increase Font Size</string>
 	<key>Info</key>
@@ -1072,6 +1086,8 @@
 	<string>Linear replied with HTTP %lld.</string>
 	<key>Linear returned an unexpected reply.</key>
 	<string>Linear returned an unexpected reply.</string>
+	<key>Linear’s branch for %@ is %@</key>
+	<string>Linear’s branch for %@ is %@</string>
 	<key>Linear’s rate limit is exhausted. Wait a moment and try again.</key>
 	<string>Linear’s rate limit is exhausted. Wait a moment and try again.</string>
 	<key>Links `%@` into /usr/local/bin so you (and agents) can run `%@ sessions …` from any shell.</key>
@@ -1138,6 +1154,8 @@
 	<string>Move Down</string>
 	<key>Move Up</key>
 	<string>Move Up</string>
+	<key>Move to Task</key>
+	<string>Move to Task</string>
 	<key>Move to Trash</key>
 	<string>Move to Trash</string>
 	<key>Move to Workspace</key>
@@ -1580,6 +1598,10 @@
 	<string>Publishing restarts fyolod on %@</string>
 	<key>Pull Requests</key>
 	<string>Pull Requests</string>
+	<key>Pull request #%lld from %@</key>
+	<string>Pull request #%lld from %@</string>
+	<key>Pull request #%lld names %@</key>
+	<string>Pull request #%lld names %@</string>
 	<key>Pull requests you opened, are assigned to, or are asked to review</key>
 	<string>Pull requests you opened, are assigned to, or are asked to review</string>
 	<key>Purple</key>
@@ -1668,6 +1690,8 @@
 	<string>Remove Worktree</string>
 	<key>Remove from List</key>
 	<string>Remove from List</string>
+	<key>Remove from Task</key>
+	<string>Remove from Task</string>
 	<key>Remove “%@”?</key>
 	<string>Remove “%@”?</string>
 	<key>Removed from PATH.</key>
@@ -2340,6 +2364,8 @@
 	<string>Workspace Unavailable</string>
 	<key>Workspaces</key>
 	<string>Workspaces</string>
+	<key>Worktree %@</key>
+	<string>Worktree %@</string>
 	<key>Worktree has changes</key>
 	<string>Worktree has changes</string>
 	<key>Worktree is locked</key>
