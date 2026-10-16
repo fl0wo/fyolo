@@ -1970,6 +1970,9 @@ private struct AgentHooksOffBanner: View {
             Button(localized("Enable"), action: enable)
                 .buttonStyle(.borderless)
                 .font(.callout.weight(.medium))
+                // A borderless button takes the accent tint, which the dark
+                // theme leaves near-black on this card; primary reads in both modes.
+                .foregroundStyle(.primary)
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 10)
