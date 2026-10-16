@@ -1056,6 +1056,9 @@ final class FyoloStore: ObservableObject {
     /// from here, so a `git checkout` inside a session updates the UI on its own.
     let branchModel = BranchModel()
 
+    /// The pull requests and tickets Group by Task names its tasks with.
+    let taskFacts = TaskFactsLoader()
+
     /// The same label for checkouts on other machines, fed by each device's
     /// `head:` resource instead of a local file watch. The title bar reads the
     /// selected session's from here (see `deviceBranch(forCheckout:)`).
@@ -1183,6 +1186,7 @@ final class FyoloStore: ObservableObject {
     private(set) var lastHostGridRows: Int
     private var settingsObserver: AnyCancellable?
     private var branchObserver: AnyCancellable?
+    private var taskFactsObserver: AnyCancellable?
     private var deviceBranchObserver: AnyCancellable?
     private var linkObserver: AnyCancellable?
     private var appActiveObserver: AnyCancellable?
@@ -1325,6 +1329,9 @@ final class FyoloStore: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] in self?.objectWillChange.send() }
         deviceBranchObserver = deviceBranchModel.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in self?.objectWillChange.send() }
+        taskFactsObserver = taskFacts.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] in self?.objectWillChange.send() }
 

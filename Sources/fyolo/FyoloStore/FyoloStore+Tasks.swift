@@ -5,8 +5,27 @@ import Foundation
 extension FyoloStore {
     /// `sessions` arranged into tasks. The caller passes the rows it would draw,
     /// so the grouping never shows a session the plain tree would hide.
+    ///
+    /// Also where the trackers are asked: the facts for this project are read
+    /// (or found fresh) for exactly the branches and mentions on screen.
     func taskLayout(for project: Project, sessions: [Session]) -> TaskLayout {
-        TaskResolver.layout(members: sessions.map { taskMember($0, in: project) })
+        let members = sessions.map { taskMember($0, in: project) }
+        // A checkout on another machine has no local git to name its
+        // repository from, so it is grouped from what the sessions say alone.
+        if !isOnAnotherDevice(project) {
+            let branches = Set(members.compactMap(\.branch))
+                .filter { !TaskResolver.trunkBranches.contains($0) }
+            taskFacts.request(project.id, TaskFactsLoader.Request(
+                path: project.path,
+                branches: branches,
+                mentions: Set(members.flatMap(\.mentionedTickets)),
+                gitHub: settings.githubIntegrationEnabled,
+                linear: settings.isPluginEnabled(LinearPlugin.id)))
+        }
+        return TaskResolver.layout(
+            members: members,
+            facts: taskFacts.facts[project.id] ?? .none,
+            pattern: taskFacts.pattern)
     }
 
     private func taskMember(_ session: Session, in project: Project) -> TaskResolver.Member {

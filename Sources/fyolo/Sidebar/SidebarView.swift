@@ -1201,14 +1201,35 @@ private struct TaskHeader: View {
                 .filter { $0 != .terminal }
                 .map { preset in .agent(preset) { addSession(preset) } }),
         ]
+        var links: [SidebarMenuItem] = task.pullRequests.compactMap { pullRequest in
+            pullRequest.url.map { url in
+                .action(localized("Open Pull Request #\(pullRequest.number)")) { NSWorkspace.shared.open(url) }
+            }
+        }
+        if let url = task.ticketURL, let ticket = task.tickets.first {
+            links.append(.action(localized("Open \(ticket) in Linear")) { NSWorkspace.shared.open(url) })
+        }
         if let branch = task.branches.first {
-            items.append(.separator)
-            items.append(.action(localized("Copy Branch Name")) {
+            links.append(.action(localized("Copy Branch Name")) {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(branch, forType: .string)
             })
         }
-        return items
+        if !links.isEmpty { items.append(.separator) }
+        return items + links
+    }
+
+    /// The tooltip: what the work is called where it is tracked, then why
+    /// these sessions are together.
+    private var help: String {
+        var lines: [String] = []
+        if let title = task.title, let branch = task.branches.first { lines.append("\(title) — \(branch)") }
+        for pullRequest in task.pullRequests {
+            let status = pullRequest.status.map { " · \($0.label)" } ?? ""
+            lines.append("#\(pullRequest.number) \(pullRequest.title)\(status)")
+        }
+        lines.append(reasonsHelp)
+        return lines.joined(separator: "\n")
     }
 
     var body: some View {
@@ -1229,10 +1250,18 @@ private struct TaskHeader: View {
                 .lineLimit(1)
                 .truncationMode(.tail)
             Spacer(minLength: 4)
-            if let number = task.pullRequests.first {
-                Text("#\(number)")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
+            // The pull request's state in one dot, the same colors as the
+            // Linear pane's chips, with its number beside it.
+            if let pullRequest = task.pullRequests.first {
+                HStack(spacing: 3) {
+                    if let status = pullRequest.status {
+                        Circle().fill(status.tint).frame(width: 6, height: 6)
+                    }
+                    Text("#\(pullRequest.number)")
+                        .font(.system(size: 10).monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                .fixedSize()
             }
         }
         // Finished work stays reachable but steps back.
@@ -1258,7 +1287,7 @@ private struct TaskHeader: View {
         .padding(.vertical, 3)
         .padding(.leading, 16 - sidebarLeadingTrim)
         .contentShape(Rectangle())
-        .help(reasonsHelp)
+        .help(help)
         .onHover { isHovering = $0 }
         .onTapGesture { toggleCollapsed() }
         .background(SidebarRowContextMenu(items: { menuItems }) { isMenuOpen = $0 })
