@@ -154,7 +154,7 @@ final class TaskResolverTests: XCTestCase {
         XCTAssertEqual(before.groups.first?.id, after.groups.first?.id)
         XCTAssertEqual(after.groups.first?.tickets, ["ENG-430", "ENG-431"])
         XCTAssertEqual(after.groups.first?.title, "Billing export")
-        XCTAssertEqual(after.groups.first?.pullRequests, [91])
+        XCTAssertEqual(after.groups.first?.pullRequests.map(\.number), [91])
     }
 
     /// The tracker's branch for a ticket ties a branch that never names it.
@@ -173,6 +173,35 @@ final class TaskResolverTests: XCTestCase {
                                                    title: "ENG-1", isFinished: true)])
         let layout = TaskResolver.layout(members: [done, open], facts: facts)
         XCTAssertEqual(layout.groups.map(\.isFinished), [false, true])
+    }
+
+    /// Only identifiers of the workspace's own teams are worth a Linear read.
+    func testFactsAskOnlyAboutKnownTeams() {
+        let wanted = TaskFactsLoader.identifiers(
+            branches: ["flo/eng-412-x", "chore/ops-3-y"],
+            titles: ["ENG-430 billing", "Bump UTF-8 handling"],
+            mentions: ["ENG-9", "ABC-1"],
+            pattern: TaskTicketPattern(teamKeys: ["ENG"]))
+        XCTAssertEqual(wanted, ["ENG-412", "ENG-430", "ENG-9"])
+    }
+
+    func testAssembledFactsCarryStatusAndFinish() {
+        let merged = LinkedPullRequest(
+            number: 7, title: "ENG-1 done", url: URL(fileURLWithPath: "/7"), repository: "o/r",
+            status: .merged)
+        let review = LinkedPullRequest(
+            number: 8, title: "ENG-2 wip", url: URL(fileURLWithPath: "/8"), repository: "o/r",
+            status: .inReview)
+        let ticket = LinearClient.TicketSummary(
+            identifier: "ENG-2", title: "Wip", branchName: "flo/eng-2", url: nil,
+            state: .init(type: "started"))
+        let facts = TaskFactsLoader.assemble(
+            headed: ["flo/eng-1": merged, "flo/eng-2": review], tickets: [ticket, ticket])
+        XCTAssertEqual(facts.pullRequests.map(\.number), [7, 8])
+        XCTAssertEqual(facts.pullRequests.map(\.isFinished), [true, false])
+        XCTAssertEqual(facts.pullRequests.last?.status, .inReview)
+        XCTAssertEqual(facts.tickets.count, 1, "a ticket found twice is listed once")
+        XCTAssertEqual(facts.tickets.first?.isFinished, false)
     }
 
     func testHeuristicPatternRefusesLookAlikes() {

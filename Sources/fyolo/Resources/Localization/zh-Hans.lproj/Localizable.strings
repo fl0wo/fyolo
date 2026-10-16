@@ -1426,6 +1426,8 @@
 	<string>不透明度低于 100% 时会透出桌面，模糊可使其更柔和；完全不透明时窗口保持实色。</string>
 	<key>Open</key>
 	<string>打开</string>
+	<key>Open %@ in Linear</key>
+	<string>在 Linear 中打开 %@</string>
 	<key>Open Folder…</key>
 	<string>打开文件夹…</string>
 	<key>Open Link</key>
@@ -1436,6 +1438,8 @@
 	<string>打开项目</string>
 	<key>Open Project…</key>
 	<string>打开项目…</string>
+	<key>Open Pull Request #%lld</key>
+	<string>打开拉取请求 #%lld</string>
 	<key>Open Quickly…</key>
 	<string>快速打开…</string>
 	<key>Open System Settings</key>

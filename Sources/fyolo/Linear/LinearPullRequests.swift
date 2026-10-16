@@ -196,6 +196,40 @@ struct GitHubPullRequestLookup: Sendable {
             .filter { seen.insert($0.url).inserted }
     }
 
+    /// How many branches share one request — enough for every branch a project
+    /// has sessions on, small enough that one reply stays quick.
+    static let branchesPerRequest = 25
+
+    /// The pull request each of `branches` is the head of in `slug`
+    /// (`owner/name`): the open one when there is one, else the most recently
+    /// updated. A branch name reused after an old pull request closed would
+    /// otherwise bring that pull request's tickets into today's work.
+    func headedBy(_ branches: [String], in slug: String) async throws -> [String: LinkedPullRequest] {
+        struct Page: Decodable { let nodes: [RawPullRequest] }
+        struct Reply: Decodable { let repository: [String: Page]? }
+        let parts = slug.split(separator: "/", maxSplits: 1).map(String.init)
+        guard parts.count == 2, !branches.isEmpty else { return [:] }
+        let asked = Array(branches.prefix(Self.branchesPerRequest))
+        let declarations = (["$owner: String!", "$name: String!"]
+            + asked.indices.map { "$b\($0): String!" }).joined(separator: ", ")
+        let lookups = asked.indices.map { index in
+            "b\(index): pullRequests(headRefName: $b\(index), first: 5, "
+                + "orderBy: { field: UPDATED_AT, direction: DESC }) { nodes { \(Self.fields) } }"
+        }.joined(separator: "\n")
+        var variables: [String: any Sendable] = ["owner": parts[0], "name": parts[1]]
+        for (index, branch) in asked.enumerated() { variables["b\(index)"] = branch }
+        let reply: Reply = try await query(
+            "query(\(declarations)) {\nrepository(owner: $owner, name: $name) {\n\(lookups)\n}\n}",
+            variables: variables)
+        var headed: [String: LinkedPullRequest] = [:]
+        for (index, branch) in asked.enumerated() {
+            let candidates = (reply.repository?["b\(index)"]?.nodes ?? []).compactMap(\.linked)
+            let open = candidates.first { $0.status != .merged && $0.status != .closed }
+            if let chosen = open ?? candidates.first { headed[branch] = chosen }
+        }
+        return headed
+    }
+
     private func query<T: Decodable>(_ document: String, variables: [String: any Sendable]) async throws -> T {
         guard let url = connection.graphQLURL else { throw GitHubIssueProvider.APIError.decoding }
         var request = URLRequest(url: url, timeoutInterval: 20)

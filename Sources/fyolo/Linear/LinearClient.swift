@@ -312,6 +312,67 @@ struct LinearClient: Sendable {
         return reply.issue
     }
 
+    /// What Group by Task needs of a ticket: its name, the branch Linear
+    /// suggests for it, and whether it is finished.
+    struct TicketSummary: Decodable, Hashable, Sendable {
+        struct State: Decodable, Hashable, Sendable { let type: String }
+        let identifier: String
+        let title: String
+        let branchName: String?
+        let url: URL?
+        let state: State
+
+        var isFinished: Bool { state.type == "completed" || state.type == "canceled" }
+    }
+
+    private static let ticketFields = "identifier title branchName url state { type }"
+
+    /// The viewer's tickets that are underway or up next. Their `branchName` is
+    /// what ties a branch that doesn't spell out its ticket back to one.
+    func assignedOpenTickets() async throws -> [TicketSummary] {
+        struct Reply: Decodable {
+            struct Viewer: Decodable { let assignedIssues: LinearNodes<TicketSummary> }
+            let viewer: Viewer
+        }
+        let reply: Reply = try await query("""
+        query {
+          viewer {
+            assignedIssues(first: 100, orderBy: updatedAt,
+                           filter: { state: { type: { in: ["started", "unstarted"] } } }) {
+              nodes { \(Self.ticketFields) }
+            }
+          }
+        }
+        """)
+        return reply.viewer.assignedIssues.nodes
+    }
+
+    /// The tickets named by `identifiers` (`ENG-412`), in one request. A filter
+    /// rather than one `issue(id:)` per identifier: an identifier that names no
+    /// ticket is then simply missing from the answer, where a failed `issue`
+    /// would void the whole reply.
+    func tickets(_ identifiers: [String]) async throws -> [TicketSummary] {
+        struct Reply: Decodable { let issues: LinearNodes<TicketSummary> }
+        // Only `KEY-123` shapes reach the query text, so nothing a branch or
+        // title contained can change what the filter says.
+        let clauses = identifiers.compactMap { identifier -> String? in
+            let parts = identifier.split(separator: "-")
+            guard parts.count == 2, let number = Int(parts[1]),
+                  parts[0].allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber) })
+            else { return nil }
+            return "{ team: { key: { eq: \"\(parts[0])\" } }, number: { eq: \(number) } }"
+        }
+        guard !clauses.isEmpty else { return [] }
+        let reply: Reply = try await query("""
+        query {
+          issues(first: 100, filter: { or: [\(clauses.joined(separator: ", "))] }) {
+            nodes { \(Self.ticketFields) }
+          }
+        }
+        """)
+        return reply.issues.nodes
+    }
+
     // MARK: Transport
 
     private func query<T: Decodable>(_ document: String, variables: [String: String] = [:]) async throws -> T {

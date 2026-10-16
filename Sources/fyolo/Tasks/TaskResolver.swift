@@ -27,21 +27,26 @@ enum TaskOverride: Hashable, Codable {
 
 /// Pull requests and tickets the trackers know about. Empty when nothing is
 /// connected; the resolver then works from branches, worktrees and lineage alone.
-struct TaskFacts: Sendable {
-    struct PullRequest: Sendable {
+struct TaskFacts: Hashable, Sendable {
+    struct PullRequest: Hashable, Sendable {
         let number: Int
         /// The head branch, matched against the branches sessions sit on.
         let branch: String
         let title: String
+        /// Merged or closed.
         let isFinished: Bool
+        var status: LinkedPullRequestStatus? = nil
+        var url: URL? = nil
     }
 
-    struct Ticket: Sendable {
+    struct Ticket: Hashable, Sendable {
         let identifier: String
         let title: String
         /// The branch name the tracker suggests for the ticket, when it has one.
         let branchName: String?
+        /// Done or canceled.
         let isFinished: Bool
+        var url: URL? = nil
     }
 
     var pullRequests: [PullRequest] = []
@@ -132,9 +137,11 @@ struct TaskGroup: Identifiable, Hashable {
     let tickets: [String]
     let branches: [String]
     let folders: [String]
-    let pullRequests: [Int]
+    let pullRequests: [TaskFacts.PullRequest]
     /// The tracker's name for the work, when one is connected and knows it.
     let title: String?
+    /// The first ticket's page in the tracker, when one is connected.
+    let ticketURL: URL?
     let isFinished: Bool
     let sessionIDs: [Session.ID]
     let reasons: [TaskReason]
@@ -345,11 +352,11 @@ enum TaskResolver {
                 nodes.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) }
             }
             let tickets = values("ticket:")
-            let pullRequests = values("pr:").compactMap(Int.init)
+            let pullRequests = values("pr:").compactMap(Int.init).compactMap { pullRequestFacts[$0] }
             let title = tickets.lazy.compactMap { ticketFacts[$0]?.title }.first
-                ?? pullRequests.lazy.compactMap { pullRequestFacts[$0]?.title }.first
+                ?? pullRequests.first?.title
             let finishedTickets = tickets.compactMap { ticketFacts[$0]?.isFinished }
-            let finishedPullRequests = pullRequests.compactMap { pullRequestFacts[$0]?.isFinished }
+            let finishedPullRequests = pullRequests.map(\.isFinished)
             let verdicts = finishedTickets + finishedPullRequests
             let id = ["folder:", "branch:", "pr:", "ticket:"].lazy
                 .compactMap { prefix in nodes.first { $0.hasPrefix(prefix) } }
@@ -361,6 +368,7 @@ enum TaskResolver {
                 folders: values("folder:"),
                 pullRequests: pullRequests,
                 title: title,
+                ticketURL: tickets.lazy.compactMap { ticketFacts[$0]?.url }.first,
                 isFinished: !verdicts.isEmpty && verdicts.allSatisfy { $0 },
                 sessionIDs: sessionIDs,
                 reasons: graph.reasons(of: component))
