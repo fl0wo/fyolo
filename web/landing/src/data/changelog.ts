@@ -17,6 +17,17 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.14.1",
+    date: "2026-10-17",
+    title: "Reveal in Files lands on the first click",
+    changes: {
+      fixed: [
+        "Reveal in Files opens a file nested deep in a large project on the first click. Before, it could stop partway down and only land on a later click.",
+        "The Reveal in Files button shows a spinner while the tree opens, and the file scrolls into view once its folder opens.",
+      ],
+    },
+  },
+  {
     version: "0.14.0",
     date: "2026-10-16",
     title: "Tasks named after their tickets and pull requests",
