@@ -808,6 +808,8 @@
 	<string>查找下一个</string>
 	<key>Find Previous</key>
 	<string>查找上一个</string>
+	<key>Finding in Files…</key>
+	<string>正在“文件”中查找…</string>
 	<key>Find…</key>
 	<string>查找…</string>
 	<key>Finish updating Fyolo’s session host?</key>

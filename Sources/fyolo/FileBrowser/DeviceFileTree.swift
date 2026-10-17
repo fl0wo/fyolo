@@ -812,22 +812,53 @@ final class DeviceFileTreeModel: ObservableObject {
     ///
     /// Root first and outermost folder first: the reply is applied in the order
     /// asked, and a folder's row has to exist before its listing can attach.
-    func loadFolders(leadingTo path: String) async {
+    ///
+    /// Returns whether the folders are in hand, so a reveal whose listing failed
+    /// stops instead of waiting on rows that are never coming.
+    @discardableResult
+    func loadFolders(leadingTo path: String) async -> Bool {
         var wanted = rootNodes.isEmpty ? [root] : []
         wanted += folders(leadingTo: path).filter { nodesByPath[$0]?.loadedChildren == nil }
-        guard !wanted.isEmpty else { return }
+        guard !wanted.isEmpty else { return true }
+        // The folders already drawn are where the wait is, so their rows say so —
+        // the same spinner a slow expand shows. One a lazy expand is already
+        // spinning for belongs to that expand.
+        let waiting = wanted.compactMap { nodesByPath[$0] }.filter { !$0.isLoading }
+        if !waiting.isEmpty {
+            waiting.forEach { $0.isLoading = true }
+            revision &+= 1
+        }
+        defer {
+            if !waiting.isEmpty {
+                waiting.forEach { $0.isLoading = false }
+                revision &+= 1
+            }
+        }
         do {
             apply(try await provider.list(wanted))
             if !rootNodes.isEmpty, case .connecting = phase { phase = .ready }
+            return true
         } catch {
             report(error, context: "reveal \(host):\(path)")
+            return false
         }
     }
 
-    /// Opens `outline` down to the row for `path` and returns that row, or `nil`
-    /// while the outline has not yet caught up with the model — SwiftUI adopts
-    /// a listing on its next update pass, and an opened folder's rows a pass
-    /// after that — so the caller asks again a frame later.
+    /// How far a reveal got on one look at the outline.
+    enum RevealProgress {
+        /// The row for the path, ready to select.
+        case found(row: Int, path: String)
+        /// The outline has not caught up yet: `depth` is how many folders of the
+        /// chain it already shows, and `folder` the deepest of them — what a
+        /// reveal that gives up selects, rather than leaving nothing to show.
+        case partway(depth: Int, folder: (row: Int, path: String)?)
+    }
+
+    /// Opens `outline` down to the row for `path`, as far as the outline has
+    /// caught up with the model — SwiftUI adopts a listing on its next update
+    /// pass, and an opened folder's rows a pass after that, so a path seven
+    /// folders deep takes seven passes. The caller asks again a frame later
+    /// while `depth` keeps growing.
     ///
     /// A path the tree does not draw (inside a hidden folder, or deleted since
     /// it was opened) reveals its deepest folder the tree does have.
@@ -836,26 +867,37 @@ final class DeviceFileTreeModel: ObservableObject {
     /// position: the n-th child of a folder's item is that folder's n-th loaded
     /// child. The child counts are compared first, which is what refuses to
     /// open the wrong row from a snapshot the outline has not refreshed yet.
-    func revealRow(for path: String, in outline: NSOutlineView) -> (row: Int, path: String)? {
+    func revealRow(for path: String, in outline: NSOutlineView) -> RevealProgress {
         let chain = (folders(leadingTo: path) + [path])
             .prefix { nodesByPath[$0] != nil }
-        guard let target = chain.last else { return nil }
+        guard let target = chain.last else { return .partway(depth: 0, folder: nil) }
         var parent: Any?
         var siblings = rootNodes
-        for step in chain {
+        var reached: (row: Int, path: String)?
+        for (depth, step) in chain.enumerated() {
             guard outline.numberOfChildren(ofItem: parent) == siblings.count,
                   let index = siblings.firstIndex(where: { $0.path == step }),
                   let item = outline.child(index, ofItem: parent)
-            else { return nil }
+            else { return .partway(depth: depth, folder: reached) }
+            let row = outline.row(forItem: item)
             if step == target {
-                let row = outline.row(forItem: item)
-                return row >= 0 ? (row, target) : nil
+                return row >= 0
+                    ? .found(row: row, path: target)
+                    : .partway(depth: depth, folder: reached)
             }
             if !outline.isItemExpanded(item) { outline.expandItem(item) }
+            if row >= 0 { reached = (row, step) }
             parent = item
             siblings = nodesByPath[step]?.loadedChildren ?? []
         }
-        return nil
+        return .partway(depth: chain.count, folder: reached)
+    }
+
+    /// Runs an outline update pass without new rows. A reveal that has expanded
+    /// a folder waits for SwiftUI to hand the outline that folder's children,
+    /// which only happens on a pass; when nothing else publishes, nothing runs one.
+    func requestOutlineUpdate() {
+        revision &+= 1
     }
 
     /// How this tree's files are read. The open itself belongs to the store
