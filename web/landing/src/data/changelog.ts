@@ -17,6 +17,18 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.15.0",
+    date: "2026-10-17",
+    title: "A faster file tree",
+    changes: {
+      improved: [
+        "The Files tree is drawn natively. Reveal in Files opens a file nested deep in a large project instantly, and folders open and update without lag however big the tree is.",
+        "Returning to a project reopens the folders you had open in its file tree.",
+        "A folder you click stays highlighted, and dropping a file onto another file moves it into that file's folder.",
+      ],
+    },
+  },
+  {
     version: "0.14.1",
     date: "2026-10-17",
     title: "Reveal in Files lands on the first click",
