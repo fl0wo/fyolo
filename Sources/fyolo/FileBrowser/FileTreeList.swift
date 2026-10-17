@@ -1,166 +1,671 @@
 import AppKit
 import SwiftUI
 
-/// The disclosure tree itself, split out of `FileBrowserView` so the generic
-/// `List(_:children:selection:)` expression type-checks on its own rather than as
-/// one giant expression alongside the drop target and Quick Look wiring.
+/// The disclosure tree: a native `NSOutlineView` whose items are the model's own
+/// `DeviceFileNode`s.
 ///
-/// One list for every machine. The rows come from `DeviceFileTreeModel`, which
-/// reads `fs.list` on whichever device the checkout lives on — this Mac over its
-/// unix socket like any other. What differs is not how the tree is *read* but
-/// what may be *done* to it: the write verbs below (drag, drop, the row menu,
-/// New File / New Folder) run on this Mac's own filesystem, so a checkout on
-/// another device gets none of them. They are hidden rather than disabled — a
-/// menu of items that all refuse is worse than no menu.
-struct FileTreeList: View {
-    let nodes: [DeviceFileNode]
-    /// Bumped by `DeviceFileTreeModel` after it grafts a listing onto realized
-    /// nodes in place; the changed input is what makes SwiftUI run an update
-    /// pass over the outline, since `nodes` itself — same root node references —
-    /// compares unchanged after an incremental re-list.
+/// It used to be SwiftUI's `List(children:)`, which keeps its own copy of the
+/// rows and hands the outline a folder's children only on an update pass — and
+/// each pass re-walked every realized row of the tree. Opening a folder in code
+/// therefore took a pass per level, so revealing a file seven folders deep in a
+/// big checkout took seconds, and every graft from the device's `fs:` watch paid
+/// for the whole tree. Here the outline asks the model directly: a folder's rows
+/// are there the moment it expands, a reveal is one synchronous walk, and a
+/// reload re-reads only the folders that are open.
+///
+/// The rows are still SwiftUI — the label and the sidebar's highlight, hosted in
+/// AppKit cells — so the tree looks the same as every other list in the app.
+///
+/// One tree for every machine. The rows come from `DeviceFileTreeModel`, which
+/// reads `fs.list` on whichever device the checkout lives on. What differs is
+/// what may be *done* to it: drag, drop and the row menu move bytes through this
+/// process, so a checkout on another device gets none of them.
+struct FileTreeList: NSViewRepresentable {
+    let model: DeviceFileTreeModel
+    /// The model's revision, read here so a graft re-runs `updateNSView`.
     let revision: Int
+    /// Collapse All: each bump closes every folder.
+    let collapseGeneration: Int
     @Binding var selection: String?
-    let font: Font
-    /// Moves/copies `sources` into a folder `destination`; returns whether the tree
-    /// changed. Supplied by `FileBrowserView`, which owns the project path.
-    let onDrop: (_ sources: [URL], _ destination: URL) -> Bool
-    /// The checkout root on this Mac — the directory the empty-area menu creates
-    /// in, and the base "Copy Relative Path" resolves against. `nil` for a
-    /// checkout on another device, where nothing here may write.
-    let rootURL: URL?
-    /// Open / create / delete actions, forwarded to each row. `nil` alongside a
-    /// `nil` `rootURL`, for the same reason.
-    let actions: FileTreeActions?
-    /// Hands the hosting `NSOutlineView` up to `FileBrowserView` so it can expand a
-    /// folder programmatically when its row is selected — a click can't be observed
-    /// any other way (the outline view swallows primary-click recognizers).
-    let captureOutline: (NSOutlineView?) -> Void
+    let settings: AppSettings
+    /// The write verbs, or `nil` for a checkout on another device.
+    let writes: FileTreeWrites?
+    /// A file was clicked, or reached with the arrow keys.
+    let onOpen: (DeviceFileNode) -> Void
+    let onQuickLook: () -> Void
+    /// Hands the controller up to `FileBrowserView`, which reveals through it.
+    let captureController: (FileOutlineController?) -> Void
 
-    var body: some View {
-        tree.equatable()
+    func makeCoordinator() -> FileOutlineController {
+        FileOutlineController(model: model)
     }
 
-    private var tree: EquatableTree {
-        EquatableTree(
-            nodes: nodes, revision: revision, selection: $selection,
-            selectionValue: selection, font: font,
-            onDrop: onDrop, rootURL: rootURL, actions: actions, captureOutline: captureOutline
-        )
+    func makeNSView(context: Context) -> NSScrollView {
+        let controller = context.coordinator
+        configure(controller)
+
+        let outline = FileOutlineView()
+        let column = NSTableColumn(identifier: FileOutlineController.columnIdentifier)
+        column.resizingMask = .autoresizingMask
+        outline.addTableColumn(column)
+        outline.outlineTableColumn = column
+        outline.headerView = nil
+        outline.style = .plain
+        outline.columnAutoresizingStyle = .uniformColumnAutoresizingStyle
+        // The column stays the pane's width. Left on, the outline widens it to
+        // fit a deep folder's indentation, and the tree then scrolls sideways
+        // with every name cut off at its left edge.
+        outline.autoresizesOutlineColumn = false
+        // The row view paints the selection, as the sidebar does.
+        outline.selectionHighlightStyle = .none
+        outline.backgroundColor = .clear
+        outline.intercellSpacing = .zero
+        outline.indentationPerLevel = 14
+        outline.draggingDestinationFeedbackStyle = .none
+        outline.registerForDraggedTypes([.fileURL])
+        outline.setDraggingSourceOperationMask(.every, forLocal: true)
+        outline.setDraggingSourceOperationMask(.copy, forLocal: false)
+
+        let scroll = NSScrollView()
+        scroll.documentView = outline
+        scroll.drawsBackground = false
+        scroll.hasVerticalScroller = true
+        scroll.autohidesScrollers = true
+        // Names truncate in the middle instead; a sideways swipe has nothing to show.
+        scroll.horizontalScrollElasticity = .none
+
+        controller.attach(outline, collapseGeneration: collapseGeneration)
+        captureController(controller)
+        return scroll
+    }
+
+    func updateNSView(_ scroll: NSScrollView, context: Context) {
+        let controller = context.coordinator
+        configure(controller)
+        controller.update(collapseGeneration: collapseGeneration)
+    }
+
+    static func dismantleNSView(_ scroll: NSScrollView, coordinator: FileOutlineController) {
+        coordinator.detach()
+    }
+
+    private func configure(_ controller: FileOutlineController) {
+        controller.settings = settings
+        controller.writes = writes
+        controller.selection = $selection
+        controller.onOpen = onOpen
+        controller.onQuickLook = onQuickLook
     }
 }
 
-/// The `List` itself behind an `Equatable` gate. The parent re-evaluates on every
-/// model publish, and a `List(children:)` update is never free — SwiftUI's outline
-/// coordinator re-walks every realized row even when nothing changed, which on a
-/// high-churn root (a home directory) burned the main thread continuously. Closure
-/// properties would make the plain view compare unequal every time, so equality is
-/// spelled out over the values that actually affect the rows; the closures are
-/// stable for the life of the pane and skipped.
-private struct EquatableTree: View, @MainActor Equatable {
-    let nodes: [DeviceFileNode]
-    let revision: Int
-    @Binding var selection: String?
-    /// The selection as a plain value. The binding can't serve equality — both
-    /// sides of `==` read the live storage and always agree — so the parent
-    /// snapshots the value at evaluation time; rows also render from this, keeping
-    /// what they show and what the gate compares the same thing.
-    let selectionValue: String?
-    let font: Font
-    let onDrop: (_ sources: [URL], _ destination: URL) -> Bool
-    let rootURL: URL?
-    let actions: FileTreeActions?
-    let captureOutline: (NSOutlineView?) -> Void
+/// The outline's data source and delegate, answering from the model directly.
+@MainActor
+final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate {
+    static let columnIdentifier = NSUserInterfaceItemIdentifier("file")
+    private static let cellIdentifier = NSUserInterfaceItemIdentifier("file.cell")
+    private static let rowIdentifier = NSUserInterfaceItemIdentifier("file.row")
 
-    static func == (lhs: EquatableTree, rhs: EquatableTree) -> Bool {
-        lhs.revision == rhs.revision
-            && lhs.selectionValue == rhs.selectionValue
-            && lhs.font == rhs.font
-            && lhs.rootURL == rhs.rootURL
-            && lhs.nodes.count == rhs.nodes.count
-            && zip(lhs.nodes, rhs.nodes).allSatisfy { $0 === $1 }
+    let model: DeviceFileTreeModel
+    private(set) weak var outline: NSOutlineView?
+    /// `nil` in a test, where nothing is drawn.
+    var settings: AppSettings?
+    var writes: FileTreeWrites?
+    var selection: Binding<String?> = .constant(nil)
+    var onOpen: (DeviceFileNode) -> Void = { _ in }
+    var onQuickLook: () -> Void = {}
+
+    /// The model revision the outline last re-read.
+    private var listedRevision: Int?
+    private var collapseGeneration = 0
+    /// Set while this side moves the outline's selection, so the delegate does
+    /// not report it back as the user's.
+    private var applyingSelection = false
+    private var hoveredRow = -1
+    /// The folder a drag would land in, when it is a row.
+    private var dropTargetPath: String?
+    /// Held while its menu is up: menu items keep their target weakly.
+    private var menuOwner: FileRowMenu?
+
+    init(model: DeviceFileTreeModel) {
+        self.model = model
     }
 
-    var body: some View {
-        // Keep List's native `selection:` binding — it drives selection at the AppKit
-        // layer, which coexists cleanly with `.draggable` (a SwiftUI tap gesture does
-        // not, and makes the drag sticky/unreliable). The only downside of the native
-        // selection — its edge-to-edge blue accent fill — is removed by setting the
-        // outline view's `selectionHighlightStyle = .none` (see `FileRow`), leaving our
-        // own `SidebarRowHighlight` as the sole, left-sidebar-matching selection cue.
-        List(nodes, children: \.children, selection: $selection) { node in
-            FileRow(node: node, font: font, isSelected: selectionValue == node.path, onDrop: onDrop, rootURL: rootURL, actions: actions, captureOutline: captureOutline)
-                .listRowSeparator(.hidden)
-        }
-        .listStyle(.plain)
-        .padding(.leading, 12)
-        // Drop the list's own backing so the terminal-colored background behind it (see
-        // `FileBrowserView.body`) shows through — the file column lives in a plain split item, not
-        // a panel item, so it carries no system vibrant background of its own.
-        .scrollContentBackground(.hidden)
-        // Let each row size to its own content (icon/text + the row's vertical padding)
-        // rather than forcing a tall minimum — a large min height paints an empty
-        // highlight band above/below the label on hover/selection.
-        .environment(\.defaultMinListRowHeight, 1)
-        // A right-click in the empty area below the rows offers New File / New Folder
-        // at the project root — the rows' own menus take the clicks that land on them.
-        // Only where there is a root on this Mac to create in.
-        .background(emptyAreaMenu)
+    func attach(_ outline: NSOutlineView, collapseGeneration: Int) {
+        self.outline = outline
+        self.collapseGeneration = collapseGeneration
+        (outline as? FileOutlineView)?.controller = self
+        outline.dataSource = self
+        outline.delegate = self
+        outline.target = self
+        outline.action = #selector(rowClicked)
+        applyRowHeight()
+        reload()
+        restoreExpansion()
+        syncSelection()
     }
 
-    @ViewBuilder
-    private var emptyAreaMenu: some View {
-        if let rootURL, let actions {
-            EmptyAreaContextMenu(rootDirectory: rootURL, actions: actions)
+    func detach() {
+        outline?.dataSource = nil
+        outline?.delegate = nil
+        outline = nil
+    }
+
+    func update(collapseGeneration: Int) {
+        if collapseGeneration != self.collapseGeneration {
+            self.collapseGeneration = collapseGeneration
+            collapseAll()
         }
+        applyRowHeight()
+        if listedRevision != model.revision {
+            reload()
+        } else {
+            syncSelection()
+        }
+    }
+
+    /// Re-reads the open folders. Expansion survives because the model reuses a
+    /// node for a path that is still there, and the outline keys on the object.
+    func reload() {
+        guard let outline else { return }
+        listedRevision = model.revision
+        applyingSelection = true
+        outline.reloadData()
+        applyingSelection = false
+        syncSelection()
+    }
+
+    /// Opens every folder on the way to `path`, selects it without opening it,
+    /// and scrolls it into view — one synchronous walk, since each folder's rows
+    /// are the model's the moment it expands. A path the tree does not have
+    /// (inside a hidden folder, or deleted) lands on its deepest folder that is.
+    @discardableResult
+    func reveal(_ path: String) -> Bool {
+        guard let outline else { return false }
+        if listedRevision != model.revision { reload() }
+        let chain = (model.folders(leadingTo: path) + [path])
+            .lazy
+            .map { self.model.node(at: $0) }
+            .prefix { $0 != nil }
+            .compactMap { $0 }
+        guard let target = chain.last else { return false }
+        for folder in chain.dropLast() where !outline.isItemExpanded(folder) {
+            outline.expandItem(folder)
+        }
+        let row = outline.row(forItem: target)
+        guard row >= 0 else { return false }
+        applyingSelection = true
+        outline.selectRowIndexes([row], byExtendingSelection: false)
+        applyingSelection = false
+        selection.wrappedValue = target.path
+        scrollIntoView(row)
+        return true
+    }
+
+    /// Brings an off-screen row up near the top, two rows of its folder above
+    /// it so it reads in place; a row already in view stays where it is.
+    private func scrollIntoView(_ row: Int) {
+        guard let outline else { return }
+        outline.tile()
+        let rowRect = outline.rect(ofRow: row)
+        guard let scrollView = outline.enclosingScrollView else {
+            outline.scrollRowToVisible(row)
+            return
+        }
+        let clip = scrollView.contentView
+        guard !clip.documentVisibleRect.contains(rowRect) else { return }
+        let highest = max(0, outline.bounds.height - clip.bounds.height)
+        let top = min(max(0, rowRect.minY - rowRect.height * 2), highest)
+        clip.scroll(to: NSPoint(x: clip.bounds.origin.x, y: top))
+        scrollView.reflectScrolledClipView(clip)
+    }
+
+    /// Puts the outline's selection where the binding says, when that row is
+    /// on screen; a selection inside a closed folder simply shows no row.
+    private func syncSelection() {
+        guard let outline else { return }
+        let row = selection.wrappedValue
+            .flatMap { model.node(at: $0) }
+            .map { outline.row(forItem: $0) } ?? -1
+        guard row != outline.selectedRow else { return }
+        applyingSelection = true
+        if row >= 0 {
+            outline.selectRowIndexes([row], byExtendingSelection: false)
+        } else {
+            outline.deselectAll(nil)
+        }
+        applyingSelection = false
+    }
+
+    private func collapseAll() {
+        model.expandedPaths.removeAll()
+        outline?.collapseItem(nil, collapseChildren: true)
+    }
+
+    /// Reopens the folders that were open when this checkout's tree was last on
+    /// screen — the pane is rebuilt per checkout, the model is kept.
+    private func restoreExpansion() {
+        guard let outline else { return }
+        let paths = model.expandedPaths.sorted {
+            $0.count(where: { $0 == "/" }) < $1.count(where: { $0 == "/" })
+        }
+        for path in paths {
+            guard let node = model.node(at: path), node.isDirectory else { continue }
+            outline.expandItem(node)
+        }
+    }
+
+    private func applyRowHeight() {
+        guard let outline, let settings else { return }
+        let height = Self.rowHeight(for: settings)
+        guard outline.rowHeight != height else { return }
+        outline.rowHeight = height
+        outline.noteHeightOfRows(withIndexesChanged: IndexSet(integersIn: 0 ..< outline.numberOfRows))
+    }
+
+    /// The label's line, or its icon when that is taller, plus the 2pt the rows
+    /// have always had above and below.
+    private static func rowHeight(for settings: AppSettings) -> CGFloat {
+        let size = CGFloat(settings.interfaceFontSize)
+        let font = settings.interfaceFontFamily.isEmpty
+            ? NSFont.systemFont(ofSize: size)
+            : NSFont(name: settings.interfaceFontFamily, size: size) ?? .systemFont(ofSize: size)
+        let line = ceil(font.ascender - font.descender + font.leading)
+        return max(line, 16) + 6
+    }
+
+    // MARK: Clicks and keys
+
+    /// A click on a row: a folder opens or closes, a file opens — including the
+    /// file already selected, which is how one is reopened after its editor
+    /// closed. A click on the disclosure triangle never gets here.
+    @objc private func rowClicked() {
+        guard let outline, outline.clickedRow >= 0,
+              let node = outline.item(atRow: outline.clickedRow) as? DeviceFileNode,
+              node.notice == nil
+        else { return }
+        guard node.isDirectory else {
+            onOpen(node)
+            return
+        }
+        if outline.isItemExpanded(node) {
+            outline.animator().collapseItem(node)
+        } else {
+            outline.animator().expandItem(node)
+        }
+    }
+
+    /// Quick Look previews a file on this Mac; a row on another device has
+    /// nothing local to hand the panel.
+    fileprivate func quickLook() -> Bool {
+        guard writes != nil, selection.wrappedValue != nil else { return false }
+        onQuickLook()
+        return true
+    }
+
+    // MARK: Data source
+
+    private func children(of item: Any?) -> [DeviceFileNode] {
+        guard let node = item as? DeviceFileNode else { return model.rootNodes }
+        // The getter starts the listing of a folder never opened before; the
+        // outline only asks for the children of folders it is showing open.
+        return node.children ?? []
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
+        children(of: item).count
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, child index: Int, ofItem item: Any?) -> Any {
+        let rows = children(of: item)
+        // The count was read a moment ago from the same array; a mismatch means
+        // a listing landed in between, and the reload it published re-asks.
+        return rows.indices.contains(index) ? rows[index] : (item ?? NSNull())
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool {
+        (item as? DeviceFileNode)?.isDirectory ?? false
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, pasteboardWriterForItem item: Any) -> NSPasteboardWriting? {
+        // Dragged out as its file URL: the terminal inserts the quoted path, a
+        // folder row moves the file in. A row on another device has no URL here.
+        guard let node = item as? DeviceFileNode, node.notice == nil else { return nil }
+        return node.localURL as NSURL?
+    }
+
+    func outlineView(
+        _ outlineView: NSOutlineView, validateDrop info: NSDraggingInfo,
+        proposedItem item: Any?, proposedChildIndex index: Int
+    ) -> NSDragOperation {
+        guard writes != nil else { return [] }
+        let folder = dropFolder(for: item as? DeviceFileNode)
+        outlineView.setDropItem(folder, dropChildIndex: NSOutlineViewDropOnItemIndex)
+        setDropTarget(folder?.path)
+        return (info.draggingSource as AnyObject?) === outlineView ? .move : .copy
+    }
+
+    func outlineView(
+        _ outlineView: NSOutlineView, acceptDrop info: NSDraggingInfo,
+        item: Any?, childIndex index: Int
+    ) -> Bool {
+        setDropTarget(nil)
+        guard let writes else { return false }
+        let urls = info.draggingPasteboard.readObjects(
+            forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
+        guard !urls.isEmpty else { return false }
+        let destination = (item as? DeviceFileNode)?.localURL ?? writes.rootURL
+        return writes.onDrop(urls, destination)
+    }
+
+    /// The folder a drop lands in: the folder under the pointer, or the folder
+    /// holding the file under it — VS Code's explorer — and `nil` for the root.
+    private func dropFolder(for node: DeviceFileNode?) -> DeviceFileNode? {
+        guard let node else { return nil }
+        if node.isDirectory { return node.localURL == nil ? nil : node }
+        return model.node(at: (node.path as NSString).deletingLastPathComponent)
+    }
+
+    // MARK: Delegate
+
+    func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
+        guard let settings, let node = item as? DeviceFileNode else { return nil }
+        let cell = outlineView.makeView(withIdentifier: Self.cellIdentifier, owner: nil) as? FileOutlineCell
+            ?? FileOutlineCell(identifier: Self.cellIdentifier)
+        cell.show(FileRowLabel(row: FileRowSnapshot(node), settings: settings))
+        return cell
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, rowViewForItem item: Any) -> NSTableRowView? {
+        guard let settings else { return nil }
+        let rowView = outlineView.makeView(withIdentifier: Self.rowIdentifier, owner: nil) as? FileOutlineRowView
+            ?? FileOutlineRowView(settings: settings, identifier: Self.rowIdentifier)
+        return rowView
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, didAdd rowView: NSTableRowView, forRow row: Int) {
+        guard let rowView = rowView as? FileOutlineRowView else { return }
+        rowView.isHovered = row == hoveredRow
+        rowView.isDropTarget = dropTargetPath != nil
+            && (outlineView.item(atRow: row) as? DeviceFileNode)?.path == dropTargetPath
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, heightOfRowByItem item: Any) -> CGFloat {
+        // The note a shortened listing carries runs to two lines.
+        (item as? DeviceFileNode)?.notice == nil ? outlineView.rowHeight : max(outlineView.rowHeight, 34)
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, shouldSelectItem item: Any) -> Bool {
+        (item as? DeviceFileNode)?.notice == nil
+    }
+
+    func outlineViewSelectionDidChange(_ notification: Notification) {
+        guard !applyingSelection, let outline else { return }
+        let node = outline.item(atRow: outline.selectedRow) as? DeviceFileNode
+        selection.wrappedValue = node?.path
+        // A click opens through `rowClicked`; the arrow keys send no click, and
+        // walking the tree with them opens each file as it is reached.
+        if let node, !node.isDirectory, NSApp.currentEvent?.type == .keyDown {
+            onOpen(node)
+        }
+    }
+
+    func outlineViewItemDidExpand(_ notification: Notification) {
+        guard let node = notification.userInfo?["NSObject"] as? DeviceFileNode else { return }
+        model.expandedPaths.insert(node.path)
+    }
+
+    func outlineViewItemDidCollapse(_ notification: Notification) {
+        guard let node = notification.userInfo?["NSObject"] as? DeviceFileNode else { return }
+        model.expandedPaths.remove(node.path)
+    }
+
+    // MARK: Hover, drop target, menus
+
+    fileprivate func setHoveredRow(_ row: Int) {
+        guard row != hoveredRow else { return }
+        let previous = hoveredRow
+        hoveredRow = row
+        rowView(at: previous)?.isHovered = false
+        rowView(at: row)?.isHovered = true
+    }
+
+    fileprivate func setDropTarget(_ path: String?) {
+        guard path != dropTargetPath, let outline else { return }
+        for old in [dropTargetPath, path].compactMap({ $0 }) {
+            guard let node = model.node(at: old) else { continue }
+            rowView(at: outline.row(forItem: node))?.isDropTarget = old == path
+        }
+        dropTargetPath = path
+    }
+
+    private func rowView(at row: Int) -> FileOutlineRowView? {
+        guard row >= 0, let outline, row < outline.numberOfRows else { return nil }
+        return outline.rowView(atRow: row, makeIfNecessary: false) as? FileOutlineRowView
+    }
+
+    /// The row's menu, or the root's for the empty area below the rows. Every
+    /// item moves or reveals a file through this process, so a checkout on
+    /// another device gets no menu rather than one where each item refuses.
+    fileprivate func showMenu(for event: NSEvent) {
+        guard let outline, let writes else { return }
+        let point = outline.convert(event.locationInWindow, from: nil)
+        let row = outline.row(at: point)
+        let owner: FileRowMenu
+        if row >= 0 {
+            guard let node = outline.item(atRow: row) as? DeviceFileNode,
+                  node.notice == nil, let url = node.localURL
+            else { return }
+            owner = FileRowMenu(
+                target: url, isDirectory: node.isDirectory,
+                symbolicLinkTarget: node.resolvedSymbolicLinkTarget, writes: writes)
+        } else {
+            owner = FileRowMenu(rootOf: writes)
+        }
+        menuOwner = owner
+        owner.menu().popUp(positioning: nil, at: point, in: outline)
     }
 }
 
-/// A single tree row. A view of its own (rather than an inline builder) so each
-/// row can hold the `isHovering`/`isTargeted` state that drives its highlight.
-private struct FileRow: View {
-    @EnvironmentObject var settings: AppSettings
+/// The outline with the AppKit events the tree handles itself: hover, the
+/// right-click menu, Quick Look's space bar, and the end of a drag over it.
+final class FileOutlineView: NSOutlineView {
+    weak var controller: FileOutlineController?
+    private var hoverArea: NSTrackingArea?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let hoverArea { removeTrackingArea(hoverArea) }
+        let area = NSTrackingArea(
+            rect: .zero,
+            options: [.mouseMoved, .mouseEnteredAndExited, .activeInActiveApp, .inVisibleRect],
+            owner: self)
+        addTrackingArea(area)
+        hoverArea = area
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        super.mouseMoved(with: event)
+        trackHover(at: event.locationInWindow)
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        super.mouseExited(with: event)
+        controller?.setHoveredRow(-1)
+    }
+
+    /// Scrolling moves rows under a pointer that did not move.
+    override func scrollWheel(with event: NSEvent) {
+        super.scrollWheel(with: event)
+        if let window { trackHover(at: window.mouseLocationOutsideOfEventStream) }
+    }
+
+    private func trackHover(at windowPoint: NSPoint) {
+        let point = convert(windowPoint, from: nil)
+        controller?.setHoveredRow(visibleRect.contains(point) ? row(at: point) : -1)
+    }
+
+    /// Popped up here rather than through `menu(for:)`, which rings the clicked
+    /// row in an accent outline that cannot be styled off.
+    override func rightMouseDown(with event: NSEvent) {
+        controller?.showMenu(for: event)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        if event.modifierFlags.contains(.control) {
+            controller?.showMenu(for: event)
+            return
+        }
+        super.mouseDown(with: event)
+    }
+
+    override func menu(for event: NSEvent) -> NSMenu? { nil }
+
+    override func keyDown(with event: NSEvent) {
+        if event.charactersIgnoringModifiers == " ", controller?.quickLook() == true { return }
+        super.keyDown(with: event)
+    }
+
+    override func draggingExited(_ sender: NSDraggingInfo?) {
+        super.draggingExited(sender)
+        controller?.setDropTarget(nil)
+    }
+
+    override func draggingEnded(_ sender: NSDraggingInfo) {
+        super.draggingEnded(sender)
+        controller?.setDropTarget(nil)
+    }
+}
+
+/// A row's background: the left sidebar's own highlight, so both side panels
+/// mark selection, hover and a drop target identically.
+private final class FileOutlineRowView: NSTableRowView {
+    var isHovered = false { didSet { if isHovered != oldValue { refresh() } } }
+    var isDropTarget = false { didSet { if isDropTarget != oldValue { refresh() } } }
+    override var isSelected: Bool { didSet { if isSelected != oldValue { refresh() } } }
+
+    private let settings: AppSettings
+    private let highlight: NSHostingView<FileRowHighlight>
+
+    init(settings: AppSettings, identifier: NSUserInterfaceItemIdentifier) {
+        self.settings = settings
+        highlight = NSHostingView(rootView: FileRowHighlight(
+            isSelected: false, isHovering: false, settings: settings))
+        super.init(frame: .zero)
+        self.identifier = identifier
+        highlight.sizingOptions = []
+        highlight.frame = bounds
+        highlight.autoresizingMask = [.width, .height]
+        addSubview(highlight)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    override func drawSelection(in dirtyRect: NSRect) {}
+
+    private func refresh() {
+        highlight.rootView = FileRowHighlight(
+            isSelected: isSelected || isDropTarget, isHovering: isHovered, settings: settings)
+    }
+}
+
+private struct FileRowHighlight: View {
+    let isSelected: Bool
+    let isHovering: Bool
+    @ObservedObject var settings: AppSettings
     @Environment(\.colorScheme) private var colorScheme
 
-    let node: DeviceFileNode
-    let font: Font
-    let isSelected: Bool
-    let onDrop: (_ sources: [URL], _ destination: URL) -> Bool
-    /// The project root — the base "Copy Relative Path" resolves against, and
-    /// `nil` for a checkout on another device.
-    let rootURL: URL?
-    let actions: FileTreeActions?
-    /// Reports the hosting outline view up to `FileBrowserView` (see `FileTreeList`).
-    let captureOutline: (NSOutlineView?) -> Void
+    var body: some View {
+        SidebarRowHighlight(
+            isSelected: isSelected,
+            isHovering: isHovering,
+            chrome: settings.chromeTheme(for: colorScheme)
+        )
+        // The highlight's own 6pt leading inset is cancelled so its lift reaches
+        // the disclosure triangle rather than crowding it.
+        .padding(.leading, -6)
+        .animation(.easeInOut(duration: 0.12), value: isSelected)
+        // No animation on hover: a fade is latency on a cue whose job is to
+        // track the pointer.
+        .animation(nil, value: isHovering)
+    }
+}
 
-    @State private var isHovering = false
-    /// True while a drag hovers this folder, lighting its background the way the VS
-    /// Code explorer marks the folder a drop would land in.
-    @State private var isTargeted = false
+/// A cell holding one row's SwiftUI label.
+private final class FileOutlineCell: NSTableCellView {
+    private var hosting: NSHostingView<FileRowLabel>?
+
+    init(identifier: NSUserInterfaceItemIdentifier) {
+        super.init(frame: .zero)
+        self.identifier = identifier
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    func show(_ label: FileRowLabel) {
+        if let hosting {
+            hosting.rootView = label
+            return
+        }
+        let hosting = NSHostingView(rootView: label)
+        hosting.sizingOptions = []
+        hosting.frame = bounds
+        hosting.autoresizingMask = [.width, .height]
+        addSubview(hosting)
+        self.hosting = hosting
+    }
+}
+
+/// What a row draws, copied off its node: the node is a class the outline
+/// shares, so a label holding it would not see that it changed.
+struct FileRowSnapshot: Equatable {
+    let url: URL
+    let name: String
+    let notice: String?
+    let isDirectory: Bool
+    let isSymbolicLink: Bool
+    let symbolicLinkTarget: String?
+    let isIgnored: Bool
+    let isLoading: Bool
+    /// Whether clicking it does anything. A folder expands; a file on this Mac
+    /// opens whatever it is; a file on another device opens only if the host
+    /// will serve it as bytes. A socket, a device node, a link the host will not
+    /// follow reads as unavailable rather than as a row that ignores the click.
+    let isActivatable: Bool
+
+    @MainActor
+    init(_ node: DeviceFileNode) {
+        url = node.url
+        name = node.name
+        notice = node.notice
+        isDirectory = node.isDirectory
+        isSymbolicLink = node.isSymbolicLink
+        symbolicLinkTarget = node.symbolicLinkTarget
+        isIgnored = node.isIgnored
+        isLoading = node.isLoading
+        isActivatable = node.isDirectory || node.canPreview || node.localURL != nil
+    }
+}
+
+/// One row's label: the folder glyph or the file's type icon, the name, and a
+/// spinner while a folder waits on its listing.
+private struct FileRowLabel: View {
+    let row: FileRowSnapshot
+    @ObservedObject var settings: AppSettings
+    @Environment(\.colorScheme) private var colorScheme
 
     private var chrome: ChromeTheme? { settings.chromeTheme(for: colorScheme) }
 
     private var ignoredForeground: Color? {
-        guard settings.dimIgnoredFiles, node.isIgnored else { return nil }
+        guard settings.dimIgnoredFiles, row.isIgnored else { return nil }
         return colorScheme == .dark
             ? Color(red: 140 / 255, green: 140 / 255, blue: 140 / 255)
             : Color(red: 142 / 255, green: 142 / 255, blue: 144 / 255)
     }
 
-    /// The file this row addresses on this Mac, or `nil` for a checkout on
-    /// another device. Every write-shaped affordance below hangs off it.
-    private var localURL: URL? { node.localURL }
-
-    /// Whether clicking this row does anything. A folder expands; a file on this
-    /// Mac opens in the editor whatever it is; a file on another device opens
-    /// only if the host will serve it as bytes. Everything left — a socket, a
-    /// device node, a link the host will not follow — reads as unavailable
-    /// rather than as an ordinary row that does nothing when clicked.
-    private var isActivatable: Bool {
-        node.isDirectory || node.canPreview || localURL != nil
-    }
-
     var body: some View {
-        if let notice = node.notice {
+        if let notice = row.notice {
             // Not a file: no icon column, no highlight, no affordance. A quiet
             // line in the folder it belongs to, which is where a listing that
             // stopped short has to say so — the rows above it look complete.
@@ -168,183 +673,187 @@ private struct FileRow: View {
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
-                .padding(.vertical, 2)
-                .padding(.leading, -6)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(OutlineViewFixups())
-                .background(OutlineViewCapture(onFound: captureOutline))
-                .listRowBackground(Color.clear)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         } else {
-            row
+            label
         }
     }
 
-    @ViewBuilder
-    private var row: some View {
-        // One explicit HStack for both kinds (not `Label`, whose internal insets shift
-        // the title): a folder leads with the same folder glyph the left sidebar's
-        // project headers use; a file leads with its type icon. Because both occupy
-        // the same 16-wide leading column, names line up down the tree.
-        let label = HStack(spacing: 5) {
-            if node.isDirectory {
-                // Static — the disclosure chevron already carries open/closed state
-                // (Finder/Xcode's pattern), so the glyph doesn't need to swap and the
-                // row needs no expansion tracking of its own.
-                // A symlinked folder gets its own glyph rather than the folder plus a
-                // badge — the folder mark carries nothing but "folder", so swapping it
-                // for "symlinked folder" costs no information, and one line glyph stays
-                // legible at 15pt where a composited badge does not.
+    private var label: some View {
+        // One HStack for both kinds, so names line up down the tree: a folder
+        // leads with the sidebar's folder glyph, a file with its type icon, in
+        // the same 16-wide column.
+        HStack(spacing: 5) {
+            if row.isDirectory {
+                // Static — the disclosure triangle already carries open/closed.
+                // A symlinked folder gets its own glyph rather than a badge,
+                // which stays legible at 15pt where a composited badge does not.
                 HugeIconView(
-                    icon: node.isSymbolicLink ? .folderSymlink : .folder,
+                    icon: row.isSymbolicLink ? .folderSymlink : .folder,
                     size: 15,
                     color: ignoredForeground ?? chrome?.foreground ?? .primary
                 )
                 .frame(width: 16, alignment: .leading)
             } else {
-                // The file's real language/tool logo (a Devicon mark) when bundled,
-                // else a tinted SF Symbol — see `FileIconView`. Boxed below the folder's
-                // nominal 15: Devicon marks fill their box edge-to-edge while HugeIcons
-                // ink only ~75% of theirs (the left sidebar's shared-column rule), so an
-                // equal nominal size made every file icon read a step LARGER than the
-                // folder and sidebar family — 12 brings their ink widths level.
-                // A symlinked *file* keeps its plain language logo — that mark says more
-                // than its link-ness, and the Finder's badge doesn't survive the trade:
-                // an arrow small enough to sit in the corner of a 12pt glyph collides
-                // with its outline and reads as damage, not as a mark. The tooltip and
-                // the row menu's Show Original carry it instead.
-                // Only the last component is read, so the synthetic form a device
-                // path takes is enough.
-                FileIconView(url: node.url, size: 12, symbolSize: 11, ink: chrome?.foreground ?? .primary, foregroundOverride: ignoredForeground)
+                // The file's language/tool logo (a Devicon mark) when bundled,
+                // else a tinted SF Symbol. Boxed below the folder's 15 because
+                // Devicon marks fill their box edge to edge while HugeIcons ink
+                // only ~75% of theirs — 12 brings the ink widths level. Only the
+                // last path component is read, so a device path's synthetic URL
+                // is enough.
+                FileIconView(url: row.url, size: 12, symbolSize: 11, ink: chrome?.foreground ?? .primary, foregroundOverride: ignoredForeground)
                     .frame(width: 16, alignment: .leading)
             }
-            Text(node.name)
+            Text(row.name)
                 .foregroundStyle(ignoredForeground ?? chrome?.foreground ?? .primary)
-                .font(font)
+                .font(settings.interfaceFont)
                 .lineLimit(1)
                 .truncationMode(.middle)
-            // A folder waiting on its listing draws as an empty folder, which is
-            // the one thing it is not. Only while there is nothing to show: a
-            // folder opened from a prefetch has its rows and says nothing.
-            if node.isLoading {
-                // No `scaleEffect`: a continuously animating layer under a
-                // transform re-rasterizes every frame, which is how the working
-                // indicator beachballed the sidebar once already.
+            // A folder waiting on its listing would otherwise draw as an empty
+            // folder, the one thing it is not.
+            if row.isLoading {
+                // No `scaleEffect`: an animating layer under a transform
+                // re-rasterizes every frame, which beachballed the sidebar once.
                 ProgressView()
                     .controlSize(.mini)
                     .padding(.leading, 2)
             }
         }
-        // A denser tree than the system default, but with enough vertical breathing
-        // room that rows aren't cramped (paired with `defaultMinListRowHeight` below).
-        .padding(.vertical, 2)
-        // Pull the row left toward the disclosure chevron — SwiftUI's default
-        // chevron-to-content gap is wider than VS Code / Xcode, which sit the label
-        // tight to the arrow. Applied to both kinds so folder names and file icons
-        // share one column.
-        .padding(.leading, -6)
-        // Fill the row so the tap target — and any folder drop target — spans its
-        // full width, not just the label's footprint.
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .contentShape(Rectangle())
-        // Where a symlink points — the one fact about a link no badge can carry, and the
-        // reason the Finder puts it in Get Info rather than on the icon. Applied only to
-        // links: an empty `help` string still arms an (empty) AppKit tooltip.
-        .modifier(SymbolicLinkTooltip(target: node.symbolicLinkTarget))
-        .opacity(isActivatable ? 1 : 0.55)
-        .help(isActivatable ? "" : localized("Special files can’t be previewed"))
-        .onHover { isHovering = $0 }
-        // Strip the source list's blue selection fill and restore the mouse-wheel
-        // scroll increment at the AppKit layer (see `OutlineViewFixups`). Lives in a
-        // row so it can walk up to the enclosing outline view.
-        .background(OutlineViewFixups())
-        // Capture that same outline view (a row is the one place the walk-up reaches
-        // it) so `FileBrowserView` can expand this folder on the click that selected it.
-        .background(OutlineViewCapture(onFound: captureOutline))
+        // Where a symlink points — the one fact about a link no badge can carry.
+        .modifier(SymbolicLinkTooltip(target: row.symbolicLinkTarget))
+        .opacity(row.isActivatable ? 1 : 0.55)
+        .help(row.isActivatable ? "" : localized("Special files can’t be previewed"))
+    }
+}
 
-        dropTarget(menu(highlight(drag(label))))
+/// The right-click menu for a row on this Mac, or for the empty area below the
+/// rows (New File / New Folder at the root). AppKit `NSMenu` rather than
+/// SwiftUI's `.contextMenu`, which rings the row in an accent outline.
+@MainActor
+private final class FileRowMenu: NSObject {
+    private let target: URL
+    private let isDirectory: Bool
+    /// Where this row's symlink lands; gates Show Original.
+    private let symbolicLinkTarget: URL?
+    private let isRoot: Bool
+    private let writes: FileTreeWrites
+
+    init(target: URL, isDirectory: Bool, symbolicLinkTarget: URL?, writes: FileTreeWrites) {
+        self.target = target
+        self.isDirectory = isDirectory
+        self.symbolicLinkTarget = symbolicLinkTarget
+        self.isRoot = false
+        self.writes = writes
     }
 
-    /// Drag a row out as its file URL. The terminal pane catches the drop and
-    /// inserts the shell-quoted path at the prompt (see `TerminalPane.sendPaths`);
-    /// a folder row catches it to move the file into that folder. Selection is the
-    /// List's own `selection:` binding (set up in `FileTreeList`), which coexists
-    /// with `.draggable` — so the drag stays immediate.
-    ///
-    /// A row on another device has no URL this Mac could hand over, so it does
-    /// not drag at all rather than dragging a path that resolves to nothing here.
-    @ViewBuilder
-    private func drag(_ row: some View) -> some View {
-        if let localURL {
-            row.draggable(localURL)
-        } else {
-            row
+    init(rootOf writes: FileTreeWrites) {
+        self.target = writes.rootURL
+        self.isDirectory = true
+        self.symbolicLinkTarget = nil
+        self.isRoot = true
+        self.writes = writes
+    }
+
+    private var actions: FileTreeActions { writes.actions }
+
+    func menu() -> NSMenu {
+        let menu = NSMenu()
+        if isRoot {
+            menu.addItem(item(localized("New File"), #selector(newFile)))
+            menu.addItem(item(localized("New Folder"), #selector(newFolder)))
+            return menu
         }
-    }
-
-    /// The same lift the left sidebar paints for its rows: selection (or a drag
-    /// hovering a folder) reads as the frosted/accent selected look, hover a
-    /// fainter step below — so both side panels' rows highlight identically.
-    private func highlight(_ row: some View) -> some View {
-        row.listRowBackground(
-            SidebarRowHighlight(
-                isSelected: isSelected || isTargeted,
-                isHovering: isHovering,
-                chrome: chrome
-            )
-            // Cancel the highlight's own 6pt leading inset so its frosted lift reaches
-            // the row's leading edge, clearing the disclosure chevron. The `.plain`
-            // list style (unlike the sidebar's `.sidebar`) hugs the chevron to the
-            // row edge, so the default inset would crowd the chevron against the
-            // highlight's left rounded corner. Trailing inset is untouched.
-            .padding(.leading, -6)
-            .animation(.easeInOut(duration: 0.12), value: isSelected)
-            .animation(.easeInOut(duration: 0.12), value: isTargeted)
-            // No animation on hover: a fade is latency on a cue whose job is to track
-            // the cursor. At 120ms over a 0.10-alpha wash the highlight only landed
-            // once the pointer had already left the row.
-            .animation(nil, value: isHovering)
-        )
-    }
-
-    /// Right-click menu via an AppKit `NSMenu`, NOT SwiftUI's `.contextMenu` —
-    /// the latter paints an accent highlight ring around the targeted row that
-    /// can't be styled off. New File / New Folder appear only for a folder (they
-    /// create inside it); every row gets Reveal in Finder, Open in Integrated
-    /// Terminal, Copy Path, Rename, Delete. The empty area below the rows has its
-    /// own root menu (see
-    /// `EmptyAreaContextMenu`).
-    ///
-    /// Every item on it moves or reveals a file through this process, so a row
-    /// on another device carries no menu rather than one where each item
-    /// refuses.
-    @ViewBuilder
-    private func menu(_ row: some View) -> some View {
-        if let localURL, let rootURL, let actions {
-            row.background(RowContextMenu(
-                isDirectory: node.isDirectory,
-                symbolicLinkTarget: node.resolvedSymbolicLinkTarget,
-                target: localURL,
-                rootURL: rootURL,
-                actions: actions
-            ))
-        } else {
-            row
+        // Cursor's explorer verb, leading the menu: the row lands in the agent's
+        // prompt as a shell-quoted path. Asked at open time; a plain shell has
+        // no chat to add to.
+        if actions.canAddToChat() {
+            menu.addItem(item(localized("Add to Chat"), #selector(addToChat)))
+            menu.addItem(.separator())
         }
+        if isDirectory {
+            menu.addItem(item(localized("New File"), #selector(newFile)))
+            menu.addItem(item(localized("New Folder"), #selector(newFolder)))
+            menu.addItem(.separator())
+        }
+        // The Finder's verb for an alias, directly above Reveal in Finder so the
+        // pair reads as "the original" versus "this link".
+        if symbolicLinkTarget != nil {
+            menu.addItem(item(localized("Show Original"), #selector(showOriginal)))
+        }
+        menu.addItem(item(localized("Reveal in Finder"), #selector(revealInFinder)))
+        menu.addItem(item(localized("Open in Integrated Terminal"), #selector(openInTerminal)))
+        if !isDirectory, let task = actions.wholeFileTask(target) {
+            let run = item(localized("Run in Integrated Terminal"), #selector(runInTerminal(_:)))
+            run.representedObject = task
+            run.image = Self.runImage
+            menu.addItem(run)
+        }
+        menu.addItem(.separator())
+        menu.addItem(item(localized("Copy Path"), #selector(copyPath)))
+        menu.addItem(item(localized("Copy Relative Path"), #selector(copyRelativePath)))
+        menu.addItem(.separator())
+        menu.addItem(item(localized("Rename…"), #selector(rename)))
+        menu.addItem(item(localized("Delete"), #selector(deleteItem)))
+        return menu
     }
 
-    /// Only folders are drop targets — dropping a file onto a folder moves it in,
-    /// the VS Code tree gesture. Files are not targets (no "drop onto a file").
-    /// A single click opens a file via the List's native selection (see
-    /// `FileBrowserView.activateSelection`), so no per-row open handler here.
-    @ViewBuilder
-    private func dropTarget(_ row: some View) -> some View {
-        if node.isDirectory, let localURL {
-            row.dropDestination(for: URL.self) { urls, _ in
-                onDrop(urls, localURL)
-            } isTargeted: { isTargeted = $0 }
-        } else {
-            row
-        }
+    private func item(_ title: String, _ action: Selector) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
+        item.target = self
+        return item
+    }
+
+    @objc private func addToChat() { actions.addToChat(target) }
+    @objc private func newFile() { actions.newFile(target) }
+    @objc private func newFolder() { actions.newFolder(target) }
+    @objc private func rename() { actions.rename(target) }
+    @objc private func deleteItem() { actions.delete(target) }
+    @objc private func revealInFinder() {
+        NSWorkspace.shared.activateFileViewerSelecting([target])
+    }
+
+    /// A folder opens in itself; a file opens in the folder that holds it.
+    @objc private func openInTerminal() {
+        actions.openInTerminal(isDirectory ? target : target.deletingLastPathComponent())
+    }
+
+    @objc private func runInTerminal(_ sender: NSMenuItem) {
+        guard let task = sender.representedObject as? RunTask else { return }
+        actions.runTask(task)
+    }
+
+    /// The green ▶ the editor's gutter draws for the same run.
+    private static let runImage: NSImage? = {
+        let configuration = NSImage.SymbolConfiguration(paletteColors: [.systemGreen])
+        return NSImage(systemSymbolName: "play.fill", accessibilityDescription: nil)?
+            .withSymbolConfiguration(configuration)
+    }()
+
+    /// Reveals what the link points at — the Finder selects the target in its
+    /// own folder, which is where "where does this actually live" is answered.
+    @objc private func showOriginal() {
+        guard let symbolicLinkTarget else { return }
+        NSWorkspace.shared.activateFileViewerSelecting([symbolicLinkTarget])
+    }
+
+    @objc private func copyPath() {
+        setPasteboard(target.path)
+    }
+
+    /// The path relative to the project root — the form agents and build tools
+    /// take; the absolute path for anything outside the root.
+    @objc private func copyRelativePath() {
+        let rootPath = writes.rootURL.standardizedFileURL.path
+        let path = target.standardizedFileURL.path
+        setPasteboard(path.hasPrefix(rootPath + "/") ? String(path.dropFirst(rootPath.count + 1)) : path)
+    }
+
+    private func setPasteboard(_ string: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(string, forType: .string)
     }
 }
 
@@ -360,343 +869,6 @@ private struct SymbolicLinkTooltip: ViewModifier {
         } else {
             content
         }
-    }
-}
-
-/// The per-row right-click menu, via AppKit `NSMenu` rather than SwiftUI's
-/// `.contextMenu` — the latter rings the targeted row with an un-styleable accent
-/// highlight. A secondary-click recognizer on the row's own view pops the menu up,
-/// so nothing emphasizes the row. New File / New Folder appear only for a folder
-/// (created inside it); every row gets Reveal in Finder, Open in Integrated
-/// Terminal, Copy Path / Copy Relative Path, Rename, and Delete.
-private struct RowContextMenu: NSViewRepresentable {
-    let isDirectory: Bool
-    /// Where this row's symlink lands, or nil when the row isn't a link — gates Show
-    /// Original.
-    let symbolicLinkTarget: URL?
-    let target: URL
-    let rootURL: URL
-    let actions: FileTreeActions
-
-    func makeCoordinator() -> Coordinator { Coordinator() }
-
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView(frame: .zero)
-        context.coordinator.owner = view
-        context.coordinator.configure(
-            isDirectory: isDirectory,
-            symbolicLinkTarget: symbolicLinkTarget,
-            target: target,
-            rootURL: rootURL,
-            actions: actions
-        )
-        context.coordinator.attach()
-        return view
-    }
-
-    func updateNSView(_ nsView: NSView, context: Context) {
-        context.coordinator.configure(
-            isDirectory: isDirectory,
-            symbolicLinkTarget: symbolicLinkTarget,
-            target: target,
-            rootURL: rootURL,
-            actions: actions
-        )
-        context.coordinator.attach()
-    }
-
-    static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
-        coordinator.detach()
-    }
-
-    @MainActor
-    final class Coordinator: NSObject {
-        weak var owner: NSView?
-        private var isDirectory = false
-        private var symbolicLinkTarget: URL?
-        private var target = URL(fileURLWithPath: "/")
-        private var rootURL = URL(fileURLWithPath: "/")
-        private var actions: FileTreeActions?
-        private weak var hostView: NSView?
-        private var recognizer: NSClickGestureRecognizer?
-
-        func configure(
-            isDirectory: Bool,
-            symbolicLinkTarget: URL?,
-            target: URL,
-            rootURL: URL,
-            actions: FileTreeActions
-        ) {
-            self.isDirectory = isDirectory
-            self.symbolicLinkTarget = symbolicLinkTarget
-            self.target = target
-            self.rootURL = rootURL
-            self.actions = actions
-        }
-
-        func attach() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self, let owner = self.owner else { return }
-                guard let host = Self.rowView(above: owner) else { return }
-                if hostView === host, recognizer != nil { return }
-                detach()
-                let recognizer = NSClickGestureRecognizer(target: self, action: #selector(self.showMenu(_:)))
-                recognizer.buttonMask = 0x2 // secondary (right) mouse button
-                host.addGestureRecognizer(recognizer)
-                self.recognizer = recognizer
-                self.hostView = host
-            }
-        }
-
-        func detach() {
-            if let recognizer, let hostView { hostView.removeGestureRecognizer(recognizer) }
-            recognizer = nil
-            hostView = nil
-        }
-
-        @objc private func showMenu(_ recognizer: NSClickGestureRecognizer) {
-            guard let hostView else { return }
-            let menu = NSMenu()
-            // Cursor's explorer verb, leading the menu: the row lands in the agent's
-            // prompt as a shell-quoted path — the same token a drag onto the terminal
-            // inserts. Gated live at open time; a plain shell has no chat to add to.
-            if actions?.canAddToChat() == true {
-                let add = menuItem(localized("Add to Chat"), #selector(addToChat))
-                menu.addItem(add)
-                menu.addItem(.separator())
-            }
-            if isDirectory {
-                menu.addItem(menuItem(localized("New File"), #selector(newFile)))
-                menu.addItem(menuItem(localized("New Folder"), #selector(newFolder)))
-                menu.addItem(.separator())
-            }
-            // The Finder's own verb for an alias, and directly above Reveal in Finder so
-            // the pair reads as "the original" versus "this link". Absent on a row that
-            // isn't a link, and on one whose target is gone.
-            if symbolicLinkTarget != nil {
-                menu.addItem(menuItem(localized("Show Original"), #selector(showOriginal)))
-            }
-            menu.addItem(menuItem(localized("Reveal in Finder"), #selector(revealInFinder)))
-            menu.addItem(menuItem(localized("Open in Integrated Terminal"), #selector(openInTerminal)))
-            if !isDirectory, let task = actions?.wholeFileTask(target) {
-                let run = menuItem(localized("Run in Integrated Terminal"), #selector(runInTerminal(_:)))
-                run.representedObject = task
-                run.image = Self.runImage
-                menu.addItem(run)
-            }
-            menu.addItem(.separator())
-            menu.addItem(menuItem(localized("Copy Path"), #selector(copyPath)))
-            menu.addItem(menuItem(localized("Copy Relative Path"), #selector(copyRelativePath)))
-            menu.addItem(.separator())
-            menu.addItem(menuItem(localized("Rename…"), #selector(rename)))
-            menu.addItem(menuItem(localized("Delete"), #selector(deleteItem)))
-            menu.popUp(positioning: nil, at: recognizer.location(in: hostView), in: hostView)
-        }
-
-        @objc private func addToChat() { actions?.addToChat(target) }
-
-        private func menuItem(_ title: String, _ action: Selector) -> NSMenuItem {
-            let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
-            item.target = self
-            return item
-        }
-
-        @objc private func newFile() { actions?.newFile(target) }
-        @objc private func newFolder() { actions?.newFolder(target) }
-        @objc private func rename() { actions?.rename(target) }
-        @objc private func deleteItem() { actions?.delete(target) }
-        @objc private func revealInFinder() {
-            NSWorkspace.shared.activateFileViewerSelecting([target])
-        }
-
-        /// A folder opens in itself; a file opens in the folder that holds it.
-        @objc private func openInTerminal() {
-            actions?.openInTerminal(isDirectory ? target : target.deletingLastPathComponent())
-        }
-
-        @objc private func runInTerminal(_ sender: NSMenuItem) {
-            guard let task = sender.representedObject as? RunTask else { return }
-            actions?.runTask(task)
-        }
-
-        /// The green ▶ the editor's gutter draws for the same run.
-        private static let runImage: NSImage? = {
-            let configuration = NSImage.SymbolConfiguration(paletteColors: [.systemGreen])
-            return NSImage(systemSymbolName: "play.fill", accessibilityDescription: nil)?
-                .withSymbolConfiguration(configuration)
-        }()
-
-        /// Reveals what the link points at, not the link — the Finder selects the target
-        /// in its own folder, which is where "where does this actually live" gets
-        /// answered.
-        @objc private func showOriginal() {
-            guard let symbolicLinkTarget else { return }
-            NSWorkspace.shared.activateFileViewerSelecting([symbolicLinkTarget])
-        }
-
-        @objc private func copyPath() {
-            setPasteboard(target.path)
-        }
-
-        /// The path relative to the project root — the form agents and build tools
-        /// take; falls back to the absolute path for anything outside the root.
-        @objc private func copyRelativePath() {
-            let rootPath = rootURL.standardizedFileURL.path
-            let path = target.standardizedFileURL.path
-            if path.hasPrefix(rootPath + "/") {
-                setPasteboard(String(path.dropFirst(rootPath.count + 1)))
-            } else {
-                setPasteboard(path)
-            }
-        }
-
-        private func setPasteboard(_ string: String) {
-            let pasteboard = NSPasteboard.general
-            pasteboard.clearContents()
-            pasteboard.setString(string, forType: .string)
-        }
-
-        private static func rowView(above view: NSView) -> NSView? {
-            var ancestor = view.superview
-            while let current = ancestor {
-                if current is NSTableRowView { return current }
-                ancestor = current.superview
-            }
-            return nil
-        }
-    }
-}
-
-/// The right-click menu for the empty area below the rows: New File / New Folder at
-/// the project root. One recognizer on the outline view, guarded to fire only where
-/// no row sits (a row's own `RowContextMenu` handles clicks that land on it).
-private struct EmptyAreaContextMenu: NSViewRepresentable {
-    let rootDirectory: URL
-    let actions: FileTreeActions
-
-    func makeCoordinator() -> Coordinator { Coordinator() }
-
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView(frame: .zero)
-        context.coordinator.owner = view
-        context.coordinator.configure(rootDirectory: rootDirectory, actions: actions)
-        context.coordinator.attach()
-        return view
-    }
-
-    func updateNSView(_ nsView: NSView, context: Context) {
-        context.coordinator.configure(rootDirectory: rootDirectory, actions: actions)
-        context.coordinator.attach()
-    }
-
-    static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
-        coordinator.detach()
-    }
-
-    @MainActor
-    final class Coordinator: NSObject {
-        weak var owner: NSView?
-        private var rootDirectory = URL(fileURLWithPath: "/")
-        private var actions: FileTreeActions?
-        private weak var table: NSTableView?
-        private var recognizer: NSClickGestureRecognizer?
-
-        func configure(rootDirectory: URL, actions: FileTreeActions) {
-            self.rootDirectory = rootDirectory
-            self.actions = actions
-        }
-
-        func attach() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self, let owner = self.owner else { return }
-                guard let table = Self.outlineView(near: owner) else { return }
-                if self.table === table, recognizer != nil { return }
-                detach()
-                let recognizer = NSClickGestureRecognizer(target: self, action: #selector(self.showMenu(_:)))
-                recognizer.buttonMask = 0x2 // secondary (right) mouse button
-                table.addGestureRecognizer(recognizer)
-                self.recognizer = recognizer
-                self.table = table
-            }
-        }
-
-        func detach() {
-            if let recognizer, let table { table.removeGestureRecognizer(recognizer) }
-            recognizer = nil
-            table = nil
-        }
-
-        @objc private func showMenu(_ recognizer: NSClickGestureRecognizer) {
-            guard let table else { return }
-            let point = recognizer.location(in: table)
-            // Only the empty area — a click on a real row is handled by its own menu.
-            guard table.row(at: point) == -1 else { return }
-            let menu = NSMenu()
-            menu.addItem(menuItem(localized("New File"), #selector(newFile)))
-            menu.addItem(menuItem(localized("New Folder"), #selector(newFolder)))
-            menu.popUp(positioning: nil, at: point, in: table)
-        }
-
-        private func menuItem(_ title: String, _ action: Selector) -> NSMenuItem {
-            let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
-            item.target = self
-            return item
-        }
-
-        @objc private func newFile() { actions?.newFile(rootDirectory) }
-        @objc private func newFolder() { actions?.newFolder(rootDirectory) }
-
-        /// Walk up to the enclosing scroll view, then find the outline/table view in it.
-        private static func outlineView(near view: NSView) -> NSTableView? {
-            var ancestor: NSView? = view
-            while let current = ancestor {
-                if let scroll = current as? NSScrollView, let table = findTable(in: scroll) {
-                    return table
-                }
-                ancestor = current.superview
-            }
-            return nil
-        }
-
-        private static func findTable(in view: NSView) -> NSTableView? {
-            if let table = view as? NSTableView { return table }
-            for subview in view.subviews {
-                if let table = findTable(in: subview) { return table }
-            }
-            return nil
-        }
-    }
-}
-
-/// Finds the `NSOutlineView` backing the file tree and hands it to `onFound`, so
-/// `FileBrowserView` can expand a folder programmatically when its row is selected —
-/// the click that selects a row is the only reliable signal (the outline view swallows
-/// primary-click recognizers in its own mouse tracking). Mounted *inside a row* (like
-/// `OutlineViewFixups`), so the outline view is a real ancestor on its
-/// superview chain — a `.background` on the List sits in a sibling subtree and can't
-/// reach it. Shared with the remote tree (`RemoteFileRow`), which needs the same
-/// capture for the same click-to-expand gesture.
-struct OutlineViewCapture: NSViewRepresentable {
-    let onFound: (NSOutlineView?) -> Void
-
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView(frame: .zero)
-        DispatchQueue.main.async { onFound(Self.outlineView(above: view)) }
-        return view
-    }
-
-    func updateNSView(_ nsView: NSView, context: Context) {
-        DispatchQueue.main.async { onFound(Self.outlineView(above: nsView)) }
-    }
-
-    /// Walk up to the enclosing outline view (an `NSTableView` subclass).
-    private static func outlineView(above view: NSView) -> NSOutlineView? {
-        var ancestor = view.superview
-        while let current = ancestor {
-            if let outline = current as? NSOutlineView { return outline }
-            ancestor = current.superview
-        }
-        return nil
     }
 }
 
