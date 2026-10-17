@@ -256,13 +256,28 @@ struct FileBrowserView: View {
         store.revealingPath = nil
     }
 
-    /// Selects the revealed row without opening it, and centres it only if it is
-    /// off screen — a row already in view stays where the eye left it.
+    /// Selects the revealed row without opening it, and scrolls it up near the
+    /// top only if it is off screen — a row already in view stays where the eye
+    /// left it.
     private func select(_ path: String, row: Int, in outline: NSOutlineView) {
         if browserState.selection != path {
             browserState.revealedSelection = path
             browserState.selection = path
         }
+        scrollIntoView(row, in: outline)
+        // The rows the last expand added may not have grown the outline yet —
+        // SwiftUI tiles it on its own pass — and a scroll clamped to the old
+        // height stops short of the row. Once more after that pass.
+        DispatchQueue.main.async {
+            guard row < outline.numberOfRows else { return }
+            scrollIntoView(row, in: outline)
+        }
+    }
+
+    /// Two rows of the folder above stay in view, so the file reads in place
+    /// rather than as a row pinned to the edge.
+    private func scrollIntoView(_ row: Int, in outline: NSOutlineView) {
+        outline.tile()
         let rowRect = outline.rect(ofRow: row)
         guard let scrollView = outline.enclosingScrollView else {
             outline.scrollRowToVisible(row)
@@ -271,7 +286,7 @@ struct FileBrowserView: View {
         let clip = scrollView.contentView
         guard !clip.documentVisibleRect.contains(rowRect) else { return }
         let highest = max(0, outline.bounds.height - clip.bounds.height)
-        let top = min(max(0, rowRect.midY - clip.bounds.height / 2), highest)
+        let top = min(max(0, rowRect.minY - rowRect.height * 2), highest)
         clip.scroll(to: NSPoint(x: clip.bounds.origin.x, y: top))
         scrollView.reflectScrolledClipView(clip)
     }
