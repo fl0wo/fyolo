@@ -808,6 +808,8 @@
 	<string>Find Next</string>
 	<key>Find Previous</key>
 	<string>Find Previous</string>
+	<key>Finding in Files…</key>
+	<string>Finding in Files…</string>
 	<key>Find…</key>
 	<string>Find…</string>
 	<key>Finish updating Fyolo’s session host?</key>

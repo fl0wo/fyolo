@@ -432,7 +432,7 @@ final class DeviceFileTreeTests: XCTestCase {
         let tree = revealTree()
         let (outline, source) = mirror(tree)
 
-        let found = try XCTUnwrap(tree.revealRow(for: "\(root)/src/deep/x.ts", in: outline))
+        let found = try XCTUnwrap(row(tree.revealRow(for: "\(root)/src/deep/x.ts", in: outline)))
 
         XCTAssertEqual(found.path, "\(root)/src/deep/x.ts")
         XCTAssertEqual(source.path(of: outline.item(atRow: found.row)), found.path)
@@ -450,7 +450,33 @@ final class DeviceFileTreeTests: XCTestCase {
         tree.apply([listing(root, [("aaa", .directory), ("docs", .directory),
                                    ("src", .directory), ("README.md", .file)])])
 
-        XCTAssertNil(tree.revealRow(for: "\(root)/src/deep/x.ts", in: outline))
+        XCTAssertNil(row(tree.revealRow(for: "\(root)/src/deep/x.ts", in: outline)))
+    }
+
+    /// An outline that shows the first folders but not yet the next one's rows
+    /// reports how deep it got and the deepest folder it opened — what keeps a
+    /// slow reveal waiting, and what one that gives up selects.
+    func testRevealPartwayReportsTheDeepestFolderOpened() throws {
+        let tree = model()
+        tree.apply([listing(root, [("docs", .directory), ("src", .directory),
+                                   ("README.md", .file)])])
+        tree.apply([listing("\(root)/src", [("deep", .directory), ("a.ts", .file)])])
+        let (outline, source) = mirror(tree)
+        tree.apply([listing("\(root)/src/deep", [("x.ts", .file)])])
+
+        guard case .partway(let depth, let folder) =
+                tree.revealRow(for: "\(root)/src/deep/x.ts", in: outline) else {
+            return XCTFail("an outline without deep's rows cannot have found x.ts")
+        }
+        XCTAssertEqual(depth, 2)
+        let reached = try XCTUnwrap(folder)
+        XCTAssertEqual(reached.path, "\(root)/src/deep")
+        XCTAssertEqual(source.path(of: outline.item(atRow: reached.row)), reached.path)
+    }
+
+    private func row(_ progress: DeviceFileTreeModel.RevealProgress) -> (row: Int, path: String)? {
+        guard case .found(let row, let path) = progress else { return nil }
+        return (row, path)
     }
 
     /// A file the tree does not draw — under a folder it never listed, or gone —
@@ -459,7 +485,7 @@ final class DeviceFileTreeTests: XCTestCase {
         let tree = revealTree()
         let (outline, source) = mirror(tree)
 
-        let found = try XCTUnwrap(tree.revealRow(for: "\(root)/src/gone/y.ts", in: outline))
+        let found = try XCTUnwrap(row(tree.revealRow(for: "\(root)/src/gone/y.ts", in: outline)))
 
         XCTAssertEqual(found.path, "\(root)/src")
         XCTAssertEqual(source.path(of: outline.item(atRow: found.row)), "\(root)/src")

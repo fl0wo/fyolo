@@ -169,6 +169,9 @@ struct FileBrowserView: View {
                     return
                 }
             }
+            // A row picked by hand outranks a reveal still opening its way down —
+            // landing seconds later, it would take the selection back.
+            if revealTask != nil { cancelReveal() }
             // The table fires native selection on a clean click — reliably, unlike a
             // click recognizer, which `NSOutlineView`'s own primary-button tracking
             // swallows. So a selection *change* opens: a file opens, a folder opens
@@ -182,29 +185,75 @@ struct FileBrowserView: View {
         }
         .onReceive(browserState.rowClicked) { activateClickedRow() }
         .onReceive(store.revealInTreeRequest) { reveal($0) }
-        .onDisappear { revealTask?.cancel() }
+        .onDisappear { cancelReveal() }
     }
 
     /// Opens the tree down to `path`, selects it and scrolls it into view — the
     /// detail header's locate button. The folders on the way are listed in one
-    /// request (none when already open); the outline then needs a frame or two to
-    /// adopt them, so the walk is retried briefly rather than assumed to land.
+    /// request (none when already open); the outline then adopts them one level
+    /// per update pass, which on a big tree is far slower than a frame.
+    ///
+    /// So the walk waits for as long as it keeps getting deeper, not for a fixed
+    /// number of frames: a fixed budget ran out partway down a deep path and gave
+    /// up silently, leaving the next click to finish what this one started.
     private func reveal(_ path: String) {
-        revealTask?.cancel()
+        cancelReveal()
         guard let tree else { return }
+        store.revealingPath = path
         revealTask = Task { @MainActor in
-            await tree.loadFolders(leadingTo: path)
-            for _ in 0 ..< 40 {
-                guard !Task.isCancelled else { return }
-                if let outline = browserState.outlineView,
-                   let found = tree.revealRow(for: path, in: outline) {
-                    select(found.path, row: found.row, in: outline)
-                    return
+            // A cancelled reveal was cleared by whoever cancelled it, and may
+            // already have been replaced by the next one.
+            defer {
+                if !Task.isCancelled {
+                    store.revealingPath = nil
+                    revealTask = nil
+                }
+            }
+            guard await tree.loadFolders(leadingTo: path), !Task.isCancelled else { return }
+            let clock = ContinuousClock()
+            let started = clock.now
+            var lastProgress = started
+            var depth = -1
+            var nudged = false
+            var reached: (row: Int, path: String)?
+            while !Task.isCancelled {
+                if let outline = browserState.outlineView {
+                    switch tree.revealRow(for: path, in: outline) {
+                    case .found(let row, let found):
+                        select(found, row: row, in: outline)
+                        return
+                    case .partway(let level, let folder):
+                        if let folder { reached = folder }
+                        if level > depth {
+                            depth = level
+                            lastProgress = clock.now
+                            nudged = false
+                        }
+                    }
+                }
+                let now = clock.now
+                if now - lastProgress > .seconds(3) || now - started > .seconds(15) { break }
+                // Nothing else may publish while the outline waits for a folder's
+                // children, and SwiftUI only hands them over on an update pass.
+                if !nudged, now - lastProgress > .milliseconds(250) {
+                    tree.requestOutlineUpdate()
+                    nudged = true
                 }
                 try? await Task.sleep(for: .milliseconds(16))
             }
-            Log.files.error("reveal: the tree never drew \(path, privacy: .public)")
+            guard !Task.isCancelled else { return }
+            Log.files.error(
+                "reveal: the tree stalled \(depth, privacy: .public) folders down \(path, privacy: .public)")
+            if let reached, let outline = browserState.outlineView {
+                select(reached.path, row: reached.row, in: outline)
+            }
         }
+    }
+
+    private func cancelReveal() {
+        revealTask?.cancel()
+        revealTask = nil
+        store.revealingPath = nil
     }
 
     /// Selects the revealed row without opening it, and centres it only if it is

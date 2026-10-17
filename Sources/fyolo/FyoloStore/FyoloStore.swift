@@ -593,6 +593,11 @@ final class FyoloStore: ObservableObject {
     /// event rather than state: the tree acts once, and a stale request means nothing.
     let revealInTreeRequest = PassthroughSubject<String, Never>()
 
+    /// The path the Files tree is still opening down to. On a big tree that takes
+    /// a round trip and an update pass per folder, so the locate button shows it
+    /// is working rather than looking like it heard nothing.
+    @Published var revealingPath: String?
+
     /// The open file as the Files tree names it — the path on the checkout's own
     /// machine — or `nil` when the open detail is not a file, or the file lies
     /// outside the tree's root (a terminal link to `/etc/hosts`, a staged copy

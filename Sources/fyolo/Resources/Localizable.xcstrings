@@ -6867,6 +6867,16 @@
         }
       }
     },
+    "Finding in Files…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在“文件”中查找…"
+          }
+        }
+      }
+    },
     "Reveal in Files": {
       "localizations": {
         "zh-Hans": {

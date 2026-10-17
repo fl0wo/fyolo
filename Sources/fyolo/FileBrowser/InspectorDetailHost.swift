@@ -281,10 +281,18 @@ struct InspectorDetailChromeButtons: View {
             // Locate: open the Files tree down to this file — JetBrains' "Select Opened File"
             // crosshair. Only for a file the tree can show; a diff, an issue, or a file from
             // outside the checkout has no row to land on.
-            if store.revealableOpenFilePath != nil {
-                DetailChromeButton(icon: .target, size: 14,
-                                   help: localized("Reveal in Files")) {
-                    store.revealOpenFileInTree()
+            if let path = store.revealableOpenFilePath {
+                if store.revealingPath == path {
+                    // In the button's own chip, so the header does not shift.
+                    ProgressView()
+                        .controlSize(.mini)
+                        .frame(width: 22, height: 22)
+                        .help(localized("Finding in Files…"))
+                } else {
+                    DetailChromeButton(icon: .target, size: 14,
+                                       help: localized("Reveal in Files")) {
+                        store.revealOpenFileInTree()
+                    }
                 }
             }
             // Collapse the leading list column so the detail fills the inspector. A panel glyph
