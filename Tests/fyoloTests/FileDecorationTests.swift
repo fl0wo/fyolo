@@ -92,15 +92,20 @@ final class FileDecorationTests: XCTestCase {
         XCTAssertFalse(folders.contains("api"))
     }
 
-    /// The pass a 250k-file checkout pays when its shape changes, off the main thread.
-    func testTheWholeTreePassStaysCheapAtTheListingLimit() {
-        let files = (0..<250_000).map { index in
-            "packages/p\(index % 500)/src/module\(index % 40)/file\(index).\(index % 7 == 0 ? "pb.go" : "ts")"
+    /// The pass a checkout pays when its shape changes is one look at each file — the
+    /// classifier is the expensive part — however deep the folders run. Counted
+    /// rather than timed, so a slow machine cannot fail it.
+    func testTheWholeTreePassClassifiesEachFileOnce() {
+        let files = (0..<20_000).map { index in
+            "packages/p\(index % 50)/src/module\(index % 40)/deep/er/file\(index).\(index % 7 == 0 ? "pb.go" : "ts")"
         }
-        let start = Date()
-        _ = generatedFolders(files)
-        // Measured in a debug build, which runs several times slower than the app.
-        XCTAssertLessThan(Date().timeIntervalSince(start), 1.5)
+        var asked = 0
+        let folders = FileTreeDecorations.generatedFolders(files: files) { path in
+            asked += 1
+            return FileClassifier.isGenerated(path)
+        }
+        XCTAssertEqual(asked, files.count)
+        XCTAssertTrue(folders.isEmpty, "every folder holds hand-written files too")
     }
 
     // MARK: Git
