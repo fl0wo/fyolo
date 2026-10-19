@@ -1450,6 +1450,10 @@ final class FyolodSessionLink: @unchecked Sendable {
     /// Never called directly: everything goes through `deliverOutput`, which is
     /// where a keyframe waiting for its grid holds the stream in order.
     var onOutput: ((Data) -> Void)?
+    /// The child's own output, as it arrives off the wire — never a keyframe, whose
+    /// repaint is a picture of a screen already seen. Called on the reader thread,
+    /// before the bytes reach the surface, so it must hand off and return.
+    var onLiveOutput: ((Data) -> Void)?
     /// Fired on the main queue once the handshake reveals which device this
     /// session actually runs on. A session knows its *route* from the start but
     /// cannot know its *device* until something answers — this is that moment.
@@ -1921,6 +1925,7 @@ final class FyolodSessionLink: @unchecked Sendable {
     /// the lock before emitting could be overtaken by the next `D` frame, and
     /// that order is the whole point of the hold.
     private func deliverOutput(_ data: Data) {
+        onLiveOutput?(data)
         outputLock.lock()
         let outcome = hold.receive(output: data, limit: Self.keyframeHoldByteLimit)
         for chunk in outcome.emit { onOutput?(chunk) }

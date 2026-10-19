@@ -658,7 +658,12 @@ final class FyoloStore: ObservableObject {
     /// loose chat takes the scoped scratch directory. Whether that candidate is
     /// this Mac's to read is the checkout's answer, not the slot's.
     var inspectorCheckout: Checkout? {
-        guard let id = selectedSessionID, let slot = locate(id) else { return nil }
+        selectedSessionID.flatMap(checkout(forSession:))
+    }
+
+    /// The checkout `inspectorCheckout` would show were this session selected.
+    func checkout(forSession id: Session.ID) -> Checkout? {
+        guard let slot = locate(id) else { return nil }
         let session = self[slot]
         let project: Project?
         let localRoot: String?
@@ -1771,6 +1776,19 @@ final class FyoloStore: ObservableObject {
     /// `applyFyolodConnectionLost`.
     func connectionNotice(for sessionID: Session.ID) -> String? {
         runtimes[sessionID]?.connectionNotice
+    }
+
+    /// Where a session's terminal output is read from, for `TerminalDiagnostics`: its
+    /// machine, and the directory a relative path it prints starts in. The live cwd
+    /// only on this Mac — a plain `ssh` terminal's sampled cwd is the local `ssh`
+    /// process's, not anywhere on the far side.
+    func diagnosticContext(for id: Session.ID) -> TerminalDiagnostics.Context? {
+        guard let checkout = checkout(forSession: id) else { return nil }
+        let isLocal = !checkout.isOnAnotherDevice
+        return TerminalDiagnostics.Context(
+            deviceIdentity: checkout.deviceIdentity,
+            workingDirectory: (isLocal ? workingDirectory(for: id) : nil) ?? checkout.root,
+            isLocal: isLocal)
     }
 
     /// The live working directory a session last reported (shell `OSC 7`), or `nil`.

@@ -107,6 +107,10 @@ extension FyoloStore {
         link.onOutput = { [weak inMemory] data in
             inMemory?.receive(data)
         }
+        // Errors a build prints here underline their files in the tree.
+        link.onLiveOutput = TerminalDiagnostics.shared.tap(session: session.id) { [weak self] in
+            self?.diagnosticContext(for: session.id)
+        }
         // The attach handshake is the cheapest device discovery there is — it was
         // going to happen anyway — so every surfaced session teaches the app which
         // machine it is on, with no extra round trip.

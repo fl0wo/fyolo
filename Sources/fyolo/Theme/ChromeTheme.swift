@@ -238,13 +238,20 @@ extension AppSettings {
     /// `NSAppearance.current` happened to be during the Oklab mix — the theme's own
     /// background is the already-resolved counterpart.
     func diffPalette(for colorScheme: ColorScheme) -> DiffPalette {
+        let resolved = paletteBackground(for: colorScheme)
+        return DiffPalette(background: resolved.color, isDark: resolved.isDark)
+    }
+
+    /// The terminal background `colorScheme` shows, already resolved, and whether it reads
+    /// as dark — the pair every `Palette` mix and legibility check is measured against.
+    func paletteBackground(for colorScheme: ColorScheme) -> (color: NSColor, isDark: Bool) {
         let theme = chromeTheme(for: colorScheme)
         let dark = theme?.isDark ?? (colorScheme == .dark)
         let background = theme.map { NSColor($0.background) }
             ?? (dark
                 ? NSColor(srgbRed: 0x21 / 255.0, green: 0x21 / 255.0, blue: 0x21 / 255.0, alpha: 1)
                 : .white)
-        return DiffPalette(background: background, isDark: dark)
+        return (background, dark)
     }
 
     var terminalBackgroundColor: NSColor {

@@ -48,15 +48,15 @@ final class DiffPaletteTests: XCTestCase {
     func testMixEndpointsAreTheInputs() {
         let background = NSColor(srgbRed: 0.12, green: 0.12, blue: 0.14, alpha: 1)
         let tint = NSColor(srgbRed: 0.369, green: 0.8, blue: 0.443, alpha: 1)
-        assertClose(DiffPalette.mix(background, tint, 0), background)
-        assertClose(DiffPalette.mix(background, tint, 1), tint)
+        assertClose(Palette.mix(background, tint, 0), background)
+        assertClose(Palette.mix(background, tint, 1), tint)
     }
 
     func testMixIsMonotonicInLightness() {
         let background = NSColor(srgbRed: 0, green: 0, blue: 0, alpha: 1)
         let tint = NSColor(srgbRed: 1, green: 1, blue: 1, alpha: 1)
         let steps = stride(from: CGFloat(0), through: 1, by: 0.1).map {
-            Oklab(DiffPalette.mix(background, tint, $0))?.lightness ?? -1
+            Oklab(Palette.mix(background, tint, $0))?.lightness ?? -1
         }
         for (lower, higher) in zip(steps, steps.dropFirst()) {
             XCTAssertLessThan(lower, higher)

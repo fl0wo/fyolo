@@ -287,8 +287,8 @@ struct GitChangesView: View {
                 ? localized("\(model.changes.count) file")
                 : localized("\(model.changes.count) files")))
                 .foregroundStyle(.secondary)
-            if additions > 0 { Text("+\(additions)").foregroundStyle(.green) }
-            if deletions > 0 { Text("−\(deletions)").foregroundStyle(.red) }
+            if additions > 0 { Text("+\(additions)").foregroundStyle(Palette.green) }
+            if deletions > 0 { Text("−\(deletions)").foregroundStyle(Palette.red) }
         }
     }
 
@@ -602,12 +602,12 @@ private struct GitChangeRow: View {
                     if change.isBinary {
                         Text(localized("binary")).foregroundStyle(.secondary)
                     } else {
-                        if change.additions > 0 { Text("+\(change.additions)").foregroundStyle(.green) }
-                        if change.deletions > 0 { Text("−\(change.deletions)").foregroundStyle(.red) }
+                        if change.additions > 0 { Text("+\(change.additions)").foregroundStyle(Palette.green) }
+                        if change.deletions > 0 { Text("−\(change.deletions)").foregroundStyle(Palette.red) }
                     }
                     if change.isStaged {
                         Circle()
-                            .fill(.green)
+                            .fill(Palette.green)
                             .frame(width: 5, height: 5)
                             .help(localized("Staged — the next git commit takes this file"))
                     }

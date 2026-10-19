@@ -26,6 +26,8 @@ struct FileTreeList: NSViewRepresentable {
     let revision: Int
     /// Collapse All: each bump closes every folder.
     let collapseGeneration: Int
+    /// The decorations' revision, read here so a recolor re-runs `updateNSView`.
+    let decorationRevision: Int
     @Binding var selection: String?
     let settings: AppSettings
     /// The write verbs, or `nil` for a checkout on another device.
@@ -82,7 +84,7 @@ struct FileTreeList: NSViewRepresentable {
     func updateNSView(_ scroll: NSScrollView, context: Context) {
         let controller = context.coordinator
         configure(controller)
-        controller.update(collapseGeneration: collapseGeneration)
+        controller.update(collapseGeneration: collapseGeneration, decorationRevision: decorationRevision)
     }
 
     static func dismantleNSView(_ scroll: NSScrollView, coordinator: FileOutlineController) {
@@ -116,6 +118,8 @@ final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineV
 
     /// The model revision the outline last re-read.
     private var listedRevision: Int?
+    /// The decorations' revision the visible rows were last drawn at.
+    private var decoratedRevision: Int?
     private var collapseGeneration = 0
     /// Set while this side moves the outline's selection, so the delegate does
     /// not report it back as the user's.
@@ -150,7 +154,7 @@ final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineV
         outline = nil
     }
 
-    func update(collapseGeneration: Int) {
+    func update(collapseGeneration: Int, decorationRevision: Int) {
         if collapseGeneration != self.collapseGeneration {
             self.collapseGeneration = collapseGeneration
             collapseAll()
@@ -160,6 +164,22 @@ final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineV
             reload()
         } else {
             syncSelection()
+            if decoratedRevision != decorationRevision { redecorateVisibleRows() }
+        }
+        decoratedRevision = decorationRevision
+    }
+
+    /// Redraws the rows on screen with their current decorations. A row scrolled into
+    /// view later is drawn fresh, so only these can be showing an old color.
+    private func redecorateVisibleRows() {
+        guard let outline, let settings else { return }
+        let visible = outline.rows(in: outline.visibleRect)
+        for row in visible.lowerBound..<visible.upperBound {
+            guard let node = outline.item(atRow: row) as? DeviceFileNode else { continue }
+            let decoration = model.decorations.decoration(for: node)
+            (outline.view(atColumn: 0, row: row, makeIfNecessary: false) as? FileOutlineCell)?
+                .show(FileRowLabel(row: FileRowSnapshot(node, decoration: decoration), settings: settings))
+            rowView(at: row)?.decoration = decoration
         }
     }
 
@@ -371,7 +391,9 @@ final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineV
         guard let settings, let node = item as? DeviceFileNode else { return nil }
         let cell = outlineView.makeView(withIdentifier: Self.cellIdentifier, owner: nil) as? FileOutlineCell
             ?? FileOutlineCell(identifier: Self.cellIdentifier)
-        cell.show(FileRowLabel(row: FileRowSnapshot(node), settings: settings))
+        cell.show(FileRowLabel(
+            row: FileRowSnapshot(node, decoration: model.decorations.decoration(for: node)),
+            settings: settings))
         return cell
     }
 
@@ -384,6 +406,8 @@ final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineV
 
     func outlineView(_ outlineView: NSOutlineView, didAdd rowView: NSTableRowView, forRow row: Int) {
         guard let rowView = rowView as? FileOutlineRowView else { return }
+        rowView.decoration = (outlineView.item(atRow: row) as? DeviceFileNode)
+            .map { model.decorations.decoration(for: $0) }
         rowView.isHovered = row == hoveredRow
         rowView.isDropTarget = dropTargetPath != nil
             && (outlineView.item(atRow: row) as? DeviceFileNode)?.path == dropTargetPath
@@ -541,6 +565,7 @@ final class FileOutlineView: NSOutlineView {
 private final class FileOutlineRowView: NSTableRowView {
     var isHovered = false { didSet { if isHovered != oldValue { refresh() } } }
     var isDropTarget = false { didSet { if isDropTarget != oldValue { refresh() } } }
+    var decoration: FileDecoration? { didSet { if decoration != oldValue { refresh() } } }
     override var isSelected: Bool { didSet { if isSelected != oldValue { refresh() } } }
 
     private let settings: AppSettings
@@ -549,7 +574,7 @@ private final class FileOutlineRowView: NSTableRowView {
     init(settings: AppSettings, identifier: NSUserInterfaceItemIdentifier) {
         self.settings = settings
         highlight = NSHostingView(rootView: FileRowHighlight(
-            isSelected: false, isHovering: false, settings: settings))
+            isSelected: false, isHovering: false, decoration: nil, settings: settings))
         super.init(frame: .zero)
         self.identifier = identifier
         highlight.sizingOptions = []
@@ -565,22 +590,33 @@ private final class FileOutlineRowView: NSTableRowView {
 
     private func refresh() {
         highlight.rootView = FileRowHighlight(
-            isSelected: isSelected || isDropTarget, isHovering: isHovered, settings: settings)
+            isSelected: isSelected || isDropTarget, isHovering: isHovered,
+            decoration: decoration, settings: settings)
     }
 }
 
 private struct FileRowHighlight: View {
     let isSelected: Bool
     let isHovering: Bool
+    let decoration: FileDecoration?
     @ObservedObject var settings: AppSettings
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
+        let palette = FileTreePalette.resolve(settings: settings, colorScheme: colorScheme)
         SidebarRowHighlight(
             isSelected: isSelected,
             isHovering: isHovering,
             chrome: settings.chromeTheme(for: colorScheme)
         )
+        .overlay {
+            // On top of the highlight rather than behind it: without a theme, selection
+            // and hover are a material that hides whatever is beneath, and a test file
+            // has to read as one whatever state its row is in.
+            if let decoration, let layer = palette.layer(for: decoration) {
+                rowShape(Color(nsColor: layer))
+            }
+        }
         // The highlight's own 6pt leading inset is cancelled so its lift reaches
         // the disclosure triangle rather than crowding it.
         .padding(.leading, -6)
@@ -588,6 +624,15 @@ private struct FileRowHighlight: View {
         // No animation on hover: a fade is latency on a cue whose job is to
         // track the pointer.
         .animation(nil, value: isHovering)
+    }
+
+    /// The highlight's own shape and insets, so a selected test file reads as one row
+    /// rather than a pill inside a band.
+    private func rowShape(_ color: Color) -> some View {
+        RoundedRectangle(cornerRadius: 7, style: .continuous)
+            .fill(color)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1)
     }
 }
 
@@ -628,6 +673,7 @@ struct FileRowSnapshot: Equatable {
     let symbolicLinkTarget: String?
     let isIgnored: Bool
     let isLoading: Bool
+    let decoration: FileDecoration
     /// Whether clicking it does anything. A folder expands; a file on this Mac
     /// opens whatever it is; a file on another device opens only if the host
     /// will serve it as bytes. A socket, a device node, a link the host will not
@@ -635,7 +681,8 @@ struct FileRowSnapshot: Equatable {
     let isActivatable: Bool
 
     @MainActor
-    init(_ node: DeviceFileNode) {
+    init(_ node: DeviceFileNode, decoration: FileDecoration = FileDecoration()) {
+        self.decoration = decoration
         url = node.url
         name = node.name
         notice = node.notice
@@ -656,12 +703,23 @@ private struct FileRowLabel: View {
     @Environment(\.colorScheme) private var colorScheme
 
     private var chrome: ChromeTheme? { settings.chromeTheme(for: colorScheme) }
+    private var palette: FileTreePalette { FileTreePalette.resolve(settings: settings, colorScheme: colorScheme) }
 
     private var ignoredForeground: Color? {
         guard settings.dimIgnoredFiles, row.isIgnored else { return nil }
-        return colorScheme == .dark
-            ? Color(red: 140 / 255, green: 140 / 255, blue: 140 / 255)
-            : Color(red: 142 / 255, green: 142 / 255, blue: 144 / 255)
+        return Palette.color(.grey)
+    }
+
+    /// The name's ink: how the file differs from the branch's base, else dimmed when
+    /// ignored, else brown when generated, else the theme's own foreground. A change
+    /// outranks being generated — a lockfile this branch rewrote is news.
+    private var nameForeground: Color {
+        if let change = row.decoration.change {
+            return Color(nsColor: palette.ink(for: change, on: row.decoration))
+        }
+        if let ignoredForeground { return ignoredForeground }
+        if row.decoration.kind == .generated { return Color(nsColor: palette.generatedInk) }
+        return chrome?.foreground ?? .primary
     }
 
     var body: some View {
@@ -705,10 +763,20 @@ private struct FileRowLabel: View {
                     .frame(width: 16, alignment: .leading)
             }
             Text(row.name)
-                .foregroundStyle(ignoredForeground ?? chrome?.foreground ?? .primary)
+                .foregroundStyle(nameForeground)
                 .font(settings.interfaceFont)
                 .lineLimit(1)
                 .truncationMode(.middle)
+                .overlay(alignment: .bottom) {
+                    if row.decoration.hasError {
+                        ZigZagUnderline()
+                            .stroke(Color(nsColor: palette.errorInk(on: row.decoration)),
+                                    style: StrokeStyle(lineWidth: 1, lineCap: .round, lineJoin: .round))
+                            .frame(height: 3)
+                            .offset(y: 2)
+                            .accessibilityHidden(true)
+                    }
+                }
             // A folder waiting on its listing would otherwise draw as an empty
             // folder, the one thing it is not.
             if row.isLoading {
@@ -725,6 +793,89 @@ private struct FileRowLabel: View {
         .modifier(SymbolicLinkTooltip(target: row.symbolicLinkTarget))
         .opacity(row.isActivatable ? 1 : 0.55)
         .help(row.isActivatable ? "" : localized("Special files can’t be previewed"))
+    }
+}
+
+/// The squiggle an editor draws under an error, sized to the text it sits under.
+private struct ZigZagUnderline: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let step = rect.height
+        var x = rect.minX
+        var high = false
+        path.move(to: CGPoint(x: x, y: rect.maxY))
+        while x < rect.maxX {
+            x = min(x + step, rect.maxX)
+            high.toggle()
+            path.addLine(to: CGPoint(x: x, y: high ? rect.minY : rect.maxY))
+        }
+        return path
+    }
+}
+
+/// The file tree's colors, all drawn from `Palette` against the terminal background the
+/// tree sits on. Test files are the one kind marked with a background — a light green
+/// layer — and everything else speaks through the name's ink, held to a legible contrast
+/// against whatever it is drawn over.
+struct FileTreePalette {
+    private let background: NSColor
+    private let isDark: Bool
+    private let test: NSColor
+
+    init(background: NSColor, isDark: Bool) {
+        self.background = background
+        self.isDark = isDark
+        test = Palette.fill(.green, .tint, on: background, dark: isDark)
+    }
+
+    /// One palette per background, rebuilt only when the theme moves: every row
+    /// asks for it, and the inks walk a contrast check.
+    @MainActor private static var cache: (key: String, palette: FileTreePalette)?
+
+    @MainActor
+    static func resolve(settings: AppSettings, colorScheme: ColorScheme) -> FileTreePalette {
+        let resolved = settings.paletteBackground(for: colorScheme)
+        let key = "\(resolved.color.usingColorSpace(.sRGB)?.description ?? "")|\(resolved.isDark)"
+        if let cache, cache.key == key { return cache.palette }
+        let palette = FileTreePalette(background: resolved.color, isDark: resolved.isDark)
+        cache = (key, palette)
+        return palette
+    }
+
+    /// What a test row's background comes to over the plain pane — the surface its
+    /// name's ink is held legible against — or `nil` for every other row.
+    func fill(for decoration: FileDecoration) -> NSColor? {
+        decoration.kind == .test ? test : nil
+    }
+
+    /// A test row's light green, as the translucent layer drawn over it. Translucent
+    /// rather than mixed like `fill`, because it sits over whatever highlight the row
+    /// has — none, hover, or a selection material that is not one known color.
+    func layer(for decoration: FileDecoration) -> NSColor? {
+        guard decoration.kind == .test else { return nil }
+        return Palette.base(.green, dark: isDark).withAlphaComponent(Palette.Strength.tint.amount(dark: isDark))
+    }
+
+    func ink(for change: FileDecoration.Change, on decoration: FileDecoration) -> NSColor {
+        let surface = fill(for: decoration) ?? background
+        switch change {
+        case .added:
+            return Palette.ink(.green, on: surface, dark: isDark)
+        case .modified:
+            // The same green, a step back toward the background — still green, and
+            // still legible, but quieter than a file that is new outright.
+            let added = Palette.ink(.green, on: surface, dark: isDark)
+            return Palette.legible(Palette.mix(added, surface, 0.35), on: surface, dark: isDark, minimumContrast: 3)
+        case .cosmetic:
+            return Palette.ink(.blue, on: surface, dark: isDark)
+        }
+    }
+
+    /// A lockfile's or a generator's output's name: brown, so it reads as machine-made.
+    var generatedInk: NSColor { Palette.ink(.brown, on: background, dark: isDark) }
+
+    func errorInk(on decoration: FileDecoration) -> NSColor {
+        Palette.ink(.red, on: fill(for: decoration) ?? background, dark: isDark, minimumContrast: 3)
     }
 }
 
