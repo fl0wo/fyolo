@@ -1,0 +1,4 @@
+#!/bin/sh
+# The archiver beside `zig-cc`: an ELF archive for the musl slices, which the
+# Mac's own `ar` does not write.
+exec zig ar "$@"
