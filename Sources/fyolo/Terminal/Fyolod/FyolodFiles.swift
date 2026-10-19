@@ -439,7 +439,7 @@ extension Fyolod {
     /// it: a search asking for one more capability than the tree would open a
     /// second, cold channel beside the one the tree keeps warm, and pay an SSH
     /// handshake for it. A host that grants less simply leaves it out.
-    static let filesCapabilities = ["files", searchIncludeCapability]
+    static let filesCapabilities = ["files", searchIncludeCapability, referencesCapability]
 
     /// A file as it was on the device: its bytes, and the version they were read
     /// at. The version travels with the bytes because a reader that may later
@@ -466,6 +466,28 @@ extension Fyolod {
         let isWindowed: Bool
         let before: [String]
         let after: [String]
+        /// Byte offset of `text` inside the real line.
+        let textOffset: Int
+        /// What the hit is to a resolved symbol (`SymbolHitKind`); `nil` for a
+        /// text search.
+        let kind: String?
+    }
+
+    /// What a `fs.references` request resolved the clicked name to.
+    struct ResolvedSymbol: Sendable {
+        let name: String
+        /// `export`, `local`, `package`, `module`, or `name` — the last meaning
+        /// the hits are name matches, not resolved references.
+        let kind: String
+        let definitions: [SearchHit]
+        let atDefinition: Bool
+        let note: String?
+    }
+
+    struct ReferencesResult: Sendable {
+        let symbol: ResolvedSymbol
+        let hits: [SearchHit]
+        let limitHit: Bool
     }
 
     /// What one search answered. `limitHit` means the device stopped at the
@@ -759,22 +781,7 @@ extension Fyolod {
                 case .event:
                     guard case .searchResults(let payload) = try decodeEvent(frame.payload)
                     else { continue }
-                    hits.append(contentsOf: payload.matches.map { match in
-                        SearchHit(
-                            path: match.path,
-                            line: Int(clamping: match.line),
-                            text: match.text,
-                            // Pairs, as the host sends them; anything else is a
-                            // host disagreeing with the protocol and is dropped
-                            // rather than turned into a wrong highlight.
-                            spans: match.spans.compactMap { span in
-                                guard span.count == 2, span[0] <= span[1] else { return nil }
-                                return Int(span[0]) ..< Int(span[1])
-                            },
-                            isWindowed: match.textOffset > 0,
-                            before: match.before,
-                            after: match.after)
-                    })
+                    hits.append(contentsOf: payload.matches.map(SearchHit.init))
                 case .control:
                     switch try decodeControl(frame.payload) {
                     case .fsSearched(let payload):
@@ -785,6 +792,72 @@ extension Fyolod {
                     case .error(let failure):
                         // A refusal the host has already cleaned up behind — no
                         // grep is running, so cancelling would name nothing.
+                        call.completed()
+                        throw FyolodClientError.requestFailed(failure.message)
+                    default:
+                        continue
+                    }
+                default:
+                    continue
+                }
+            }
+        }
+    }
+
+    /// What the name at `offset` in `path` (relative to `root`) refers to, and
+    /// every reference to it — the device reads the code, so a local checkout
+    /// and one across the network give the same answer. The same stream shape
+    /// as `searchContents`, with one `references_resolved` event ahead of it.
+    ///
+    /// Blocking; call it off the main thread (`DeviceFileProvider` does).
+    ///
+    /// - Parameter offset: UTF-8 byte offset of the click.
+    /// - Parameter text: the file's unsaved text, when it differs from disk.
+    static func findReferences(
+        route: FyolodRoute, root: String, path: String, offset: Int, text: String?,
+        include: [String] = [], limit: Int,
+        idleTimeoutSeconds: Int = searchIdleTimeoutSeconds
+    ) throws -> ReferencesResult {
+        try withFilesChannel(route: route) { call, granted in
+            guard granted.contains(referencesCapability) else {
+                throw DeviceFileError.referencesUnsupported
+            }
+            guard include.isEmpty || granted.contains(searchIncludeCapability) else {
+                throw DeviceFileError.searchFilterUnsupported
+            }
+            try call.send(payload: encodeControl(FsReferencesOperation(
+                root: root, path: path, offset: UInt64(max(0, offset)), text: text,
+                include: include, limit: UInt64(max(1, limit)), seq: call.seq)))
+            call.cancelIfAbandoned()
+            var symbol: ResolvedSymbol?
+            var hits: [SearchHit] = []
+            while true {
+                let frame = try call.next(
+                    timeoutSeconds: idleTimeoutSeconds, operation: "fs.references")
+                switch frame.kind {
+                case .event:
+                    switch try decodeEvent(frame.payload) {
+                    case .referencesResolved(let payload):
+                        symbol = ResolvedSymbol(
+                            name: payload.name, kind: payload.kind,
+                            definitions: payload.definitions.map(SearchHit.init),
+                            atDefinition: payload.atDefinition, note: payload.note)
+                    case .searchResults(let payload):
+                        hits.append(contentsOf: payload.matches.map(SearchHit.init))
+                    default:
+                        continue
+                    }
+                case .control:
+                    switch try decodeControl(frame.payload) {
+                    case .fsSearched(let payload):
+                        call.completed()
+                        guard let symbol else {
+                            throw FyolodClientError.requestFailed(
+                                "the host ended a reference search without resolving it")
+                        }
+                        return ReferencesResult(
+                            symbol: symbol, hits: hits, limitHit: payload.limitHit)
+                    case .error(let failure):
                         call.completed()
                         throw FyolodClientError.requestFailed(failure.message)
                     default:
@@ -848,6 +921,26 @@ extension Fyolod {
     }
 }
 
+extension Fyolod.SearchHit {
+    init(_ match: Fyolod.SearchMatchPayload) {
+        path = match.path
+        line = Int(clamping: match.line)
+        text = match.text
+        // Pairs, as the host sends them; anything else is a host
+        // disagreeing with the protocol and is dropped rather than turned
+        // into a wrong highlight.
+        spans = match.spans.compactMap { span in
+            guard span.count == 2, span[0] <= span[1] else { return nil }
+            return Int(span[0]) ..< Int(span[1])
+        }
+        isWindowed = match.textOffset > 0
+        textOffset = Int(clamping: match.textOffset)
+        before = match.before
+        after = match.after
+        kind = match.kind
+    }
+}
+
 /// What can go wrong reading a device's files, in the vocabulary the pane shows.
 /// Deliberately small: the daemon's own message rides
 /// `FyolodClientError.requestFailed`, and this covers only the cases the client
@@ -859,6 +952,9 @@ enum DeviceFileError: Error, Equatable {
     /// The daemon searches but cannot narrow a search to some files, so a
     /// filtered search is not sent at all.
     case searchFilterUnsupported
+    /// The daemon predates `fs.references`, so it cannot say what a name
+    /// refers to.
+    case referencesUnsupported
     /// The device served less than the whole file, so this is not a preview.
     case tooLarge
     /// A name the tree refuses to build a path from.
@@ -961,6 +1057,17 @@ struct DeviceFileProvider: Sendable {
         Fyolod.ResourceWatch(
             route: route, caps: ["files", Fyolod.ResourceWatch.capability],
             resource: "fs:" + root, onUpdate: onUpdate)
+    }
+
+    /// What the name at `offset` in `path` refers to, on the device.
+    func references(
+        path: String, offset: Int, text: String?, include: [String] = [], limit: Int
+    ) async throws -> Fyolod.ReferencesResult {
+        try await run { [route, root] in
+            try Fyolod.findReferences(
+                route: route, root: root, path: path, offset: offset, text: text,
+                include: include, limit: limit)
+        }
     }
 
     /// Content search under the pane's own root, on the device. Confined the same

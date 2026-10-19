@@ -1983,6 +1983,21 @@ final class FyoloStore: ObservableObject {
         openFileURL = url
     }
 
+    /// Where the editor was before each ⌘-click jump, newest last — what ⌘[ reopens. Closures,
+    /// because a place is a file on this Mac or on a device, and each reopens its own way. Not
+    /// published: nothing draws it.
+    private var editorBackStack: [() -> Void] = []
+    private static let editorBackLimit = 50
+
+    func pushEditorBack(_ reopen: @escaping () -> Void) {
+        editorBackStack.append(reopen)
+        if editorBackStack.count > Self.editorBackLimit { editorBackStack.removeFirst() }
+    }
+
+    func navigateEditorBack() {
+        editorBackStack.popLast()?()
+    }
+
     /// Routes a link the user cmd-clicked in a terminal surface. A local file (a `file://` URL, or a
     /// bare path resolved against the surface's working directory) covers the terminal with a
     /// **read-only** preview — the source, not an editable buffer, so a stray click can't change it.

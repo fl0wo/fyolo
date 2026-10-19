@@ -68,6 +68,11 @@ public enum Fyolod {
     /// filter says are out of scope.
     public static let searchIncludeCapability = "search_include"
 
+    /// The host answers `FsReferencesOperation`: what a name in a file refers
+    /// to, and every reference to it. A host without it gets a whole-word
+    /// search instead, presented as name matches.
+    public static let referencesCapability = "references"
+
     /// What a plain control channel (`list`, `kill`) offers: nothing. Both verbs
     /// are unconditional, and tombstones ride the `sessions` reply un-gated.
     public static let controlCapabilities: [String] = []
@@ -589,6 +594,37 @@ public enum Fyolod {
         }
     }
 
+    /// What the name at `offset` in `path` refers to, and its references under
+    /// `root`. Answered by one `references_resolved` event, then
+    /// `search_results` batches whose matches carry a `kind`, then the same
+    /// `fs_searched` reply a search ends with.
+    public struct FsReferencesOperation: Encodable, Sendable {
+        public let op = "fs_references"
+        public let root: String
+        /// The clicked file, relative to `root`.
+        public let path: String
+        /// UTF-8 byte offset of the click in the file's current text.
+        public let offset: UInt64
+        /// The file's unsaved text; absent means the host reads the disk.
+        public let text: String?
+        public let include: [String]?
+        public let limit: UInt64
+        public let seq: UInt64
+
+        public init(
+            root: String, path: String, offset: UInt64, text: String? = nil,
+            include: [String] = [], limit: UInt64, seq: UInt64
+        ) {
+            self.root = root
+            self.path = path
+            self.offset = offset
+            self.text = text
+            self.include = include.isEmpty ? nil : include
+            self.limit = limit
+            self.seq = seq
+        }
+    }
+
     /// Filename search, which is a different question from `fs_search`'s content
     /// search: this matches *names* in an index the host keeps, so the reply
     /// carries how much of the tree that index has covered.
@@ -866,9 +902,13 @@ public enum Fyolod {
         public let spans: [[UInt32]]
         public let before: [String]
         public let after: [String]
+        /// What the hit is to the symbol an `fs_references` request resolved:
+        /// `definition`, `usage`, `import`, `reexport`, `match` or `unrelated`.
+        /// Absent from a text search.
+        public let kind: String?
 
         private enum CodingKeys: String, CodingKey {
-            case path, line, text, textOffset, spans, before, after
+            case path, line, text, textOffset, spans, before, after, kind
         }
 
         public init(from decoder: Decoder) throws {
@@ -880,6 +920,34 @@ public enum Fyolod {
             spans = try container.decodeIfPresent([[UInt32]].self, forKey: .spans) ?? []
             before = try container.decodeIfPresent([String].self, forKey: .before) ?? []
             after = try container.decodeIfPresent([String].self, forKey: .after) ?? []
+            kind = try container.decodeIfPresent(String.self, forKey: .kind)
+        }
+    }
+
+    /// The symbol an `fs_references` request resolved to, sent before any
+    /// reference. `kind` is `export`, `local`, `package`, `module`, or `name` —
+    /// the last meaning the hits that follow are name matches.
+    public struct ReferencesResolvedPayload: Decodable, Sendable {
+        public let request: UInt64
+        public let name: String
+        public let kind: String
+        public let definitions: [SearchMatchPayload]
+        public let atDefinition: Bool
+        public let note: String?
+
+        private enum CodingKeys: String, CodingKey {
+            case request, name, kind, definitions, atDefinition, note
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            request = try container.decode(UInt64.self, forKey: .request)
+            name = try container.decode(String.self, forKey: .name)
+            kind = try container.decode(String.self, forKey: .kind)
+            definitions =
+                try container.decodeIfPresent([SearchMatchPayload].self, forKey: .definitions) ?? []
+            atDefinition = try container.decodeIfPresent(Bool.self, forKey: .atDefinition) ?? false
+            note = try container.decodeIfPresent(String.self, forKey: .note)
         }
     }
 
@@ -1413,6 +1481,9 @@ public enum Fyolod {
         /// (`FyolodFiles.swift`). The only event addressed to a request rather
         /// than to a session, which is why it carries no `session`.
         case searchResults(SearchResultsPayload)
+        /// The symbol an `fs_references` request resolved to, ahead of its
+        /// `searchResults`. Addressed to the request, like them.
+        case referencesResolved(ReferencesResolvedPayload)
         /// One filesystem batch for a subscribed `fs:` resource. Like
         /// `searchResults` it names no session — but unlike it, it is addressed
         /// to no request either: it is the first event on this plane that
@@ -1687,6 +1758,9 @@ public enum Fyolod {
             return .fsChanged(try decoder.decode(FsChangedPayload.self, from: payload))
         case "search_results":
             return .searchResults(try decoder.decode(SearchResultsPayload.self, from: payload))
+        case "references_resolved":
+            return .referencesResolved(
+                try decoder.decode(ReferencesResolvedPayload.self, from: payload))
         default:
             return .unknown(tag.ev)
         }

@@ -459,6 +459,33 @@ final class FyolodFilesIntegrationTests: XCTestCase {
         XCTAssertEqual(result.hits.first?.text, "Widget lives here")
     }
 
+    /// ⌘-click end to end: the host resolves the name through an aliased
+    /// import, says where it is defined before any reference, and tells the
+    /// prose apart from the code.
+    func testReferencesResolveThroughAnAliasedImport() throws {
+        try Data("// Nav is the top bar.\nexport function Nav() {}\n".utf8)
+            .write(to: root.appendingPathComponent("sub/nav.ts"))
+        try Data("import { Nav as Bar } from \"./sub/nav\";\nBar();\n".utf8)
+            .write(to: root.appendingPathComponent("page.ts"))
+        let offset = "import { Nav as Bar } from \"./sub/nav\";\n".utf8.count
+
+        let result = try Fyolod.findReferences(
+            route: .local, root: root.path, path: "page.ts", offset: offset, text: nil,
+            limit: 100)
+
+        XCTAssertEqual(result.symbol.kind, "export")
+        XCTAssertFalse(result.symbol.atDefinition)
+        XCTAssertEqual(result.symbol.definitions.map(\.path), ["sub/nav.ts"])
+        XCTAssertEqual(result.symbol.definitions.first?.line, 2)
+        let rows = result.hits.map { "\($0.kind ?? "")@\($0.path):\($0.line)" }
+        XCTAssertTrue(rows.contains("usage@page.ts:2"), "\(rows)")
+        XCTAssertTrue(rows.contains("import@page.ts:1"), "\(rows)")
+        XCTAssertTrue(rows.contains("unrelated@sub/nav.ts:1"), "\(rows)")
+        XCTAssertEqual(
+            ReferenceNavigation.decide(result, clickedPath: "page.ts"),
+            .jump(.init(path: "sub/nav.ts", line: 2)))
+    }
+
     /// The host reports where it hit and the lines around it, because the pane
     /// paints those spans rather than re-finding the query itself.
     func testSearchReportsSpansAndContext() throws {
