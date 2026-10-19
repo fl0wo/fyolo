@@ -17,6 +17,18 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.17.0",
+    date: "2026-10-19",
+    title: "Go to definition, and back again",
+    changes: {
+      new: [
+        "Go to Definition: ⌘-click a name in a TypeScript or JavaScript file to jump to where it's defined. On the definition itself, ⌘-click shows every place it's used, with imports listed last.",
+        "Find Usages: the list tells a name apart from the same word in a string, a comment or another file's own symbol, and folds those away at the bottom. Swift and other languages show plain name matches.",
+        "Back and Forward: your mouse's side buttons, ⌘[ and ⌘] step through where you've been: files, sessions, pull requests, Linear tickets, and a file you maximized.",
+      ],
+    },
+  },
+  {
     version: "0.16.1",
     date: "2026-10-19",
     title: "A steadier file tree",
