@@ -427,6 +427,7 @@ final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineV
         guard let settings else { return nil }
         let rowView = outlineView.makeView(withIdentifier: Self.rowIdentifier, owner: nil) as? FileOutlineRowView
             ?? FileOutlineRowView(settings: settings, identifier: Self.rowIdentifier)
+        rowView.beginPlacement()
         return rowView
     }
 
@@ -606,17 +607,33 @@ private final class FileOutlineRowView: NSTableRowView {
 
     private let settings: AppSettings
     private let highlight: NSHostingView<FileRowHighlight>
+    /// Set while the table is putting this view on a row — new, or recycled from
+    /// another. A reload hands every row view back out, rarely to the row it came
+    /// from, then corrects each one's selection: faded, the old row's grey visibly
+    /// slid off one row down and back. Those corrections describe where the view
+    /// now is, not a change anyone made, so they land at once; the user's own
+    /// selections still fade.
+    private var isBeingPlaced = true
 
     init(settings: AppSettings, identifier: NSUserInterfaceItemIdentifier) {
         self.settings = settings
         highlight = NSHostingView(rootView: FileRowHighlight(
-            isSelected: false, isHovering: false, decoration: nil, settings: settings))
+            isSelected: false, isHovering: false, decoration: nil, animatesSelection: false,
+            settings: settings))
         super.init(frame: .zero)
         self.identifier = identifier
         highlight.sizingOptions = []
         highlight.frame = bounds
         highlight.autoresizingMask = [.width, .height]
         addSubview(highlight)
+    }
+
+    /// Called each time the outline asks for this view for a row. The table places a
+    /// view and sets its state in the same pass; the next turn of the run loop is the
+    /// first moment a change is the user's.
+    func beginPlacement() {
+        isBeingPlaced = true
+        Task { @MainActor [weak self] in self?.isBeingPlaced = false }
     }
 
     @available(*, unavailable)
@@ -627,7 +644,7 @@ private final class FileOutlineRowView: NSTableRowView {
     private func refresh() {
         highlight.rootView = FileRowHighlight(
             isSelected: isSelected || isDropTarget, isHovering: isHovered,
-            decoration: decoration, settings: settings)
+            decoration: decoration, animatesSelection: !isBeingPlaced, settings: settings)
     }
 }
 
@@ -635,6 +652,8 @@ private struct FileRowHighlight: View {
     let isSelected: Bool
     let isHovering: Bool
     let decoration: FileDecoration?
+    /// Whether a change of `isSelected` fades. Off while the table places the row.
+    let animatesSelection: Bool
     @ObservedObject var settings: AppSettings
     @Environment(\.colorScheme) private var colorScheme
 
@@ -656,7 +675,7 @@ private struct FileRowHighlight: View {
         // The highlight's own 6pt leading inset is cancelled so its lift reaches
         // the disclosure triangle rather than crowding it.
         .padding(.leading, -6)
-        .animation(.easeInOut(duration: 0.12), value: isSelected)
+        .animation(animatesSelection ? .easeInOut(duration: 0.12) : nil, value: isSelected)
         // No animation on hover: a fade is latency on a cue whose job is to
         // track the pointer.
         .animation(nil, value: isHovering)
