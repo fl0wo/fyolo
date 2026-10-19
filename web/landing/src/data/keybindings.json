@@ -43,6 +43,16 @@
           "id": "searchFiles",
           "title": "Search Files",
           "shortcut": "⇧⌘F"
+        },
+        {
+          "id": "navigateBack",
+          "title": "Back",
+          "shortcut": "⌘["
+        },
+        {
+          "id": "navigateForward",
+          "title": "Forward",
+          "shortcut": "⌘]"
         }
       ]
     },

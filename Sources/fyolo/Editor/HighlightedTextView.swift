@@ -68,8 +68,6 @@ struct HighlightedTextView: NSViewRepresentable {
     /// ⌘-click on a name, and the context menu's Go to Definition / Find Usages. `nil` where no
     /// daemon can read the file, which also turns off the ⌘-hover underline.
     var onSymbolClick: ((SymbolClick) -> Void)? = nil
-    /// ⌘[ — back to where the editor was before the last jump.
-    var onNavigateBack: (() -> Void)? = nil
     /// Invoked when the user presses ⌘S — flushes the buffer to disk immediately.
     let onSave: () -> Void
 
@@ -101,7 +99,6 @@ struct HighlightedTextView: NSViewRepresentable {
         findReplace?.attach(textView)
         textView.onSave = onSave
         textView.onSymbolClick = onSymbolClick
-        textView.onNavigateBack = onNavigateBack
         textView.showsCloseMenuItem = showsCloseMenuItem
         textView.addToChat = addToChat
         textView.canAddToChat = canAddToChat
@@ -203,7 +200,6 @@ struct HighlightedTextView: NSViewRepresentable {
         // captures the view's current state, which SwiftUI re-creates on every change).
         textView.onSave = onSave
         textView.onSymbolClick = onSymbolClick
-        textView.onNavigateBack = onNavigateBack
         if textView.isEditable != isEditable { textView.isEditable = isEditable }
         let coordinator = context.coordinator
         let storage = coordinator.textStorage
@@ -557,7 +553,6 @@ final class SavingTextView: NSTextView {
     // MARK: Symbol navigation
 
     var onSymbolClick: ((SymbolClick) -> Void)?
-    var onNavigateBack: (() -> Void)?
     /// The name underlined while ⌘ is held over it — the promise that a click goes somewhere.
     private var symbolHoverRange: NSRange?
     /// The name under the pointer when the context menu opened, for its two symbol items.
@@ -711,10 +706,6 @@ final class SavingTextView: NSTextView {
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         if modifiers == .command, event.charactersIgnoringModifiers == "s" {
             onSave?()
-            return true
-        }
-        if modifiers == .command, event.charactersIgnoringModifiers == "[", let onNavigateBack {
-            onNavigateBack()
             return true
         }
         return super.performKeyEquivalent(with: event)

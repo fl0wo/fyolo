@@ -16,7 +16,7 @@ struct SymbolLookup {
     /// Whether hits name files on this Mac, so their rows can be dragged out.
     let isLocal: Bool
     /// Opens a root-relative path at a 1-based line. `returnLine` is the line the
-    /// editor is leaving, which the host records so ⌘[ can come back to it.
+    /// editor is leaving, which the host records so Back can come back to it.
     let open: (_ relativePath: String, _ line: Int, _ returnLine: Int) -> Void
 }
 

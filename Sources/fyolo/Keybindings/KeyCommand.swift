@@ -13,6 +13,8 @@ enum KeyCommandID: String, CaseIterable, Identifiable {
     case openQuickly = "nav.open-quickly"
     case commandPalette = "nav.command-palette"
     case searchFiles = "nav.search-files"
+    case navigateBack = "nav.back"
+    case navigateForward = "nav.forward"
     // Session
     case nextSession = "session.next"
     case previousSession = "session.previous"
@@ -87,6 +89,12 @@ enum KeyCommandCatalog {
         // name, ⌘⇧F finds the files that contain something.
         .init(id: .searchFiles, category: localized("Navigation"), title: localized("Search Files"),
               defaultShortcut: .init(modifiers: [.command, .shift], key: .char("f"))),
+        // Safari's and Xcode's history keys. The mouse's side buttons and a swipe reach the
+        // same actions (`AppDelegate.installNavigationGestures`).
+        .init(id: .navigateBack, category: localized("Navigation"), title: localized("Back"),
+              defaultShortcut: .init(modifiers: [.command], key: .char("["))),
+        .init(id: .navigateForward, category: localized("Navigation"), title: localized("Forward"),
+              defaultShortcut: .init(modifiers: [.command], key: .char("]"))),
         // Session — cycling follows the sidebar's visual order (see
         // `selectAdjacentSession`). ⌘⇧]/⌘⇧[ is the iTerm2/Chrome tab-cycling
         // convention; ghostty's own next/previous_tab on the same keys are
