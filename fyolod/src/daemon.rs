@@ -1963,7 +1963,47 @@ async fn process_control(
                     cancel_rx,
                     retained,
                     root,
-                    query,
+                    SearchJob::Text { query },
+                    include,
+                    limit,
+                    seq,
+                ));
+            }
+        }
+        Control::FsReferences {
+            root,
+            path,
+            offset,
+            text,
+            include,
+            limit,
+            seq,
+        } => {
+            if !connection.capabilities.contains("files") {
+                let response = error(
+                    seq,
+                    ErrorCode::Denied,
+                    "the files capability was not negotiated",
+                    false,
+                );
+                send_response(out, response_cache, seq, response);
+            } else {
+                let (cancel_tx, cancel_rx) = oneshot::channel();
+                let retained = match seq {
+                    Some(id) => {
+                        searches.lock().unwrap().insert(id, cancel_tx);
+                        None
+                    }
+                    None => Some(cancel_tx),
+                };
+                tokio::spawn(run_search(
+                    out.clone(),
+                    searches.clone(),
+                    manager.searching.clone(),
+                    cancel_rx,
+                    retained,
+                    root,
+                    SearchJob::References { path, offset: offset as usize, text },
                     include,
                     limit,
                     seq,
@@ -2503,6 +2543,7 @@ async fn process_control(
         | Control::FsFile { .. }
         | Control::FsMatched { .. }
         | Control::FsSearched { .. }
+        | Control::FsReferences { .. }
         | Control::GitDiffResult { .. }
         | Control::GitLogResult { .. }
         | Control::GitShowResult { .. }
@@ -2516,6 +2557,15 @@ async fn process_control(
         | Control::Error { .. } => {}
     }
     Ok(ControlFlow::Continue)
+}
+
+/// What a search walks the tree for: text, or the references to the name at
+/// one spot in one file (`symbols::references`). Both share the queue, the
+/// cancellation and the terminal reply, so neither can starve or outlive the
+/// other.
+enum SearchJob {
+    Text { query: String },
+    References { path: String, offset: usize, text: Option<String> },
 }
 
 /// Stream one `fs.search` (§C.12): ripgrep's own searcher over the workspace
@@ -2536,7 +2586,7 @@ async fn run_search(
     mut cancel_rx: oneshot::Receiver<()>,
     _retained: Option<oneshot::Sender<()>>,
     root: String,
-    query: String,
+    job: SearchJob,
     include: Vec<String>,
     limit: u64,
     seq: Option<u64>,
@@ -2612,9 +2662,37 @@ async fn run_search(
     let flag = cancel.clone();
     let sink = out.clone();
     let mut worker = tokio::task::spawn_blocking(move || {
-        crate::files::search(&root, &query, filter, limit, &flag, &mut |matches| {
+        let mut emit = |matches| {
             let _ = sink.send(Outbound::Event(Event::SearchResults { request, matches }));
-        })
+        };
+        match job {
+            SearchJob::Text { query } => {
+                Ok(crate::files::search(&root, &query, filter, limit, &flag, &mut emit))
+            }
+            SearchJob::References { path, offset, text } => {
+                let resolved_sink = sink.clone();
+                crate::symbols::references(
+                    &root,
+                    &path,
+                    offset,
+                    text,
+                    filter,
+                    limit,
+                    &flag,
+                    &mut |symbol| {
+                        let _ = resolved_sink.send(Outbound::Event(Event::ReferencesResolved {
+                            request,
+                            name: symbol.name,
+                            kind: symbol.kind.to_string(),
+                            definitions: symbol.definitions,
+                            at_definition: symbol.at_definition,
+                            note: symbol.note,
+                        }));
+                    },
+                    &mut emit,
+                )
+            }
+        }
     });
 
     // Either end of the client's interest stops the walk: an explicit `cancel`,
@@ -2639,12 +2717,15 @@ async fn run_search(
 
     cleanup(&searches);
     let response = match outcome {
-        Ok(outcome) => Control::FsSearched {
+        Ok(Ok(outcome)) => Control::FsSearched {
             matches: outcome.matches,
             limit_hit: outcome.limit_hit,
             canceled: outcome.canceled,
             re: seq,
         },
+        // The request named nothing the host can read: a path outside the
+        // root, an offset past the end.
+        Ok(Err(message)) => error(seq, ErrorCode::ProtoError, message, false),
         // The search panicked. Nothing else on this connection is affected —
         // that is what the separate thread bought — but the client is owed the
         // failure rather than silence.
@@ -2833,7 +2914,8 @@ fn subscribed_to(subscriptions: &HashSet<String>, event: &Event) -> bool {
         | Event::GitChanged { .. }
         | Event::HeadChanged { .. }
         | Event::StatusChanged { .. }
-        | Event::SearchResults { .. } => false,
+        | Event::SearchResults { .. }
+        | Event::ReferencesResolved { .. } => false,
         Event::Unknown => false,
     }
 }
@@ -3186,7 +3268,7 @@ mod search_queue_tests {
             cancel_rx,
             None,
             root,
-            "needle".to_string(),
+            SearchJob::Text { query: "needle".to_string() },
             Vec::new(),
             1000,
             Some(7),
