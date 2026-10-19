@@ -17,6 +17,26 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.16.0",
+    date: "2026-10-19",
+    title: "A file tree that shows what each file is",
+    changes: {
+      new: [
+        "Test files: the Files tree gives test files a light green background, whatever the language.",
+        "Changes: a file's name turns green when it's new on your branch, a quieter green when it changed, and blue when only whitespace changed.",
+        "Generated files: lockfiles and generated code have brown names, and so does a folder holding nothing else.",
+        "Errors: a file a build or linter reports an error in gets a red underline, and so do the folders above it, until the file changes or the build passes.",
+      ],
+      improved: [
+        "The Files tree opens and switches between projects instantly instead of taking seconds.",
+        "Sessions are grouped by task by default.",
+      ],
+      fixed: [
+        "fyolo no longer freezes for several seconds right after launch.",
+      ],
+    },
+  },
+  {
     version: "0.15.0",
     date: "2026-10-17",
     title: "A faster file tree",
