@@ -65,6 +65,11 @@ struct HighlightedTextView: NSViewRepresentable {
     var onGutterAction: ((GutterAction) -> Void)? = nil
     /// Which marked tasks are running, so their markers show a stop button.
     var runTasks: RunTasks? = nil
+    /// ⌘-click on a name, and the context menu's Go to Definition / Find Usages. `nil` where no
+    /// daemon can read the file, which also turns off the ⌘-hover underline.
+    var onSymbolClick: ((SymbolClick) -> Void)? = nil
+    /// ⌘[ — back to where the editor was before the last jump.
+    var onNavigateBack: (() -> Void)? = nil
     /// Invoked when the user presses ⌘S — flushes the buffer to disk immediately.
     let onSave: () -> Void
 
@@ -95,6 +100,8 @@ struct HighlightedTextView: NSViewRepresentable {
         let textView = SavingTextView(frame: .zero, textContainer: container)
         findReplace?.attach(textView)
         textView.onSave = onSave
+        textView.onSymbolClick = onSymbolClick
+        textView.onNavigateBack = onNavigateBack
         textView.showsCloseMenuItem = showsCloseMenuItem
         textView.addToChat = addToChat
         textView.canAddToChat = canAddToChat
@@ -195,6 +202,8 @@ struct HighlightedTextView: NSViewRepresentable {
         // Refresh the save closure each update so ⌘S always flushes the latest buffer (the closure
         // captures the view's current state, which SwiftUI re-creates on every change).
         textView.onSave = onSave
+        textView.onSymbolClick = onSymbolClick
+        textView.onNavigateBack = onNavigateBack
         if textView.isEditable != isEditable { textView.isEditable = isEditable }
         let coordinator = context.coordinator
         let storage = coordinator.textStorage
@@ -530,6 +539,7 @@ final class SavingTextView: NSTextView {
             return
         }
         super.mouseMoved(with: event)
+        updateSymbolHover(at: event.locationInWindow, modifiers: event.modifierFlags)
     }
 
     override func cursorUpdate(with event: NSEvent) {
@@ -537,7 +547,100 @@ final class SavingTextView: NSTextView {
             gutter.updatePointer(for: event)
             return
         }
+        if symbolHoverRange != nil {
+            NSCursor.pointingHand.set()
+            return
+        }
         super.cursorUpdate(with: event)
+    }
+
+    // MARK: Symbol navigation
+
+    var onSymbolClick: ((SymbolClick) -> Void)?
+    var onNavigateBack: (() -> Void)?
+    /// The name underlined while ⌘ is held over it — the promise that a click goes somewhere.
+    private var symbolHoverRange: NSRange?
+    /// The name under the pointer when the context menu opened, for its two symbol items.
+    private var menuSymbolRange: NSRange?
+
+    override func mouseDown(with event: NSEvent) {
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if modifiers == .command, onSymbolClick != nil,
+           let range = symbolRange(at: event.locationInWindow) {
+            clearSymbolHover()
+            setSelectedRange(range)
+            onSymbolClick?(SymbolClick(
+                location: range.location, rect: rect(for: range), view: self, listsAlways: false))
+            return
+        }
+        super.mouseDown(with: event)
+    }
+
+    override func flagsChanged(with event: NSEvent) {
+        super.flagsChanged(with: event)
+        guard let window else { return }
+        updateSymbolHover(at: window.mouseLocationOutsideOfEventStream, modifiers: event.modifierFlags)
+    }
+
+    private func updateSymbolHover(at location: NSPoint, modifiers: NSEvent.ModifierFlags) {
+        let held = modifiers.intersection(.deviceIndependentFlagsMask) == .command
+        let range = held && onSymbolClick != nil ? symbolRange(at: location) : nil
+        guard range != symbolHoverRange else { return }
+        clearSymbolHover()
+        guard let range, let layoutManager else { return }
+        layoutManager.addTemporaryAttributes(
+            [.underlineStyle: NSUnderlineStyle.single.rawValue], forCharacterRange: range)
+        symbolHoverRange = range
+        NSCursor.pointingHand.set()
+    }
+
+    private func clearSymbolHover() {
+        guard let range = symbolHoverRange else { return }
+        symbolHoverRange = nil
+        if NSMaxRange(range) <= (string as NSString).length {
+            layoutManager?.removeTemporaryAttribute(.underlineStyle, forCharacterRange: range)
+        }
+        NSCursor.iBeam.set()
+    }
+
+    /// The word under a window point — only when the point is on its glyphs, so a ⌘-click in the
+    /// margin past the end of a line does not reach back for the line's last word.
+    private func symbolRange(at windowLocation: NSPoint) -> NSRange? {
+        guard let layoutManager, let textContainer else { return nil }
+        let point = convert(windowLocation, from: nil)
+        let inContainer = NSPoint(x: point.x - textContainerOrigin.x, y: point.y - textContainerOrigin.y)
+        var fraction: CGFloat = 0
+        let glyph = layoutManager.glyphIndex(
+            for: inContainer, in: textContainer, fractionOfDistanceThroughGlyph: &fraction)
+        guard glyph < layoutManager.numberOfGlyphs else { return nil }
+        let glyphRect = layoutManager.boundingRect(
+            forGlyphRange: NSRange(location: glyph, length: 1), in: textContainer)
+        guard glyphRect.contains(inContainer) else { return nil }
+        let character = layoutManager.characterIndexForGlyph(at: glyph)
+        // `wordRange` reads a position the way a caret does — the character before it first — so
+        // ask for the position just past the clicked character, then insist the word covers it.
+        guard let word = OccurrenceTarget.wordRange(at: character + 1, in: string as NSString),
+              NSLocationInRange(character, word) else { return nil }
+        return word
+    }
+
+    private func rect(for range: NSRange) -> NSRect {
+        guard let layoutManager, let textContainer else { return .zero }
+        let glyphs = layoutManager.glyphRange(forCharacterRange: range, actualCharacterRange: nil)
+        return layoutManager.boundingRect(forGlyphRange: glyphs, in: textContainer)
+            .offsetBy(dx: textContainerOrigin.x, dy: textContainerOrigin.y)
+    }
+
+    @objc private func goToDefinitionAction() { symbolMenuAction(listsAlways: false) }
+    @objc private func findUsagesAction() { symbolMenuAction(listsAlways: true) }
+
+    private func symbolMenuAction(listsAlways: Bool) {
+        guard let range = menuSymbolRange, NSMaxRange(range) <= (string as NSString).length else {
+            return
+        }
+        setSelectedRange(range)
+        onSymbolClick?(SymbolClick(
+            location: range.location, rect: rect(for: range), view: self, listsAlways: listsAlways))
     }
 
     var onSave: (() -> Void)?
@@ -610,6 +713,10 @@ final class SavingTextView: NSTextView {
             onSave?()
             return true
         }
+        if modifiers == .command, event.charactersIgnoringModifiers == "[", let onNavigateBack {
+            onNavigateBack()
+            return true
+        }
         return super.performKeyEquivalent(with: event)
     }
 
@@ -634,6 +741,19 @@ final class SavingTextView: NSTextView {
             menu.addItem(withTitle: localized("Paste"), action: #selector(pasteClipboard), keyEquivalent: "")
         }
         menu.addItem(.separator())
+        menuSymbolRange = onSymbolClick == nil ? nil : symbolRange(at: event.locationInWindow)
+        if menuSymbolRange != nil {
+            let definition = NSMenuItem(
+                title: localized("Go to Definition"), action: #selector(goToDefinitionAction),
+                keyEquivalent: "")
+            definition.target = self
+            menu.addItem(definition)
+            let usages = NSMenuItem(
+                title: localized("Find Usages"), action: #selector(findUsagesAction), keyEquivalent: "")
+            usages.target = self
+            menu.addItem(usages)
+            menu.addItem(.separator())
+        }
         if canAddToChat?() == true {
             // One name everywhere (Cursor's): with a selection the selected text goes
             // over as a pasted snippet, without one the document's path — the context

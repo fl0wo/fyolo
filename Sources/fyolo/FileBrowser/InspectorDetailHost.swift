@@ -361,6 +361,50 @@ struct InspectorDetailContent: View {
     @EnvironmentObject var store: FyoloStore
     @EnvironmentObject var settings: AppSettings
 
+    /// Where ⌘-click in the open file asks: the device's daemon for a device's file, this Mac's
+    /// for a local one — rooted at the checkout the file is in, so imports resolve against the
+    /// project rather than a lone directory. `nil` for a local file in no checkout and no repo.
+    private func symbolLookup(for url: URL) -> SymbolLookup? {
+        if let remote = store.openFileRemote {
+            let root = remote.root.hasSuffix("/") ? remote.root : remote.root + "/"
+            guard remote.path.hasPrefix(root) else { return nil }
+            let provider = remote.provider
+            let host = remote.host
+            let current = remote.path
+            return SymbolLookup(
+                provider: provider, base: URL(fileURLWithPath: remote.root, isDirectory: true),
+                relativePath: String(remote.path.dropFirst(root.count)), isLocal: false
+            ) { relative, line, returnLine in
+                let name: (String) -> String = { ($0 as NSString).lastPathComponent }
+                store.pushEditorBack {
+                    store.openRemoteFile(
+                        path: current, name: name(current), provider: provider, host: host,
+                        at: returnLine)
+                }
+                let path = root + relative
+                store.openRemoteFile(
+                    path: path, name: name(path), provider: provider, host: host, at: line)
+            }
+        }
+        let file = url.standardizedFileURL.path
+        let checkout = store.inspectorCheckout?.localRoot.map { URL(fileURLWithPath: $0).standardizedFileURL.path }
+        let root = checkout.flatMap { file.hasPrefix($0 + "/") ? $0 : nil }
+            ?? GitRoot.find(for: url)?.path
+        guard let root, file.hasPrefix(root + "/") else { return nil }
+        let base = URL(fileURLWithPath: root, isDirectory: true)
+        return SymbolLookup(
+            provider: DeviceFileProvider(route: .local, root: root), base: base,
+            relativePath: String(file.dropFirst(root.count + 1)), isLocal: true
+        ) { relative, line, returnLine in
+            let readOnly = store.openFileReadOnly
+            store.pushEditorBack {
+                store.openFileInEditor(url, at: returnLine)
+                store.openFileReadOnly = readOnly
+            }
+            store.openFileInEditor(base.appendingPathComponent(relative), at: line)
+        }
+    }
+
     private func close() {
         NotificationCenter.default.post(name: .fyoloCloseContentOverlay, object: nil)
     }
@@ -431,6 +475,8 @@ struct InspectorDetailContent: View {
                                canAddToChat: { store.selectedSessionRunsAgent },
                                onGutterAction: { store.perform($0) },
                                runTasks: store.runTasks,
+                               symbols: symbolLookup(for: url),
+                               onNavigateBack: { store.navigateEditorBack() },
                                onClose: close)
                     .id(url)
             }
