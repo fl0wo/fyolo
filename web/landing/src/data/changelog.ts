@@ -17,6 +17,17 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.16.1",
+    date: "2026-10-19",
+    title: "A steadier file tree",
+    changes: {
+      fixed: [
+        "Opening a folder in the Files tree no longer makes the folders below it jump and slide back into place.",
+        "The grey highlight on the selected row stays put when a folder opens, instead of slipping a row down and back.",
+      ],
+    },
+  },
+  {
     version: "0.16.0",
     date: "2026-10-19",
     title: "A file tree that shows what each file is",
