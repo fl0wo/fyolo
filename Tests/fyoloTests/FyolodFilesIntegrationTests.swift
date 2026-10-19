@@ -136,6 +136,36 @@ final class FyolodFilesIntegrationTests: XCTestCase {
         git.waitUntilExit()
     }
 
+    /// `commits` empty commits on the workspace's branch, written by one `fast-import`
+    /// rather than a process per commit.
+    private func importHistory(commits: Int) throws {
+        var stream = ""
+        for index in 1...commits {
+            let message = "commit \(index)"
+            stream += "commit refs/heads/main\nmark :\(index)\n"
+            stream += "committer Test <test@example.com> \(1_700_000_000 + index) +0000\n"
+            stream += "data \(message.utf8.count)\n\(message)\n"
+            if index > 1 { stream += "from :\(index - 1)\n" }
+            stream += "\n"
+        }
+        let importer = Process()
+        importer.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+        importer.arguments = ["-C", root.path, "fast-import", "--quiet"]
+        let input = Pipe()
+        importer.standardInput = input
+        importer.standardOutput = FileHandle.nullDevice
+        importer.standardError = FileHandle.nullDevice
+        try importer.run()
+        try input.fileHandleForWriting.write(contentsOf: Data(stream.utf8))
+        try input.fileHandleForWriting.close()
+        importer.waitUntilExit()
+        let checkout = Process()
+        checkout.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+        checkout.arguments = ["-C", root.path, "symbolic-ref", "HEAD", "refs/heads/main"]
+        try checkout.run()
+        checkout.waitUntilExit()
+    }
+
     override func tearDownWithError() throws {
         // The pool is process-wide and keyed by route, so a channel left open
         // here would be handed to the next test — pointed at a daemon this one
@@ -151,6 +181,55 @@ final class FyolodFilesIntegrationTests: XCTestCase {
     }
 
     private let nestedContents = String(repeating: "nested line\n", count: 400)
+
+    /// The Mac app starts its daemon from a Dispatch worker, and `posix_spawn` hands the
+    /// daemon that thread's signal mask — SIGCHLD blocked among it. Tokio hears that a
+    /// child exited only through SIGCHLD, so every `git` the daemon ran went unnoticed:
+    /// each listing waited out the ignore check's five-second timeout, and `git log`
+    /// never answered at all. Launched the same way here, the daemon has to clear the
+    /// mask it inherited before a listing in a repository can come back promptly.
+    func testADaemonLaunchedWithSIGCHLDBlockedStillFinishesItsGitWork() async throws {
+        daemon?.terminate()
+        daemon?.waitUntilExit()
+        daemon = nil
+        Fyolod.ControlPool.closeAll()
+        try? FileManager.default.removeItem(atPath: socketPath)
+
+        var attributes: posix_spawnattr_t?
+        posix_spawnattr_init(&attributes)
+        defer { posix_spawnattr_destroy(&attributes) }
+        var blocked = sigset_t()
+        sigemptyset(&blocked)
+        sigaddset(&blocked, SIGCHLD)
+        posix_spawnattr_setsigmask(&attributes, &blocked)
+        posix_spawnattr_setflags(&attributes, Int16(POSIX_SPAWN_SETSIGMASK))
+        let environment = ProcessInfo.processInfo.environment.merging(["FYOLOD_SOCK": socketPath]) { _, new in new }
+        let argv: [UnsafeMutablePointer<CChar>?] = [strdup(binary), strdup("serve"), nil]
+        let envp: [UnsafeMutablePointer<CChar>?] = environment.map { strdup("\($0.key)=\($0.value)") } + [nil]
+        defer {
+            argv.forEach { free($0) }
+            envp.forEach { free($0) }
+        }
+        var pid: pid_t = 0
+        XCTAssertEqual(posix_spawn(&pid, binary, nil, &attributes, argv, envp), 0)
+        defer {
+            Fyolod.ControlPool.closeAll()
+            kill(pid, SIGTERM)
+            waitpid(pid, nil, 0)
+        }
+        let deadline = Date().addingTimeInterval(10)
+        while !FileManager.default.fileExists(atPath: socketPath), Date() < deadline {
+            usleep(50_000)
+        }
+
+        // `git log` rather than a listing, over a history long enough that git is still
+        // writing when tokio first looks: a child that has already exited by then is
+        // found without SIGCHLD, and the test would pass by luck.
+        try importHistory(commits: 300)
+        let started = Date()
+        _ = try? await Fyolod.gitLog(route: .local, root: root.path)
+        XCTAssertLessThan(Date().timeIntervalSince(started), 2, "the daemon waited on a git child it never saw exit")
+    }
 
     func testIgnoredDecorationsArriveThroughTheSharedFileListing() throws {
         try Data("sub/\n*.log\n!keep.log\n".utf8).write(to: root.appendingPathComponent(".gitignore"))
