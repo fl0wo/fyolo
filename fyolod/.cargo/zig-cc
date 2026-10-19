@@ -1,0 +1,22 @@
+#!/bin/sh
+# The C compiler for the Linux musl slices: tree-sitter's grammars are C, and
+# the Mac building them has no musl cross-compiler. Zig already is one — it
+# builds libghostty-vt for the same targets — so it compiles these too.
+#
+# cc-rs names the target in clang's spelling with Rust's triple
+# (`--target=x86_64-unknown-linux-musl`), which `zig cc` cannot parse, so that
+# flag is dropped and Zig is told the target in its own terms. Cargo sets
+# `TARGET` for the build script that runs this.
+case "$TARGET" in
+    x86_64-unknown-linux-musl) zig_target=x86_64-linux-musl ;;
+    aarch64-unknown-linux-musl) zig_target=aarch64-linux-musl ;;
+    *) echo "zig-cc: no Zig target for '$TARGET'" >&2; exit 1 ;;
+esac
+for argument; do
+    shift
+    case "$argument" in
+        --target=*) ;;
+        *) set -- "$@" "$argument" ;;
+    esac
+done
+exec zig cc -target "$zig_target" "$@"
