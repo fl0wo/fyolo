@@ -79,6 +79,7 @@ final class FyoloStore: ObservableObject {
                 if let old = oldValue { inspectorStates[old] = captureInspectorState() }
                 applyInspectorState(selectedSessionID.flatMap { inspectorStates[$0] } ?? InspectorState())
             }
+            scheduleNavigationRecord()
             if let id = selectedSessionID {
                 // Looking at a session is being in its workspace. A global verb —
                 // a deep link, the palette, a notification, an SSH shell filed
@@ -405,6 +406,7 @@ final class FyoloStore: ObservableObject {
         didSet {
             guard inspectorMaximized != oldValue else { return }
             inspectorMaximizedDidChange.send(inspectorMaximized)
+            scheduleNavigationRecord()
         }
     }
 
@@ -460,8 +462,10 @@ final class FyoloStore: ObservableObject {
             if inspectorListCollapsed { inspectorListCollapsed = false }
         }
         // Every detail change (and, via the tab's own clears, every tab switch) funnels
-        // through here, so it's the one place to schedule the durable-layout save.
+        // through here, so it's the one place to schedule the durable-layout save — and to
+        // note a step in the navigation history.
         persistInspectorSoon()
+        scheduleNavigationRecord()
     }
 
     /// The Issues pane's models, cached by repo root, held here (beyond the inspector view
@@ -584,6 +588,19 @@ final class FyoloStore: ObservableObject {
             openWorkflowRun = nil
         }
     }
+
+    /// Where the user has been, for Back and Forward (`NavigationHistory.swift`). Not published:
+    /// nothing draws it, and the menu reads it when it opens.
+    var navigationHistory = NavigationHistory<NavigationPlace>()
+    /// A record is waiting for the current burst of changes to settle.
+    var navigationRecordScheduled = false
+    /// A step back or forward is landing; the record it causes replaces the current place
+    /// instead of adding one.
+    var isRestoringNavigation = false
+    /// The Linear pane's ticket page, mirrored from its model (`noteLinearTicket`).
+    var linearTicket: String?
+    /// A page the Linear pane should show — set by Back and Forward, consumed by the pane.
+    @Published var linearPageRequest: LinearPageRequest?
 
     /// Set for the one tab switch that must keep the detail: revealing the open
     /// file in the Files tree is about that file, so closing it would defeat it.
@@ -870,7 +887,7 @@ final class FyoloStore: ObservableObject {
     /// set first; the issue is set before the diff because a PR file diff deliberately
     /// stacks on top of an open issue (see `openIssueDetail`); and the read-only flag /
     /// jump line precede the file URL (see `openFileURL`).
-    private func applyInspectorState(_ state: InspectorState) {
+    func applyInspectorState(_ state: InspectorState) {
         isRestatingDetail = true
         defer { isRestatingDetail = false }
         inspectorTab = state.tab
@@ -1411,6 +1428,9 @@ final class FyoloStore: ObservableObject {
 
         startHookMonitoring()
         startAppSocket()
+        // The place the app opens on is the first one Back returns to. Nothing changes to
+        // record it otherwise: the launch selection is set before anything is watching.
+        scheduleNavigationRecord()
     }
 
     /// The live branch label for a folder (a project checkout or a session
@@ -1981,21 +2001,6 @@ final class FyoloStore: ObservableObject {
         openFileAllowsActiveWebContent = true
         openFileLine = line
         openFileURL = url
-    }
-
-    /// Where the editor was before each ⌘-click jump, newest last — what ⌘[ reopens. Closures,
-    /// because a place is a file on this Mac or on a device, and each reopens its own way. Not
-    /// published: nothing draws it.
-    private var editorBackStack: [() -> Void] = []
-    private static let editorBackLimit = 50
-
-    func pushEditorBack(_ reopen: @escaping () -> Void) {
-        editorBackStack.append(reopen)
-        if editorBackStack.count > Self.editorBackLimit { editorBackStack.removeFirst() }
-    }
-
-    func navigateEditorBack() {
-        editorBackStack.popLast()?()
     }
 
     /// Routes a link the user cmd-clicked in a terminal surface. A local file (a `file://` URL, or a

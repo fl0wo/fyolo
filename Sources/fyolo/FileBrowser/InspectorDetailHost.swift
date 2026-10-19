@@ -370,20 +370,15 @@ struct InspectorDetailContent: View {
             guard remote.path.hasPrefix(root) else { return nil }
             let provider = remote.provider
             let host = remote.host
-            let current = remote.path
             return SymbolLookup(
                 provider: provider, base: URL(fileURLWithPath: remote.root, isDirectory: true),
                 relativePath: String(remote.path.dropFirst(root.count)), isLocal: false
             ) { relative, line, returnLine in
-                let name: (String) -> String = { ($0 as NSString).lastPathComponent }
-                store.pushEditorBack {
-                    store.openRemoteFile(
-                        path: current, name: name(current), provider: provider, host: host,
-                        at: returnLine)
-                }
+                store.noteEditorLine(returnLine)
                 let path = root + relative
                 store.openRemoteFile(
-                    path: path, name: name(path), provider: provider, host: host, at: line)
+                    path: path, name: (path as NSString).lastPathComponent, provider: provider,
+                    host: host, at: line)
             }
         }
         let file = url.standardizedFileURL.path
@@ -396,11 +391,7 @@ struct InspectorDetailContent: View {
             provider: DeviceFileProvider(route: .local, root: root), base: base,
             relativePath: String(file.dropFirst(root.count + 1)), isLocal: true
         ) { relative, line, returnLine in
-            let readOnly = store.openFileReadOnly
-            store.pushEditorBack {
-                store.openFileInEditor(url, at: returnLine)
-                store.openFileReadOnly = readOnly
-            }
+            store.noteEditorLine(returnLine)
             store.openFileInEditor(base.appendingPathComponent(relative), at: line)
         }
     }
@@ -476,7 +467,6 @@ struct InspectorDetailContent: View {
                                onGutterAction: { store.perform($0) },
                                runTasks: store.runTasks,
                                symbols: symbolLookup(for: url),
-                               onNavigateBack: { store.navigateEditorBack() },
                                onClose: close)
                     .id(url)
             }

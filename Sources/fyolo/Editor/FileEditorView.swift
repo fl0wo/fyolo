@@ -61,8 +61,6 @@ struct FileEditorView: View {
     /// Where ⌘-click asks what a name refers to. Supplied by the host, which knows the checkout
     /// and the machine; `nil` where neither is known (the Settings sheet), which turns ⌘-click off.
     let symbols: SymbolLookup?
-    /// ⌘[ — reopen where the editor was before the last jump. `nil` when there is nowhere to go.
-    let onNavigateBack: (() -> Void)?
 
     /// Whether the header carries the inspector's window controls (hide list / maximize / close).
     /// A sheet has no list column to collapse and no inspector to fill, so it hosts the editor
@@ -149,7 +147,7 @@ struct FileEditorView: View {
          onDirtyChange: ((Bool) -> Void)? = nil,
          addToChat: ((String?) -> Void)? = nil, canAddToChat: (() -> Bool)? = nil,
          onGutterAction: ((GutterAction) -> Void)? = nil, runTasks: RunTasks? = nil,
-         symbols: SymbolLookup? = nil, onNavigateBack: (() -> Void)? = nil,
+         symbols: SymbolLookup? = nil,
          showsInspectorChrome: Bool = true, onClose: @escaping () -> Void) {
         self.url = url
         self.settings = settings
@@ -164,7 +162,6 @@ struct FileEditorView: View {
         self.onGutterAction = onGutterAction
         self.runTasks = runTasks
         self.symbols = symbols
-        self.onNavigateBack = onNavigateBack
         self.showsInspectorChrome = showsInspectorChrome
         self.onClose = onClose
         let displayURL = displayName.map {
@@ -397,7 +394,6 @@ struct FileEditorView: View {
             onGutterAction: onGutterAction,
             runTasks: runTasks,
             onSymbolClick: symbols == nil ? nil : { lookUpSymbol($0) },
-            onNavigateBack: onNavigateBack,
             onSave: saveNow
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)

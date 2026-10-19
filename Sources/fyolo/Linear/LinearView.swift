@@ -50,6 +50,15 @@ struct LinearView: View {
         // Honest from the first frame: the model starts in `.loading`.
         .paneSettled()
         .task(id: projectRoot) { await model.start() }
+        // The ticket page lives in this pane's model, out of the store's sight: report it so it
+        // is a place in the navigation history, and take the page Back or Forward asks for.
+        .onAppear { store.noteLinearTicket(model.path.last) }
+        .onChange(of: model.path) { _, path in store.noteLinearTicket(path.last) }
+        .onChange(of: store.linearPageRequest, initial: true) { _, request in
+            guard let request else { return }
+            model.path = request.ticket.map { [$0] } ?? []
+            store.linearPageRequest = nil
+        }
         .onChange(of: settings.githubIntegrationEnabled) { _, _ in
             Task { await model.loadPullRequests(force: false) }
         }
