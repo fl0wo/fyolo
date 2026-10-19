@@ -627,9 +627,9 @@ final class AppSettings: ObservableObject {
             // with a GitHub remote, so there is nothing to opt into until then.
             Key.githubIntegrationEnabled: true,
             Key.projectSortOrder: "name",
-            // Off until the grouping has earned trust on real trees: a wrong
-            // automatic grouping moves rows nobody asked to move.
-            Key.groupSessionsByTask: false,
+            // On: a project's sessions read as the tasks they belong to. The sort
+            // menu turns it off for anyone who wants rows by checkout.
+            Key.groupSessionsByTask: true,
             // Notifications ship on (macOS's own permission prompt is the real
             // gate); the sound stays opt-in so a finishing agent is never noisy
             // by default.
