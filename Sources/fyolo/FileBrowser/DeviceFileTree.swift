@@ -317,6 +317,9 @@ final class DeviceFileNode: Identifiable {
         return resolved
     }
 
+    /// The folder's rows if it has been listed, without asking for a listing.
+    var listedChildren: [DeviceFileNode]? { loadedChildren }
+
     var children: [DeviceFileNode]? {
         guard isDirectory else { return nil }
         if let loadedChildren { return loadedChildren }
@@ -367,7 +370,12 @@ final class DeviceFileTreeModel: ObservableObject {
     /// Bumped whenever a graft changed rows in place. `rootNodes` compares
     /// unchanged after an incremental re-list — same node references — so this
     /// is what tells the outline there is an update pass worth running.
-    @Published private(set) var revision = 0
+    @Published private(set) var revision = 0 {
+        didSet { decorations.treeDidChange() }
+    }
+
+    /// The colors and marks on its rows: git changes, test and generated code, errors.
+    private(set) lazy var decorations = FileTreeDecorations(checkout: checkout, root: root, tree: self)
 
     /// Raised when the device reports the checkout moved: a batch, or a reset
     /// that says what is held may be stale. The Changes badge is seeded off it,
@@ -551,6 +559,9 @@ final class DeviceFileTreeModel: ObservableObject {
                 refresh()
                 return
             }
+            decorations.directoriesChanged(batch.paths.compactMap {
+                localPath(for: $0, watchedRoot: watch?.watchedRoot)
+            })
             let changed = directoriesToRelist(
                 for: batch.paths, watchedRoot: watch?.watchedRoot)
             guard !changed.isEmpty else { return }
@@ -666,6 +677,9 @@ final class DeviceFileTreeModel: ObservableObject {
                 return left == right ? $0 < $1 : left < right
             }
     }
+
+    /// Every row the tree has realized, in no order.
+    func realizedNodes() -> some Collection<DeviceFileNode> { nodesByPath.values }
 
     /// The folders whose contents have been fetched ahead of a click.
     ///

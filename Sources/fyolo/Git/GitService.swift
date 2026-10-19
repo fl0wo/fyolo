@@ -363,6 +363,138 @@ enum GitService {
             .sorted { $0.path.localizedCaseInsensitiveCompare($1.path) == .orderedAscending }
     }
 
+    // MARK: File tree decorations
+
+    /// Where `root` sits inside its repository, as `git rev-parse --show-prefix` spells it
+    /// (`web/` for a tree opened one folder down, empty at the top), or `nil` outside a
+    /// work tree. Status and diff paths are relative to the repository's top, not to the
+    /// directory git ran in, so a tree rooted below the top has to strip this to find
+    /// its rows.
+    static func pathPrefix(in root: String) async -> String? {
+        await offMain {
+            run(["rev-parse", "--show-prefix"], in: root)?
+                .trimmingCharacters(in: .newlines)
+        }
+    }
+
+    /// Which of `paths` (relative to the repository's top) differ from `base`'s merge base
+    /// only in whitespace — re-indented, re-wrapped, blank lines added or dropped — so
+    /// the change has no effect on what the file means. `base` is the branch the
+    /// checkout is measured against; `nil` measures against `HEAD`.
+    ///
+    /// "Only whitespace" depends on the language. For most files any whitespace change
+    /// is cosmetic (`-w`), but in Python, YAML, Makefiles, Haskell and their kin the
+    /// indentation *is* the structure, so for those only trailing whitespace, line
+    /// endings and blank lines are discounted.
+    static func cosmeticChanges(_ paths: [String], against base: String?, in root: String) async -> Set<String> {
+        guard !paths.isEmpty else { return [] }
+        return await offMain { loadCosmeticChanges(paths, base, root) }
+    }
+
+    private static func loadCosmeticChanges(_ paths: [String], _ base: String?, _ root: String) -> Set<String> {
+        let commit: String
+        if let base {
+            guard let mergeBase = run(["merge-base", base, "HEAD"], in: root)?
+                .trimmingCharacters(in: .whitespacesAndNewlines), !mergeBase.isEmpty
+            else { return [] }
+            commit = mergeBase
+        } else {
+            guard run(["rev-parse", "--verify", "--quiet", "HEAD^{commit}"], in: root) != nil
+            else { return [] }
+            commit = "HEAD"
+        }
+        let sensitive = paths.filter(isIndentationSignificant)
+        let insensitive = paths.filter { !isIndentationSignificant($0) }
+        var cosmetic: Set<String> = []
+        for (group, flags) in [
+            (insensitive, ["-w", "--ignore-blank-lines"]),
+            (sensitive, ["--ignore-space-at-eol", "--ignore-cr-at-eol", "--ignore-blank-lines"]),
+        ] where !group.isEmpty {
+            // Chunked so a large change set never meets the argument-length limit.
+            for start in stride(from: 0, to: group.count, by: 200) {
+                let chunk = Array(group[start..<min(start + 200, group.count)])
+                // `:(top,literal)` keeps each pathspec at the repository's top and free of
+                // glob meaning, whichever folder the tree is rooted in.
+                guard let numstat = run(
+                    ["diff", "--numstat", "-z", "--no-renames"] + flags + [commit, "--"]
+                        + chunk.map { ":(top,literal)" + $0 },
+                    in: root)
+                else { continue }
+                // With whitespace ignored, git leaves a file that changed only in
+                // whitespace out of the list entirely.
+                let substantive = Set(rangeChanges(numstat: numstat, nameStatus: "")
+                    .filter { $0.isBinary || $0.additions + $0.deletions > 0 }
+                    .map(\.path))
+                cosmetic.formUnion(chunk.filter { !substantive.contains($0) })
+            }
+        }
+        return cosmetic
+    }
+
+    /// Languages where indentation or a tab carries meaning, by extension or file name.
+    private static let indentationSignificantExtensions: Set<String> = [
+        "py", "pyi", "pyx", "yaml", "yml", "haml", "slim", "pug", "jade", "sass", "styl",
+        "coffee", "nim", "hs", "lhs", "fs", "fsi", "fsx", "elm", "md", "markdown", "rst",
+        "mk", "bzl", "star", "gd", "mojo",
+    ]
+    private static let indentationSignificantNames: Set<String> = [
+        "Makefile", "makefile", "GNUmakefile", "Snakefile", "BUILD", "WORKSPACE", "Tiltfile",
+    ]
+
+    static func isIndentationSignificant(_ path: String) -> Bool {
+        let name = (path as NSString).lastPathComponent
+        if indentationSignificantNames.contains(name) { return true }
+        return indentationSignificantExtensions.contains((name as NSString).pathExtension.lowercased())
+    }
+
+    /// What the repository's `.gitattributes` says about `linguist-generated` for each of
+    /// `paths` (relative to `root`): `true` where it marks a file generated, `false` where
+    /// it explicitly says a file is not, and no entry where it says nothing. The same
+    /// attribute GitHub reads to collapse a generated file in a pull request.
+    static func linguistGenerated(_ paths: [String], in root: String) async -> [String: Bool] {
+        guard !paths.isEmpty else { return [:] }
+        return await offMain {
+            // The paths go in on stdin: a whole checkout's worth is one process, where
+            // arguments would be hundreds.
+            let input = Data(paths.joined(separator: "\0").utf8 + [0])
+            guard let output = run(["check-attr", "-z", "--stdin", "linguist-generated"], in: root, input: input)
+            else { return [:] }
+            var answers: [String: Bool] = [:]
+            // `-z` records are `path NUL attribute NUL value NUL`.
+            let fields = output.split(separator: "\0", omittingEmptySubsequences: false)
+            for index in stride(from: 0, to: fields.count - 2, by: 3) {
+                switch fields[index + 2] {
+                case "set", "true": answers[String(fields[index])] = true
+                case "unset", "false": answers[String(fields[index])] = false
+                default: continue
+                }
+            }
+            return answers
+        }
+    }
+
+    /// Every file git would show under `root`, relative to it: what is tracked, plus what
+    /// is untracked and not ignored. `nil` outside a work tree. One read of the index and
+    /// one walk for untracked files — the cost of a `git status`, not of a recursive
+    /// directory listing.
+    static func listedFiles(in root: String) async -> [String]? {
+        await offMain {
+            guard let output = run(["ls-files", "-z", "--cached", "--others", "--exclude-standard"], in: root)
+            else { return nil }
+            // A conflicted path is listed once per stage.
+            var seen: Set<Substring> = []
+            return output.split(separator: "\0").compactMap { seen.insert($0).inserted ? String($0) : nil }
+        }
+    }
+
+    /// The commit `HEAD` names, or `nil` before the first commit or outside a work tree.
+    static func head(in root: String) async -> String? {
+        await offMain {
+            run(["rev-parse", "--verify", "--quiet", "HEAD"], in: root)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+    }
+
     private struct NumstatEntry {
         let path: String
         let originalPath: String?
@@ -1057,8 +1189,8 @@ enum GitService {
 
     /// Runs `git -C <dir> <args>` and returns stdout, or `nil` on launch failure or a
     /// non-zero exit (unless `ignoreStatus`).
-    private static func run(_ args: [String], in dir: String, ignoreStatus: Bool = false) -> String? {
-        output(of: "/usr/bin/git", ["-C", dir] + args, ignoreStatus: ignoreStatus)
+    private static func run(_ args: [String], in dir: String, ignoreStatus: Bool = false, input: Data? = nil) -> String? {
+        output(of: "/usr/bin/git", ["-C", dir] + args, ignoreStatus: ignoreStatus, input: input)
     }
 
     /// Runs an executable and returns stdout, or `nil` on launch failure or a non-zero
@@ -1066,7 +1198,9 @@ enum GitService {
     /// output can exceed the 64 KB pipe buffer and otherwise deadlock the child; stderr
     /// is sent to the null device so it can never fill either. The environment is
     /// inherited, so ssh finds `~/.ssh/config`.
-    private static func output(of executable: String, _ args: [String], ignoreStatus: Bool = false) -> String? {
+    private static func output(
+        of executable: String, _ args: [String], ignoreStatus: Bool = false, input: Data? = nil
+    ) -> String? {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: executable)
         process.arguments = args
@@ -1078,7 +1212,22 @@ enum GitService {
         let out = Pipe()
         process.standardOutput = out
         process.standardError = FileHandle.nullDevice
+        let inputPipe = input.map { _ in Pipe() }
+        if let inputPipe { process.standardInput = inputPipe }
         do { try process.run() } catch { return nil }
+        if let input, let inputPipe {
+            // Written from another thread: a child that answers as it reads fills its
+            // stdout while this side would still be blocked filling its stdin.
+            DispatchQueue.global(qos: .utility).async {
+                let writer = inputPipe.fileHandleForWriting
+                do {
+                    try writer.write(contentsOf: input)
+                } catch {
+                    Log.files.error("writing \(input.count) bytes to \(executable, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+                }
+                try? writer.close()
+            }
+        }
         let data = out.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
         if !ignoreStatus, process.terminationStatus != 0 { return nil }

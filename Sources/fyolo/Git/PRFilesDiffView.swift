@@ -209,8 +209,8 @@ private struct PRFileDiffBody: View {
             }
             Spacer(minLength: 8)
             HStack(spacing: 5) {
-                if change.additions > 0 { Text("+\(change.additions)").foregroundStyle(.green) }
-                if change.deletions > 0 { Text("−\(change.deletions)").foregroundStyle(.red) }
+                if change.additions > 0 { Text("+\(change.additions)").foregroundStyle(Palette.green) }
+                if change.deletions > 0 { Text("−\(change.deletions)").foregroundStyle(Palette.red) }
             }
             .font(.system(size: 11, weight: .medium, design: .monospaced))
             .fixedSize()
@@ -418,8 +418,8 @@ private struct FileDiffCard: View {
                     .truncationMode(.middle)
                 Spacer(minLength: 8)
                 HStack(spacing: 5) {
-                    if change.additions > 0 { Text("+\(change.additions)").foregroundStyle(.green) }
-                    if change.deletions > 0 { Text("−\(change.deletions)").foregroundStyle(.red) }
+                    if change.additions > 0 { Text("+\(change.additions)").foregroundStyle(Palette.green) }
+                    if change.deletions > 0 { Text("−\(change.deletions)").foregroundStyle(Palette.red) }
                 }
                 .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .fixedSize()
@@ -548,8 +548,8 @@ private struct PRFileRow: View {
             }
             Spacer(minLength: 6)
             HStack(spacing: 5) {
-                if change.additions > 0 { Text("+\(change.additions)").foregroundStyle(.green) }
-                if change.deletions > 0 { Text("−\(change.deletions)").foregroundStyle(.red) }
+                if change.additions > 0 { Text("+\(change.additions)").foregroundStyle(Palette.green) }
+                if change.deletions > 0 { Text("−\(change.deletions)").foregroundStyle(Palette.red) }
             }
             .font(.system(size: 10, weight: .medium, design: .monospaced))
             .opacity(0.85)

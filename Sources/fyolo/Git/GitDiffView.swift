@@ -227,10 +227,10 @@ struct GitDiffView: View {
             }
             HStack(spacing: 5) {
                 if request.change.additions > 0 {
-                    Text("+\(request.change.additions)").foregroundStyle(.green)
+                    Text("+\(request.change.additions)").foregroundStyle(Palette.green)
                 }
                 if request.change.deletions > 0 {
-                    Text("−\(request.change.deletions)").foregroundStyle(.red)
+                    Text("−\(request.change.deletions)").foregroundStyle(Palette.red)
                 }
             }
             .font(.system(size: 11, weight: .medium, design: .monospaced))

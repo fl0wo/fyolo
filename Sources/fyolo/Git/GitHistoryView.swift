@@ -452,8 +452,8 @@ private struct CompareSummaryRow: View {
                 // Binary files report no counts, so the totals are of what git measured.
                 let additions = files.reduce(0) { $0 + $1.additions }
                 let deletions = files.reduce(0) { $0 + $1.deletions }
-                if additions > 0 { Text(verbatim: "+\(additions)").foregroundStyle(.green) }
-                if deletions > 0 { Text(verbatim: "−\(deletions)").foregroundStyle(.red) }
+                if additions > 0 { Text(verbatim: "+\(additions)").foregroundStyle(Palette.green) }
+                if deletions > 0 { Text(verbatim: "−\(deletions)").foregroundStyle(Palette.red) }
                 Image(systemName: "chevron.right")
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(.secondary)
@@ -652,8 +652,8 @@ private struct CommitFileRow: View {
                     .truncationMode(.middle)
                     .foregroundStyle(change.status == .deleted ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
                 Spacer(minLength: 6)
-                if change.additions > 0 { Text("+\(change.additions)").foregroundStyle(.green) }
-                if change.deletions > 0 { Text("−\(change.deletions)").foregroundStyle(.red) }
+                if change.additions > 0 { Text("+\(change.additions)").foregroundStyle(Palette.green) }
+                if change.deletions > 0 { Text("−\(change.deletions)").foregroundStyle(Palette.red) }
             }
             .font(.system(size: 10.5, weight: .medium, design: .monospaced))
             .padding(.leading, 24)

@@ -160,15 +160,15 @@ enum GitFileStatus: Hashable, Sendable {
 
     var tint: Color {
         switch self {
-        case .added: return .green
-        case .deleted: return .red
-        case .renamed, .copied: return .orange
-        case .conflicted: return .yellow
+        case .added: return Palette.green
+        case .deleted: return Palette.red
+        case .renamed, .copied: return Palette.orange
+        case .conflicted: return Palette.yellow
         // An untracked file is a brand-new file, so it reads as additive — green,
         // like its `+` line count and the way VS Code marks a `U` in the explorer —
         // rather than a noisy grey `?` that looks like an error down the whole list.
-        case .untracked: return .green
-        case .modified: return .blue
+        case .untracked: return Palette.green
+        case .modified: return Palette.blue
         }
     }
 }

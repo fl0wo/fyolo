@@ -163,6 +163,12 @@ struct FileBrowserView: View {
             }
         }
         .onReceive(store.revealInTreeRequest) { reveal($0) }
+        // Leaving Changes: replay whatever the tree's status parked while it was open.
+        .onChange(of: store.inspectorTab) { _, tab in
+            guard tab != .changes else { return }
+            tree?.decorations.resume()
+            seedChangeCount()
+        }
         .onDisappear { cancelReveal() }
     }
 
@@ -209,6 +215,22 @@ struct FileBrowserView: View {
             guard let store, store.inspectorTab != .changes else { return }
             Self.seedChangeCount(into: store)
         }
+        let decorations = tree.decorations
+        let checkout = checkout
+        decorations.onWorkingChangeCount = { [weak store] count in
+            // The Changes pane keeps the badge itself while it is open, and a parked
+            // tree for another checkout must not write over the one on screen.
+            guard let store, store.inspectorTab != .changes,
+                  store.inspectorCheckout == checkout, checkout?.localRoot != nil
+            else { return }
+            Self.publishChangeCount(count, into: store)
+        }
+        // Kept current while the inspector shows anything but Changes, which reads
+        // the same status itself — the rule the badge has always followed.
+        decorations.start(isShowing: { [weak store] in
+            guard let store else { return false }
+            return store.inspectorVisible && store.inspectorTab != .changes
+        })
         tree.startWarming()
         tree.refresh()
     }
@@ -219,6 +241,8 @@ struct FileBrowserView: View {
             return store.fileTrees.existing(for: checkout, root: root)
         } ?? tree
         model?.onCheckoutChanged = nil
+        model?.decorations.onWorkingChangeCount = nil
+        model?.decorations.stop()
         model?.stopWarming()
     }
 
@@ -251,6 +275,7 @@ struct FileBrowserView: View {
                 header(tree)
                 FileTreeContent(
                     model: tree,
+                    decorations: tree.decorations,
                     selection: $browserState.selection,
                     generation: treeGeneration,
                     settings: settings,
@@ -455,23 +480,24 @@ struct FileBrowserView: View {
     /// Static, and reading the checkout back off the store, because the device's
     /// `fs:` batches call it from a closure the tree holds — and the tree outlives
     /// this pane in the cache, so a closure holding the view would hold a window.
+    ///
+    /// The count is the tree's own: its decorations already keep this checkout's status
+    /// live to color the rows, so the badge reads that rather than running a second
+    /// `git status` on every write.
     private static func seedChangeCount(into store: FyoloStore) {
-        guard let repoRoot = store.inspectorCheckout?.localRoot else {
-            if store.gitChangeCount != 0 { store.gitChangeCount = 0 }
-            return
+        let checkout = store.inspectorCheckout
+        let decorations = checkout.flatMap { checkout in
+            checkout.localRoot.flatMap { store.fileTrees.existing(for: checkout, root: $0)?.decorations }
         }
-        Task { @MainActor in
-            let count = await GitService.changes(in: repoRoot).count
-            // The project may have moved while git ran; a stale repo's count must
-            // not land on the new project's badge.
-            guard store.inspectorCheckout?.localRoot == repoRoot else { return }
-            // Only publish a real change: this reruns on every settled `fs:` batch,
-            // and an unconditional write would invalidate every store observer (the
-            // whole window re-evaluates, and the file list's coordinator re-walks its
-            // rows) even when the badge didn't move — on a non-repo root that means
-            // re-publishing `0` several times a second, forever.
-            if store.gitChangeCount != count { store.gitChangeCount = count }
-        }
+        publishChangeCount(decorations?.workingChangeCount ?? 0, into: store)
+    }
+
+    /// Only publishes a real change: this reruns on every status pass, and an
+    /// unconditional write would invalidate every store observer (the whole window
+    /// re-evaluates, and the file list's coordinator re-walks its rows) even when the
+    /// badge didn't move.
+    private static func publishChangeCount(_ count: Int, into store: FyoloStore) {
+        if store.gitChangeCount != count { store.gitChangeCount = count }
     }
 
     /// Places each dropped file into `destination` (a folder inside the tree, or the
@@ -654,6 +680,7 @@ struct FileTreeWrites {
 /// inspector tabs have no stake in a folder that just landed.
 private struct FileTreeContent: View {
     @ObservedObject var model: DeviceFileTreeModel
+    @ObservedObject var decorations: FileTreeDecorations
     @Binding var selection: String?
     /// Collapse All: each bump closes every folder.
     let generation: Int
@@ -683,6 +710,7 @@ private struct FileTreeContent: View {
                 model: model,
                 revision: model.revision,
                 collapseGeneration: generation,
+                decorationRevision: decorations.revision,
                 selection: $selection,
                 settings: settings,
                 writes: writes,
