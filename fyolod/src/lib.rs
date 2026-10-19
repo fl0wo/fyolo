@@ -25,6 +25,7 @@ pub mod channel;
 pub mod client;
 pub mod daemon;
 pub mod files;
+pub mod symbols;
 pub mod git;
 pub mod handoff;
 pub mod id;

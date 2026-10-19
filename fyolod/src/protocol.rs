@@ -49,6 +49,7 @@ pub const HOST_CAPABILITIES: &[&str] = &[
     "viewport",
     "spawn_command",
     "search_include",
+    "references",
 ];
 /// Snapshot payload carrying packed cells.
 ///
@@ -443,6 +444,11 @@ pub struct SearchMatch {
     pub before: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub after: Vec<String>,
+    /// What the hit is to the symbol an `fs_references` request resolved —
+    /// `definition`, `usage`, `import`, `reexport`, `match` or `unrelated`
+    /// (`symbols::kind`). Absent from `fs.search`, whose hits are only text.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<String>,
 }
 
 fn is_zero(value: &u64) -> bool {
@@ -793,6 +799,28 @@ pub enum Control {
         /// host without it drops the field and searches everything, so a
         /// client gates a filtered search on the grant rather than showing
         /// unfiltered hits under a filter.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        include: Vec<String>,
+        limit: u64,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        seq: Option<u64>,
+    },
+    /// What the name at `offset` in `path` refers to, and every reference to
+    /// it under `root` (capability `references`, `symbols::references`). The
+    /// host answers with one `references_resolved` event, then
+    /// `search_results` events whose matches carry a `kind`, then the same
+    /// terminal `fs_searched` reply a search ends with. Cancellable with
+    /// `cancel {request: <seq>}`.
+    FsReferences {
+        root: String,
+        /// The clicked file, relative to `root`.
+        path: String,
+        /// UTF-8 byte offset of the click in the file's current text.
+        offset: u64,
+        /// The file's unsaved text, when the client has edits the disk has
+        /// not seen. Absent means read it from disk.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        text: Option<String>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         include: Vec<String>,
         limit: u64,
@@ -1289,6 +1317,7 @@ impl Control {
             | Control::FsRead { seq, .. }
             | Control::FsMatch { seq, .. }
             | Control::FsSearch { seq, .. }
+            | Control::FsReferences { seq, .. }
             | Control::Cancel { seq, .. }
             | Control::GitDiff { seq, .. }
             | Control::GitLog { seq, .. }
@@ -1439,6 +1468,21 @@ pub enum Event {
     SearchResults {
         request: u64,
         matches: Vec<SearchMatch>,
+    },
+    /// The symbol an `fs_references` request resolved to, sent before any
+    /// reference so the client can jump to a definition without waiting for
+    /// the tree. `kind` is `export`, `local`, `package`, `module`, or `name` —
+    /// the last meaning what follows are name matches, not references.
+    ReferencesResolved {
+        request: u64,
+        name: String,
+        kind: String,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        definitions: Vec<SearchMatch>,
+        #[serde(default)]
+        at_definition: bool,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        note: Option<String>,
     },
     /// A status delta for the `status:` resource — the third consumer of
     /// §C.10's one mechanism, and the one whose producer is the host's own

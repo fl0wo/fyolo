@@ -63,6 +63,13 @@ grep-searcher = "0.1"
 grep-matcher = "0.1"
 ignore = "0.4"
 aho-corasick = { version = "1", default-features = false, features = ["std", "perf-literal"] }
+# `fs.references` reads code as syntax, not text: a name inside a string, a
+# comment or JSX prose is no reference, and a shadowing local is a different
+# symbol. Grammars are C tables compiled into the binary — no runtime files,
+# so the one-static-binary rule holds.
+tree-sitter = "0.25"
+tree-sitter-typescript = "0.23"
+tree-sitter-javascript = "0.25"
 
 [dev-dependencies]
 # `connect` only exists so the WSS acceptance test can dial its own listener.

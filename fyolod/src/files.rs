@@ -1031,6 +1031,33 @@ pub fn search(
         canceled: false,
     };
 
+    for (relative, path) in text_files(root, filter) {
+        if cancel.load(Ordering::Relaxed) {
+            collector.canceled = true;
+            break;
+        }
+        let Some(file) = open_text(&path) else { continue };
+        collector.begin_file(&relative);
+        // A file the searcher refuses — a line past the heap limit, a read that
+        // failed — is one file, not the search.
+        let _ = searcher.search_file(&matcher, &file, &mut collector);
+        if collector.limit_hit || collector.canceled {
+            break;
+        }
+    }
+
+    collector.finish()
+}
+
+/// Every file under `root` a search reads, in path order, as (path relative to
+/// `root`, absolute path). Shared by `fs.search` and `fs.references` so the two
+/// can never disagree about which files exist: the domain is what
+/// `git grep --untracked` covered — tracked and untracked files no ignore rule
+/// excludes, `.git` never walked — narrowed by `filter` before a file is opened.
+pub(crate) fn text_files(
+    root: &Path,
+    filter: Option<Arc<SearchFilter>>,
+) -> impl Iterator<Item = (String, PathBuf)> {
     let mut walker = ignore::WalkBuilder::new(root);
     walker
         // git has no notion of a hidden file: a tracked `.env` is searched and
@@ -1078,36 +1105,22 @@ pub fn search(
         walker.add_ignore(global);
     }
 
-    for entry in walker.build() {
-        if cancel.load(Ordering::Relaxed) {
-            collector.canceled = true;
-            break;
-        }
+    let root = root.to_path_buf();
+    walker.build().filter_map(move |entry| {
         // A directory that cannot be read, a file that vanished mid-walk: the
         // rest of the tree is still worth searching. `git grep` skipped these
         // onto a stderr nobody read.
-        let Ok(entry) = entry else { continue };
+        let entry = entry.ok()?;
         if !entry.file_type().is_some_and(|kind| kind.is_file()) {
-            continue;
+            return None;
         }
-        let path = entry.path();
-        let Some(relative) = path.strip_prefix(root).ok().and_then(|p| p.to_str()) else {
-            continue;
-        };
-        if filter.as_ref().is_some_and(|filter| !filter.admits(Path::new(relative))) {
-            continue;
+        let path = entry.into_path();
+        let relative = path.strip_prefix(&root).ok()?.to_str()?.to_string();
+        if filter.as_ref().is_some_and(|filter| !filter.admits(Path::new(&relative))) {
+            return None;
         }
-        let Some(file) = open_text(path) else { continue };
-        collector.begin_file(relative);
-        // A file the searcher refuses — a line past the heap limit, a read that
-        // failed — is one file, not the search.
-        let _ = searcher.search_file(&matcher, &file, &mut collector);
-        if collector.limit_hit || collector.canceled {
-            break;
-        }
-    }
-
-    collector.finish()
+        Some((relative, path))
+    })
 }
 
 /// The global excludes file git would apply to `root`, or nothing.
@@ -1421,6 +1434,7 @@ fn match_from_line(
         spans,
         before: Vec::new(),
         after: Vec::new(),
+        kind: None,
     }
 }
 
@@ -1456,7 +1470,7 @@ fn spans_in(text: &str, query: &str, insensitive: bool) -> Vec<(usize, usize)> {
 
 /// A cap-sized window of `text` containing `around`, snapped to character
 /// boundaries. Returns where the window starts and the window itself.
-fn window(text: &str, around: usize) -> (usize, String) {
+pub(crate) fn window(text: &str, around: usize) -> (usize, String) {
     if text.len() <= SEARCH_TEXT_CAP {
         return (0, text.to_string());
     }
