@@ -120,6 +120,15 @@ final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineV
     private var listedRevision: Int?
     /// The decorations' revision the visible rows were last drawn at.
     private var decoratedRevision: Int?
+    /// Until when a folder opening or closing may still be animating. A full reload
+    /// inside that window hands the row views sliding aside to other rows, and they
+    /// glide into place from wherever they were — siblings visibly re-sorting from
+    /// the bottom. A folder's listing now lands well inside the animation, so a
+    /// reload that arrives then waits for it to finish.
+    private var settlingUntil = ContinuousClock.now
+    private var reloadPending = false
+    /// AppKit's expand and collapse take a quarter second; this clears it.
+    private static let settleDuration = Duration.milliseconds(300)
     private var collapseGeneration = 0
     /// Set while this side moves the outline's selection, so the delegate does
     /// not report it back as the user's.
@@ -161,7 +170,7 @@ final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineV
         }
         applyRowHeight()
         if listedRevision != model.revision {
-            reload()
+            reloadWhenSettled()
         } else {
             syncSelection()
             if decoratedRevision != decorationRevision { redecorateVisibleRows() }
@@ -181,6 +190,23 @@ final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineV
                 .show(FileRowLabel(row: FileRowSnapshot(node, decoration: decoration), settings: settings))
             rowView(at: row)?.decoration = decoration
         }
+    }
+
+    /// `reload`, once no folder is mid-animation. The listings that land meanwhile —
+    /// a spinner, the rows, the spinner gone — fold into the one reload after it.
+    private func reloadWhenSettled() {
+        guard ContinuousClock.now >= settlingUntil else {
+            guard !reloadPending else { return }
+            reloadPending = true
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                try? await Task.sleep(until: settlingUntil)
+                reloadPending = false
+                if listedRevision != model.revision { reloadWhenSettled() }
+            }
+            return
+        }
+        reload()
     }
 
     /// Re-reads the open folders. Expansion survives because the model reuses a
@@ -431,6 +457,16 @@ final class FileOutlineController: NSObject, NSOutlineViewDataSource, NSOutlineV
         if let node, !node.isDirectory, NSApp.currentEvent?.type == .keyDown {
             onOpen(node)
         }
+    }
+
+    // Every way a folder opens or closes passes through these — a row click, the
+    // disclosure triangle, the arrow keys.
+    func outlineViewItemWillExpand(_ notification: Notification) {
+        settlingUntil = .now + Self.settleDuration
+    }
+
+    func outlineViewItemWillCollapse(_ notification: Notification) {
+        settlingUntil = .now + Self.settleDuration
     }
 
     func outlineViewItemDidExpand(_ notification: Notification) {
