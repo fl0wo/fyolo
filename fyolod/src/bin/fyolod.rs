@@ -7,7 +7,7 @@
 //!
 //! See `ARCHITECTURE.md` and `README.md`.
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use std::net::SocketAddr;
 use fyolod::protocol::CreateSpec;
@@ -473,8 +473,43 @@ fn mine_field(payload: &serde_json::Value, field: &str) -> Option<String> {
         .map(str::to_string)
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
+    clear_inherited_signal_mask();
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .context("starting the async runtime")?
+        .block_on(run())
+}
+
+/// Unblocks every signal before the runtime starts its threads, which inherit the
+/// mask of the thread that creates them.
+///
+/// The mask survives `fork`, `exec` and `posix_spawn`, so the daemon starts with
+/// whatever its launcher's thread had blocked — and the Mac app launches it from a
+/// Dispatch worker, which runs with SIGCHLD among the blocked. Tokio learns that a
+/// child exited only through SIGCHLD, so under that mask no `git` it ran ever
+/// finished: a status or a log hung for good, and every directory listing waited
+/// out the ignore check's five-second timeout, leaving the child behind as a
+/// zombie. A handoff carries the mask into the next binary, so it lasted for the
+/// daemon's whole life. `pty.rs` clears the same inheritance for the sessions this
+/// daemon spawns; this is the daemon declining it for itself.
+fn clear_inherited_signal_mask() {
+    // SAFETY: plain libc calls on a stack-local set, before any other thread exists.
+    let failed = unsafe {
+        let mut empty: libc::sigset_t = std::mem::zeroed();
+        libc::sigemptyset(&mut empty);
+        libc::pthread_sigmask(libc::SIG_SETMASK, &empty, std::ptr::null_mut())
+    };
+    if failed != 0 {
+        eprintln!(
+            "fyolod: clearing the inherited signal mask failed: {}",
+            std::io::Error::from_raw_os_error(failed)
+        );
+    }
+}
+
+async fn run() -> Result<()> {
     let cli = Cli::parse();
     match cli.cmd {
         Cmd::Logs {
