@@ -54,14 +54,22 @@ fn git_command(root: &str) -> tokio::process::Command {
     command
 }
 
-/// Listings share a quiet window per repository, even across control connections.
-/// Keep only pending work: each re-list asks Git afresh, so index and ignore-rule
-/// edits cannot leave a cached decoration behind.
+/// Ignore checks run one at a time per repository, even across control connections.
+/// A request that finds none running starts one at once; requests arriving while one
+/// runs gather into a single pending batch that runs the moment it finishes. A burst of
+/// listings — a tree opening, its prefetch, a watcher's re-lists — costs two `git`
+/// processes rather than one each, and no listing waits longer than one check.
+///
+/// A quiet window used to stand in front of every check instead, restarted by each new
+/// request: half a second added to every folder, and several seconds to a tree opened
+/// while anything else was listing in the same repository.
+///
+/// Keep only pending work: each re-list asks Git afresh, so index and ignore-rule edits
+/// cannot leave a cached decoration behind.
 #[derive(Default)]
 struct IgnoreBatch {
     paths: HashSet<String>,
     replies: Vec<tokio::sync::oneshot::Sender<std::result::Result<HashSet<String>, String>>>,
-    last_request: Option<tokio::time::Instant>,
 }
 
 type IgnoreQueue = tokio::sync::Mutex<HashMap<String, IgnoreBatch>>;
@@ -74,31 +82,28 @@ fn ignore_queue() -> &'static IgnoreQueue {
 async fn check_ignored(root: String, paths: Vec<String>) -> Result<HashSet<String>> {
     let (reply, receive) = tokio::sync::oneshot::channel();
     let mut queue = ignore_queue().lock().await;
+    // A repository with an entry has a runner; it takes this request with its next batch.
     let start = !queue.contains_key(&root);
     let batch = queue.entry(root.clone()).or_default();
     batch.paths.extend(paths);
     batch.replies.push(reply);
-    batch.last_request = Some(tokio::time::Instant::now());
     drop(queue);
     if start {
         tokio::spawn(async move {
-            let quiet = std::time::Duration::from_millis(500);
             loop {
-                tokio::time::sleep(quiet).await;
-                let mut queue = ignore_queue().lock().await;
-                let Some(batch) = queue.get(&root) else {
-                    return;
+                let batch = {
+                    let mut queue = ignore_queue().lock().await;
+                    let Some(pending) = queue.get_mut(&root) else {
+                        return;
+                    };
+                    if pending.replies.is_empty() {
+                        // Nothing arrived during the last check: stand down, so the
+                        // next request starts a runner of its own.
+                        queue.remove(&root);
+                        return;
+                    }
+                    std::mem::take(pending)
                 };
-                if batch
-                    .last_request
-                    .is_some_and(|last| last.elapsed() < quiet)
-                {
-                    continue;
-                }
-                let Some(batch) = queue.remove(&root) else {
-                    return;
-                };
-                drop(queue);
                 let result = run_check_ignore(&root, &batch.paths)
                     .await
                     .map_err(|error| format!("{error:#}"));
@@ -106,7 +111,6 @@ async fn check_ignored(root: String, paths: Vec<String>) -> Result<HashSet<Strin
                     // A closed receiver means its listing was cancelled.
                     let _ = reply.send(result.clone());
                 }
-                return;
             }
         });
     }
@@ -1556,7 +1560,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn ignore_requests_share_one_pending_batch_per_repository() {
+    async fn ignore_requests_answer_at_once_and_share_one_pending_batch_per_repository() {
         let directory = scratch_repo("ignored-batch");
         write(&directory, ".gitignore", "*.log\n!keep.log\n");
         write(&directory, "first.log", "");
@@ -1564,22 +1568,30 @@ mod tests {
         let root = directory.to_string_lossy().into_owned();
         let first = directory.join("first.log").to_string_lossy().into_owned();
         let keep = directory.join("keep.log").to_string_lossy().into_owned();
-        let mut requests = Box::pin(futures_util::future::join_all([
-            check_ignored(root.clone(), vec![first.clone()]),
-            check_ignored(root.clone(), vec![keep.clone()]),
-        ]));
-        tokio::select! {
-            _ = &mut requests => panic!("requests must debounce"),
-            _ = tokio::time::sleep(std::time::Duration::from_millis(20)) => {}
+
+        // A lone listing waits for git and nothing else.
+        let started = std::time::Instant::now();
+        let alone = check_ignored(root.clone(), vec![first.clone(), keep.clone()]).await.unwrap();
+        assert_eq!(alone, HashSet::from([first.clone()]));
+        assert!(started.elapsed() < std::time::Duration::from_millis(400), "{:?}", started.elapsed());
+
+        // A burst is answered in full, and the runner stands down once it drains.
+        let burst: Vec<_> = (0..8)
+            .map(|index| {
+                let path = if index % 2 == 0 { first.clone() } else { keep.clone() };
+                check_ignored(root.clone(), vec![path])
+            })
+            .collect();
+        for (index, result) in futures_util::future::join_all(burst).await.into_iter().enumerate() {
+            let expected = if index % 2 == 0 { HashSet::from([first.clone()]) } else { HashSet::new() };
+            assert!(result.unwrap().is_superset(&expected));
         }
-        {
-            let queue = ignore_queue().lock().await;
-            let batch = queue.get(&root).unwrap();
-            assert_eq!(batch.replies.len(), 2);
-            assert_eq!(batch.paths, HashSet::from([first.clone(), keep.clone()]));
-        }
-        for result in requests.await {
-            assert_eq!(result.unwrap(), HashSet::from([first.clone()]));
+        tokio::task::yield_now().await;
+        for _ in 0..50 {
+            if !ignore_queue().lock().await.contains_key(&root) {
+                break;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }
         assert!(!ignore_queue().lock().await.contains_key(&root));
         // Exit 1 and a negative-only match both mean nothing is ignored.
