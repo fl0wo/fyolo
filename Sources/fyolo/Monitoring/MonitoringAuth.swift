@@ -51,6 +51,14 @@ enum MonitoringAuth {
     private static let service = "sh.fyolo.app.monitoring" + AppChannel.suffix
     private static let account = "connections"
 
+    /// `connections()`, read off the main thread. A keychain read can wait for seconds —
+    /// on a re-signed build, for the user to answer an access prompt — and the incident
+    /// watcher asks at launch: on the main thread that froze the whole window, file tree
+    /// and terminals included, for as long as the keychain took.
+    static func loadConnections() async -> [MonitorConnection] {
+        await Task.detached(priority: .utility) { connections() }.value
+    }
+
     static func connections() -> [MonitorConnection] {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

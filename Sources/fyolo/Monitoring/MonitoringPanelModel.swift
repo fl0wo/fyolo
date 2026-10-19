@@ -284,7 +284,7 @@ final class MonitoringPanelModel: ObservableObject {
     // MARK: Loading
 
     func start() async {
-        connections = MonitoringAuth.connections()
+        connections = await MonitoringAuth.loadConnections()
         libraryProfiles = MonitoringLibrary.profiles()
         repositoryProfile = nil
         repositoryError = nil
@@ -909,7 +909,7 @@ final class MonitoringIncidentWatcher {
     }
 
     private func check() async {
-        let connections = MonitoringAuth.connections()
+        let connections = await MonitoringAuth.loadConnections()
         guard !connections.isEmpty,
               let profile = Monitoring.profile(for: Monitoring.activeChoice, projectRoot: nil, connections: connections)
         else { return }
