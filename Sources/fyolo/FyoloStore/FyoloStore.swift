@@ -1100,6 +1100,10 @@ final class FyoloStore: ObservableObject {
     /// The run capsule's recents and what is running now (see `RunTasks`).
     let runTasks = RunTasks()
 
+    /// The branch name's uncommitted badge and the git pane's Inspect tab (see `GitSyncModel`).
+    /// Idle until the toolbar tracks a folder, so with the setting off it runs nothing.
+    let gitSync = GitSyncModel()
+
     var surfaces: [Session.ID: TerminalViewState] = [:]
     var monitors: [Session.ID: [AnyCancellable]] = [:]
     /// Spawned sessions whose prompt was written but never appeared on screen —

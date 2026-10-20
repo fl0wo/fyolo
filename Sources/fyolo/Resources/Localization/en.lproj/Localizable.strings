@@ -28,6 +28,8 @@
 	<string>%@ doesn’t answer like a GitHub server.</string>
 	<key>%@ exited — shell</key>
 	<string>%@ exited — shell</string>
+	<key>%@ from %@</key>
+	<string>%@ from %@</string>
 	<key>%@ has nothing open right now.</key>
 	<string>%@ has nothing open right now.</string>
 	<key>%@ has nothing to pair against</key>
@@ -76,12 +78,16 @@
 %@</string>
 	<key>%@ stays published only until you log out of it. Fyolo couldn’t set it to keep services running after that.</key>
 	<string>%@ stays published only until you log out of it. Fyolo couldn’t set it to keep services running after that.</string>
+	<key>%@ to %@</key>
+	<string>%@ to %@</string>
 	<key>%@ tokens</key>
 	<string>%@ tokens</string>
 	<key>%@ · %@ on %@ · %@ ago</key>
 	<string>%@ · %@ on %@ · %@ ago</string>
 	<key>%@ · %@ tokens</key>
 	<string>%@ · %@ tokens</string>
+	<key>%@ · %@. Click to inspect.</key>
+	<string>%@ · %@. Click to inspect.</string>
 	<key>%@ — %@.</key>
 	<string>%@ — %@.</string>
 	<key>%@ — %@. Couldn’t update %@.</key>
@@ -92,10 +98,16 @@
 	<string>%@, %@ and %@</string>
 	<key>%lld %@</key>
 	<string>%lld %@</string>
+	<key>%lld commits</key>
+	<string>%lld commits</string>
+	<key>%lld edited</key>
+	<string>%lld edited</string>
 	<key>%lld file</key>
 	<string>%lld file</string>
 	<key>%lld files</key>
 	<string>%lld files</string>
+	<key>%lld files also changed here. Pulling may conflict.</key>
+	<string>%lld files also changed here. Pulling may conflict.</string>
 	<key>%lld hidden by rules</key>
 	<string>%lld hidden by rules</string>
 	<key>%lld hidden panels</key>
@@ -104,16 +116,22 @@
 	<string>%lld in your Themes folder</string>
 	<key>%lld installed</key>
 	<string>%lld installed</string>
+	<key>%lld new</key>
+	<string>%lld new</string>
 	<key>%lld not installed</key>
 	<string>%lld not installed</string>
 	<key>%lld of %lld</key>
 	<string>%lld of %lld</string>
 	<key>%lld pt</key>
 	<string>%lld pt</string>
+	<key>%lld removed</key>
+	<string>%lld removed</string>
 	<key>%lld results</key>
 	<string>%lld results</string>
 	<key>%lld rows</key>
 	<string>%lld rows</string>
+	<key>%lld uncommitted files</key>
+	<string>%lld uncommitted files</string>
 	<key>%lld unrelated matches</key>
 	<string>%lld unrelated matches</string>
 	<key>%lld%@ matches in %lld files</key>
@@ -138,6 +156,12 @@
 	<string>%lld× %@</string>
 	<key>(no message)</key>
 	<string>(no message)</string>
+	<key>1 commit</key>
+	<string>1 commit</string>
+	<key>1 file</key>
+	<string>1 file</string>
+	<key>1 file also changed here. Pulling may conflict.</key>
+	<string>1 file also changed here. Pulling may conflict.</string>
 	<key>1 result</key>
 	<string>1 result</string>
 	<key>A box can only be paired with once its fyolod is running and reachable from outside — a tunnel, or a proxy in front of it.</key>
@@ -240,6 +264,10 @@
 	<string>Allow Usage Access</string>
 	<key>Almost the same text</key>
 	<string>Almost the same text</string>
+	<key>Also changed here. Pulling may conflict.</key>
+	<string>Also changed here. Pulling may conflict.</string>
+	<key>Also changed upstream. Pulling may conflict.</key>
+	<string>Also changed upstream. Pulling may conflict.</string>
 	<key>An older install points at %@. Update it to this version of Fyolo.</key>
 	<string>An older install points at %@. Update it to this version of Fyolo.</string>
 	<key>App language</key>
@@ -344,8 +372,12 @@
 	<string>Check Again</string>
 	<key>Check for Updates…</key>
 	<string>Check for Updates…</string>
+	<key>Checked %@</key>
+	<string>Checked %@</string>
 	<key>Checked out on %@</key>
 	<string>Checked out on %@</string>
+	<key>Checking for new commits…</key>
+	<string>Checking for new commits…</string>
 	<key>Checking that %@ answers…</key>
 	<string>Checking that %@ answers…</string>
 	<key>Checking the machine…</key>
@@ -606,6 +638,8 @@
 	<string>Couldn’t write ~/.ssh/config: %@</string>
 	<key>Count</key>
 	<string>Count</string>
+	<key>Counts uncommitted files beside the branch name, and adds an Inspect tab to the git pane.</key>
+	<string>Counts uncommitted files beside the branch name, and adds an Inspect tab to the git pane.</string>
 	<key>Create</key>
 	<string>Create</string>
 	<key>Create a Key…</key>
@@ -876,6 +910,8 @@
 	<string>Get %@</string>
 	<key>Git ignore patterns cannot represent a filename containing a line break.</key>
 	<string>Git ignore patterns cannot represent a filename containing a line break.</string>
+	<key>Git status</key>
+	<string>Git status</string>
 	<key>Git worktree</key>
 	<string>Git worktree</string>
 	<key>GitHub</key>
@@ -920,6 +956,8 @@
 	<string>Group name</string>
 	<key>Group with</key>
 	<string>Group with</string>
+	<key>HEAD is detached, so there is nothing to sync.</key>
+	<string>HEAD is detached, so there is nothing to sync.</string>
 	<key>Health</key>
 	<string>Health</string>
 	<key>Hidden Panels</key>
@@ -998,10 +1036,14 @@
 	<string>Incidents</string>
 	<key>Includes a session moved here by hand</key>
 	<string>Includes a session moved here by hand</string>
+	<key>Incoming</key>
+	<string>Incoming</string>
 	<key>Increase Font Size</key>
 	<string>Increase Font Size</string>
 	<key>Info</key>
 	<string>Info</string>
+	<key>Inspect</key>
+	<string>Inspect</string>
 	<key>Inspector</key>
 	<string>Inspector</string>
 	<key>Inspector Pane</key>
@@ -1382,6 +1424,8 @@
 	<string>Not a Git Repository</string>
 	<key>Not a valid regular expression</key>
 	<string>Not a valid regular expression</string>
+	<key>Not checked against the remote yet.</key>
+	<string>Not checked against the remote yet.</string>
 	<key>Not checked yet</key>
 	<string>Not checked yet</string>
 	<key>Not installed</key>
@@ -1408,8 +1452,14 @@
 	<string>Nothing matches these filters.</string>
 	<key>Nothing to Compare</key>
 	<string>Nothing to Compare</string>
+	<key>Nothing to commit</key>
+	<string>Nothing to commit</string>
 	<key>Nothing to install.</key>
 	<string>Nothing to install.</string>
+	<key>Nothing to pull.</key>
+	<string>Nothing to pull.</string>
+	<key>Nothing to push.</key>
+	<string>Nothing to push.</string>
 	<key>Nothing to reach — this is the machine you’re on.</key>
 	<string>Nothing to reach — this is the machine you’re on.</string>
 	<key>Notifications</key>
@@ -1514,6 +1564,8 @@
 	<string>Optional features you can turn on and off</string>
 	<key>Other machines</key>
 	<string>Other machines</string>
+	<key>Outgoing</key>
+	<string>Outgoing</string>
 	<key>Overwrite</key>
 	<string>Overwrite</string>
 	<key>Padding: %lld pt</key>
@@ -1924,10 +1976,14 @@
 	<string>Show another file in this diff</string>
 	<key>Show in Finder</key>
 	<string>Show in Finder</string>
+	<key>Show new, removed, and edited files</key>
+	<string>Show new, removed, and edited files</string>
 	<key>Show one column (inline diff)</key>
 	<string>Show one column (inline diff)</string>
 	<key>Show or hide notes for this project</key>
 	<string>Show or hide notes for this project</string>
+	<key>Show the total only</key>
+	<string>Show the total only</string>
 	<key>Show two columns (side-by-side diff)</key>
 	<string>Show two columns (side-by-side diff)</string>
 	<key>Showing everything. Right-click anything that isn’t yours and choose Hide Similar.</key>
@@ -1938,8 +1994,12 @@
 	<string>Shows files and folders ignored by Git in a muted color.</string>
 	<key>Shows logs, metrics and incidents from New Relic in the inspector, filtered down to what you care about.</key>
 	<string>Shows logs, metrics and incidents from New Relic in the inspector, filtered down to what you care about.</string>
+	<key>Shows new, removed, and edited files</key>
+	<string>Shows new, removed, and edited files</string>
 	<key>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</key>
 	<string>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</string>
+	<key>Shows the total only</key>
+	<string>Shows the total only</string>
 	<key>Shows this project’s Linear tickets in the inspector, with the pull requests that name them.</key>
 	<string>Shows this project’s Linear tickets in the inspector, with the pull requests that name them.</string>
 	<key>Shows when an agent is working or waiting on you — the sidebar spinner and menu-bar pulse.</key>
@@ -2172,6 +2232,8 @@
 	<string>This branch and the base branch share no commits.</string>
 	<key>This branch has no commits yet.</key>
 	<string>This branch has no commits yet.</string>
+	<key>This branch has no upstream yet.</key>
+	<string>This branch has no upstream yet.</string>
 	<key>This branch has nothing the base branch doesn’t already have.</key>
 	<string>This branch has nothing the base branch doesn’t already have.</string>
 	<key>This build doesn’t check for updates.</key>
@@ -2248,6 +2310,8 @@
 	<string>This relay has no valid URL pattern, so its address could never be read back.</string>
 	<key>This repository has no active GitHub Actions workflows.</key>
 	<string>This repository has no active GitHub Actions workflows.</string>
+	<key>This repository has no remote.</key>
+	<string>This repository has no remote.</string>
 	<key>This run hasn’t started any jobs yet.</key>
 	<string>This run hasn’t started any jobs yet.</string>
 	<key>This session couldn’t be started.</key>
@@ -2300,6 +2364,10 @@
 	<string>URL Pattern</string>
 	<key>Unassigned</key>
 	<string>Unassigned</string>
+	<key>Uncommitted</key>
+	<string>Uncommitted</string>
+	<key>Uncommitted: %@</key>
+	<string>Uncommitted: %@</string>
 	<key>Underline</key>
 	<string>Underline</string>
 	<key>Ungroup</key>

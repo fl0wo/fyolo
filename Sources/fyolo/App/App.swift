@@ -1113,8 +1113,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// system sidebar tracking separator, the custom branch-picker title, an inner tracking
     /// separator aligned to the inspector divider, and a trailing inspector toggle. The delegate
     /// holds the split controller (to bind the inner separator to divider 1) and the store +
-    /// settings (to host the branch picker). Toolbar style is version-branched the way CodeEdit
-    /// does it: `.automatic` on macOS 26, `.unifiedCompact` before. The baseline separator is
+    /// settings (to host the branch picker). Toolbar style is version-branched: `.automatic` on
+    /// macOS 26, `.unified` before. Not `.unifiedCompact`, CodeEdit's choice: its 38pt band left
+    /// the two-line title and the 36pt toolbar controls about 2pt from the window's top edge,
+    /// where macOS 26's band gives them room. The baseline separator is
     /// dropped so only the per-split-item separators decide where a hairline shows.
     private func installToolbar() {
         guard let window else { return }
@@ -1133,7 +1135,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if #available(macOS 26, *) {
             window.toolbarStyle = .automatic
         } else {
-            window.toolbarStyle = .unifiedCompact
+            window.toolbarStyle = .unified
         }
         window.toolbar = toolbar
     }
@@ -3125,6 +3127,7 @@ private final class InspectorTabsItemView: NSView {
 /// observer. A non-git folder shows just the folder name with a settings-folder glyph.
 private struct BranchPickerToolbarView: View {
     @EnvironmentObject var store: FyoloStore
+    @EnvironmentObject var settings: AppSettings
     @Environment(\.controlActiveState) private var controlActive
 
     /// The title grows naturally with its contents, up to 460pt in a wide terminal pane. AppKit
@@ -3169,6 +3172,13 @@ private struct BranchPickerToolbarView: View {
         controlActive == .inactive ? Color(nsColor: .disabledControlTextColor) : .secondary
     }
 
+    /// The folder the branch name's git status follows: the selected checkout, on this
+    /// Mac only. `nil` with the setting off, which is what stops its model from running
+    /// anything.
+    private var gitSyncFolder: String? {
+        settings.gitToolbarControls ? store.inspectorCheckout?.localRoot : nil
+    }
+
     var body: some View {
         HStack(alignment: .center, spacing: 7) {
             VStack(alignment: .leading, spacing: 0) {
@@ -3179,12 +3189,9 @@ private struct BranchPickerToolbarView: View {
                     .truncationMode(.middle)
                     .help(title)
                 if let branch {
-                    Text(branch)
-                        .font(.subheadline)
-                        .foregroundStyle(secondaryColor)
+                    GitBranchLabel(model: store.gitSync, branch: branch, color: secondaryColor)
                         .lineLimit(1)
                         .truncationMode(.middle)
-                        .help(branch)
                 }
             }
         }
@@ -3196,6 +3203,7 @@ private struct BranchPickerToolbarView: View {
         // left edge moved with every session switch. Pinned, it starts where the terminal text
         // below it does and only ever grows to the right.
         .frame(minWidth: Self.titleWidthFloor, maxWidth: Self.titleWidthCeiling, alignment: .leading)
+        .task(id: gitSyncFolder) { store.gitSync.track(gitSyncFolder) }
     }
 }
 
