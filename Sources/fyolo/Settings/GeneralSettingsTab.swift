@@ -41,8 +41,8 @@ struct GeneralSettingsTab: View {
                 }
                 Toggle(isOn: $settings.gitToolbarControls) {
                     SettingsLabel(
-                        title: localized("Git toolbar controls"),
-                        subtext: localized("Shows what is uncommitted, to push, and to pull beside the project name, and adds an Inspect tab to the git pane."),
+                        title: localized("Git status"),
+                        subtext: localized("Counts uncommitted files beside the branch name, and adds an Inspect tab to the git pane."),
                         titleFont: .headline
                     )
                 }

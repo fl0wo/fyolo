@@ -1,7 +1,7 @@
 import Foundation
 
 /// Where a checkout stands against its upstream and how much is waiting to be
-/// committed — everything the toolbar's git glyphs draw, read from a single
+/// committed — the branch name's badge and the Inspect tab's keys, read from a single
 /// `git status --porcelain=v2 --branch` so they cost one process per refresh.
 struct GitSyncStatus: Equatable, Sendable {
     /// The repository's top level. Every path Inspect lists is relative to it.
@@ -15,8 +15,8 @@ struct GitSyncStatus: Equatable, Sendable {
     var upstream: String?
     var ahead = 0
     var behind = 0
-    /// Changed paths in the index and working tree, untracked included. A hint for
-    /// the toolbar, not Inspect's list: an untracked folder counts once here.
+    /// Changed paths in the index and working tree, untracked included — the badge's
+    /// number. A count, not Inspect's list: an untracked folder counts once here.
     var changedFiles = 0
     /// Of `changedFiles`, the new ones (added or untracked) and the removed ones; the
     /// rest are edits, renames, and conflicts.
@@ -25,30 +25,6 @@ struct GitSyncStatus: Equatable, Sendable {
     /// Where a branch with no upstream would be published: `origin` when it exists,
     /// else the only remote. `nil` with an upstream, and with no remote at all.
     var publishRemote: String?
-
-    var canCommit: Bool { changedFiles > 0 }
-
-    enum Sync: Equatable, Sendable {
-        case upToDate
-        case pull(Int)
-        case push(Int)
-        case diverged(pull: Int, push: Int)
-        /// The branch exists only here; pushing it creates the upstream.
-        case publish(remote: String)
-    }
-
-    /// What the toolbar's cloud shows, or `nil` when there is nothing to
-    /// sync against — a detached HEAD, or a repository with no remote.
-    var sync: Sync? {
-        guard branch != nil else { return nil }
-        guard upstream != nil else { return publishRemote.map { .publish(remote: $0) } }
-        switch (behind, ahead) {
-        case (0, 0): return .upToDate
-        case (let behind, 0): return .pull(behind)
-        case (0, let ahead): return .push(ahead)
-        case (let behind, let ahead): return .diverged(pull: behind, push: ahead)
-        }
-    }
 }
 
 extension GitSyncStatus {

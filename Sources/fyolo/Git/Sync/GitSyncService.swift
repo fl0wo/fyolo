@@ -1,6 +1,6 @@
 import Foundation
 
-/// The reads behind the toolbar's git capsule and the git pane's Inspect tab. Reads only — the
+/// The reads behind the branch name's badge and the git pane's Inspect tab. Reads only — the
 /// one network call is `fetch`, which moves remote-tracking refs and never the
 /// branch, the index, or the working tree.
 extension GitService {

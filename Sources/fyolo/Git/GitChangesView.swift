@@ -70,14 +70,14 @@ struct GitChangesView: View {
 
     private var chrome: ChromeTheme? { settings.chromeTheme(for: colorScheme) }
 
-    /// Inspect belongs to the toolbar's git controls: it reads the same model, so it is
-    /// there exactly when they are — on this Mac, with the setting on.
+    /// Inspect belongs to the toolbar's git status: it reads the same model, so it is
+    /// there exactly when the badge is — on this Mac, with the setting on.
     private var inspectAvailable: Bool {
         settings.gitToolbarControls && device == nil
     }
 
     /// The mode on screen: a remembered Inspect falls back to Changes once the
-    /// controls are switched off.
+    /// setting is switched off.
     private var shownMode: GitPaneMode {
         mode == .inspect && !inspectAvailable ? .changes : mode
     }

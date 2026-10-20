@@ -2,7 +2,7 @@ import Foundation
 import XCTest
 @testable import fyolo
 
-/// The toolbar git capsule and the Inspect tab read one `git status` and two range
+/// The branch badge and the Inspect tab read one `git status` and two range
 /// diffs. The parse is pinned against real `git` in throwaway repositories with a real
 /// upstream, since a wrong count is a claim about somebody's unpushed work.
 final class GitSyncTests: XCTestCase {
@@ -29,7 +29,6 @@ final class GitSyncTests: XCTestCase {
         XCTAssertEqual(status.changedFiles, 4, "ignored entries are not changes")
         XCTAssertEqual(status.addedFiles, 1, "the untracked folder")
         XCTAssertEqual(status.deletedFiles, 0)
-        XCTAssertEqual(status.sync, .diverged(pull: 2, push: 3))
     }
 
     func testNewAndRemovedFilesAreCountedApart() {
@@ -43,6 +42,7 @@ final class GitSyncTests: XCTestCase {
         XCTAssertEqual(status.changedFiles, 4)
         XCTAssertEqual(status.addedFiles, 1)
         XCTAssertEqual(status.deletedFiles, 2)
+        XCTAssertEqual(status.modifiedFiles, 1, "what the badge's ~ counts")
     }
 
     func testAnUnbornBranchHasNoHead() {
@@ -51,24 +51,9 @@ final class GitSyncTests: XCTestCase {
         XCTAssertEqual(status.branch, "main")
     }
 
-    func testDetachedHeadHasNothingToSync() {
+    func testDetachedHeadHasNoBranch() {
         let status = GitSyncStatus(porcelain: "# branch.head (detached)\n", repositoryRoot: "/r")
         XCTAssertNil(status.branch)
-        XCTAssertNil(status.sync)
-    }
-
-    func testSyncStates() {
-        var status = GitSyncStatus(repositoryRoot: "/r", branch: "main", upstream: "origin/main")
-        XCTAssertEqual(status.sync, .upToDate)
-        status.behind = 4
-        XCTAssertEqual(status.sync, .pull(4))
-        status.behind = 0
-        status.ahead = 1
-        XCTAssertEqual(status.sync, .push(1))
-        status.upstream = nil
-        XCTAssertNil(status.sync, "no upstream and no remote: nothing to publish to")
-        status.publishRemote = "origin"
-        XCTAssertEqual(status.sync, .publish(remote: "origin"))
     }
 
     func testPublishRemotePrefersOriginThenTheOnlyRemote() {
@@ -108,7 +93,8 @@ final class GitSyncTests: XCTestCase {
         let status = try XCTUnwrap(read)
         XCTAssertEqual(status.branch, "main")
         XCTAssertEqual(status.upstream, "origin/main")
-        XCTAssertEqual(status.sync, .diverged(pull: 2, push: 1))
+        XCTAssertEqual(status.behind, 2)
+        XCTAssertEqual(status.ahead, 1)
         XCTAssertEqual(status.changedFiles, 2)
         XCTAssertEqual(status.addedFiles, 1)
 

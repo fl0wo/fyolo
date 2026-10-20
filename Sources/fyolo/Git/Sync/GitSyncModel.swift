@@ -2,16 +2,17 @@ import AppKit
 import Combine
 import Foundation
 
-/// The toolbar's git glyphs and the git pane's Inspect tab: one model for the
-/// selected checkout, owned by the store so the toolbar and the inspector read the
-/// same state. Read-only — nothing here commits, pushes, or pulls; that stays in the
+/// The toolbar branch name's uncommitted badge and the git pane's Inspect tab: one
+/// model for the selected checkout, owned by the store so the toolbar and the inspector
+/// read the same state. Read-only — nothing here commits, pushes, or pulls; that stays in the
 /// terminal, where the user already works.
 ///
 /// Costs nothing until the toolbar asks: a model nobody has `track`ed runs no git and
 /// holds no watch, which is what makes Settings ▸ General's switch a real off switch.
 /// Tracking costs one FSEvents stream over the selected repository and one
 /// `git status` per settled burst — never per event, never while the app is in the
-/// background, never for any repository but the one on screen.
+/// background, never for any repository but the one on screen. The network is only
+/// touched for the Inspect tab: the remote is fetched while it is open, not before.
 @MainActor
 final class GitSyncModel: ObservableObject {
     @Published private(set) var status: GitSyncStatus?
@@ -114,15 +115,15 @@ final class GitSyncModel: ObservableObject {
             .sink { [weak self] _ in
                 guard let self else { return }
                 if self.refreshDeferred { self.scheduleRefresh() }
-                self.fetchIfStale(olderThan: Self.refetchOnActivation)
+                if self.isInspecting { self.fetchIfStale(olderThan: Self.refetchOnActivation) }
             }
         lastFetched = fetchTimes[root]
-        fetchIfStale(olderThan: Self.refetchOnActivation)
+        if isInspecting { fetchIfStale(olderThan: Self.refetchOnActivation) }
         fetchLoop = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(Self.fetchInterval))
                 guard let self, !Task.isCancelled else { return }
-                if NSApp.isActive { self.fetchIfStale(olderThan: Self.fetchInterval - 1) }
+                if NSApp.isActive, self.isInspecting { self.fetchIfStale(olderThan: Self.fetchInterval - 1) }
             }
         }
     }
@@ -161,11 +162,6 @@ final class GitSyncModel: ObservableObject {
     }
 
     // MARK: Fetch
-
-    /// Fetches now, from the up-to-date cloud's "check for new commits" click.
-    func fetch() {
-        fetchIfStale(olderThan: 0)
-    }
 
     private func fetchIfStale(olderThan age: TimeInterval) {
         guard !isFetching, let status, status.upstream != nil || status.publishRemote != nil else { return }
@@ -212,7 +208,9 @@ final class GitSyncModel: ObservableObject {
     func setInspecting(_ inspecting: Bool) {
         guard inspecting != isInspecting else { return }
         isInspecting = inspecting
-        if inspecting { Task { await loadRangesIfStale() } }
+        guard inspecting else { return }
+        fetchIfStale(olderThan: Self.refetchOnActivation)
+        Task { await loadRangesIfStale() }
     }
 
     private func rangeKey(for status: GitSyncStatus) -> RangeKey {

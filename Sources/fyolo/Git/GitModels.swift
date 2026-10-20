@@ -22,7 +22,7 @@ enum InspectorTab: String, Hashable, Sendable, Codable {
 /// The git pane's own inner switch, in scope order: what isn't committed yet, what
 /// this branch would merge into another (the pull request about to be opened), and
 /// the commit history — GitHub Desktop's Changes / History split with its branch
-/// comparison promoted beside them. Inspect, with the toolbar's git controls on, lists
+/// comparison promoted beside them. Inspect, with the toolbar's git status on, lists
 /// what is in flight against the upstream (see `GitInspectView`). Committing lives in
 /// the terminal; the GUI is for staging, reviewing diffs, and reading history.
 enum GitPaneMode: Hashable, Sendable {

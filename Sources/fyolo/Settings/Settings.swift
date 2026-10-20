@@ -185,9 +185,8 @@ final class AppSettings: ObservableObject {
         didSet { store.set(diffSplitView, forKey: Key.diffSplitView) }
     }
 
-    /// Whether the toolbar carries the git glyphs beside the project name,
-    /// and the git pane its Inspect tab. Off means off: neither is built, so nothing
-    /// tracks the repository.
+    /// Whether the toolbar's branch name carries the uncommitted badge, and the git pane
+    /// its Inspect tab. Off means off: nothing tracks the repository.
     @Published var gitToolbarControls: Bool {
         didSet { store.set(gitToolbarControls, forKey: Key.gitToolbarControls) }
     }
