@@ -2,21 +2,25 @@ import AppKit
 import Combine
 import Foundation
 
-/// The toolbar branch name's uncommitted badge and the git pane's Inspect tab: one
-/// model for the selected checkout, owned by the store so the toolbar and the inspector
-/// read the same state. Read-only — nothing here commits, pushes, or pulls; that stays in the
+/// The toolbar branch name's uncommitted badge, its pull button, and the git pane's
+/// Inspect tab: one model for the selected checkout, owned by the store so the toolbar
+/// and the inspector read the same state. The one write is a fast-forward pull the user
+/// clicks for — nothing here commits, pushes, merges, or rebases; that stays in the
 /// terminal, where the user already works.
 ///
 /// Costs nothing until the toolbar asks: a model nobody has `track`ed runs no git and
 /// holds no watch, which is what makes Settings ▸ General's switch a real off switch.
 /// Tracking costs one FSEvents stream over the selected repository and one
 /// `git status` per settled burst — never per event, never while the app is in the
-/// background, never for any repository but the one on screen. The network is only
-/// touched for the Inspect tab: the remote is fetched while it is open, not before.
+/// background, never for any repository but the one on screen. The remote is fetched
+/// when a repository comes on screen and every few minutes while it stays there, so
+/// the pull button appears when there is something to pull — never more than once a
+/// minute per repository, and never while the app is in the background.
 @MainActor
 final class GitSyncModel: ObservableObject {
     @Published private(set) var status: GitSyncStatus?
     @Published private(set) var isFetching = false
+    @Published private(set) var isPulling = false
     /// When the tracked repository was last fetched — what "nothing to pull" is only
     /// as good as.
     @Published private(set) var lastFetched: Date?
@@ -115,15 +119,15 @@ final class GitSyncModel: ObservableObject {
             .sink { [weak self] _ in
                 guard let self else { return }
                 if self.refreshDeferred { self.scheduleRefresh() }
-                if self.isInspecting { self.fetchIfStale(olderThan: Self.refetchOnActivation) }
+                self.fetchIfStale(olderThan: Self.refetchOnActivation)
             }
         lastFetched = fetchTimes[root]
-        if isInspecting { fetchIfStale(olderThan: Self.refetchOnActivation) }
+        if NSApp.isActive { fetchIfStale(olderThan: Self.refetchOnActivation) }
         fetchLoop = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(Self.fetchInterval))
                 guard let self, !Task.isCancelled else { return }
-                if NSApp.isActive, self.isInspecting { self.fetchIfStale(olderThan: Self.fetchInterval - 1) }
+                if NSApp.isActive { self.fetchIfStale(olderThan: Self.fetchInterval - 1) }
             }
         }
     }
@@ -184,6 +188,31 @@ final class GitSyncModel: ObservableObject {
             }
             // The fetch's ref writes arrive as git-dir events too; reading here as well
             // makes the click answer even when FSEvents coalesces them away.
+            await readStatus(root: root)
+        }
+    }
+
+    // MARK: Pull
+
+    /// Fast-forwards the tracked branch to its upstream. A refusal — diverged, or
+    /// an uncommitted file in the way — is shown in git's own words, since only the
+    /// user can decide how to settle it.
+    func pull() {
+        guard !isPulling, let status, status.upstream != nil, status.behind > 0 else { return }
+        let root = status.repositoryRoot
+        isPulling = true
+        Task {
+            let failure = await GitService.pull(in: root)
+            isPulling = false
+            if let failure {
+                Log.app.info("git pull did not complete for \(root, privacy: .public)")
+                let alert = NSAlert()
+                alert.messageText = localized("Couldn’t pull \(status.branch ?? status.upstream ?? "")")
+                alert.informativeText = failure
+                alert.alertStyle = .warning
+                alert.runModal()
+            }
+            guard self.status?.repositoryRoot == root else { return }
             await readStatus(root: root)
         }
     }
