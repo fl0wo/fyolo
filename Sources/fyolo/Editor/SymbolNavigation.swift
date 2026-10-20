@@ -18,6 +18,167 @@ struct SymbolLookup {
     /// Opens a root-relative path at a 1-based line. `returnLine` is the line the
     /// editor is leaving, which the host records so Back can come back to it.
     let open: (_ relativePath: String, _ line: Int, _ returnLine: Int) -> Void
+
+    /// The file a path written in the open file names, root-relative, or `nil`
+    /// when it names nothing on the device. Asked of the daemon, so the answer
+    /// is the same for a checkout on this Mac and one across the network, and a
+    /// `hack/test.sh` in a Makefile is only a link when the script is there.
+    @MainActor func resolveFile(_ written: String) async -> String? {
+        let candidates = PathReference.candidates(
+            for: written, from: relativePath, root: base.path)
+        guard !candidates.isEmpty else { return nil }
+        let parents = candidates.map(PathReference.parent(of:)).reduce(into: [String]()) {
+            if !$0.contains($1) { $0.append($1) }
+        }
+        let listings: [Fyolod.DirectoryListing]
+        do {
+            listings = try await provider.list(parents)
+        } catch {
+            Log.files.error("resolving \(written, privacy: .public): \(String(describing: error), privacy: .public)")
+            return nil
+        }
+        // A parent that does not exist comes back with its own `error` and no entries,
+        // which is the ordinary "not this candidate" answer rather than a failure.
+        for candidate in candidates {
+            let name = (candidate as NSString).lastPathComponent
+            let listing = listings.first { $0.path == PathReference.parent(of: candidate) }
+            let isFile = listing?.entries.contains {
+                $0.name == name && ($0.kind == .file || $0.target == .file)
+            }
+            if isFile == true { return candidate }
+        }
+        return nil
+    }
+}
+
+/// A file path written in the text — `hack/test.sh` in a Makefile recipe, `src/app.rs:42:7` in
+/// a log, `./run.sh` in a README — found around the character under the pointer, so ⌘ held
+/// anywhere on it underlines the whole path rather than the one word between two slashes.
+/// Finding one is only lexical; `SymbolLookup.resolveFile` decides whether it names a file.
+struct PathReference: Equatable {
+    /// The whole reference in the text, line suffix included, in UTF-16 units.
+    let range: NSRange
+    /// The path as written, without its line suffix. A path written after a variable
+    /// expansion (`$(CURDIR)/hack/x.sh`) loses its leading slash: the variable is a directory
+    /// the editor cannot evaluate, and the checkout is the best guess at it.
+    let path: String
+    /// The 1-based line from a `:line` or `:line:column` suffix.
+    let line: Int?
+
+    /// What a path is made of. Quotes, brackets, `=`, `$`, `,` and whitespace end one, so
+    /// `--config=deploy/app.yml`, `"./x.sh"` and `$(DIR)/x.sh` each give up only the path.
+    private static let pathCharacters: CharacterSet = {
+        var set = CharacterSet.alphanumerics
+        set.insert(charactersIn: "_-./~@+%:")
+        return set
+    }()
+
+    private static let lineSuffixLimit = 2
+
+    static func at(_ index: Int, in text: NSString) -> PathReference? {
+        guard isPathCharacter(at: index, in: text) else { return nil }
+        var start = index
+        while start > 0, isPathCharacter(at: start - 1, in: text) { start -= 1 }
+        var end = index + 1
+        while end < text.length, isPathCharacter(at: end, in: text) { end += 1 }
+        let token = text.substring(with: NSRange(location: start, length: end - start))
+        guard !token.contains("://") else { return nil }
+
+        // `path:line:column`, or a colon-separated list (`PATH=a/b:c/d`): the segment under
+        // the pointer is the path, and a line number under it belongs to the path before it.
+        var segments: [(text: String, offset: Int)] = []
+        var offset = 0
+        for part in token.components(separatedBy: ":") {
+            segments.append((part, offset))
+            offset += (part as NSString).length + 1
+        }
+        let isNumber = { (part: String) in !part.isEmpty && part.allSatisfy(\.isASCII) && part.allSatisfy(\.isNumber) }
+        let hovered = index - start
+        guard var pathIndex = segments.lastIndex(where: { $0.offset <= hovered }) else { return nil }
+        while pathIndex > 0, isNumber(segments[pathIndex].text) { pathIndex -= 1 }
+        let numbers = segments[(pathIndex + 1)...].prefix(lineSuffixLimit).prefix { isNumber($0.text) }
+
+        var path = segments[pathIndex].text
+        var pathStart = start + segments[pathIndex].offset
+        // Make's `@` (don't echo the recipe line) sits right against the command it silences.
+        while path.hasPrefix("@") {
+            path.removeFirst()
+            pathStart += 1
+        }
+        let trailing = CharacterSet(charactersIn: ".")
+        while let last = path.unicodeScalars.last, trailing.contains(last), path != ".", path != ".." {
+            path.unicodeScalars.removeLast()
+        }
+        guard looksLikePath(path) else { return nil }
+
+        var length = (path as NSString).length
+        var line: Int?
+        let segmentEnd = start + segments[pathIndex].offset + (segments[pathIndex].text as NSString).length
+        // Only a suffix that follows the path directly: `x.sh.:3` is a sentence, not a location.
+        if let first = numbers.first, let last = numbers.last, pathStart + length == segmentEnd {
+            line = Int(first.text)
+            length = start + last.offset + (last.text as NSString).length - pathStart
+        }
+        if path.hasPrefix("/"), pathStart > 0,
+           [")", "}"].contains(text.substring(with: NSRange(location: pathStart - 1, length: 1))) {
+            path.removeFirst()
+        }
+        return PathReference(
+            range: NSRange(location: pathStart, length: length), path: path, line: line)
+    }
+
+    /// A separator, or a name with an extension — what tells `hack/test.sh` or `README.md`
+    /// from a plain word, which stays a name for Go to Definition.
+    private static func looksLikePath(_ path: String) -> Bool {
+        guard path.contains(where: \.isLetter), !path.contains("//"), !path.hasPrefix("~"),
+              !path.hasPrefix("-") else { return false }
+        if path.contains("/") { return true }
+        guard let dot = path.lastIndex(of: "."), dot != path.startIndex else { return false }
+        return path[path.index(after: dot)...].contains(where: \.isLetter)
+    }
+
+    private static func isPathCharacter(at index: Int, in text: NSString) -> Bool {
+        guard index >= 0, index < text.length,
+              let scalar = Unicode.Scalar(text.character(at: index)) else { return false }
+        return pathCharacters.contains(scalar)
+    }
+
+    /// Root-relative files `written` may name, the likeliest first: beside the file it was
+    /// written in (how a shell in that directory, or a Markdown link, reads it), then from the
+    /// checkout root (how a tool run from the root reads it). An absolute path counts only
+    /// inside `root`, and nothing may climb out of it.
+    static func candidates(for written: String, from file: String, root: String) -> [String] {
+        if written.hasPrefix("/") {
+            let prefix = root.hasSuffix("/") ? root : root + "/"
+            guard written.hasPrefix(prefix) else { return [] }
+            return normalized(String(written.dropFirst(prefix.count))).map { [$0] } ?? []
+        }
+        let directory = parent(of: file)
+        let beside = normalized(directory.isEmpty ? written : directory + "/" + written)
+        let fromRoot = normalized(written)
+        return [beside, fromRoot].compactMap { $0 }.reduce(into: [String]()) {
+            if !$0.contains($1) { $0.append($1) }
+        }
+    }
+
+    /// The directory a root-relative path sits in, `""` for the root itself.
+    static func parent(of path: String) -> String {
+        guard let slash = path.lastIndex(of: "/") else { return "" }
+        return String(path[..<slash])
+    }
+
+    /// `.` and `..` folded away; `nil` when the path climbs above the root or names it.
+    private static func normalized(_ path: String) -> String? {
+        var parts: [Substring] = []
+        for part in path.split(separator: "/") where part != "." {
+            if part == ".." {
+                guard parts.popLast() != nil else { return nil }
+            } else {
+                parts.append(part)
+            }
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: "/")
+    }
 }
 
 /// What a ⌘-click does with what the daemon answered: go straight to the one
