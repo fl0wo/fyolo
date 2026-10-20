@@ -200,6 +200,8 @@
 	<string>A run button beside each script in a package.json, using the project’s package manager.</string>
 	<key>A run button beside each target in a Makefile.</key>
 	<string>A run button beside each target in a Makefile.</string>
+	<key>A runner switched off stops being recorded at once, and new terminals no longer load it.</key>
+	<string>A runner switched off stops being recorded at once, and new terminals no longer load it.</string>
 	<key>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</key>
 	<string>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</string>
 	<key>API key</key>
@@ -2026,12 +2028,18 @@
 	<string>Showing everything. Right-click anything that isn’t yours and choose Hide Similar.</string>
 	<key>Shows</key>
 	<string>Shows</string>
+	<key>Shows Playwright Test runs from fyolo terminals in the Tests pane.</key>
+	<string>Shows Playwright Test runs from fyolo terminals in the Tests pane.</string>
+	<key>Shows Vitest runs from fyolo terminals in the Tests pane.</key>
+	<string>Shows Vitest runs from fyolo terminals in the Tests pane.</string>
 	<key>Shows files and folders ignored by Git in a muted color.</key>
 	<string>Shows files and folders ignored by Git in a muted color.</string>
 	<key>Shows logs, metrics and incidents from New Relic in the inspector, filtered down to what you care about.</key>
 	<string>Shows logs, metrics and incidents from New Relic in the inspector, filtered down to what you care about.</string>
 	<key>Shows new, removed, and edited files</key>
 	<string>Shows new, removed, and edited files</string>
+	<key>Shows pytest runs in the Tests pane, through a folder it adds to PYTHONPATH in new terminals.</key>
+	<string>Shows pytest runs in the Tests pane, through a folder it adds to PYTHONPATH in new terminals.</string>
 	<key>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</key>
 	<string>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</string>
 	<key>Shows the total only</key>
@@ -2154,6 +2162,10 @@
 	<string>Test</string>
 	<key>Test Connection</key>
 	<string>Test Connection</string>
+	<key>Test Runners</key>
+	<string>Test Runners</string>
+	<key>Test runs started in a fyolo terminal appear here.</key>
+	<string>Test runs started in a fyolo terminal appear here.</string>
 	<key>Tests</key>
 	<string>Tests</string>
 	<key>Text</key>
@@ -2466,10 +2478,6 @@
 	<string>Version %@ on %@. Sessions keep running there after you disconnect.</string>
 	<key>View</key>
 	<string>View</string>
-	<key>Vitest</key>
-	<string>Vitest</string>
-	<key>Vitest runs started in a fyolo terminal appear here.</key>
-	<string>Vitest runs started in a fyolo terminal appear here.</string>
 	<key>Wants a password</key>
 	<string>Wants a password</string>
 	<key>Warning</key>

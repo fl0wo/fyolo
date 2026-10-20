@@ -1353,10 +1353,13 @@ final class FyoloStore: ObservableObject {
         settingsObserver = settings.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] in
-                self?.applyAppearanceToOpenSurfaces()
-                self?.syncHooksInstallationIfNeeded()
-                self?.syncSessionControlInstallationIfNeeded()
+                guard let self else { return }
+                self.applyAppearanceToOpenSurfaces()
+                self.syncHooksInstallationIfNeeded()
+                self.syncSessionControlInstallationIfNeeded()
+                self.testRuns.setDisabledRunners(TestRunner.disabled(in: self.settings))
             }
+        testRuns.setDisabledRunners(TestRunner.disabled(in: settings))
 
         // A branch label changing is not a change to the persisted tree, so the
         // BranchModel owns its own published state; forward its updates into ours so

@@ -32,6 +32,13 @@ final class FyolodTestRunsWireTests: XCTestCase {
         XCTAssertTrue(run.isRunning)
         XCTAssertEqual(run.counts, Fyolod.TestCounts())
         XCTAssertEqual(run.argv, [])
+        XCTAssertEqual(run.runner, "vitest", "a daemon before the field recorded Vitest only")
+    }
+
+    func testRunnerIsDecoded() throws {
+        let playwright = #"{"id":"b","runner":"playwright","root":"/repo","state":"passed","started_at":1}"#
+        let run = try Fyolod.testRunsDecoder().decode(Fyolod.TestRunSummary.self, from: Data(playwright.utf8))
+        XCTAssertEqual(run.runner, "playwright")
     }
 
     func testDetailDecodesEveryFailureKind() throws {
