@@ -508,10 +508,10 @@ private struct IssueRow: View {
             OcticonView(
                 icon: item.state.octicon(for: item.kind),
                 size: 13,
-                color: item.state.tint(for: item.kind)
+                color: item.tint
             )
             .frame(width: 14)
-            .help(item.state.label)
+            .help(item.pullRequestStatus?.label ?? item.state.label)
             // Never wraps or compresses — without this, a narrow pane stacks the
             // identifier one character per line and the row balloons.
             Text(item.identifier)
@@ -547,6 +547,15 @@ private struct IssueRow: View {
                 }
                 .fixedSize()
             }
+            // Stays at rest, unlike the labels: it's what the list is ordered by, so
+            // reading the order shouldn't take a hover per row.
+            if let status = item.pullRequestStatus, status != .open {
+                Text(status.label)
+                    .font(.system(size: 9.5, weight: .semibold))
+                    .foregroundStyle(status.tint)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 5)
@@ -579,7 +588,7 @@ private extension View {
                     OcticonView(
                         icon: item.state.octicon(for: item.kind),
                         size: 12,
-                        color: item.state.tint(for: item.kind)
+                        color: item.tint
                     )
                     Text(item.identifier)
                         .font(.system(size: 11, weight: .medium, design: .monospaced))

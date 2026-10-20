@@ -13254,6 +13254,36 @@
           }
         }
       }
+    },
+    "Conflicts": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有冲突"
+          }
+        }
+      }
+    },
+    "Changes Requested": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要更改"
+          }
+        }
+      }
+    },
+    "Awaiting Review": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待审查"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
