@@ -2755,6 +2755,7 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
         ] + (DockerService.isInstalled ? [(.docker, localized("Docker"))] : [])
             + (settings.isPluginEnabled(LinearPlugin.id) ? [(.linear, localized("Linear"))] : [])
             + (settings.isPluginEnabled(MonitoringPlugin.id) ? [(.monitoring, localized("Monitoring"))] : [])
+            + (store.testRuns.runs.isEmpty ? [] : [(.tests, localized("Tests"))])
         for pane in panes {
             let item = NSMenuItem(title: pane.title, action: #selector(setInspectorTab(_:)), keyEquivalent: "")
             item.target = self
@@ -2890,7 +2891,7 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
             // this item because this item is the one the tracking separator pins to the divider,
             // and because a seam item of its own would push the switch off that divider.
             item.view = InspectorTabsItemView(
-                content: AnyView(InspectorTabsToolbar()
+                content: AnyView(InspectorTabsToolbar(testRuns: store.testRuns)
                     .environmentObject(store)
                     .environmentObject(store.settings)),
                 splitView: splitViewController?.splitView)

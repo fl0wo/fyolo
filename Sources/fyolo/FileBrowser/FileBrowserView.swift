@@ -407,6 +407,10 @@ struct FileBrowserView: View {
             // only adds the profile its repository may share.
             MonitoringView(projectRoot: deviceCheckout == nil ? projectPath : nil)
                 .id(deviceCheckout == nil ? projectPath ?? "" : "")
+        case .tests:
+            // The device records the runs, so a checkout on another machine reads
+            // the same as one on this Mac.
+            TestRunsView(model: store.testRuns)
         }
     }
 
