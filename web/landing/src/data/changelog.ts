@@ -17,6 +17,18 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.19.0",
+    date: "2026-10-20",
+    title: "Pull requests, in the order you act on them",
+    changes: {
+      new: [
+        "Pull request status: each open pull request in the GitHub pane shows what it needs, in color: Ready to Merge, Conflicts, Checks Failing, Changes Requested, Checks Running or Awaiting Review.",
+        "Copilot feedback: unresolved review comments from Copilot or another AI reviewer show on the row, with the bot's name and how many are open.",
+        "Most urgent first: pull requests ready to merge lead the list, then the ones to fix, then the bots' comments, then the ones waiting on reviewers.",
+      ],
+    },
+  },
+  {
     version: "0.18.0",
     date: "2026-10-20",
     title: "Every Vitest run, in the inspector",
