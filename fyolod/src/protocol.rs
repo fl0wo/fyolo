@@ -50,6 +50,7 @@ pub const HOST_CAPABILITIES: &[&str] = &[
     "spawn_command",
     "search_include",
     "references",
+    "test_runs",
 ];
 /// Snapshot payload carrying packed cells.
 ///
@@ -345,6 +346,102 @@ pub struct GitStatusEntry {
     /// untracked file that sniffs as binary. `+0 −0` would be a lie, not a zero.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub binary: bool,
+}
+
+/// Passed, failed and skipped test counts. Todo tests count as skipped, as
+/// the runner's own summary does.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TestCounts {
+    #[serde(default)]
+    pub passed: u64,
+    #[serde(default)]
+    pub failed: u64,
+    #[serde(default)]
+    pub skipped: u64,
+}
+
+/// One test run as a row: small enough to list and to stream on every
+/// progress tick. `state` is `running` while the run is live, then `passed`,
+/// `failed` or `interrupted`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TestRunSummary {
+    pub id: String,
+    pub root: String,
+    pub state: String,
+    /// Unix milliseconds. The client formats it, in its own language.
+    pub started_at: u64,
+    #[serde(default)]
+    pub duration_ms: u64,
+    #[serde(default)]
+    pub counts: TestCounts,
+    #[serde(default)]
+    pub files_total: u64,
+    #[serde(default)]
+    pub files_done: u64,
+    /// The `package.json` name of the directory the runner ran in, which
+    /// names a monorepo package under its repository's root.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub package: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub session: Option<String>,
+    /// The shell command line this run belongs to, and an id that is shared
+    /// by every run that command started (`make test` running the runner
+    /// twice). Absent outside an instrumented shell.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub command_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub command: Option<String>,
+    /// The runner's own arguments, which carry its filters.
+    #[serde(default)]
+    pub argv: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct TestRunDetail {
+    #[serde(default)]
+    pub files: Vec<TestFileResult>,
+    #[serde(default)]
+    pub failures: Vec<TestFailure>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TestFileResult {
+    /// Relative to the run's root.
+    pub path: String,
+    pub state: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub project: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub duration_ms: Option<f64>,
+    #[serde(default)]
+    pub tests: Vec<TestCaseResult>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TestCaseResult {
+    pub name: String,
+    pub state: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub duration_ms: Option<f64>,
+}
+
+/// One failure. `kind` is `test` (an assertion in a test), `module` (a file
+/// that failed to load, so its tests never ran) or `unhandled` (an error
+/// outside any test, which still fails the run).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TestFailure {
+    pub kind: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub file: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub test: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diff: Option<String>,
+    /// `path:line`, relative to the run's root.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub location: Option<String>,
 }
 
 /// One commit row (§C.13 read tier), as `git.log` and `git.show` report it.
@@ -1295,6 +1392,51 @@ pub enum Control {
         retryable: bool,
     },
 
+    /// One test run's state, sent by the test-runner integration inside the
+    /// session (capability `test_runs`). The first report opens the run, later
+    /// ones replace its summary, and one carrying a final `state` closes it.
+    /// No reply: the reporter must never wait on the daemon.
+    ReportTestRun {
+        #[serde(flatten)]
+        summary: TestRunSummary,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        detail: Option<TestRunDetail>,
+    },
+    /// A project's recorded test runs, newest first (capability `test_runs`).
+    /// `before` pages back by `started_at`.
+    TestRuns {
+        root: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        before: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        limit: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        seq: Option<u64>,
+    },
+    TestRunsResult {
+        /// The key the runs are recorded under, the project's repository root,
+        /// which is what the `tests:` resource for this project is named by.
+        root: String,
+        runs: Vec<TestRunSummary>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        re: Option<u64>,
+    },
+    /// One run's per-file results and failures, fetched only when a client
+    /// expands it, so neither the list nor the resource carries them.
+    TestRunDetail {
+        root: String,
+        id: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        seq: Option<u64>,
+    },
+    TestRunDetailResult {
+        id: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        detail: Option<TestRunDetail>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        re: Option<u64>,
+    },
+
     #[serde(other)]
     Unknown,
 }
@@ -1329,7 +1471,9 @@ impl Control {
             | Control::Wait { seq, .. }
             | Control::SetStatus { seq, .. }
             | Control::InstallAgents { seq, .. }
-            | Control::ProbeAgents { seq, .. } => *seq,
+            | Control::ProbeAgents { seq, .. }
+            | Control::TestRuns { seq, .. }
+            | Control::TestRunDetail { seq, .. } => *seq,
             _ => None,
         }
     }
@@ -1552,6 +1696,13 @@ pub enum Event {
         branch: Option<String>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         head: Option<String>,
+    },
+    /// A test run on a `tests:` resource started, progressed or finished.
+    /// Full state, not a delta: each event replaces the run's row.
+    TestRunChanged {
+        resource: String,
+        seq: u64,
+        run: TestRunSummary,
     },
     /// Roster delta used by control-channel `subscribe`.
     Roster {

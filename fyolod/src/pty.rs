@@ -319,6 +319,14 @@ impl Pty {
             }
             cmd.env("ZDOTDIR", shim);
         }
+        // Record Vitest runs (see `crate::node_integration`). The flag is
+        // appended to whatever NODE_OPTIONS the session already carries.
+        if let Some(flag) = crate::node_integration::require_flag() {
+            let options =
+                crate::node_integration::node_options(lookup("NODE_OPTIONS").as_deref(), &flag);
+            cmd.env("NODE_OPTIONS", options);
+            cmd.env("FYOLOD_NODE_OPTIONS", flag);
+        }
         if login_shell {
             // argv[0] = "-<shell>" marks a login shell to the shell itself.
             let base = std::path::Path::new(&program)

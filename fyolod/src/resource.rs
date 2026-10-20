@@ -68,6 +68,10 @@ pub const GIT_PREFIX: &str = "git:";
 /// The `head:` resource id prefix. Ids are `head:<canonical repo root>`.
 pub const HEAD_PREFIX: &str = "head:";
 
+/// The `tests:` resource id prefix. Ids are `tests:<root>`, where the root is
+/// `crate::test_runs::key_root`'s: the repository a project sits in.
+pub const TESTS_PREFIX: &str = "tests:";
+
 /// Extra quiet window between a watcher batch reaching the git loop and the
 /// `git status` run, so one `git checkout` costs one status run, not one per
 /// batch.
@@ -150,6 +154,16 @@ impl ResourceBatch for StatusBatch {
                 .stalled
                 .as_ref()
                 .map(|s| s.transcript_lines_grown),
+        }
+    }
+}
+
+impl ResourceBatch for crate::protocol::TestRunSummary {
+    fn into_event(self, resource: String, seq: u64) -> Event {
+        Event::TestRunChanged {
+            resource,
+            seq,
+            run: self,
         }
     }
 }
@@ -343,12 +357,18 @@ struct HeadEntry {
 /// status. That is the honest answer, and it is one round trip.
 type StatusEntry = Arc<Mutex<ResourceState<StatusBatch>>>;
 
+/// A `tests:` resource. The test-run reports produce its batches. Like
+/// `status:` it serves no snapshot on gap: the client re-reads `test_runs`,
+/// which carries the project's live and recorded runs.
+type TestsEntry = Arc<Mutex<ResourceState<crate::protocol::TestRunSummary>>>;
+
 #[derive(Clone)]
 enum ResourceEntry {
     Fs(WatchEntry),
     Git(GitEntry),
     Head(HeadEntry),
     Status(StatusEntry),
+    Tests(TestsEntry),
 }
 
 #[derive(Clone, Default)]
@@ -384,6 +404,12 @@ impl Registry {
     pub fn resource_id(spec: &str) -> Result<String> {
         if spec == STATUS_ID {
             return Ok(STATUS_ID.to_string());
+        }
+        if let Some(root) = spec.strip_prefix(TESTS_PREFIX) {
+            if !Path::new(root).is_absolute() {
+                return Err(anyhow!("test runs root must be absolute: {root}"));
+            }
+            return Ok(format!("{TESTS_PREFIX}{}", crate::test_runs::key_root(root)));
         }
         for prefix in [GIT_PREFIX, HEAD_PREFIX] {
             let Some(root) = spec.strip_prefix(prefix) else {
@@ -437,6 +463,11 @@ impl Registry {
     ) -> Result<SubscribeReply> {
         if resource == STATUS_ID {
             return self.subscribe_status(client, tx, since);
+        }
+        if resource.starts_with(TESTS_PREFIX) {
+            let entry = self.tests_entry(resource)?;
+            let mut guard = entry.lock().unwrap();
+            return Ok(guard.attach(resource, client, tx, since, |_| None));
         }
         if resource.starts_with(GIT_PREFIX) {
             return self.subscribe_git(resource, client, tx, since);
@@ -524,6 +555,30 @@ impl Registry {
             _ => return,
         };
         entry.lock().unwrap().publish(STATUS_ID, batch);
+    }
+
+    /// Publish one test run's row on its project's `tests:` resource. The
+    /// resource exists from its first report, subscribed or not, so a client
+    /// that comes back resumes from the runs it missed.
+    pub fn publish_test_run(&self, run: crate::protocol::TestRunSummary) {
+        let resource = format!("{TESTS_PREFIX}{}", run.root);
+        match self.tests_entry(&resource) {
+            Ok(entry) => entry.lock().unwrap().publish(&resource, run),
+            Err(error) => eprintln!("fyolod: could not publish test run: {error:#}"),
+        }
+    }
+
+    fn tests_entry(&self, resource: &str) -> Result<TestsEntry> {
+        let mut watches = self.watches.lock().unwrap();
+        match watches.get(resource) {
+            Some(ResourceEntry::Tests(existing)) => Ok(existing.clone()),
+            Some(_) => Err(anyhow!("resource id kind collision: {resource}")),
+            None => {
+                let created: TestsEntry = Arc::new(Mutex::new(ResourceState::new(None)));
+                watches.insert(resource.to_string(), ResourceEntry::Tests(created.clone()));
+                Ok(created)
+            }
+        }
     }
 
     fn subscribe_git(
@@ -723,6 +778,7 @@ impl Registry {
             Some(ResourceEntry::Git(entry)) => drop_interest(&entry.state, client),
             Some(ResourceEntry::Head(entry)) => drop_interest(&entry.state, client),
             Some(ResourceEntry::Status(state)) => drop_interest(state, client),
+            Some(ResourceEntry::Tests(state)) => drop_interest(state, client),
             None => false,
         }
     }
