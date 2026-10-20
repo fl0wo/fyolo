@@ -60,8 +60,37 @@ struct GitHubIssueProvider: IssueProvider {
     /// issues for the 100 rows, and its `assignee` filter misses the pull requests that
     /// are someone's, since pull requests are rarely assigned. `/pulls` filters neither
     /// assignee nor labels, so both apply here, over the rows it returns. The ones
-    /// awaiting your review lead the list and are left out of the rest.
+    /// awaiting your review lead the list and are left out of the rest, which runs in
+    /// order of what needs doing once each open one's status is known.
     private func pullRequests(in container: IssueContainer, query: IssueQuery) async throws -> [IssueSummary] {
+        let items = try await pullRequestListing(in: container, query: query)
+        let open = items.filter { $0.state == .open }.map(\.number)
+        let batchSize = Self.statusesPerRequest
+        let statuses = await withTaskGroup(of: [Int: PullRequestStatus].self) { group in
+            for start in stride(from: 0, to: open.count, by: batchSize) {
+                let batch = Array(open[start..<min(start + batchSize, open.count)])
+                group.addTask {
+                    do {
+                        return try await pullRequestStatuses(batch, in: container)
+                    } catch {
+                        // The list is still right without the colors, so a failed batch
+                        // leaves its rows in GitHub's plain states rather than failing the pane.
+                        Log.issues.error("pull request status read failed: \(error, privacy: .public)")
+                        return [:]
+                    }
+                }
+            }
+            return await group.reduce(into: [:]) { $0.merge($1) { first, _ in first } }
+        }
+        let resolved = items.map { item in
+            var item = item
+            item.pullRequestStatus = statuses[item.number]
+            return item
+        }
+        return IssueSummary.orderedByAction(resolved)
+    }
+
+    private func pullRequestListing(in container: IssueContainer, query: IssueQuery) async throws -> [IssueSummary] {
         var components = URLComponents(string: "\(connection.apiBase)/repos/\(container.id)/pulls")!
         components.queryItems = [
             URLQueryItem(name: "state", value: query.openOnly ? "open" : "all"),
@@ -104,6 +133,47 @@ struct GitHubIssueProvider: IssueProvider {
                 item.awaitsYourReview = true
                 return item
             }
+    }
+
+    /// How many pull requests share one status request. GitHub spends about a tenth
+    /// of a second on each and gives up on a request at ten: a hundred of
+    /// microsoft/vscode's answered with a 502, while five batches of twenty, sent
+    /// together, all answered within four seconds.
+    static let statusesPerRequest = 20
+
+    /// Some open pull requests' merge signals, in one GraphQL request — one aliased
+    /// `pullRequest(number:)` each — since REST would cost a review, a check and a
+    /// thread request per pull request. Asking for `mergeable` also starts GitHub
+    /// computing it, so an `UNKNOWN` today reads properly on the next refresh.
+    private func pullRequestStatuses(_ numbers: [Int], in container: IssueContainer) async throws -> [Int: PullRequestStatus] {
+        struct Reply: Decodable { let repository: [String: RawPullRequestSignals?]? }
+        let parts = container.id.split(separator: "/", maxSplits: 1).map(String.init)
+        guard parts.count == 2, !numbers.isEmpty else { return [:] }
+        let lookups = numbers.map { "p\($0): pullRequest(number: \($0)) { \(RawPullRequestSignals.fields) }" }
+            .joined(separator: "\n")
+        let reply: Reply = try await connection.graphQL(
+            "query($owner: String!, $name: String!) {\nrepository(owner: $owner, name: $name) {\n\(lookups)\n}\n}",
+            variables: ["owner": parts[0], "name": parts[1]])
+        var statuses: [Int: PullRequestStatus] = [:]
+        for case let (_, pullRequest?) in reply.repository ?? [:] {
+            statuses[pullRequest.number] = PullRequestStatus(pullRequest.signals)
+        }
+        let ready = statuses.filter { $0.value == .readyToMerge }.keys.sorted()
+        guard !ready.isEmpty else { return statuses }
+        struct MergeState: Decodable { let number: Int; let mergeStateStatus: String? }
+        struct Verdicts: Decodable { let repository: [String: MergeState?]? }
+        let verdictLookups = ready.map { "p\($0): pullRequest(number: \($0)) { number mergeStateStatus }" }
+            .joined(separator: "\n")
+        let verdicts: Verdicts = try await connection.graphQL(
+            "query($owner: String!, $name: String!) {\nrepository(owner: $owner, name: $name) {\n\(verdictLookups)\n}\n}",
+            variables: ["owner": parts[0], "name": parts[1]])
+        let mergeStates = Dictionary(
+            (verdicts.repository ?? [:]).values.compactMap { $0 }.map { ($0.number, $0.mergeStateStatus) },
+            uniquingKeysWith: { first, _ in first })
+        for number in ready {
+            statuses[number] = statuses[number]?.confirmed(byMergeState: mergeStates[number] ?? nil)
+        }
+        return statuses
     }
 
     func detail(_ number: Int, in container: IssueContainer) async throws -> IssueDetail {
@@ -386,6 +456,112 @@ struct RawPullRequestListing: Decodable {
             updatedAt: updatedAt,
             url: htmlUrl
         )
+    }
+}
+
+/// One open pull request's merge signals as GraphQL returns them. Copilot's code
+/// review never requests changes — it leaves a `COMMENTED` review and opens threads —
+/// so what it asks for shows up only as unresolved threads whose author is a `Bot`.
+/// An outdated thread sits on a line a later push changed, which is usually the fix.
+struct RawPullRequestSignals: Decodable {
+    struct Actor: Decodable {
+        let typename: String?
+        let login: String
+
+        enum CodingKeys: String, CodingKey {
+            case typename = "__typename"
+            case login
+        }
+
+        var isBot: Bool { typename == "Bot" || login.hasSuffix("[bot]") }
+
+        /// The name a row has room for: Copilot's reviewer is
+        /// `copilot-pull-request-reviewer`, an app is `name[bot]`.
+        var botName: String {
+            if login.localizedCaseInsensitiveContains("copilot") { return "Copilot" }
+            return login.hasSuffix("[bot]") ? String(login.dropLast(5)) : login
+        }
+    }
+    struct Review: Decodable { let state: String; let author: Actor? }
+    struct Thread: Decodable {
+        struct Comment: Decodable { let author: Actor? }
+        let isResolved: Bool
+        let isOutdated: Bool
+        let comments: Nodes<Comment>
+    }
+    struct Commit: Decodable {
+        struct Inner: Decodable {
+            struct Rollup: Decodable { let state: String? }
+            let statusCheckRollup: Rollup?
+        }
+        let commit: Inner
+    }
+    struct Count: Decodable { let totalCount: Int }
+    struct Nodes<Node: Decodable>: Decodable { let nodes: [Node?] }
+
+    static let fields = """
+    number mergeable reviewDecision
+    reviewRequests { totalCount }
+    latestOpinionatedReviews(first: 30) { nodes { state author { __typename login } } }
+    reviewThreads(first: 100) { nodes { isResolved isOutdated comments(first: 1) { nodes { author { __typename login } } } } }
+    commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
+    """
+
+    let number: Int
+    let mergeable: String?
+    let reviewDecision: String?
+    let reviewRequests: Count?
+    let latestOpinionatedReviews: Nodes<Review>?
+    let reviewThreads: Nodes<Thread>?
+    let commits: Nodes<Commit>?
+
+    var signals: PullRequestStatus.Signals {
+        let changeRequests = (latestOpinionatedReviews?.nodes ?? []).compactMap { $0 }
+            .filter { $0.state == "CHANGES_REQUESTED" }
+        let openThreads = (reviewThreads?.nodes ?? []).compactMap { $0 }
+            .filter { !$0.isResolved && !$0.isOutdated }
+        return PullRequestStatus.Signals(
+            mergeable: mergeable,
+            reviewDecision: reviewDecision,
+            checks: commits?.nodes.last??.commit.statusCheckRollup?.state,
+            pendingReviewRequests: reviewRequests?.totalCount ?? 0,
+            // A deleted account reviews as no author at all; it was a person.
+            humanRequestedChanges: changeRequests.contains { $0.author?.isBot != true },
+            botChangeRequesters: changeRequests.compactMap { $0.author }.filter(\.isBot).map(\.botName),
+            botThreadAuthors: openThreads.compactMap { $0.comments.nodes.first??.author }
+                .filter(\.isBot).map(\.botName)
+        )
+    }
+}
+
+extension GitHubConnection {
+    /// One GraphQL request against this connection's server, unwrapped from the
+    /// `{ data, errors }` envelope. GraphQL's fields are camelCase already, so the
+    /// decoder takes keys as they come.
+    func graphQL<T: Decodable>(_ document: String, variables: [String: any Sendable]) async throws -> T {
+        guard let url = graphQLURL else { throw GitHubIssueProvider.APIError.decoding }
+        var request = URLRequest(url: url, timeoutInterval: 20)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: Any] = ["query": document, "variables": variables]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+            throw GitHubIssueProvider.APIError.status(http.statusCode)
+        }
+        let envelope: GraphQLEnvelope<T>
+        do {
+            envelope = try JSONDecoder().decode(GraphQLEnvelope<T>.self, from: data)
+        } catch {
+            Log.issues.error("GitHub GraphQL decode failed: \(error, privacy: .public)")
+            throw GitHubIssueProvider.APIError.decoding
+        }
+        guard let payload = envelope.data else {
+            Log.issues.error("GitHub GraphQL request failed: \(envelope.errors?.first?.message ?? "no data", privacy: .public)")
+            throw GitHubIssueProvider.APIError.decoding
+        }
+        return payload
     }
 }
 

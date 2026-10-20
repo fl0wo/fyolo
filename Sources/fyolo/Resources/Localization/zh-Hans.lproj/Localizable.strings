@@ -304,6 +304,8 @@
 	<string>认证失败</string>
 	<key>Available when Fyolo runs from the built app bundle.</key>
 	<string>仅当 Fyolo 从构建的应用包运行时可用。</string>
+	<key>Awaiting Review</key>
+	<string>等待审查</string>
 	<key>Back</key>
 	<string>返回</string>
 	<key>Bar</key>
@@ -374,6 +376,8 @@
 	<string>更改主题…</string>
 	<key>Changes</key>
 	<string>更改</string>
+	<key>Changes Requested</key>
+	<string>需要更改</string>
 	<key>Channels</key>
 	<string>渠道</string>
 	<key>Chat with the developer and other users.</key>
@@ -514,6 +518,8 @@
 	<string>条件</string>
 	<key>Config file</key>
 	<string>配置文件</string>
+	<key>Conflicts</key>
+	<string>有冲突</string>
 	<key>Connect</key>
 	<string>连接</string>
 	<key>Connect Again</key>

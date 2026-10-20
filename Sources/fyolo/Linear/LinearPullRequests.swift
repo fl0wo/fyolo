@@ -187,7 +187,7 @@ struct GitHubPullRequestLookup: Sendable {
         }.joined(separator: "\n")
         var variables: [String: any Sendable] = [:]
         for (index, query) in queries.enumerated() { variables["q\(index)"] = query }
-        let reply: [String: Search] = try await query(
+        let reply: [String: Search] = try await connection.graphQL(
             "query(\(declarations)) {\n\(searches)\n}", variables: variables)
         // A PR naming tickets from two batches comes back twice.
         var seen = Set<URL>()
@@ -218,7 +218,7 @@ struct GitHubPullRequestLookup: Sendable {
         }.joined(separator: "\n")
         var variables: [String: any Sendable] = ["owner": parts[0], "name": parts[1]]
         for (index, branch) in asked.enumerated() { variables["b\(index)"] = branch }
-        let reply: Reply = try await query(
+        let reply: Reply = try await connection.graphQL(
             "query(\(declarations)) {\nrepository(owner: $owner, name: $name) {\n\(lookups)\n}\n}",
             variables: variables)
         var headed: [String: LinkedPullRequest] = [:]
@@ -228,32 +228,6 @@ struct GitHubPullRequestLookup: Sendable {
             if let chosen = open ?? candidates.first { headed[branch] = chosen }
         }
         return headed
-    }
-
-    private func query<T: Decodable>(_ document: String, variables: [String: any Sendable]) async throws -> T {
-        guard let url = connection.graphQLURL else { throw GitHubIssueProvider.APIError.decoding }
-        var request = URLRequest(url: url, timeoutInterval: 20)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(connection.token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: Any] = ["query": document, "variables": variables]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        let (data, response) = try await URLSession.shared.data(for: request)
-        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            throw GitHubIssueProvider.APIError.status(http.statusCode)
-        }
-        let envelope: GraphQLEnvelope<T>
-        do {
-            envelope = try JSONDecoder().decode(GraphQLEnvelope<T>.self, from: data)
-        } catch {
-            Log.issues.error("GitHub pull request lookup decode failed: \(error, privacy: .public)")
-            throw GitHubIssueProvider.APIError.decoding
-        }
-        guard let payload = envelope.data else {
-            Log.issues.error("GitHub pull request lookup failed: \(envelope.errors?.first?.message ?? "no data", privacy: .public)")
-            throw GitHubIssueProvider.APIError.decoding
-        }
-        return payload
     }
 }
 

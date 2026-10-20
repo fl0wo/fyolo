@@ -304,6 +304,8 @@
 	<string>Auth failed</string>
 	<key>Available when Fyolo runs from the built app bundle.</key>
 	<string>Available when Fyolo runs from the built app bundle.</string>
+	<key>Awaiting Review</key>
+	<string>Awaiting Review</string>
 	<key>Back</key>
 	<string>Back</string>
 	<key>Bar</key>
@@ -374,6 +376,8 @@
 	<string>Change Theme…</string>
 	<key>Changes</key>
 	<string>Changes</string>
+	<key>Changes Requested</key>
+	<string>Changes Requested</string>
 	<key>Channels</key>
 	<string>Channels</string>
 	<key>Chat with the developer and other users.</key>
@@ -514,6 +518,8 @@
 	<string>Condition</string>
 	<key>Config file</key>
 	<string>Config file</string>
+	<key>Conflicts</key>
+	<string>Conflicts</string>
 	<key>Connect</key>
 	<string>Connect</string>
 	<key>Connect Again</key>
