@@ -67,6 +67,8 @@ pub struct Manager {
     /// rationed is the blocking pool, and every connection draws on the same
     /// one.
     searching: Arc<tokio::sync::Semaphore>,
+    /// Recorded test runs, per project (`crate::test_runs`).
+    test_runs: Arc<crate::test_runs::TestRunStore>,
 }
 
 /// How many `fs.search` walks may run at once.
@@ -111,6 +113,7 @@ impl Manager {
             session_removed: Arc::new(Notify::new()),
             handoff,
             searching: Arc::new(tokio::sync::Semaphore::new(search_permits())),
+            test_runs: Arc::new(crate::test_runs::TestRunStore::open_default()),
         }
     }
 
@@ -1419,6 +1422,7 @@ async fn handle_conn(stream: UnixStream, manager: Manager) -> Result<()> {
     let writer = tokio::spawn(write_outbound(wr, out_rx, backlog.clone()));
     let departing = connection.client_id.clone();
     let resources = manager.resources.clone();
+    let test_runs = manager.test_runs.clone();
     let result = run_connection(
         rd,
         out.clone(),
@@ -1431,6 +1435,10 @@ async fn handle_conn(stream: UnixStream, manager: Manager) -> Result<()> {
     // Resource subscriptions are per-connection: a dropped client releases its
     // interest, and the last one out stops the underlying watch.
     resources.drop_client(&departing);
+    // A reporter that leaves mid-run was killed; its run ends as interrupted.
+    for run in test_runs.connection_closed(&departing) {
+        resources.publish_test_run(run);
+    }
     drop(out);
     if backlog.is_dropped() {
         writer.abort();
@@ -1887,6 +1895,12 @@ async fn process_control(
                     "the git capability was not negotiated",
                     false,
                 )
+            } else if let Some(denied) = resource
+                .starts_with(crate::resource::TESTS_PREFIX)
+                .then(|| test_runs_denied(connection, seq))
+                .flatten()
+            {
+                denied
             } else {
                 // Clients name a workspace root; the host canonicalises it, so
                 // two spellings of one repo share a single watch.
@@ -2382,6 +2396,53 @@ async fn process_control(
                 });
             }
         }
+        Control::ReportTestRun { summary, detail } => {
+            // No reply either way: the reporter never waits on the daemon.
+            if connection.capabilities.contains("test_runs") {
+                if let Some(run) = manager.test_runs.report(&connection.client_id, summary, detail) {
+                    manager.resources.publish_test_run(run);
+                }
+            }
+        }
+        Control::TestRuns {
+            root,
+            before,
+            limit,
+            seq,
+        } => {
+            let response = if let Some(denied) = test_runs_denied(connection, seq) {
+                denied
+            } else {
+                let (root, runs) = manager.test_runs.list(&root, before, limit);
+                Control::TestRunsResult {
+                    root,
+                    runs,
+                    re: seq,
+                }
+            };
+            send_response(out, response_cache, seq, response);
+        }
+        Control::TestRunDetail { root, id, seq } => {
+            if let Some(denied) = test_runs_denied(connection, seq) {
+                send_response(out, response_cache, seq, denied);
+            } else {
+                let out = out.clone();
+                let store = manager.test_runs.clone();
+                tokio::spawn(async move {
+                    let lookup = id.clone();
+                    let response =
+                        match tokio::task::spawn_blocking(move || store.detail(&root, &lookup)).await {
+                            Ok(detail) => Control::TestRunDetailResult {
+                                id,
+                                detail,
+                                re: seq,
+                            },
+                            Err(e) => error(seq, ErrorCode::Denied, format!("{e:#}"), false),
+                        };
+                    let _ = out.send(Outbound::Control(response));
+                });
+            }
+        }
         Control::SetStatus {
             id,
             status,
@@ -2549,6 +2610,8 @@ async fn process_control(
         | Control::GitShowResult { .. }
         | Control::GitBranchesResult { .. }
         | Control::GitCompareResult { .. }
+        | Control::TestRunsResult { .. }
+        | Control::TestRunDetailResult { .. }
         | Control::UploadOpened { .. }
         | Control::UploadAck { .. }
         | Control::UploadCommitted { .. }
@@ -2914,6 +2977,7 @@ fn subscribed_to(subscriptions: &HashSet<String>, event: &Event) -> bool {
         | Event::GitChanged { .. }
         | Event::HeadChanged { .. }
         | Event::StatusChanged { .. }
+        | Event::TestRunChanged { .. }
         | Event::SearchResults { .. }
         | Event::ReferencesResolved { .. } => false,
         Event::Unknown => false,
@@ -3202,6 +3266,18 @@ async fn run_attach(
 
 /// Every `git:` verb is behind the one capability (§C.13), so they share one
 /// gate: `Some(error)` when the channel never negotiated it.
+fn test_runs_denied(connection: &Connection, seq: Option<u64>) -> Option<Control> {
+    if connection.capabilities.contains("test_runs") {
+        return None;
+    }
+    Some(error(
+        seq,
+        ErrorCode::Denied,
+        "the test_runs capability was not negotiated",
+        false,
+    ))
+}
+
 fn git_denied(connection: &Connection, seq: Option<u64>) -> Option<Control> {
     if connection.capabilities.contains("git") {
         return None;

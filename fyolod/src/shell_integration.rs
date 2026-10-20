@@ -10,6 +10,10 @@
 //! with fyolod as the owner: written from scratch, because Ghostty's script
 //! is GPLv3 via Kitty's and this repository is MIT.
 //!
+//! The shim's `preexec` also stamps each command line's id and text into the
+//! environment, and restores the node integration's `NODE_OPTIONS` flag, both
+//! for `crate::node_integration`.
+//!
 //! Only zsh is instrumented. It is the login shell these sessions almost
 //! always run, and it is the shell whose redisplay produced the duplicated
 //! prompt this exists to prevent. A shell without marks loses nothing it had:
@@ -67,9 +71,20 @@ typeset -g _fyolod_exit_status=0
 typeset -g _fyolod_command_running=''
 _fyolod_capture_status() { _fyolod_exit_status=$?; }
 
+# Every process a command line starts inherits these. The test-run integration
+# files the runs one command started (`make test` running Vitest twice) under
+# that command. NODE_OPTIONS gets the integration's flag back if a .zshrc or
+# an interactive export replaced it.
+typeset -gi _fyolod_command_count=0
 _fyolod_preexec() {
     builtin print -rn -- $'\e]133;C\a'
     _fyolod_command_running=1
+    (( ++_fyolod_command_count ))
+    builtin export FYOLOD_COMMAND_ID="${FYOLOD_SESSION_ID:-}:$$:$_fyolod_command_count"
+    builtin export FYOLOD_COMMAND="${1[1,200]}"
+    if [[ -n "${FYOLOD_NODE_OPTIONS:-}" && " ${NODE_OPTIONS:-} " != *" $FYOLOD_NODE_OPTIONS "* ]]; then
+        builtin export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }$FYOLOD_NODE_OPTIONS"
+    fi
 }
 
 # Close the previous command with its status, then make sure PS1 opens with

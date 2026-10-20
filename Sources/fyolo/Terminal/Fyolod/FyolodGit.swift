@@ -249,7 +249,7 @@ extension Fyolod {
     /// Runs a blocking pooled request off the main thread. Every verb here is
     /// blocking by construction — the pool hands out a frame reader, not a
     /// future — and the panes calling them are on the main actor.
-    private static func offMain<Value: Sendable>(
+    static func offMain<Value: Sendable>(
         _ body: @escaping @Sendable () throws -> Value
     ) async throws -> Value {
         try await withCheckedThrowingContinuation { continuation in

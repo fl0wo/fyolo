@@ -102,6 +102,8 @@
 	<string>%lld 个提交</string>
 	<key>%lld edited</key>
 	<string>%lld 个已修改</string>
+	<key>%lld failed</key>
+	<string>%lld 个失败</string>
 	<key>%lld file</key>
 	<string>%lld 个文件</string>
 	<key>%lld files</key>
@@ -122,6 +124,14 @@
 	<string>%lld 个未安装</string>
 	<key>%lld of %lld</key>
 	<string>第 %lld 项（共 %lld 项）</string>
+	<key>%lld of %lld files</key>
+	<string>%1$lld/%2$lld 个文件</string>
+	<key>%lld passed</key>
+	<string>%lld 个通过</string>
+	<key>%lld passed in %lld files</key>
+	<string>%1$lld 个通过，共 %2$lld 个文件</string>
+	<key>%lld passed in 1 file</key>
+	<string>%lld 个通过，共 1 个文件</string>
 	<key>%lld pt</key>
 	<string>%lld 点</string>
 	<key>%lld removed</key>
@@ -130,6 +140,8 @@
 	<string>%lld 个结果</string>
 	<key>%lld rows</key>
 	<string>%lld 行</string>
+	<key>%lld skipped</key>
+	<string>%lld 个跳过</string>
 	<key>%lld uncommitted files</key>
 	<string>%lld 个未提交的文件</string>
 	<key>%lld unrelated matches</key>
@@ -828,6 +840,8 @@
 	<string>导出（不含我的更改）…</string>
 	<key>Failed</key>
 	<string>失败</string>
+	<key>Failed to load</key>
+	<string>加载失败</string>
 	<key>Failing Operations</key>
 	<string>失败的操作</string>
 	<key>Family</key>
@@ -1072,6 +1086,8 @@
 	<string>集成</string>
 	<key>Interface</key>
 	<string>界面</string>
+	<key>Interrupted</key>
+	<string>已中断</string>
 	<key>Issues</key>
 	<string>Issues</string>
 	<key>Issues a new token and revokes every paired iPhone.</key>
@@ -1116,6 +1132,8 @@
 	<string>上次使用</string>
 	<key>Later</key>
 	<string>稍后</string>
+	<key>Latest</key>
+	<string>最新</string>
 	<key>Launch</key>
 	<string>启动</string>
 	<key>Leave a path empty to launch the agent the way %@’s login shell would. Which agents appear at all is Settings ▸ Agents.</key>
@@ -1344,6 +1362,8 @@
 	<string>没有 PR</string>
 	<key>No Running Containers</key>
 	<string>没有运行中的容器</string>
+	<key>No Test Runs</key>
+	<string>没有测试运行</string>
 	<key>No Workflows</key>
 	<string>没有工作流</string>
 	<key>No agent CLIs on %@ yet. Install one there and it shows up here.</key>
@@ -1392,6 +1412,8 @@
 	<string>没有匹配的仓库。</string>
 	<key>No results</key>
 	<string>没有结果</string>
+	<key>No results were recorded for this run.</key>
+	<string>这次运行没有记录到结果。</string>
 	<key>No route to host</key>
 	<string>无法到达主机</string>
 	<key>No rows in this window.</key>
@@ -1566,6 +1588,8 @@
 	<string>其他设备</string>
 	<key>Outgoing</key>
 	<string>传出</string>
+	<key>Outside any test file</key>
+	<string>不在任何测试文件中</string>
 	<key>Overwrite</key>
 	<string>覆盖</string>
 	<key>Padding: %lld pt</key>
@@ -1816,6 +1840,8 @@
 	<string>重启隧道会更换地址，所有已配对的 iPhone 都需要重新扫码。</string>
 	<key>Restore Defaults</key>
 	<string>恢复默认</string>
+	<key>Results appear when the run ends.</key>
+	<string>运行结束后显示结果。</string>
 	<key>Reveal in Files</key>
 	<string>在“文件”中显示</string>
 	<key>Reveal in Finder</key>
@@ -1852,6 +1878,8 @@
 	<string>在集成终端中运行</string>
 	<key>Run or stop the current task</key>
 	<string>运行或停止当前任务</string>
+	<key>Running</key>
+	<string>运行中</string>
 	<key>Running terminal sessions will end. You can relaunch later instead.</key>
 	<string>正在运行的终端会话将会结束。你也可以稍后再重新启动。</string>
 	<key>Running · %@</key>
@@ -1972,6 +2000,8 @@
 	<string>显示项目文件</string>
 	<key>Show Replace</key>
 	<string>显示替换</string>
+	<key>Show an earlier run</key>
+	<string>查看之前的运行</string>
 	<key>Show another file in this diff</key>
 	<string>在此差异中显示另一个文件</string>
 	<key>Show in Finder</key>
@@ -2118,6 +2148,8 @@
 	<string>测试</string>
 	<key>Test Connection</key>
 	<string>测试连接</string>
+	<key>Tests</key>
+	<string>测试</string>
 	<key>Text</key>
 	<string>文本</string>
 	<key>The GitHub CLI didn’t hand over a token. Run gh auth login in a terminal, then try again.</key>
@@ -2372,8 +2404,12 @@
 	<string>下划线</string>
 	<key>Ungroup</key>
 	<string>取消编组</string>
+	<key>Unhandled error</key>
+	<string>未处理的错误</string>
 	<key>Unlock “%@” (git worktree unlock) before removing it.</key>
 	<string>请先解锁“%@”（git worktree unlock）再移除。</string>
+	<key>Unnamed test</key>
+	<string>未命名的测试</string>
 	<key>Unpin</key>
 	<string>取消固定</string>
 	<key>Unsaved changes — press ⌘S to save to %@</key>
@@ -2424,6 +2460,10 @@
 	<string>%@ 上的版本 %@。断开连接后，会话仍在那里继续运行。</string>
 	<key>View</key>
 	<string>显示</string>
+	<key>Vitest</key>
+	<string>Vitest</string>
+	<key>Vitest runs started in a fyolo terminal appear here.</key>
+	<string>在 fyolo 终端中启动的 Vitest 运行会显示在这里。</string>
 	<key>Wants a password</key>
 	<string>需要密码</string>
 	<key>Warning</key>
@@ -2537,6 +2577,8 @@
 	<key>e.g. JetBrains Mono</key>
 	<string>例如 JetBrains Mono</string>
 	<key>error</key>
+	<string>错误</string>
+	<key>errors</key>
 	<string>错误</string>
 	<key>first %1$lld of %2$lld files</key>
 	<string>%2$lld 个文件中的前 %1$lld 个</string>

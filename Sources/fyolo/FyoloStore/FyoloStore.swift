@@ -1104,6 +1104,11 @@ final class FyoloStore: ObservableObject {
     /// Idle until the toolbar tracks a folder, so with the setting off it runs nothing.
     let gitSync = GitSyncModel()
 
+    /// The selected checkout's Vitest runs (see `TestRunsModel`). The inspector's
+    /// pane switch points it at the checkout, so with the inspector closed it
+    /// holds no subscription.
+    let testRuns = TestRunsModel()
+
     var surfaces: [Session.ID: TerminalViewState] = [:]
     var monitors: [Session.ID: [AnyCancellable]] = [:]
     /// Spawned sessions whose prompt was written but never appeared on screen —

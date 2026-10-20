@@ -231,6 +231,7 @@ public enum HugeIcon: Hashable, Sendable {
     case docker
     case linear
     case alertDiamond
+    case vitest
     case puzzle
     case voice
     case close
@@ -471,6 +472,12 @@ public enum HugeIcon: Hashable, Sendable {
             // diamond stays crisp and reads as "alert" without echoing the
             // triangle the panes use for a failed load.
             return "M10.6 2.9C11.4 2.1 12.6 2.1 13.4 2.9L21.1 10.6C21.9 11.4 21.9 12.6 21.1 13.4L13.4 21.1C12.6 21.9 11.4 21.9 10.6 21.1L2.9 13.4C2.1 12.6 2.1 11.4 2.9 10.6Z M12 7.5V12.5 M12 16.25V16.5"
+        case .vitest:
+            // Vitest's mark in the set's stroke style (Hugeicons ships none): the
+            // open V, with the lightning bolt standing inside it clear of both
+            // arms, so the two still read apart at 15pt — the inspector's Tests
+            // segment.
+            return "M3 4.5L12 20.5L21 4.5 M13.25 3L9.75 10H12.75L11.25 15L14.75 8.5H11.75Z"
         case .puzzle:
             // A jigsaw piece with a knob on top and one on the right, in the set's stroke
             // style — the Plugins settings tab.

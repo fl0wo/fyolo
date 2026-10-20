@@ -68,6 +68,10 @@ struct HighlightedTextView: NSViewRepresentable {
     /// ⌘-click on a name, and the context menu's Go to Definition / Find Usages. `nil` where no
     /// daemon can read the file, which also turns off the ⌘-hover underline.
     var onSymbolClick: ((SymbolClick) -> Void)? = nil
+    /// ⌘-click on a path written in the file (`hack/test.sh`), which underlines and opens the
+    /// whole path once the daemon confirms it names a file. `nil` turns path links off.
+    var resolvePath: (@MainActor (String) async -> String?)? = nil
+    var onPathClick: ((_ file: String, _ line: Int?, _ location: Int) -> Void)? = nil
     /// Invoked when the user presses ⌘S — flushes the buffer to disk immediately.
     let onSave: () -> Void
 
@@ -99,6 +103,8 @@ struct HighlightedTextView: NSViewRepresentable {
         findReplace?.attach(textView)
         textView.onSave = onSave
         textView.onSymbolClick = onSymbolClick
+        textView.resolvePath = resolvePath
+        textView.onPathClick = onPathClick
         textView.showsCloseMenuItem = showsCloseMenuItem
         textView.addToChat = addToChat
         textView.canAddToChat = canAddToChat
@@ -200,6 +206,8 @@ struct HighlightedTextView: NSViewRepresentable {
         // captures the view's current state, which SwiftUI re-creates on every change).
         textView.onSave = onSave
         textView.onSymbolClick = onSymbolClick
+        textView.resolvePath = resolvePath
+        textView.onPathClick = onPathClick
         if textView.isEditable != isEditable { textView.isEditable = isEditable }
         let coordinator = context.coordinator
         let storage = coordinator.textStorage
@@ -553,33 +561,79 @@ final class SavingTextView: NSTextView {
     // MARK: Symbol navigation
 
     var onSymbolClick: ((SymbolClick) -> Void)?
-    /// The name underlined while ⌘ is held over it — the promise that a click goes somewhere.
+    /// A path written in the file (`hack/test.sh`), to the root-relative file it names on the
+    /// device, `nil` when it names none. Set together with `onPathClick`.
+    var resolvePath: (@MainActor (String) async -> String?)?
+    /// Opens a resolved file at its line; `location` is where in this text the click was.
+    var onPathClick: ((_ file: String, _ line: Int?, _ location: Int) -> Void)?
+    /// The name — or whole path — underlined while ⌘ is held over it, the promise that a click
+    /// goes somewhere.
     private var symbolHoverRange: NSRange?
     /// The name under the pointer when the context menu opened, for its two symbol items.
     private var menuSymbolRange: NSRange?
+    /// What each written path resolved to, for as long as ⌘ stays down: a path is asked about
+    /// once per press however long the pointer wanders over it, and a file created between
+    /// presses is found on the next one. `.some(nil)` is an answer — it names no file.
+    private var resolvedPaths: [String: String?] = [:]
+    private var resolvingPaths: Set<String> = []
 
     override func mouseDown(with event: NSEvent) {
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        if modifiers == .command, onSymbolClick != nil,
-           let range = symbolRange(at: event.locationInWindow) {
-            clearSymbolHover()
-            setSelectedRange(range)
-            onSymbolClick?(SymbolClick(
-                location: range.location, rect: rect(for: range), view: self, listsAlways: false))
-            return
+        if modifiers == .command, let character = character(at: event.locationInWindow) {
+            if let reference = pathReference(at: character) {
+                switch resolvedPaths[reference.path] {
+                case .some(.some(let file)):
+                    clearSymbolHover()
+                    onPathClick?(file, reference.line, reference.range.location)
+                    return
+                case .some(.none):
+                    break
+                case .none:
+                    // Clicked before the hover's lookup answered: the click waits for it rather
+                    // than guessing, and falls back to the name if the path names nothing.
+                    clearSymbolHover()
+                    Task { @MainActor [weak self] in
+                        await self?.resolve(reference.path)
+                        self?.click(reference, orWordAt: character)
+                    }
+                    return
+                }
+            }
+            if onSymbolClick != nil, let range = wordRange(at: character) {
+                clearSymbolHover()
+                clickSymbol(range)
+                return
+            }
         }
         super.mouseDown(with: event)
     }
 
+    private func click(_ reference: PathReference, orWordAt character: Int) {
+        if case .some(.some(let file)) = resolvedPaths[reference.path] {
+            onPathClick?(file, reference.line, reference.range.location)
+        } else if onSymbolClick != nil, let range = wordRange(at: character) {
+            clickSymbol(range)
+        }
+    }
+
+    private func clickSymbol(_ range: NSRange) {
+        setSelectedRange(range)
+        onSymbolClick?(SymbolClick(
+            location: range.location, rect: rect(for: range), view: self, listsAlways: false))
+    }
+
     override func flagsChanged(with event: NSEvent) {
         super.flagsChanged(with: event)
+        if event.modifierFlags.intersection(.deviceIndependentFlagsMask) != .command {
+            resolvedPaths.removeAll()
+        }
         guard let window else { return }
         updateSymbolHover(at: window.mouseLocationOutsideOfEventStream, modifiers: event.modifierFlags)
     }
 
     private func updateSymbolHover(at location: NSPoint, modifiers: NSEvent.ModifierFlags) {
         let held = modifiers.intersection(.deviceIndependentFlagsMask) == .command
-        let range = held && onSymbolClick != nil ? symbolRange(at: location) : nil
+        let range = held ? hoverRange(at: location) : nil
         guard range != symbolHoverRange else { return }
         clearSymbolHover()
         guard let range, let layoutManager else { return }
@@ -587,6 +641,43 @@ final class SavingTextView: NSTextView {
             [.underlineStyle: NSUnderlineStyle.single.rawValue], forCharacterRange: range)
         symbolHoverRange = range
         NSCursor.pointingHand.set()
+    }
+
+    /// The whole path when the pointer is on one that names a file, else the word. A path not
+    /// yet asked about shows the word while the daemon answers, then grows to the path.
+    private func hoverRange(at location: NSPoint) -> NSRange? {
+        guard let character = character(at: location) else { return nil }
+        if let reference = pathReference(at: character) {
+            switch resolvedPaths[reference.path] {
+            case .some(.some): return reference.range
+            case .some(.none): break
+            case .none: resolveThenRefreshHover(reference.path)
+            }
+        }
+        return onSymbolClick == nil ? nil : wordRange(at: character)
+    }
+
+    private func pathReference(at character: Int) -> PathReference? {
+        guard resolvePath != nil else { return nil }
+        return PathReference.at(character, in: string as NSString)
+    }
+
+    private func resolve(_ path: String) async {
+        guard let resolvePath, resolvedPaths[path] == nil else { return }
+        let file = await resolvePath(path)
+        resolvedPaths[path] = .some(file)
+    }
+
+    private func resolveThenRefreshHover(_ path: String) {
+        guard !resolvingPaths.contains(path) else { return }
+        resolvingPaths.insert(path)
+        Task { @MainActor [weak self] in
+            await self?.resolve(path)
+            guard let self else { return }
+            resolvingPaths.remove(path)
+            guard let window else { return }
+            updateSymbolHover(at: window.mouseLocationOutsideOfEventStream, modifiers: NSEvent.modifierFlags)
+        }
     }
 
     private func clearSymbolHover() {
@@ -598,9 +689,9 @@ final class SavingTextView: NSTextView {
         NSCursor.iBeam.set()
     }
 
-    /// The word under a window point — only when the point is on its glyphs, so a ⌘-click in the
-    /// margin past the end of a line does not reach back for the line's last word.
-    private func symbolRange(at windowLocation: NSPoint) -> NSRange? {
+    /// The character under a window point — only when the point is on its glyph, so a ⌘-click
+    /// in the margin past the end of a line does not reach back for the line's last word.
+    private func character(at windowLocation: NSPoint) -> Int? {
         guard let layoutManager, let textContainer else { return nil }
         let point = convert(windowLocation, from: nil)
         let inContainer = NSPoint(x: point.x - textContainerOrigin.x, y: point.y - textContainerOrigin.y)
@@ -611,12 +702,20 @@ final class SavingTextView: NSTextView {
         let glyphRect = layoutManager.boundingRect(
             forGlyphRange: NSRange(location: glyph, length: 1), in: textContainer)
         guard glyphRect.contains(inContainer) else { return nil }
-        let character = layoutManager.characterIndexForGlyph(at: glyph)
+        return layoutManager.characterIndexForGlyph(at: glyph)
+    }
+
+    private func wordRange(at character: Int) -> NSRange? {
         // `wordRange` reads a position the way a caret does — the character before it first — so
         // ask for the position just past the clicked character, then insist the word covers it.
         guard let word = OccurrenceTarget.wordRange(at: character + 1, in: string as NSString),
               NSLocationInRange(character, word) else { return nil }
         return word
+    }
+
+    /// The word under a window point, for the context menu's symbol items.
+    private func symbolRange(at windowLocation: NSPoint) -> NSRange? {
+        character(at: windowLocation).flatMap(wordRange(at:))
     }
 
     private func rect(for range: NSRange) -> NSRect {

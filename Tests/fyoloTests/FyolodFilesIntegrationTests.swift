@@ -486,6 +486,41 @@ final class FyolodFilesIntegrationTests: XCTestCase {
             .jump(.init(path: "sub/nav.ts", line: 2)))
     }
 
+    /// A path written in a Makefile is a link only when the daemon finds a file there:
+    /// beside the Makefile first, then from the root, never a directory or a missing file.
+    @MainActor
+    func testAWrittenPathResolvesToTheFileTheDaemonHas() async throws {
+        let manager = FileManager.default
+        try manager.createDirectory(
+            at: root.appendingPathComponent("hack"), withIntermediateDirectories: true)
+        try manager.createDirectory(
+            at: root.appendingPathComponent("svc/hack"), withIntermediateDirectories: true)
+        try Data("echo root\n".utf8).write(to: root.appendingPathComponent("hack/test.sh"))
+        try Data("echo svc\n".utf8).write(to: root.appendingPathComponent("svc/hack/test.sh"))
+        try Data("echo lint\n".utf8).write(to: root.appendingPathComponent("hack/lint.sh"))
+        func lookup(from file: String) -> SymbolLookup {
+            SymbolLookup(
+                provider: DeviceFileProvider(route: .local, root: root.path), base: root,
+                relativePath: file, isLocal: true) { _, _, _ in }
+        }
+
+        let atRoot = lookup(from: "Makefile")
+        let resolved = await atRoot.resolveFile("hack/test.sh")
+        XCTAssertEqual(resolved, "hack/test.sh")
+        let beside = await lookup(from: "svc/Makefile").resolveFile("hack/test.sh")
+        XCTAssertEqual(beside, "svc/hack/test.sh")
+        let fromRoot = await lookup(from: "svc/Makefile").resolveFile("hack/lint.sh")
+        XCTAssertEqual(fromRoot, "hack/lint.sh")
+        let topLevel = await atRoot.resolveFile("a.txt")
+        XCTAssertEqual(topLevel, "a.txt")
+        let directory = await atRoot.resolveFile("svc/hack")
+        XCTAssertNil(directory)
+        let missing = await atRoot.resolveFile("hack/nope.sh")
+        XCTAssertNil(missing)
+        let absolute = await atRoot.resolveFile(root.path + "/hack/test.sh")
+        XCTAssertEqual(absolute, "hack/test.sh")
+    }
+
     /// The host reports where it hit and the lines around it, because the pane
     /// paints those spans rather than re-finding the query itself.
     func testSearchReportsSpansAndContext() throws {

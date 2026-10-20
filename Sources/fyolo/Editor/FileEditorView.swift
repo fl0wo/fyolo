@@ -394,6 +394,8 @@ struct FileEditorView: View {
             onGutterAction: onGutterAction,
             runTasks: runTasks,
             onSymbolClick: symbols == nil ? nil : { lookUpSymbol($0) },
+            resolvePath: symbols.map { symbols in { await symbols.resolveFile($0) } },
+            onPathClick: symbols == nil ? nil : { openPath($0, line: $1, from: $2) },
             onSave: saveNow
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -478,6 +480,15 @@ struct FileEditorView: View {
                 }
             }
         }
+    }
+
+    /// ⌘-click on a path written in the file: open what it names, at its `:line` if it has one.
+    private func openPath(_ file: String, line: Int?, from location: Int) {
+        guard let symbols else { return }
+        let buffer = text as NSString
+        let returnLine = buffer.substring(to: min(location, buffer.length))
+            .reduce(1) { $1 == "\n" ? $0 + 1 : $0 }
+        symbols.open(file, max(line ?? 1, 1), returnLine)
     }
 
     private static func referencesFailure(_ error: Error) -> String {

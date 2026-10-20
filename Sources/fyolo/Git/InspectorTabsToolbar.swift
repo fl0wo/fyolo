@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Inspector pane switch
 
-/// The inspector's pane switch (Files / Search / Changes / Issues / Docker / Linear). It sits at the *left* edge of
+/// The inspector's pane switch (Files / Search / Changes / Issues / Docker / Linear / Monitoring / Tests). It sits at the *left* edge of
 /// the inspector in the toolbar — pinned there by an inspector tracking separator (see
 /// `MainToolbarDelegate`) — while the collapse button sits at the far right.
 ///
@@ -23,6 +23,9 @@ import SwiftUI
 struct InspectorTabsToolbar: View {
     @EnvironmentObject var store: FyoloStore
     @EnvironmentObject var settings: AppSettings
+    /// Observed directly rather than through the store: a live run republishes on every
+    /// progress tick, and only this control and the Tests pane need to redraw for it.
+    @ObservedObject var testRuns: TestRunsModel
     /// Light vs dark decides the track + chip materials: a white glass track with a soft grey
     /// selected chip in light mode (the macOS 26 Finder segmented control), a faint light track
     /// with a brighter overlay chip in dark.
@@ -64,6 +67,7 @@ struct InspectorTabsToolbar: View {
         (.docker, .docker, "Docker"),
         (.linear, .linear, "Linear"),
         (.monitoring, .alertDiamond, "Monitoring"),
+        (.tests, .vitest, "Tests"),
     ]
 
     /// Some segments exist only where they have something to show, rather than leading
@@ -81,6 +85,8 @@ struct InspectorTabsToolbar: View {
             case .docker: DockerService.isInstalled
             case .linear: settings.isPluginEnabled(LinearPlugin.id)
             case .monitoring: settings.isPluginEnabled(MonitoringPlugin.id)
+            // Appears with the checkout's first recorded Vitest run.
+            case .tests: !testRuns.runs.isEmpty
             default: true
             }
         }
@@ -121,6 +127,13 @@ struct InspectorTabsToolbar: View {
             .onChange(of: settings.isPluginEnabled(MonitoringPlugin.id)) { _, enabled in
                 if !enabled, store.inspectorTab == .monitoring { store.inspectorTab = .files }
             }
+            // The test runs follow the checkout on screen, a loose terminal's `cd`
+            // included. Tests goes back to Files only once the device has answered
+            // with none, not in the moment between checkouts.
+            .task(id: store.inspectorCheckout) { testRuns.follow(store.inspectorCheckout) }
+            .onChange(of: testRuns.hasAnswered && testRuns.runs.isEmpty) { _, hasNone in
+                if hasNone, store.inspectorTab == .tests { store.inspectorTab = .files }
+            }
             // Same shape for Changes, keyed on the root alone — a `cd` in a loose
             // terminal moves this, so it re-runs there and not on GitHub's switch.
             .task(id: store.inspectorCheckout?.localRoot ?? "") {
@@ -152,6 +165,9 @@ struct InspectorTabsToolbar: View {
                     .frame(width: Self.segmentWidth, height: Self.glyphHeight)
                     // Each segment is a matched-geometry *source*; the pill (non-source, below)
                     // snaps to whichever one is selected and animates across on change.
+                    .overlay(alignment: .topTrailing) {
+                        if seg.tab == .tests { testsDot }
+                    }
                     .matchedGeometryEffect(id: seg.tab, in: pillNamespace)
                     .contentShape(.capsule)
                     // Set the pane WITHOUT `withAnimation`: a global transaction would also animate
@@ -175,6 +191,18 @@ struct InspectorTabsToolbar: View {
         // hop this small in under ~80ms, so 0.1s is the floor that still shows *which way*
         // the selection moved without ever being waited on.
         .animation(.snappy(duration: 0.1, extraBounce: 0), value: store.inspectorTab)
+    }
+
+    /// The Tests segment's dot: the accent while a run is live, red when the newest run
+    /// failed, nothing once it passed.
+    @ViewBuilder
+    private var testsDot: some View {
+        if let latest = testRuns.latest, latest.isRunning || latest.state == "failed" {
+            Circle()
+                .fill(latest.isRunning ? Color.accentColor : Color.red)
+                .frame(width: 5, height: 5)
+                .offset(x: -7, y: 6)
+        }
     }
 
     // MARK: Materials — macOS 26 (Tahoe) Finder segmented control
