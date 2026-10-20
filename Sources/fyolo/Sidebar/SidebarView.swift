@@ -2032,19 +2032,16 @@ private struct EndedSessionRow: View {
             AgentIconView(agent: store.effectiveAgent(for: session), size: 15)
                 .frame(width: 16)
                 .opacity(0.5)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(store.displayTitle(for: session))
-                    .font(settings.interfaceFont)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                Text(reason)
-                    .font(settings.interfaceFont)
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
-            }
+            // The dimmed icon and title are the whole "ended" cue; the reason waits
+            // in the tooltip rather than costing every buried row a second line.
+            Text(store.displayTitle(for: session))
+                .font(settings.interfaceFont)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
             Spacer(minLength: 4)
         }
+        .help(reason)
         .padding(.vertical, settings.interfaceRowPadding)
         .padding(.leading, leadingIndent - sidebarLeadingTrim)
         .modifier(SessionRowDragAndDrop(session: session, chrome: chrome))
