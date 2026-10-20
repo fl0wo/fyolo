@@ -132,8 +132,12 @@
 	<string>%lld 行</string>
 	<key>%lld uncommitted files</key>
 	<string>%lld 个未提交的文件</string>
+	<key>%lld unrelated matches</key>
+	<string>%lld 个无关匹配项</string>
 	<key>%lld%@ matches in %lld files</key>
 	<string>在 %3$lld 个文件中找到 %1$lld%2$@ 个匹配项</string>
+	<key>%lld%@ usages in %lld files</key>
+	<string>在 %3$lld 个文件中有 %1$lld%2$@ 处用法</string>
 	<key>%lldd</key>
 	<string>%lld 天</string>
 	<key>%lldh</key>
@@ -328,6 +332,8 @@
 	<string>已取消或已跳过</string>
 	<key>Can’t Compare</key>
 	<string>无法对比</string>
+	<key>Can’t Find Usages</key>
+	<string>无法查找用法</string>
 	<key>Can’t Search</key>
 	<string>无法搜索</string>
 	<key>Can’t browse %@</key>
@@ -668,6 +674,8 @@
 	<string>默认 Agent</string>
 	<key>Default keys</key>
 	<string>默认密钥</string>
+	<key>Definition</key>
+	<string>定义</string>
 	<key>Delete</key>
 	<string>删除</string>
 	<key>Delete %@?</key>
@@ -842,8 +850,12 @@
 	<string>查找下一个</string>
 	<key>Find Previous</key>
 	<string>查找上一个</string>
+	<key>Find Usages</key>
+	<string>查找用法</string>
 	<key>Finding in Files…</key>
 	<string>正在“文件”中查找…</string>
+	<key>Finding usages…</key>
+	<string>正在查找用法…</string>
 	<key>Find…</key>
 	<string>查找…</string>
 	<key>Finish updating Fyolo’s session host?</key>
@@ -864,6 +876,8 @@
 	<string>字体</string>
 	<key>Font name</key>
 	<string>字体名称</string>
+	<key>Forward</key>
+	<string>前进</string>
 	<key>From the profile</key>
 	<string>来自配置</string>
 	<key>From your Ghostty config</key>
@@ -918,6 +932,8 @@
 	<string>GitHub 拒绝了这个令牌。请确认它已完整复制且未过期。</string>
 	<key>GitHub replied with HTTP %lld.</key>
 	<string>GitHub 返回了 HTTP %lld。</string>
+	<key>Go to Definition</key>
+	<string>转到定义</string>
 	<key>Golden Signals</key>
 	<string>黄金指标</string>
 	<key>Grant Org Access…</key>
@@ -1010,6 +1026,8 @@
 	<string>导入配置…</string>
 	<key>Imported “%@”. Connect the accounts it names to fill it in.</key>
 	<string>已导入“%@”。连接其中指定的账户以载入数据。</string>
+	<key>Imports</key>
+	<string>导入</string>
 	<key>In Progress</key>
 	<string>进行中</string>
 	<key>In Review</key>
@@ -1170,6 +1188,8 @@
 	<string>区分大小写</string>
 	<key>Match Whole Word</key>
 	<string>全字匹配</string>
+	<key>Matches</key>
+	<string>匹配项</string>
 	<key>Matches %lld of %lld items on screen</key>
 	<string>匹配屏幕上 %2$lld 项中的 %1$lld 项</string>
 	<key>Medium</key>
@@ -1190,6 +1210,8 @@
 	<string>手机</string>
 	<key>Mobile Access</key>
 	<string>移动访问</string>
+	<key>Module</key>
+	<string>模块</string>
 	<key>Monitoring</key>
 	<string>监控</string>
 	<key>Mounts</key>
@@ -1384,6 +1406,8 @@
 	<string>没有主题与“%@”匹配</string>
 	<key>No tunnel selected.</key>
 	<string>尚未选择隧道。</string>
+	<key>No usages</key>
+	<string>没有用法</string>
 	<key>None</key>
 	<string>无</string>
 	<key>None found</key>
@@ -1412,6 +1436,8 @@
 	<string>未安装在 %@ 上。</string>
 	<key>Not pushed to upstream</key>
 	<string>尚未推送到上游</string>
+	<key>Not resolved. Every whole-word match in files of this kind.</key>
+	<string>未解析。显示此类文件中的所有全词匹配。</string>
 	<key>Not running yet. Sessions start it, and keep running after you quit Fyolo.</key>
 	<string>尚未运行。会话会启动它，并在你退出 Fyolo 后继续运行。</string>
 	<key>Not saved: %@</key>
@@ -1674,6 +1700,8 @@
 	<string>退出 fyolo</string>
 	<key>Range</key>
 	<string>范围</string>
+	<key>Re-exports</key>
+	<string>重新导出</string>
 	<key>Reachable</key>
 	<string>可连接</string>
 	<key>Reached by</key>
@@ -1840,6 +1868,8 @@
 	<string>以 `%@` 运行。Agent 在编辑文件或运行命令前将不再询问。</string>
 	<key>SF Symbol name</key>
 	<string>SF Symbol 名称</string>
+	<key>Same text, different symbol</key>
+	<string>文本相同，符号不同</string>
 	<key>Save</key>
 	<string>存储</string>
 	<key>Save Highlights into PDF</key>
@@ -2122,6 +2152,8 @@
 	<string>读取目录失败。</string>
 	<key>The log appears when this job finishes.</key>
 	<string>作业完成后才会显示日志。</string>
+	<key>The lookup failed.</key>
+	<string>查找失败。</string>
 	<key>The machine Fyolo is running on</key>
 	<string>Fyolo 正在运行的设备</string>
 	<key>The machine answered with no listing for that folder.</key>
@@ -2250,6 +2282,8 @@
 	<string>该设备上的 fyolod 版本过旧，无法浏览文件。</string>
 	<key>This machine’s fyolod is too old to filter by file. Clear the filter to search everything.</key>
 	<string>该设备上的 fyolod 版本过旧，无法按文件过滤。清除过滤条件即可搜索全部文件。</string>
+	<key>This machine’s fyolod is too old to find usages.</key>
+	<string>该设备上的 fyolod 版本过旧，无法查找用法。</string>
 	<key>This machine’s fyolod is too old to install agent integration.</key>
 	<string>该设备上的 fyolod 版本过旧，无法安装 Agent 集成。</string>
 	<key>This machine’s fyolod is too old to list folders.</key>
@@ -2366,6 +2400,8 @@
 	<string>用量</string>
 	<key>Usage statistics</key>
 	<string>使用统计</string>
+	<key>Usages</key>
+	<string>用法</string>
 	<key>Use %@ from GitHub CLI</key>
 	<string>使用 GitHub CLI 中的 %@</string>
 	<key>Use Regular Expression</key>

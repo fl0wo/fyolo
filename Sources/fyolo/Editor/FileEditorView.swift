@@ -58,6 +58,9 @@ struct FileEditorView: View {
     /// What the gutter buttons read to show a running task as a stop button.
     let runTasks: RunTasks?
     let canAddToChat: (() -> Bool)?
+    /// Where ⌘-click asks what a name refers to. Supplied by the host, which knows the checkout
+    /// and the machine; `nil` where neither is known (the Settings sheet), which turns ⌘-click off.
+    let symbols: SymbolLookup?
 
     /// Whether the header carries the inspector's window controls (hide list / maximize / close).
     /// A sheet has no list column to collapse and no inspector to fill, so it hosts the editor
@@ -115,6 +118,9 @@ struct FileEditorView: View {
     @State private var findReplacement = ""
     /// Replace edits the text view, not the `text` binding — see `FindReplaceController`.
     @State private var findReplace = FindReplaceController()
+    /// The usages list a ⌘-click opened, and the lookup feeding it.
+    @State private var usagesPopover = UsagesPopoverPresenter()
+    @State private var symbolTask: Task<Void, Never>?
 
     /// Past this size the file renders as plain text: highlight.js parses off-main, but
     /// *applying* its result is thousands of main-thread `setAttributes` calls plus a
@@ -141,6 +147,7 @@ struct FileEditorView: View {
          onDirtyChange: ((Bool) -> Void)? = nil,
          addToChat: ((String?) -> Void)? = nil, canAddToChat: (() -> Bool)? = nil,
          onGutterAction: ((GutterAction) -> Void)? = nil, runTasks: RunTasks? = nil,
+         symbols: SymbolLookup? = nil,
          showsInspectorChrome: Bool = true, onClose: @escaping () -> Void) {
         self.url = url
         self.settings = settings
@@ -154,6 +161,7 @@ struct FileEditorView: View {
         self.canAddToChat = canAddToChat
         self.onGutterAction = onGutterAction
         self.runTasks = runTasks
+        self.symbols = symbols
         self.showsInspectorChrome = showsInspectorChrome
         self.onClose = onClose
         let displayURL = displayName.map {
@@ -304,6 +312,8 @@ struct FileEditorView: View {
         // A safety flush if the overlay goes away without the close button (file switch, app quit).
         .onDisappear {
             if !readOnly { saveTask?.cancel(); writeIfNeeded() }
+            symbolTask?.cancel()
+            usagesPopover.close()
         }
     }
 
@@ -383,6 +393,7 @@ struct FileEditorView: View {
             gutterActions: gutterActions,
             onGutterAction: onGutterAction,
             runTasks: runTasks,
+            onSymbolClick: symbols == nil ? nil : { lookUpSymbol($0) },
             onSave: saveNow
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -409,6 +420,71 @@ struct FileEditorView: View {
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
+    }
+
+    /// How long a lookup may run before the popover opens in its loading state. A local answer
+    /// lands well inside this, so a jump never flashes a list first.
+    private static let usagesLoadingDelay: Duration = .milliseconds(150)
+
+    /// ⌘-click: ask the daemon what the name refers to, then go to the one place that matters or
+    /// list them (`ReferenceNavigation.decide`).
+    private func lookUpSymbol(_ click: SymbolClick) {
+        guard let symbols else { return }
+        symbolTask?.cancel()
+        let buffer = text as NSString
+        guard click.location <= buffer.length else { return }
+        // The daemon measures in UTF-8 bytes; the text view in UTF-16 units.
+        let offset = buffer.substring(to: click.location).utf8.count
+        let word = OccurrenceTarget.wordRange(at: click.location + 1, in: buffer)
+            .map { buffer.substring(with: $0) } ?? ""
+        let model = UsagesModel(name: word)
+        let returnLine = buffer.substring(to: click.location).reduce(1) { $1 == "\n" ? $0 + 1 : $0 }
+        let open: (String, Int) -> Void = { [usagesPopover] path, line in
+            usagesPopover.close()
+            symbols.open(path, line, returnLine)
+        }
+        let popover = UsagesPopover(model: model, lookup: symbols, settings: settings, onOpen: open)
+        let unsaved = isDirty ? text : nil
+        symbolTask = Task { @MainActor in
+            let loading = Task { @MainActor in
+                try? await Task.sleep(for: Self.usagesLoadingDelay)
+                guard !Task.isCancelled else { return }
+                usagesPopover.show(popover, at: click.rect, in: click.view)
+            }
+            defer { loading.cancel() }
+            do {
+                let result = try await symbols.provider.references(
+                    path: symbols.relativePath, offset: offset, text: unsaved, limit: 2000)
+                guard !Task.isCancelled else { return }
+                loading.cancel()
+                let decision = click.listsAlways
+                    ? .list : ReferenceNavigation.decide(result, clickedPath: symbols.relativePath)
+                switch decision {
+                case .jump(let location):
+                    open(location.path, location.line)
+                case .list:
+                    model.state = .loaded(result)
+                    if !usagesPopover.isShown {
+                        usagesPopover.show(popover, at: click.rect, in: click.view)
+                    }
+                }
+            } catch {
+                guard !Task.isCancelled else { return }
+                loading.cancel()
+                Log.files.error("references \(symbols.relativePath, privacy: .public): \(String(describing: error), privacy: .public)")
+                model.state = .failed(Self.referencesFailure(error))
+                if !usagesPopover.isShown {
+                    usagesPopover.show(popover, at: click.rect, in: click.view)
+                }
+            }
+        }
+    }
+
+    private static func referencesFailure(_ error: Error) -> String {
+        if case DeviceFileError.referencesUnsupported = error {
+            return localized("This machine’s fyolod is too old to find usages.")
+        }
+        return RemoteFileFailure.message(for: error, fallback: localized("The lookup failed."))
     }
 
     private var header: some View {

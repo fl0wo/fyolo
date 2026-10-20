@@ -12525,6 +12525,186 @@
         }
       }
     },
+    "Can’t Find Usages": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法查找用法"
+          }
+        }
+      }
+    },
+    "Definition": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定义"
+          }
+        }
+      }
+    },
+    "Find Usages": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查找用法"
+          }
+        }
+      }
+    },
+    "Finding usages…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在查找用法…"
+          }
+        }
+      }
+    },
+    "Forward": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前进"
+          }
+        }
+      }
+    },
+    "Go to Definition": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转到定义"
+          }
+        }
+      }
+    },
+    "Imports": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入"
+          }
+        }
+      }
+    },
+    "Matches": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匹配项"
+          }
+        }
+      }
+    },
+    "Module": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模块"
+          }
+        }
+      }
+    },
+    "No usages": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有用法"
+          }
+        }
+      }
+    },
+    "Not resolved. Every whole-word match in files of this kind.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未解析。显示此类文件中的所有全词匹配。"
+          }
+        }
+      }
+    },
+    "Re-exports": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新导出"
+          }
+        }
+      }
+    },
+    "Same text, different symbol": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本相同，符号不同"
+          }
+        }
+      }
+    },
+    "The lookup failed.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查找失败。"
+          }
+        }
+      }
+    },
+    "This machine’s fyolod is too old to find usages.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该设备上的 fyolod 版本过旧，无法查找用法。"
+          }
+        }
+      }
+    },
+    "%lld%@ usages in %lld files": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 %3$lld 个文件中有 %1$lld%2$@ 处用法"
+          }
+        }
+      }
+    },
+    "%lld unrelated matches": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个无关匹配项"
+          }
+        }
+      }
+    },
+    "Usages": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用法"
+          }
+        }
+      }
+    },
     "Incoming": {
       "localizations": {
         "zh-Hans": {

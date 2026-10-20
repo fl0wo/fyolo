@@ -44,6 +44,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var menuBar: MenuBarController?
     /// Rebuilds the main menu when the user rebinds a shortcut in Settings.
     private var keybindingsObserver: NSObjectProtocol?
+    /// The app-wide watch for the mouse's back/forward buttons and the swipe gesture.
+    private var navigationGestureMonitor: Any?
     private var companionServer: CompanionServer?
     /// The other half of what this Mac serves a phone: the session protocol,
     /// spliced onto the daemon. Exactly one of the two ever runs — see
@@ -204,6 +206,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         // Menu items cache their key equivalents at build time, so rebuild the
         // whole main menu whenever a user rebinds a shortcut in Settings.
+        installNavigationGestures()
         keybindingsObserver = NotificationCenter.default.addObserver(
             forName: .fyoloKeybindingsChanged, object: nil, queue: .main
         ) { [weak self] _ in
@@ -1321,6 +1324,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if let alias { self?.store.addSSHSession(host: alias) }
         }
         presenter.presentAsSheet(hostVC)
+    }
+
+    /// View ▸ Back (⌘[) — the place before this one: a file, a session, a PR, a Linear ticket.
+    @objc func navigateBack(_ sender: Any?) {
+        store.navigateBack()
+    }
+
+    /// View ▸ Forward (⌘]) — undoes a Back.
+    @objc func navigateForward(_ sender: Any?) {
+        store.navigateForward()
+    }
+
+    /// The mouse's side buttons (button 3 is Back, 4 is Forward) and the trackpad's swipe between
+    /// pages, everywhere in the window. A local monitor sees them before any view does, which is
+    /// the point: the terminal would otherwise report them to whatever runs inside it, and the
+    /// web previews would spend them on their own history. Both halves of a click are swallowed,
+    /// so nothing underneath sees half of one.
+    private func installNavigationGestures() {
+        navigationGestureMonitor = NSEvent.addLocalMonitorForEvents(
+            matching: [.otherMouseDown, .otherMouseUp, .swipe]
+        ) { [weak self] event in
+            // Local monitors run on the main thread.
+            nonisolated(unsafe) let event = event
+            let consumed = MainActor.assumeIsolated { self?.handleNavigationGesture(event) ?? false }
+            return consumed ? nil : event
+        }
+    }
+
+    /// Acts on a navigation gesture; `true` when it was one, so it is swallowed.
+    private func handleNavigationGesture(_ event: NSEvent) -> Bool {
+        switch event.type {
+        case .otherMouseDown, .otherMouseUp:
+            let isBack = event.buttonNumber == 3
+            guard isBack || event.buttonNumber == 4 else { return false }
+            if event.type == .otherMouseDown {
+                isBack ? store.navigateBack() : store.navigateForward()
+            }
+            return true
+        case .swipe:
+            // WebKit's rule, so it matches Safari: a positive `deltaX` goes back.
+            if event.deltaX > 0 {
+                store.navigateBack()
+            } else if event.deltaX < 0 {
+                store.navigateForward()
+            } else {
+                return false
+            }
+            return true
+        default:
+            return false
+        }
     }
 
     /// View ▸ Search Files (⌘⇧F) — opens the inspector on the Search pane with the
@@ -2490,6 +2544,10 @@ extension AppDelegate: NSMenuItemValidation {
         switch menuItem.action {
         case #selector(nextSession(_:)), #selector(previousSession(_:)):
             return !store.sidebarSessionGroups.isEmpty
+        case #selector(navigateBack(_:)):
+            return store.navigationHistory.canGoBack
+        case #selector(navigateForward(_:)):
+            return store.navigationHistory.canGoForward
         case #selector(newWorktree(_:)), #selector(newPullRequest(_:)):
             return currentBranchProject != nil
         case #selector(pasteFromEditMenu(_:)):
@@ -3725,6 +3783,16 @@ private func buildMainMenu() -> NSMenu {
         withTitle: KeyCommandCatalog.info(.searchFiles).title,
         action: #selector(AppDelegate.searchFiles(_:)),
         command: .searchFiles
+    )
+    viewMenu.addItem(
+        withTitle: KeyCommandCatalog.info(.navigateBack).title,
+        action: #selector(AppDelegate.navigateBack(_:)),
+        command: .navigateBack
+    )
+    viewMenu.addItem(
+        withTitle: KeyCommandCatalog.info(.navigateForward).title,
+        action: #selector(AppDelegate.navigateForward(_:)),
+        command: .navigateForward
     )
     viewMenu.addItem(
         withTitle: KeyCommandCatalog.info(.toggleNotes).title,

@@ -132,8 +132,12 @@
 	<string>%lld rows</string>
 	<key>%lld uncommitted files</key>
 	<string>%lld uncommitted files</string>
+	<key>%lld unrelated matches</key>
+	<string>%lld unrelated matches</string>
 	<key>%lld%@ matches in %lld files</key>
 	<string>%lld%@ matches in %lld files</string>
+	<key>%lld%@ usages in %lld files</key>
+	<string>%lld%@ usages in %lld files</string>
 	<key>%lldd</key>
 	<string>%lldd</string>
 	<key>%lldh</key>
@@ -328,6 +332,8 @@
 	<string>Cancelled or Skipped</string>
 	<key>Can’t Compare</key>
 	<string>Can’t Compare</string>
+	<key>Can’t Find Usages</key>
+	<string>Can’t Find Usages</string>
 	<key>Can’t Search</key>
 	<string>Can’t Search</string>
 	<key>Can’t browse %@</key>
@@ -668,6 +674,8 @@
 	<string>Default agent</string>
 	<key>Default keys</key>
 	<string>Default keys</string>
+	<key>Definition</key>
+	<string>Definition</string>
 	<key>Delete</key>
 	<string>Delete</string>
 	<key>Delete %@?</key>
@@ -842,8 +850,12 @@
 	<string>Find Next</string>
 	<key>Find Previous</key>
 	<string>Find Previous</string>
+	<key>Find Usages</key>
+	<string>Find Usages</string>
 	<key>Finding in Files…</key>
 	<string>Finding in Files…</string>
+	<key>Finding usages…</key>
+	<string>Finding usages…</string>
 	<key>Find…</key>
 	<string>Find…</string>
 	<key>Finish updating Fyolo’s session host?</key>
@@ -864,6 +876,8 @@
 	<string>Font</string>
 	<key>Font name</key>
 	<string>Font name</string>
+	<key>Forward</key>
+	<string>Forward</string>
 	<key>From the profile</key>
 	<string>From the profile</string>
 	<key>From your Ghostty config</key>
@@ -918,6 +932,8 @@
 	<string>GitHub rejected this token. Check that it was copied whole and hasn’t expired.</string>
 	<key>GitHub replied with HTTP %lld.</key>
 	<string>GitHub replied with HTTP %lld.</string>
+	<key>Go to Definition</key>
+	<string>Go to Definition</string>
 	<key>Golden Signals</key>
 	<string>Golden Signals</string>
 	<key>Grant Org Access…</key>
@@ -1010,6 +1026,8 @@
 	<string>Import Profile…</string>
 	<key>Imported “%@”. Connect the accounts it names to fill it in.</key>
 	<string>Imported “%@”. Connect the accounts it names to fill it in.</string>
+	<key>Imports</key>
+	<string>Imports</string>
 	<key>In Progress</key>
 	<string>In Progress</string>
 	<key>In Review</key>
@@ -1170,6 +1188,8 @@
 	<string>Match Case</string>
 	<key>Match Whole Word</key>
 	<string>Match Whole Word</string>
+	<key>Matches</key>
+	<string>Matches</string>
 	<key>Matches %lld of %lld items on screen</key>
 	<string>Matches %lld of %lld items on screen</string>
 	<key>Medium</key>
@@ -1190,6 +1210,8 @@
 	<string>Mobile</string>
 	<key>Mobile Access</key>
 	<string>Mobile Access</string>
+	<key>Module</key>
+	<string>Module</string>
 	<key>Monitoring</key>
 	<string>Monitoring</string>
 	<key>Mounts</key>
@@ -1384,6 +1406,8 @@
 	<string>No theme matches “%@”</string>
 	<key>No tunnel selected.</key>
 	<string>No tunnel selected.</string>
+	<key>No usages</key>
+	<string>No usages</string>
 	<key>None</key>
 	<string>None</string>
 	<key>None found</key>
@@ -1412,6 +1436,8 @@
 	<string>Not installed on %@.</string>
 	<key>Not pushed to upstream</key>
 	<string>Not pushed to upstream</string>
+	<key>Not resolved. Every whole-word match in files of this kind.</key>
+	<string>Not resolved. Every whole-word match in files of this kind.</string>
 	<key>Not running yet. Sessions start it, and keep running after you quit Fyolo.</key>
 	<string>Not running yet. Sessions start it, and keep running after you quit Fyolo.</string>
 	<key>Not saved: %@</key>
@@ -1674,6 +1700,8 @@
 	<string>Quit fyolo</string>
 	<key>Range</key>
 	<string>Range</string>
+	<key>Re-exports</key>
+	<string>Re-exports</string>
 	<key>Reachable</key>
 	<string>Reachable</string>
 	<key>Reached by</key>
@@ -1840,6 +1868,8 @@
 	<string>Runs with `%@`. The agent won’t ask before editing files or running commands.</string>
 	<key>SF Symbol name</key>
 	<string>SF Symbol name</string>
+	<key>Same text, different symbol</key>
+	<string>Same text, different symbol</string>
 	<key>Save</key>
 	<string>Save</string>
 	<key>Save Highlights into PDF</key>
@@ -2122,6 +2152,8 @@
 	<string>The listing failed.</string>
 	<key>The log appears when this job finishes.</key>
 	<string>The log appears when this job finishes.</string>
+	<key>The lookup failed.</key>
+	<string>The lookup failed.</string>
 	<key>The machine Fyolo is running on</key>
 	<string>The machine Fyolo is running on</string>
 	<key>The machine answered with no listing for that folder.</key>
@@ -2250,6 +2282,8 @@
 	<string>This machine’s fyolod is too old to browse files.</string>
 	<key>This machine’s fyolod is too old to filter by file. Clear the filter to search everything.</key>
 	<string>This machine’s fyolod is too old to filter by file. Clear the filter to search everything.</string>
+	<key>This machine’s fyolod is too old to find usages.</key>
+	<string>This machine’s fyolod is too old to find usages.</string>
 	<key>This machine’s fyolod is too old to install agent integration.</key>
 	<string>This machine’s fyolod is too old to install agent integration.</string>
 	<key>This machine’s fyolod is too old to list folders.</key>
@@ -2366,6 +2400,8 @@
 	<string>Usage</string>
 	<key>Usage statistics</key>
 	<string>Usage statistics</string>
+	<key>Usages</key>
+	<string>Usages</string>
 	<key>Use %@ from GitHub CLI</key>
 	<string>Use %@ from GitHub CLI</string>
 	<key>Use Regular Expression</key>

@@ -52,6 +52,24 @@ struct ContentMatch: Sendable {
     }
 }
 
+extension ContentMatch {
+    /// A host's hit, with its path resolved against `base`.
+    init(_ hit: Fyolod.SearchHit, base: URL) {
+        relative = hit.path
+        url = base.appendingPathComponent(hit.path)
+        line = hit.line
+        text = hit.text
+        // The host measured these in bytes of its own line; the row paints
+        // characters. A range that does not land on a character boundary is
+        // dropped rather than nudged — a highlight one byte off is worse than
+        // none.
+        spans = hit.spans.compactMap { ContentMatch.range(hit.text, bytes: $0) }
+        isWindowed = hit.isWindowed
+        before = hit.before
+        after = hit.after
+    }
+}
+
 /// The Search pane's "files to include" field, read as the patterns the daemon
 /// narrows a search by (`files::SearchFilter`): gitignore globs, `!` to exclude.
 enum SearchIncludeField {
@@ -616,21 +634,7 @@ struct FileSearchView: View {
         let base = scope.base
         do {
             let result = try await scope.provider.search(query, include: include, limit: limit)
-            return result.hits.map { hit in
-                ContentMatch(
-                    relative: hit.path,
-                    url: base.appendingPathComponent(hit.path),
-                    line: hit.line,
-                    text: hit.text,
-                    // The host measured these in bytes of its own line; the
-                    // row paints characters. A range that does not land on a
-                    // character boundary is dropped rather than nudged —
-                    // a highlight one byte off is worse than none.
-                    spans: hit.spans.compactMap { ContentMatch.range(hit.text, bytes: $0) },
-                    isWindowed: hit.isWindowed,
-                    before: hit.before,
-                    after: hit.after)
-            }
+            return result.hits.map { ContentMatch($0, base: base) }
         } catch {
             guard !Task.isCancelled else { return [] }
             Log.files.error("""
@@ -891,7 +895,7 @@ private final class FocusReportingTextField: NSTextField {
 /// A file's group header: icon, name, dimmed directory, and its hit count on
 /// the trailing edge — VS Code's search-tree file row. Clicking it opens the
 /// file at its first hit.
-private struct FileHeaderRow: View {
+struct FileHeaderRow: View {
     let url: URL
     let relative: String
     let count: Int
@@ -1044,7 +1048,7 @@ extension ContentMatch {
 /// painting matches in the same vocabulary made a hit read as "this row is
 /// picked". VS Code and Zed both keep find-highlight in a separate, warmer
 /// register for the same reason.
-private struct ExcerptView: View {
+struct ExcerptView: View {
     let excerpt: SearchExcerpt
     let url: URL
     @ObservedObject var settings: AppSettings
@@ -1146,7 +1150,7 @@ private struct ExcerptView: View {
 /// The break between two runs of lines from the same file — Zed's "there is
 /// more of this file between these" mark, quiet enough not to read as a divider
 /// between files.
-private struct ExcerptGap: View {
+struct ExcerptGap: View {
     var body: some View {
         HStack(spacing: 8) {
             Text("⋯")

@@ -2470,7 +2470,7 @@ final class FyolodSessionLink: @unchecked Sendable {
             // Snapshot-complete. No action: this reader is serial, so `S` has
             // already been rendered by the time this frame is read.
             break
-        case .searchResults:
+        case .searchResults, .referencesResolved:
             // Addressed to a request, not to a session: the files channel that
             // asked reads its own hits (`Fyolod.searchContents`). Nothing on a
             // session's channel can have asked, so there is nobody to give it to.

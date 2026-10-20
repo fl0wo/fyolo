@@ -468,8 +468,8 @@ extension Fyolod {
         ///
         /// Three shapes, because the protocol has three: a control reply carries
         /// `re`, an `F` chunk carries the same id in its binary header, and a
-        /// `search_results` event carries it as `request` — the one event
-        /// addressed to a request rather than to a session.
+        /// `search_results` or `references_resolved` event carries it as
+        /// `request` — the events addressed to a request rather than a session.
         private static func requestID(of frame: (kind: FrameKind, payload: Data)) -> UInt64? {
             switch frame.kind {
             case .control:
@@ -477,10 +477,11 @@ extension Fyolod {
             case .file:
                 return (try? decodeFileChunk(frame.payload))?.request
             case .event:
-                guard case .searchResults(let payload) = try? decodeEvent(frame.payload) else {
-                    return nil
+                switch try? decodeEvent(frame.payload) {
+                case .searchResults(let payload): return payload.request
+                case .referencesResolved(let payload): return payload.request
+                default: return nil
                 }
-                return payload.request
             default:
                 return nil
             }
