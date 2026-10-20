@@ -1,5 +1,23 @@
 import Foundation
 
+/// One local branch of a project's repository and where it is checked out. What
+/// lets the sidebar offer a session on any branch: one already checked out opens
+/// where it is, and one that is not gets a worktree of its own first.
+struct LocalBranch: Equatable, Sendable, Identifiable {
+    enum Location: Equatable, Sendable {
+        /// The project's own checkout.
+        case primary
+        /// A linked worktree, which the sidebar already draws as its own row.
+        case linked
+        /// Nowhere yet.
+        case none
+    }
+
+    let name: String
+    var location: Location
+    var id: String { name }
+}
+
 // MARK: - Worktree discovery
 
 /// Discovers a repo's linked git worktrees so the sidebar reflects them no matter who
@@ -270,6 +288,36 @@ enum WorktreeService {
             }
             return Reconcile(
                 discovered: discovered, stale: stale, absent: absent, canonical: canonical)
+        }
+    }
+
+    /// Every local branch of `repoRoot`, most recently committed first, with where
+    /// each is checked out. One `for-each-ref` — `%(worktreepath)` names the
+    /// checkout a branch is on, so no second listing is needed to tell them apart.
+    /// `nil` when git fails, which the caller reads as "leave the list alone".
+    static func localBranches(in repoRoot: String) async -> [LocalBranch]? {
+        await offMain {
+            guard let listing = run(
+                ["for-each-ref", "--sort=-committerdate",
+                 "--format=%(refname)%00%(worktreepath)", "refs/heads"],
+                in: repoRoot)
+            else { return nil }
+            let primary = canonicalPath(repoRoot)
+            return listing.split(separator: "\n").compactMap { line in
+                let fields = line.split(separator: "\0", omittingEmptySubsequences: false)
+                guard let reference = fields.first, reference.hasPrefix("refs/heads/") else { return nil }
+                let name = String(reference.dropFirst("refs/heads/".count))
+                let checkout = fields.count > 1 ? String(fields[1]) : ""
+                let location: LocalBranch.Location
+                if checkout.isEmpty {
+                    location = .none
+                } else if canonicalPath(checkout) == primary {
+                    location = .primary
+                } else {
+                    location = .linked
+                }
+                return LocalBranch(name: name, location: location)
+            }
         }
     }
 

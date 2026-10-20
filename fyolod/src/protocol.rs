@@ -366,6 +366,10 @@ pub struct TestCounts {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TestRunSummary {
     pub id: String,
+    /// `vitest`, `playwright` or `pytest` (`crate::test_runners::RUNNERS`).
+    /// Reporters that predate the field were all Vitest's.
+    #[serde(default = "vitest")]
+    pub runner: String,
     pub root: String,
     pub state: String,
     /// Unix milliseconds. The client formats it, in its own language.
@@ -394,6 +398,10 @@ pub struct TestRunSummary {
     /// The runner's own arguments, which carry its filters.
     #[serde(default)]
     pub argv: Vec<String>,
+}
+
+fn vitest() -> String {
+    "vitest".to_string()
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -1436,6 +1444,21 @@ pub enum Control {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         re: Option<u64>,
     },
+    /// Which runners are off (capability `test_runs`). The app sends its setting
+    /// whenever it changes and whenever it starts following a device; the
+    /// device keeps the last one (`crate::test_runners`).
+    SetTestRunners {
+        disabled: Vec<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        seq: Option<u64>,
+    },
+    TestRunnersResult {
+        /// The runners this device can record, and the ones that are off.
+        runners: Vec<String>,
+        disabled: Vec<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        re: Option<u64>,
+    },
 
     #[serde(other)]
     Unknown,
@@ -1473,7 +1496,8 @@ impl Control {
             | Control::InstallAgents { seq, .. }
             | Control::ProbeAgents { seq, .. }
             | Control::TestRuns { seq, .. }
-            | Control::TestRunDetail { seq, .. } => *seq,
+            | Control::TestRunDetail { seq, .. }
+            | Control::SetTestRunners { seq, .. } => *seq,
             _ => None,
         }
     }

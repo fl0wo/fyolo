@@ -58,6 +58,41 @@ extension GitService {
         }
     }
 
+    /// `git pull --ff-only`: brings the branch up to its upstream when that is a
+    /// fast-forward, and refuses otherwise — a diverged branch or an uncommitted
+    /// file in the way is the user's to settle in the terminal, never a merge
+    /// commit made on their behalf. Non-interactive like `fetch`. Returns git's
+    /// own words on failure, `nil` on success.
+    static func pull(in root: String, timeout: TimeInterval = 120) async -> String? {
+        await offMain {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+            process.arguments = ["-C", root, "pull", "--ff-only", "--quiet"]
+            var environment = ProcessInfo.processInfo.environment
+            environment["GIT_TERMINAL_PROMPT"] = "0"
+            process.environment = environment
+            process.standardInput = FileHandle.nullDevice
+            process.standardOutput = FileHandle.nullDevice
+            let errors = Pipe()
+            process.standardError = errors
+            do {
+                try process.run()
+            } catch {
+                return error.localizedDescription
+            }
+            let deadline = DispatchTime.now() + timeout
+            DispatchQueue.global(qos: .utility).asyncAfter(deadline: deadline) {
+                if process.isRunning { process.terminate() }
+            }
+            let data = errors.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            guard process.terminationStatus != 0 else { return nil }
+            let message = String(data: data, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return message.isEmpty ? localized("git pull did not complete.") : message
+        }
+    }
+
     /// The files and commits a push (`.outgoing`) or pull (`.incoming`) would carry.
     /// Outgoing measures `HEAD` against `base`, incoming `base` against `HEAD`; both
     /// from the merge base, so a diverged branch shows each side's own changes rather

@@ -200,6 +200,10 @@
 	<string>在 package.json 的每个脚本旁显示运行按钮，使用项目自己的包管理器。</string>
 	<key>A run button beside each target in a Makefile.</key>
 	<string>在 Makefile 的每个目标旁显示运行按钮。</string>
+	<key>A runner switched off stops being recorded at once, and new terminals no longer load it.</key>
+	<string>关闭的运行器会立即停止记录，新终端也不再加载它。</string>
+	<key>A session started here opens in a new worktree on %@.</key>
+	<string>在此启动的会话会在 %@ 的新工作树中打开。</string>
 	<key>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</key>
 	<string>工作区把侧栏限定在归入它的项目和会话上，都在它所属的那台机器上。</string>
 	<key>API key</key>
@@ -334,6 +338,8 @@
 	<string>分支</string>
 	<key>Branch %@</key>
 	<string>分支 %@</string>
+	<key>Branches</key>
+	<string>分支</string>
 	<key>Bring All to Front</key>
 	<string>前置全部窗口</string>
 	<key>Built In</key>
@@ -390,6 +396,8 @@
 	<string>检查更新…</string>
 	<key>Checked %@</key>
 	<string>%@核对过</string>
+	<key>Checked out in %@</key>
+	<string>已在 %@ 中检出</string>
 	<key>Checked out on %@</key>
 	<string>检出在 %@</string>
 	<key>Checking for new commits…</key>
@@ -628,6 +636,8 @@
 	<string>无法打开 Pull Request 页面</string>
 	<key>Couldn’t open the Linear sign-in.</key>
 	<string>无法打开 Linear 登录。</string>
+	<key>Couldn’t pull %@</key>
+	<string>无法拉取 %@</string>
 	<key>Couldn’t reach %@.</key>
 	<string>无法连接到 %@。</string>
 	<key>Couldn’t reach New Relic: %@</key>
@@ -656,8 +666,8 @@
 	<string>无法写入 ~/.ssh/config：%@</string>
 	<key>Count</key>
 	<string>数量</string>
-	<key>Counts uncommitted files beside the branch name, and adds an Inspect tab to the git pane.</key>
-	<string>在分支名称旁统计未提交的文件，并在 Git 面板中添加“检查”标签页。</string>
+	<key>Counts uncommitted files beside the branch name, offers to pull when the remote is ahead, and adds an Inspect tab to the git pane.</key>
+	<string>在分支名称旁统计未提交的文件，远程有新提交时提供拉取，并在 Git 面板中添加“检查”标签页。</string>
 	<key>Create</key>
 	<string>创建</string>
 	<key>Create a Key…</key>
@@ -1710,6 +1720,8 @@
 	<string>发布并结束它们</string>
 	<key>Publishing restarts fyolod on %@</key>
 	<string>发布会重启 %@ 上的 fyolod</string>
+	<key>Pull %lld commits from %@</key>
+	<string>从 %2$@ 拉取 %1$lld 个提交</string>
 	<key>Pull Requests</key>
 	<string>PR</string>
 	<key>Pull request #%lld from %@</key>
@@ -2026,12 +2038,18 @@
 	<string>正在显示全部内容。右键点按与你无关的项，然后选择“隐藏相似项”。</string>
 	<key>Shows</key>
 	<string>显示</string>
+	<key>Shows Playwright Test runs from fyolo terminals in the Tests pane.</key>
+	<string>在“测试”面板中显示 fyolo 终端里的 Playwright Test 运行。</string>
+	<key>Shows Vitest runs from fyolo terminals in the Tests pane.</key>
+	<string>在“测试”面板中显示 fyolo 终端里的 Vitest 运行。</string>
 	<key>Shows files and folders ignored by Git in a muted color.</key>
 	<string>以较淡的颜色显示 Git 忽略的文件和文件夹。</string>
 	<key>Shows logs, metrics and incidents from New Relic in the inspector, filtered down to what you care about.</key>
 	<string>在检查器中显示 New Relic 的日志、指标和事件，只保留你关心的内容。</string>
 	<key>Shows new, removed, and edited files</key>
 	<string>显示新增、删除和修改的文件</string>
+	<key>Shows pytest runs in the Tests pane, through a folder it adds to PYTHONPATH in new terminals.</key>
+	<string>通过在新终端的 PYTHONPATH 中添加一个文件夹，在“测试”面板中显示 pytest 运行。</string>
 	<key>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</key>
 	<string>为远程仓库位于 GitHub 的项目在检查器中显示 Issues 窗格。</string>
 	<key>Shows the total only</key>
@@ -2154,6 +2172,10 @@
 	<string>测试</string>
 	<key>Test Connection</key>
 	<string>测试连接</string>
+	<key>Test Runners</key>
+	<string>测试运行器</string>
+	<key>Test runs started in a fyolo terminal appear here.</key>
+	<string>在 fyolo 终端中启动的测试运行会显示在这里。</string>
 	<key>Tests</key>
 	<string>测试</string>
 	<key>Text</key>
@@ -2466,10 +2488,6 @@
 	<string>%@ 上的版本 %@。断开连接后，会话仍在那里继续运行。</string>
 	<key>View</key>
 	<string>显示</string>
-	<key>Vitest</key>
-	<string>Vitest</string>
-	<key>Vitest runs started in a fyolo terminal appear here.</key>
-	<string>在 fyolo 终端中启动的 Vitest 运行会显示在这里。</string>
 	<key>Wants a password</key>
 	<string>需要密码</string>
 	<key>Warning</key>
@@ -2626,6 +2644,8 @@ Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks
 	<string>git 无法移除“%@”。</string>
 	<key>git no longer tracks “%@”, and its folder still holds files. Delete the folder to remove the worktree.</key>
 	<string>git 已不再跟踪“%@”，且其文件夹中仍有文件。请删除该文件夹后再移除 worktree。</string>
+	<key>git pull did not complete.</key>
+	<string>git pull 未完成。</string>
 	<key>git still lists “%@”, so it was not removed.</key>
 	<string>git 仍列出“%@”，因此未移除。</string>
 	<key>issue.state.open</key>

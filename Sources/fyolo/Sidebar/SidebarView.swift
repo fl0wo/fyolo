@@ -146,6 +146,10 @@ struct SidebarView: View {
     /// Folded tasks, keyed by project and task so one task id in two projects
     /// (a ticket worked in both repos) folds independently.
     @State private var collapsedTasks: Set<String> = []
+    /// The projects whose branch list is open. Tracked as the open ones, not the
+    /// folded ones, so every list starts folded — a repository's branches are a
+    /// place to reach into, not rows to scroll past on every launch.
+    @State private var expandedBranchLists: Set<Project.ID> = []
     @State private var pinnedCollapsed = false
     @State private var projectsCollapsed = false
     @State private var terminalsCollapsed = false
@@ -424,6 +428,32 @@ struct SidebarView: View {
                     }
                 }
             }
+            branchRows(for: project)
+        }
+    }
+
+    /// The repository's local branches that have no worktree row of their own —
+    /// the project checkout's branch, marked, and every branch no checkout has —
+    /// under one foldable label, so a session can be started on any of them.
+    @ViewBuilder
+    private func branchRows(for project: Project) -> some View {
+        let branches = (store.localBranches[project.id] ?? []).filter { $0.location != .linked }
+        if !branches.isEmpty, !store.isOnAnotherDevice(project) {
+            let isCollapsed = !expandedBranchLists.contains(project.id)
+            BranchListHeader(count: branches.count, isCollapsed: isCollapsed, chrome: chrome) {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    if isCollapsed {
+                        expandedBranchLists.insert(project.id)
+                    } else {
+                        expandedBranchLists.remove(project.id)
+                    }
+                }
+            }
+            if !isCollapsed {
+                ForEach(branches) { branch in
+                    BranchRow(project: project, branch: branch, chrome: chrome)
+                }
+            }
         }
     }
 
@@ -471,6 +501,7 @@ struct SidebarView: View {
                 leadingIndent: 16
             )
         }
+        branchRows(for: project)
     }
 
     /// The sessions the checkout tree would draw for `project` — every main
@@ -1300,6 +1331,137 @@ private struct TaskHeader: View {
     }
 }
 
+/// The fold over a project's branch list: a muted label at the worktree headers'
+/// indent, with the count so a folded list still says how much it holds.
+private struct BranchListHeader: View {
+    @EnvironmentObject var settings: AppSettings
+    let count: Int
+    let isCollapsed: Bool
+    let chrome: ChromeTheme?
+    let toggleCollapsed: () -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            HugeIconView(icon: .gitBranch, size: 13, color: .secondary)
+                .frame(width: 16)
+            Text(localized("Branches"))
+                .font(settings.interfaceFont)
+                .foregroundStyle(.secondary)
+            Text(String(count))
+                .font(settings.interfaceFont.monospacedDigit())
+                .foregroundStyle(.tertiary)
+            HugeIconView(icon: .chevronRight, size: 7.5, color: .secondary, lineWidthOverride: 1.75)
+                .rotationEffect(.degrees(isCollapsed ? 0 : 90))
+            Spacer(minLength: 4)
+        }
+        .padding(.vertical, 3)
+        .padding(.leading, 16 - sidebarLeadingTrim)
+        .contentShape(Rectangle())
+        .onTapGesture { toggleCollapsed() }
+        .background(OutlineViewFixups())
+        .listRowBackground(SidebarRowHighlight(isSelected: false, isHovering: false, chrome: chrome))
+        .animation(.easeInOut(duration: 0.18), value: isCollapsed)
+    }
+}
+
+/// One local branch with nowhere of its own in the tree yet. Hovering offers the
+/// same quick-add cluster a worktree header does: on the project checkout's own
+/// branch the session opens there, and on any other it opens in a new worktree
+/// checked out on that branch, which then takes this row's place.
+private struct BranchRow: View {
+    @EnvironmentObject var store: FyoloStore
+    @EnvironmentObject var settings: AppSettings
+    let project: Project
+    let branch: LocalBranch
+    let chrome: ChromeTheme?
+    @State private var isHovering = false
+    @State private var isMenuOpen = false
+
+    private var presets: [AgentPreset] { headerSessionPresets(settings) }
+
+    private var isCurrent: Bool { branch.location == .primary }
+
+    private var quickAddClusterWidth: CGFloat {
+        let count = presets.count
+        guard count > 0 else { return 0 }
+        return CGFloat(count) * 22 + CGFloat(count - 1) * 3
+    }
+
+    private var help: String {
+        isCurrent
+            ? localized("Checked out in \(project.name)")
+            : localized("A session started here opens in a new worktree on \(branch.name).")
+    }
+
+    private func addSession(_ preset: AgentPreset) {
+        store.addSession(to: project.id, agent: preset, onBranch: branch)
+    }
+
+    private var menuItems: [SidebarMenuItem] {
+        [
+            .action(localized("New Terminal")) { addSession(.terminal) },
+            .submenu(localized("New Agent Session"), enabledAgentPresets(settings)
+                .filter { $0 != .terminal }
+                .map { preset in .agent(preset) { addSession(preset) } }),
+            .separator,
+            .action(localized("Copy Branch Name")) {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(branch.name, forType: .string)
+            },
+        ]
+    }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Color.clear.frame(width: 16)
+            // Verbatim, like a worktree header: a branch name is case-sensitive and
+            // copy-pasteable into `git switch`.
+            Text(branch.name)
+                .font(settings.interfaceFont)
+                .foregroundStyle(isCurrent
+                    ? (chrome.map { AnyShapeStyle($0.foreground) } ?? AnyShapeStyle(.primary))
+                    : AnyShapeStyle(.secondary))
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Spacer(minLength: 4)
+            if isCurrent {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .mask(
+            HStack(spacing: 0) {
+                Rectangle().fill(.black)
+                LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: isHovering ? 18 : 0)
+                Color.clear.frame(width: isHovering ? quickAddClusterWidth + 6 : 0)
+            }
+        )
+        .overlay(alignment: .trailing) {
+            HStack(spacing: 3) {
+                ForEach(presets) { preset in
+                    AgentQuickAddButton(preset: preset, chrome: chrome) { addSession(preset) }
+                }
+            }
+            .opacity(isHovering ? 1 : 0)
+            .allowsHitTesting(isHovering)
+        }
+        .padding(.vertical, 3)
+        .padding(.leading, 16 - sidebarLeadingTrim)
+        .contentShape(Rectangle())
+        .help(help)
+        .onHover { isHovering = $0 }
+        .background(SidebarRowContextMenu(items: { menuItems }) { isMenuOpen = $0 })
+        .background(OutlineViewFixups())
+        .listRowBackground(
+            SidebarRowHighlight(isSelected: false, isHovering: isMenuOpen, chrome: chrome)
+                .animation(.easeInOut(duration: 0.12), value: isMenuOpen)
+        )
+        .animation(.easeInOut(duration: 0.12), value: isHovering)
+    }
+}
+
 @MainActor
 func enabledAgentPresets(_ settings: AppSettings) -> [AgentPreset] {
     settings.orderedAgents(AgentPreset.allCases.filter(settings.isAgentEnabled))
@@ -1870,19 +2032,16 @@ private struct EndedSessionRow: View {
             AgentIconView(agent: store.effectiveAgent(for: session), size: 15)
                 .frame(width: 16)
                 .opacity(0.5)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(store.displayTitle(for: session))
-                    .font(settings.interfaceFont)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                Text(reason)
-                    .font(settings.interfaceFont)
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
-            }
+            // The dimmed icon and title are the whole "ended" cue; the reason waits
+            // in the tooltip rather than costing every buried row a second line.
+            Text(store.displayTitle(for: session))
+                .font(settings.interfaceFont)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
             Spacer(minLength: 4)
         }
+        .help(reason)
         .padding(.vertical, settings.interfaceRowPadding)
         .padding(.leading, leadingIndent - sidebarLeadingTrim)
         .modifier(SessionRowDragAndDrop(session: session, chrome: chrome))

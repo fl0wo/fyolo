@@ -1,8 +1,9 @@
+import AppKit
 import FyoloShared
 import SwiftUI
 
-/// The inspector's Tests pane: one Vitest run at a time, the newest by default,
-/// with a picker for the last few. Read-only. The run says how many tests failed
+/// The inspector's Tests pane: one test run at a time, the newest by default,
+/// with a picker for the last few, whichever runner each came from. Read-only. The run says how many tests failed
 /// and passed, then lists the failures by file, each opening to its message and
 /// diff, with the passing files folded beneath. A live run counts up in place and
 /// shows its results when it ends.
@@ -40,8 +41,8 @@ struct TestRunsView: View {
                 .task(id: "\(run.id)|\(run.state)") { model.loadDetail(for: run) }
             } else {
                 PaneEmptyState(
-                    localized("No Test Runs"), icon: .vitest,
-                    message: localized("Vitest runs started in a fyolo terminal appear here."))
+                    localized("No Test Runs"), icon: .beaker,
+                    message: localized("Test runs started in a fyolo terminal appear here."))
             }
         }
         .paneSettled(model.hasAnswered)
@@ -49,9 +50,15 @@ struct TestRunsView: View {
 
     private var topBar: some View {
         HStack(spacing: 6) {
-            HugeIconView(icon: .vitest, size: 13, color: .secondary, lineWidthOverride: 1.5)
-            Text(localized("Vitest"))
-                .font(.system(size: 12, weight: .semibold))
+            if let run = selected {
+                TestRunnerMark(runner: run.runner)
+                Text(verbatim: run.runnerName)
+                    .font(.system(size: 12, weight: .semibold))
+            } else {
+                HugeIconView(icon: .beaker, size: 13, color: .secondary, lineWidthOverride: 1.5)
+                Text(localized("Tests"))
+                    .font(.system(size: 12, weight: .semibold))
+            }
             Spacer(minLength: 0)
             if model.runs.count > 1 { runPicker }
         }
@@ -68,7 +75,12 @@ struct TestRunsView: View {
                 set: { id in pickedID = id == model.runs.first?.id ? nil : id })
             ) {
                 ForEach(model.runs) { run in
-                    Text(run.menuTitle(now: Date())).tag(run.id)
+                    Label {
+                        Text(run.menuTitle(now: Date()))
+                    } icon: {
+                        TestRunnerMark.menuImage(runner: run.runner)
+                    }
+                    .tag(run.id)
                 }
             }
             .pickerStyle(.inline)
@@ -188,9 +200,13 @@ private extension Fyolod.TestRunSummary {
     /// with no failed test to count.
     var failedWithoutFailedTests: Bool { state == "failed" && counts.failed == 0 }
 
-    /// What ran: the package, then the runner's own filters.
+    var runnerName: String { TestRunner.named(runner)?.name ?? runner }
+
+    /// What ran: the package, then the runner's own filters, without the
+    /// subcommand every run of that runner carries.
     var scope: String? {
-        let filters = argv.filter { $0 != "run" && $0 != "--run" }.joined(separator: " ")
+        let subcommands: Set<String> = runner == "playwright" ? ["test"] : ["run", "--run"]
+        let filters = argv.filter { !subcommands.contains($0) }.joined(separator: " ")
         let parts = [package, filters.isEmpty ? nil : filters].compactMap { $0 }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
@@ -213,8 +229,9 @@ private extension Fyolod.TestRunSummary {
         return [interrupted, relativeStart(now: now), duration, scope].compactMap { $0 }.joined(separator: " · ")
     }
 
-    /// One line per run in the picker: the result first, since that is what a
-    /// look back is for, then when, then the command.
+    /// One line per run in the picker, after the runner's mark: the result
+    /// first, since that is what a look back is for, then when, then the
+    /// command.
     func menuTitle(now: Date) -> String {
         let result: String
         if isRunning {
@@ -229,6 +246,38 @@ private extension Fyolod.TestRunSummary {
             result = localized("\(counts.passed) passed")
         }
         return [result, relativeStart(now: now), command].compactMap { $0 }.joined(separator: " · ")
+    }
+}
+
+/// A run's runner by its bundled logo, or the beaker for a runner newer than
+/// this app.
+private struct TestRunnerMark: View {
+    let runner: String
+    var size: CGFloat = 13
+
+    var body: some View {
+        if let image = Self.logo(runner: runner) {
+            Image(nsImage: image)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: size, height: size)
+        } else {
+            HugeIconView(icon: .beaker, size: size, color: .secondary, lineWidthOverride: 1.5)
+        }
+    }
+
+    /// A menu draws an image at its own size and ignores SwiftUI's frame, so
+    /// the picker gets a copy sized for a menu row.
+    static func menuImage(runner: String) -> Image {
+        guard let logo = logo(runner: runner), let sized = logo.copy() as? NSImage else {
+            return Image(systemName: "flask")
+        }
+        sized.size = NSSize(width: 14, height: 14)
+        return Image(nsImage: sized)
+    }
+
+    private static func logo(runner: String) -> NSImage? {
+        TestRunner.named(runner).flatMap { LangIconLoader.shared.image(named: $0.mark) }
     }
 }
 
@@ -407,7 +456,8 @@ private struct TestFailureRow: View {
     }
 }
 
-/// Vitest's diff, with its `-`/`+` lines tinted the way the runner prints them.
+/// A failure's diff, with its `-` (expected) and `+` (received) lines tinted
+/// the way Vitest prints them. pytest's assertion diffs use the same signs.
 private struct DiffText: View {
     let diff: String
 

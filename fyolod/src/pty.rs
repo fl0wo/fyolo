@@ -319,13 +319,10 @@ impl Pty {
             }
             cmd.env("ZDOTDIR", shim);
         }
-        // Record Vitest runs (see `crate::node_integration`). The flag is
-        // appended to whatever NODE_OPTIONS the session already carries.
-        if let Some(flag) = crate::node_integration::require_flag() {
-            let options =
-                crate::node_integration::node_options(lookup("NODE_OPTIONS").as_deref(), &flag);
-            cmd.env("NODE_OPTIONS", options);
-            cmd.env("FYOLOD_NODE_OPTIONS", flag);
+        // Record test runs (see `crate::test_runners`). Each family's entry is
+        // appended to whatever the session already carries.
+        for (key, value) in crate::test_runners::session_env(&lookup) {
+            cmd.env(key, value);
         }
         if login_shell {
             // argv[0] = "-<shell>" marks a login shell to the shell itself.

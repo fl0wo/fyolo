@@ -1,12 +1,12 @@
 import FyoloShared
 import Foundation
 
-/// The test-run plane: a project's Vitest runs as the device recorded them
-/// (`fyolod/src/test_runs.rs`).
+/// The test-run plane: a project's test runs as the device recorded them
+/// (`fyolod/src/test_runs.rs`), from every runner it records.
 ///
 /// The runs are reported by the test runner itself, from inside the session,
 /// through a reporter fyolod adds beside the user's own
-/// (`fyolod/src/node_integration.rs`). Nothing here reads a terminal. The list
+/// (`fyolod/src/test_runners.rs`). Nothing here reads a terminal. The list
 /// and each run's detail are requests. Live progress is the `tests:` resource,
 /// whose events each replace one run's row.
 extension Fyolod {
@@ -26,6 +26,8 @@ extension Fyolod {
     /// `interrupted`; anything newer reads as finished without a verdict.
     struct TestRunSummary: Decodable, Sendable, Equatable, Identifiable {
         let id: String
+        /// `vitest`, `playwright`, `pytest`, or a runner newer than this app.
+        let runner: String
         let root: String
         let state: String
         /// Unix milliseconds.
@@ -44,13 +46,15 @@ extension Fyolod {
         var startedDate: Date { Date(timeIntervalSince1970: TimeInterval(startedAt) / 1000) }
 
         private enum CodingKeys: String, CodingKey {
-            case id, root, state, startedAt, durationMs, counts, filesTotal, filesDone
+            case id, runner, root, state, startedAt, durationMs, counts, filesTotal, filesDone
             case package, session, commandId, command, argv
         }
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             id = try container.decode(String.self, forKey: .id)
+            // Daemons before the field recorded Vitest only.
+            runner = try container.decodeIfPresent(String.self, forKey: .runner) ?? "vitest"
             root = try container.decode(String.self, forKey: .root)
             state = try container.decode(String.self, forKey: .state)
             startedAt = try container.decode(UInt64.self, forKey: .startedAt)
@@ -140,6 +144,16 @@ extension Fyolod {
         }.detail
     }
 
+    /// Tells the device which runners are off. It keeps the set and applies it
+    /// to every session, open ones included (`fyolod/src/test_runners.rs`).
+    static func setTestRunners(route: FyolodRoute, disabled: [String]) async throws {
+        _ = try await testRunsRequest(
+            route: route, WireTestRunnersResult.self, operation: "test runners"
+        ) { seq in
+            try encodeControl(SetTestRunnersOperation(disabled: disabled, seq: seq))
+        }
+    }
+
     /// Subscribes to a project's live runs. `root` must be the key `testRuns`
     /// returned. Every first subscribe is a gap: the caller lists, then applies
     /// what arrives.
@@ -204,6 +218,16 @@ extension Fyolod {
         let root: String
         let id: String
         let seq: UInt64
+    }
+
+    private struct SetTestRunnersOperation: Encodable {
+        let op = "set_test_runners"
+        let disabled: [String]
+        let seq: UInt64
+    }
+
+    private struct WireTestRunnersResult: Decodable, Sendable {
+        let disabled: [String]
     }
 
     private struct WireTestRunsResult: Decodable, Sendable {

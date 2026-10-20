@@ -233,6 +233,11 @@ final class FyoloStore: ObservableObject {
     /// high-frequency working-event updates off the disk-writing `projects` array.
     @Published var liveActivity: [Project.ID: Date] = [:]
 
+    /// Each local project's branches, most recently committed first. Read by the
+    /// worktree reconcile pass, so it moves on the same git events and app
+    /// activations; in-memory only, since git is the source of truth.
+    @Published var localBranches: [Project.ID: [LocalBranch]] = [:]
+
     /// The file currently open in the editor overlay, or `nil` when the terminal is showing.
     /// Transient UI state: clicking a text file in the inspector sets it, and the terminal
     /// pane covers itself with the editor while it is non-nil (see `TerminalPane` / `FileEditorView`).
@@ -1353,10 +1358,13 @@ final class FyoloStore: ObservableObject {
         settingsObserver = settings.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] in
-                self?.applyAppearanceToOpenSurfaces()
-                self?.syncHooksInstallationIfNeeded()
-                self?.syncSessionControlInstallationIfNeeded()
+                guard let self else { return }
+                self.applyAppearanceToOpenSurfaces()
+                self.syncHooksInstallationIfNeeded()
+                self.syncSessionControlInstallationIfNeeded()
+                self.testRuns.setDisabledRunners(TestRunner.disabled(in: self.settings))
             }
+        testRuns.setDisabledRunners(TestRunner.disabled(in: settings))
 
         // A branch label changing is not a change to the persisted tree, so the
         // BranchModel owns its own published state; forward its updates into ours so
@@ -1529,13 +1537,21 @@ final class FyoloStore: ObservableObject {
             // stripping its verbs until some unrelated git event.
             worktreeReconcileTicket += 1
             let ticket = worktreeReconcileTicket
+            // A checkout on another machine is not on this disk; a path that
+            // happens to exist here would be some other repository's branches.
+            let readsBranches = !isOnAnotherDevice(project)
             Task { [weak self] in
+                async let branchRead = readsBranches ? WorktreeService.localBranches(in: path) : nil
                 // `nil` means git errored (not a repo, transient) → leave the list untouched.
                 guard let reconciled = await WorktreeService.reconcile(in: path, against: known)
                 else { return }
+                let branches = await branchRead
                 await MainActor.run {
                     guard let self, self.acceptWorktreeReconcile(ticket, for: id) else { return }
                     self.applyDiscoveredWorktrees(reconciled, to: id)
+                    if let branches, self.localBranches[id] != branches {
+                        self.localBranches[id] = branches
+                    }
                 }
             }
         }

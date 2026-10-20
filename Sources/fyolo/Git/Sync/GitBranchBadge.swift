@@ -117,6 +117,59 @@ struct GitBranchBadge: View {
     }
 }
 
+/// Beside the branch name while its upstream has commits the branch lacks: a capsule
+/// with the count that pulls them in, the uncommitted badge's shape and size so the two
+/// read as one family. Absent when there is nothing to pull.
+private struct GitPullButton: View {
+    @ObservedObject var model: GitSyncModel
+    let status: GitSyncStatus
+
+    @State private var isHovered = false
+    @Environment(\.controlActiveState) private var controlActive
+
+    var body: some View {
+        Button {
+            model.pull()
+        } label: {
+            HStack(spacing: 2) {
+                if model.isPulling {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .scaleEffect(0.6)
+                        .frame(width: 8, height: 8)
+                } else {
+                    Image(systemName: "arrow.down")
+                        .font(.system(size: 7.5, weight: .bold))
+                }
+                Text(status.behind > 99 ? "99+" : String(status.behind))
+                    .contentTransition(.numericText(value: Double(status.behind)))
+            }
+            .font(.system(size: 8.5, weight: .semibold).monospacedDigit())
+            .foregroundStyle(controlActive == .inactive ? Color(nsColor: .disabledControlTextColor) : .primary)
+            .lineLimit(1)
+            .padding(.horizontal, 5)
+            .frame(minHeight: 13, maxHeight: 13)
+            .background {
+                Capsule(style: .continuous)
+                    .fill(Color.primary.opacity(isHovered ? 0.24 : 0.16))
+            }
+            .contentShape(.capsule)
+        }
+        .buttonStyle(BadgePressStyle())
+        .fixedSize()
+        .disabled(model.isPulling)
+        .onContinuousHover { phase in
+            let hovering: Bool
+            if case .active = phase { hovering = true } else { hovering = false }
+            guard hovering != isHovered else { return }
+            withAnimation(.easeOut(duration: 0.12)) { isHovered = hovering }
+        }
+        .gitPointer(.link)
+        .help(localized("Pull \(status.behind) commits from \(status.upstream ?? "")"))
+        .accessibilityLabel(localized("Pull \(status.behind) commits from \(status.upstream ?? "")"))
+    }
+}
+
 /// A press the badge acknowledges at once, before the morph it starts has moved.
 private struct BadgePressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -225,9 +278,15 @@ struct GitBranchLabel: View {
                     GitBranchBadge(status: status)
                         .transition(reduceMotion ? .opacity : AnyTransition(.blurReplace))
                 }
+                if status.upstream != nil, status.behind > 0 {
+                    GitPullButton(model: model, status: status)
+                        .transition(reduceMotion ? .opacity : AnyTransition(.blurReplace))
+                }
             }
             .animation(reduceMotion ? nil : .spring(duration: 0.28, bounce: 0),
                        value: status.changedFiles > 0)
+            .animation(reduceMotion ? nil : .spring(duration: 0.28, bounce: 0),
+                       value: status.behind > 0)
         } else {
             name.help(branch)
         }

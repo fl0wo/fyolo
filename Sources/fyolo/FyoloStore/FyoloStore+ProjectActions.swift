@@ -104,25 +104,11 @@ extension FyoloStore {
         let project = projects[index]
 
         let repoName = (project.path as NSString).lastPathComponent
-        let worktreeRoot = AppChannel.homeConfigDirectory
-            .appendingPathComponent("worktrees", isDirectory: true)
-
         // Let the user name the worktree, defaulting to the next free `<repo>-worktree-N`.
         // Bailing out of the prompt leaves the tree untouched.
         let suggestion = uniqueWorktreeDirName(from: "\(repoName)-worktree", root: worktreeRoot)
         guard let entered = promptForWorktreeName(defaultName: suggestion) else { return }
 
-        // A hand-typed name can be non-filesystem-safe or collide with an existing
-        // worktree; sanitize it and bump a counter so the path is always fresh.
-        let dirName = uniqueWorktreeDirName(from: entered, root: worktreeRoot)
-        let worktreePath = worktreeRoot.appendingPathComponent(dirName, isDirectory: true).path
-
-        do {
-            try FileManager.default.createDirectory(at: worktreeRoot, withIntermediateDirectories: true)
-        } catch {
-            presentWorktreeFailure(message: localized("Couldn’t create the worktrees folder: \(error.localizedDescription)"))
-            return
-        }
         // Create the worktree on a fresh branch named after it, not detached. A
         // detached HEAD has no name, so every git-aware surface improvises a different
         // label for the same checkout — the sidebar node shows the folder name while
@@ -130,14 +116,75 @@ extension FyoloStore {
         // branch makes all three agree (and the shell prompt is only reachable this
         // way — zsh reads HEAD itself). The dir name is already collision-free on disk;
         // the branch needs its own guard, since a branch can exist with no worktree.
-        let branchName = uniqueBranchName(base: dirName, in: project.path)
-        guard runGit(["worktree", "add", "-b", branchName, worktreePath, "HEAD"], in: project.path) != nil else {
-            presentWorktreeFailure(message: localized("git couldn’t create a worktree for “\(project.name)”. Is it a git repository with at least one commit?"))
-            return
+        createWorktree(in: index, named: entered) { directoryName, worktreePath in
+            let branchName = uniqueBranchName(base: directoryName, in: project.path)
+            return ["worktree", "add", "-b", branchName, worktreePath, "HEAD"]
         }
+    }
 
+    /// Starts a session on `branch`, wherever it is checked out. A branch no
+    /// checkout has yet gets a worktree of its own first — the primary checkout
+    /// is never switched under the sessions already running in it.
+    func addSession(to projectID: Project.ID, agent: AgentPreset, onBranch branch: LocalBranch) {
+        guard let index = projects.firstIndex(where: { $0.id == projectID }) else { return }
+        switch branch.location {
+        case .primary:
+            addSession(to: projectID, agent: agent)
+        case .linked:
+            // Opening it anywhere else would put the session on the wrong branch.
+            guard let worktree = projects[index].worktrees.first(where: {
+                !$0.missing && self.branch(forFolder: $0.path) == branch.name
+            }) else {
+                Log.app.info("no worktree row for checked-out branch \(branch.name, privacy: .public)")
+                return
+            }
+            addSession(to: projectID, agent: agent, worktreePath: worktree.path)
+        case .none:
+            let repoName = (projects[index].path as NSString).lastPathComponent
+            guard let worktreePath = createWorktree(in: index, named: "\(repoName)-\(branch.name)", arguments: {
+                ["worktree", "add", $1, branch.name]
+            }) else { return }
+            // Marked as checked out now rather than on the next reconcile, so the
+            // row leaves at once and a second click cannot ask git for a second
+            // checkout of the same branch.
+            if let row = localBranches[projectID]?.firstIndex(where: { $0.name == branch.name }) {
+                localBranches[projectID]?[row].location = .linked
+            }
+            addSession(to: projectID, agent: agent, worktreePath: worktreePath)
+        }
+    }
+
+    private var worktreeRoot: URL {
+        AppChannel.homeConfigDirectory.appendingPathComponent("worktrees", isDirectory: true)
+    }
+
+    /// Makes a linked checkout under the worktrees folder and files it under the
+    /// project. `arguments` builds the `git worktree add` call from the folder
+    /// name and path, so each caller decides only which branch the checkout is on.
+    /// Returns the new checkout's path, or `nil` after telling the user why not.
+    @discardableResult
+    private func createWorktree(
+        in index: Int, named proposed: String,
+        arguments: (_ directoryName: String, _ worktreePath: String) -> [String]
+    ) -> String? {
+        let project = projects[index]
+        // A hand-typed name can be non-filesystem-safe or collide with an existing
+        // worktree; sanitize it and bump a counter so the path is always fresh.
+        let directoryName = uniqueWorktreeDirName(from: proposed, root: worktreeRoot)
+        let worktreePath = worktreeRoot.appendingPathComponent(directoryName, isDirectory: true).path
+        do {
+            try FileManager.default.createDirectory(at: worktreeRoot, withIntermediateDirectories: true)
+        } catch {
+            presentWorktreeFailure(message: localized("Couldn’t create the worktrees folder: \(error.localizedDescription)"))
+            return nil
+        }
+        guard runGit(arguments(directoryName, worktreePath), in: project.path) != nil else {
+            presentWorktreeFailure(message: localized("git couldn’t create a worktree for “\(project.name)”. Is it a git repository with at least one commit?"))
+            return nil
+        }
         copyWorktreeIncludes(from: project.path, to: worktreePath)
         projects[index].worktrees.append(Worktree(path: worktreePath))
+        return worktreePath
     }
 
     /// A branch name free in `repo`, starting from `base` and bumping a `-2`, `-3`, …

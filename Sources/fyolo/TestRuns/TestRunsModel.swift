@@ -2,8 +2,8 @@ import Combine
 import FyoloShared
 import Foundation
 
-/// The selected checkout's Vitest runs, live and recorded: the inspector's Tests
-/// segment and pane read the same state.
+/// The selected checkout's test runs, live and recorded, from every runner the
+/// device records: the inspector's Tests segment and pane read the same state.
 ///
 /// The device records every run whether or not anyone is watching
 /// (`fyolod/src/test_runs.rs`), so this model only has to follow the checkout on
@@ -36,6 +36,10 @@ final class TestRunsModel: ObservableObject {
     private var lastSeq: UInt64 = 0
     /// Events received before the list arrived, applied on top of it.
     private var heldBack: [(seq: UInt64, run: Fyolod.TestRunSummary)]?
+    /// The runners switched off in Settings, and the devices told so since it
+    /// last changed.
+    private var disabledRunners: [String]?
+    private var toldRoutes: Set<FyolodRoute> = []
 
     var latest: Fyolod.TestRunSummary? { runs.first }
 
@@ -54,7 +58,34 @@ final class TestRunsModel: ObservableObject {
         subscription = nil
         generation += 1
         guard let checkout, let candidate = checkout.root else { return }
+        tellRunners(to: checkout.device.route)
         arm(route: checkout.device.route, root: candidate, generation: generation)
+    }
+
+    /// Sends the runners switched off to this Mac's device now, and to any other
+    /// device when it is first followed. Each device keeps the last set it was
+    /// sent, so its sessions honour it while no app is connected.
+    func setDisabledRunners(_ disabled: [String]) {
+        guard disabled != disabledRunners else { return }
+        disabledRunners = disabled
+        toldRoutes = []
+        tellRunners(to: .local)
+        if let route = checkout?.device.route { tellRunners(to: route) }
+    }
+
+    private func tellRunners(to route: FyolodRoute) {
+        guard let disabled = disabledRunners, toldRoutes.insert(route).inserted else { return }
+        Task { [weak self] in
+            do {
+                try await Fyolod.setTestRunners(route: route, disabled: disabled)
+            } catch FyolodClientError.unsupportedCapability {
+                // A daemon that records no runs has nothing to switch off.
+            } catch {
+                Log.fyolod.error("setting test runners failed: \(error.localizedDescription, privacy: .public)")
+                guard let self, self.disabledRunners == disabled else { return }
+                self.toldRoutes.remove(route)
+            }
+        }
     }
 
     /// Fetches a finished run's per-file results and failures once.
@@ -170,5 +201,38 @@ final class TestRunsModel: ObservableObject {
                   !self.arming, let checkout = self.checkout, let root = checkout.root else { return }
             self.arm(route: checkout.device.route, root: root, generation: generation)
         }
+    }
+}
+
+/// A runner the device can record, as the app shows it. The Tests pane marks
+/// each run with its runner, and Settings ▸ Plugins has a switch for each.
+struct TestRunner: Identifiable {
+    /// The device's name for it (`fyolod/src/test_runners.rs` `RUNNERS`).
+    let id: String
+    let name: String
+    /// Its bundled Devicon mark (`Sources/fyolo/LangIcons`).
+    let mark: String
+    let summary: String
+
+    /// Its switch, stored with the plugins' in `AppSettings.disabledPlugins`.
+    var pluginID: String { "tests.\(id)" }
+
+    static let all: [TestRunner] = [
+        TestRunner(
+            id: "vitest", name: "Vitest", mark: "vitest",
+            summary: localized("Shows Vitest runs from fyolo terminals in the Tests pane.")),
+        TestRunner(
+            id: "playwright", name: "Playwright", mark: "playwright",
+            summary: localized("Shows Playwright Test runs from fyolo terminals in the Tests pane.")),
+        TestRunner(
+            id: "pytest", name: "pytest", mark: "python",
+            summary: localized("Shows pytest runs in the Tests pane, through a folder it adds to PYTHONPATH in new terminals.")),
+    ]
+
+    static func named(_ id: String) -> TestRunner? { all.first { $0.id == id } }
+
+    @MainActor
+    static func disabled(in settings: AppSettings) -> [String] {
+        all.filter { !settings.isPluginEnabled($0.pluginID) }.map(\.id)
     }
 }
