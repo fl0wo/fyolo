@@ -11,8 +11,8 @@
 //! is GPLv3 via Kitty's and this repository is MIT.
 //!
 //! The shim's `preexec` also stamps each command line's id and text into the
-//! environment, and restores the node integration's `NODE_OPTIONS` flag, both
-//! for `crate::node_integration`.
+//! environment, and restores the test-run integrations' `NODE_OPTIONS` and
+//! `PYTHONPATH` entries, all for `crate::test_runners`.
 //!
 //! Only zsh is instrumented. It is the login shell these sessions almost
 //! always run, and it is the shell whose redisplay produced the duplicated
@@ -73,8 +73,8 @@ _fyolod_capture_status() { _fyolod_exit_status=$?; }
 
 # Every process a command line starts inherits these. The test-run integration
 # files the runs one command started (`make test` running Vitest twice) under
-# that command. NODE_OPTIONS gets the integration's flag back if a .zshrc or
-# an interactive export replaced it.
+# that command. NODE_OPTIONS and PYTHONPATH get the integrations' entries back
+# if a .zshrc or an interactive export replaced them.
 typeset -gi _fyolod_command_count=0
 _fyolod_preexec() {
     builtin print -rn -- $'\e]133;C\a'
@@ -84,6 +84,9 @@ _fyolod_preexec() {
     builtin export FYOLOD_COMMAND="${1[1,200]}"
     if [[ -n "${FYOLOD_NODE_OPTIONS:-}" && " ${NODE_OPTIONS:-} " != *" $FYOLOD_NODE_OPTIONS "* ]]; then
         builtin export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }$FYOLOD_NODE_OPTIONS"
+    fi
+    if [[ -n "${FYOLOD_PYTHONPATH:-}" && ":${PYTHONPATH:-}:" != *":$FYOLOD_PYTHONPATH:"* ]]; then
+        builtin export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}$FYOLOD_PYTHONPATH"
     fi
 }
 

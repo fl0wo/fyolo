@@ -5,17 +5,18 @@
 // It never writes to stdout or stderr, and every failure is silent. The user's
 // terminal output must be byte-identical with and without it.
 
-import net from 'node:net';
 import path from 'node:path';
-import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
-
-const KIND_CONTROL = 0x43;
-const PROGRESS_INTERVAL_MS = 250;
-const FINAL_DRAIN_MS = 500;
-const MAX_FAILURES = 200;
-const MAX_TESTS = 20000;
-const MAX_TEXT = 8192;
+import {
+  Channel,
+  plain,
+  repositoryRoot,
+  packageName,
+  sessionFields,
+  PROGRESS_INTERVAL_MS,
+  MAX_FAILURES,
+  MAX_TESTS,
+} from './channel.cjs';
 
 const attached = new WeakSet();
 
@@ -35,76 +36,10 @@ export function fyoloTestRunsPlugin() {
   };
 }
 
-function encode(message) {
-  const payload = Buffer.from(JSON.stringify(message));
-  const header = Buffer.alloc(5);
-  header[0] = KIND_CONTROL;
-  header.writeUInt32BE(payload.length, 1);
-  return Buffer.concat([header, payload]);
-}
-
-class Channel {
-  constructor(socketPath) {
-    this.dead = false;
-    try {
-      this.socket = net.createConnection(socketPath);
-      this.socket.on('error', () => {
-        this.dead = true;
-      });
-      // Replies are not needed; reading them keeps the daemon's writes from stalling.
-      this.socket.on('data', () => {});
-      // A watch-mode Vitest that the user quits must not stay alive for this socket.
-      this.socket.unref();
-      this.socket.write(
-        encode({ op: 'hello', proto: 1, min_proto: 1, role: 'control', caps: ['test_runs'], client: 'fyolo-vitest' }),
-      );
-    } catch {
-      this.dead = true;
-    }
-  }
-
-  send(message) {
-    if (this.dead) return Promise.resolve();
-    return new Promise((resolve) => {
-      try {
-        this.socket.write(encode(message), () => resolve());
-      } catch {
-        this.dead = true;
-        resolve();
-      }
-    });
-  }
-}
-
-// Strips SGR and other CSI sequences, which Vitest leaves in diffs.
-function plain(text) {
-  if (typeof text !== 'string') return undefined;
-  const stripped = text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '');
-  return stripped.length > MAX_TEXT ? `${stripped.slice(0, MAX_TEXT)}…` : stripped;
-}
-
-function repositoryRoot(directory) {
-  let current = directory;
-  for (;;) {
-    if (fs.existsSync(path.join(current, '.git'))) return current;
-    const parent = path.dirname(current);
-    if (parent === current) return directory;
-    current = parent;
-  }
-}
-
-function packageName(directory) {
-  try {
-    return JSON.parse(fs.readFileSync(path.join(directory, 'package.json'), 'utf8')).name || undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 class FyoloReporter {
   onInit(vitest) {
     this.vitest = vitest;
-    this.channel = new Channel(process.env.FYOLOD_SOCK);
+    this.channel = new Channel('fyolo-vitest');
     this.vitestRoot = vitest.config.root;
     this.root = repositoryRoot(this.vitestRoot);
     this.package = packageName(this.vitestRoot);
@@ -144,20 +79,18 @@ class FyoloReporter {
     this.counts = detail.counts;
     this.filesDone = detail.files.length;
     const state = reason === 'interrupted' ? 'interrupted' : reason === 'failed' ? 'failed' : 'passed';
-    const sent = this.report({ state, detail: { files: detail.files, failures: detail.failures } });
-    await Promise.race([sent, new Promise((resolve) => setTimeout(resolve, FINAL_DRAIN_MS).unref())]);
+    await this.report({ state, detail: { files: detail.files, failures: detail.failures } }, true);
   }
 
-  report(extra = {}) {
+  report(extra = {}, final = false) {
     if (!this.channel || !this.run) return Promise.resolve();
-    return this.channel.send({
+    return this.channel[final ? 'sendFinal' : 'send']({
       op: 'report_test_run',
+      runner: 'vitest',
       id: this.run,
       root: this.root,
       package: this.package,
-      session: process.env.FYOLOD_SESSION_ID || undefined,
-      command_id: process.env.FYOLOD_COMMAND_ID || undefined,
-      command: process.env.FYOLOD_COMMAND || undefined,
+      ...sessionFields(),
       argv: process.argv.slice(2),
       started_at: this.startedAt,
       duration_ms: Date.now() - this.startedAt,

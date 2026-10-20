@@ -29,7 +29,7 @@ export async function load(url, context, nextLoad) {
     return nextLoad(url, context);
   }
   const real = JSON.stringify(url.slice(0, marker - 1));
-  const reporter = JSON.stringify(new URL('./reporter.mjs', import.meta.url).href);
+  const reporter = JSON.stringify(new URL('./vitest-reporter.mjs', import.meta.url).href);
   return {
     format: 'module',
     shortCircuit: true,

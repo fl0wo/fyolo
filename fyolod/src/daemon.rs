@@ -2398,7 +2398,9 @@ async fn process_control(
         }
         Control::ReportTestRun { summary, detail } => {
             // No reply either way: the reporter never waits on the daemon.
-            if connection.capabilities.contains("test_runs") {
+            // A runner switched off since its session started is dropped here
+            // too, in case the process missed the marker.
+            if connection.capabilities.contains("test_runs") && crate::test_runners::is_enabled(&summary.runner) {
                 if let Some(run) = manager.test_runs.report(&connection.client_id, summary, detail) {
                     manager.resources.publish_test_run(run);
                 }
@@ -2418,6 +2420,21 @@ async fn process_control(
                     root,
                     runs,
                     re: seq,
+                }
+            };
+            send_response(out, response_cache, seq, response);
+        }
+        Control::SetTestRunners { disabled, seq } => {
+            let response = if let Some(denied) = test_runs_denied(connection, seq) {
+                denied
+            } else {
+                match crate::test_runners::set_disabled(disabled) {
+                    Ok(disabled) => Control::TestRunnersResult {
+                        runners: crate::test_runners::RUNNERS.iter().map(|(name, _)| name.to_string()).collect(),
+                        disabled,
+                        re: seq,
+                    },
+                    Err(e) => error(seq, ErrorCode::Internal, format!("{e:#}"), true),
                 }
             };
             send_response(out, response_cache, seq, response);
@@ -2612,6 +2629,7 @@ async fn process_control(
         | Control::GitCompareResult { .. }
         | Control::TestRunsResult { .. }
         | Control::TestRunDetailResult { .. }
+        | Control::TestRunnersResult { .. }
         | Control::UploadOpened { .. }
         | Control::UploadAck { .. }
         | Control::UploadCommitted { .. }

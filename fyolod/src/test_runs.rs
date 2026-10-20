@@ -1,7 +1,7 @@
 //! Recorded test runs, per project, kept on the box the tests ran on.
 //!
-//! A run arrives from the test-runner integration inside a session
-//! (`crate::node_integration`) as a stream of `report_test_run` controls. The
+//! A run arrives from a test runner's integration inside a session
+//! (`crate::test_runners`) as a stream of `report_test_run` controls. The
 //! store keeps live runs in memory, and the finished ones across restarts. It
 //! files each run under its project's repository root, so a client watching a
 //! checkout sees every run anywhere inside it, a monorepo package included.
@@ -257,6 +257,7 @@ mod tests {
     fn summary(id: &str, root: &Path, state: &str, started_at: u64) -> TestRunSummary {
         TestRunSummary {
             id: id.to_string(),
+            runner: "vitest".to_string(),
             root: root.display().to_string(),
             state: state.to_string(),
             started_at,
