@@ -39,6 +39,14 @@ struct GeneralSettingsTab: View {
                 if settings.githubIntegrationEnabled {
                     GitHubAccountRow()
                 }
+                Toggle(isOn: $settings.gitToolbarControls) {
+                    SettingsLabel(
+                        title: localized("Git toolbar controls"),
+                        subtext: localized("Shows what is uncommitted, to push, and to pull beside the project name, and adds an Inspect tab to the git pane."),
+                        titleFont: .headline
+                    )
+                }
+                .toggleStyle(.switch)
             } header: {
                 SectionHeaderLabel(title: localized("Integrations"))
             }

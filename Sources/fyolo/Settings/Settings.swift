@@ -97,7 +97,7 @@ final class AppSettings: ObservableObject {
         Key.notifyTaskCompletion, Key.notificationSound,
         Key.analyticsEnabled,
         Key.projectSortOrder, Key.groupSessionsByTask, Key.defaultChatAgent, Key.dimIgnoredFiles,
-        Key.diffSplitView,
+        Key.diffSplitView, Key.gitToolbarControls,
     ]
 
     private enum Key {
@@ -153,6 +153,7 @@ final class AppSettings: ObservableObject {
         static let analyticsEnabled = "privacy.analyticsEnabled"
         static let dimIgnoredFiles = "files.dimIgnoredFiles"
         static let diffSplitView = "diff.splitView"
+        static let gitToolbarControls = "git.toolbarControls"
         static let projectSortOrder = "sidebar.projectSortOrder"
         static let groupSessionsByTask = "sidebar.groupByTask"
         static let recentProjects = "welcome.recentProjects"
@@ -182,6 +183,13 @@ final class AppSettings: ObservableObject {
     /// the inspector has no width to split.
     @Published var diffSplitView: Bool {
         didSet { store.set(diffSplitView, forKey: Key.diffSplitView) }
+    }
+
+    /// Whether the toolbar carries the git glyphs beside the project name,
+    /// and the git pane its Inspect tab. Off means off: neither is built, so nothing
+    /// tracks the repository.
+    @Published var gitToolbarControls: Bool {
+        didSet { store.set(gitToolbarControls, forKey: Key.gitToolbarControls) }
     }
 
     /// Terminal font family. Defaults to "SF Mono" (the Apple system monospace,
@@ -617,6 +625,7 @@ final class AppSettings: ObservableObject {
             Key.scrollbackMegabytes: 10,
             Key.dimIgnoredFiles: true,
             Key.diffSplitView: false,
+            Key.gitToolbarControls: true,
             Key.copyOnSelect: false,
             Key.interfaceFontFamily: "",
             Key.interfaceFontSize: 13.0,
@@ -657,6 +666,7 @@ final class AppSettings: ObservableObject {
 
         dimIgnoredFiles = store.bool(Key.dimIgnoredFiles)
         diffSplitView = store.bool(Key.diffSplitView)
+        gitToolbarControls = store.bool(Key.gitToolbarControls)
         fontFamily = store.string(Key.fontFamily) ?? ""
         fontSize = store.double(Key.fontSize)
         fontThicken = store.bool(Key.fontThicken)

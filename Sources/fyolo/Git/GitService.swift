@@ -132,7 +132,7 @@ enum GitService {
     ///
     /// `range` narrows the log to a revision range (`base..HEAD` for the branch compare);
     /// without one it walks back from `HEAD`.
-    private static func loadLog(_ repoRoot: String, _ limit: Int, range: String? = nil) -> [GitCommit] {
+    static func loadLog(_ repoRoot: String, _ limit: Int, range: String? = nil) -> [GitCommit] {
         // Commits the upstream doesn't have yet. `run` returns nil on a non-zero exit,
         // so a branch with no upstream yields an empty set — no rows marked.
         let unpushed = Set(
@@ -1179,7 +1179,7 @@ enum GitService {
 
     // MARK: Process
 
-    private static func offMain<T: Sendable>(_ work: @escaping @Sendable () -> T) async -> T {
+    static func offMain<T: Sendable>(_ work: @escaping @Sendable () -> T) async -> T {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
                 continuation.resume(returning: work())
@@ -1189,7 +1189,7 @@ enum GitService {
 
     /// Runs `git -C <dir> <args>` and returns stdout, or `nil` on launch failure or a
     /// non-zero exit (unless `ignoreStatus`).
-    private static func run(_ args: [String], in dir: String, ignoreStatus: Bool = false, input: Data? = nil) -> String? {
+    static func run(_ args: [String], in dir: String, ignoreStatus: Bool = false, input: Data? = nil) -> String? {
         output(of: "/usr/bin/git", ["-C", dir] + args, ignoreStatus: ignoreStatus, input: input)
     }
 

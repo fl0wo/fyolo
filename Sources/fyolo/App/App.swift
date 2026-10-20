@@ -2548,11 +2548,18 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
     }
 
     private let frameObserver = FrameObserverBag()
+    /// Re-measures the title item when the git capsule is switched on or off, since
+    /// its width is part of the item's limit.
+    private var gitControlsObserver: AnyCancellable?
 
     init(store: FyoloStore, settings: AppSettings, splitViewController: NSSplitViewController?) {
         self.store = store
         self.settings = settings
         self.splitViewController = splitViewController
+        super.init()
+        gitControlsObserver = settings.$gitToolbarControls.dropFirst().removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.relayoutBranchPicker() }
     }
 
     /// Lets the title use the room its toolbar section actually has, up to a generous ceiling.
@@ -2574,12 +2581,15 @@ private final class MainToolbarDelegate: NSObject, NSToolbarDelegate, NSMenuDele
     }
 
     private func branchPickerWidthLimit() -> CGFloat {
+        // The git capsule rides the same item, after the title, and is never the part
+        // that gives way — so its width is added on top of whatever the title may take.
+        let git = settings.gitToolbarControls ? GitToolbarControls.reservedWidth : 0
         guard let terminalView = terminalPaneView else {
-            return BranchPickerToolbarView.titleWidthCeiling
+            return BranchPickerToolbarView.titleWidthCeiling + git
         }
-        return min(
+        return git + min(
             BranchPickerToolbarView.titleWidthCeiling,
-            max(BranchPickerToolbarView.titleWidthFloor, terminalView.bounds.width - 80)
+            max(BranchPickerToolbarView.titleWidthFloor, terminalView.bounds.width - 80 - git)
         )
     }
 
@@ -3067,6 +3077,7 @@ private final class InspectorTabsItemView: NSView {
 /// observer. A non-git folder shows just the folder name with a settings-folder glyph.
 private struct BranchPickerToolbarView: View {
     @EnvironmentObject var store: FyoloStore
+    @EnvironmentObject var settings: AppSettings
     @Environment(\.controlActiveState) private var controlActive
 
     /// The title grows naturally with its contents, up to 460pt in a wide terminal pane. AppKit
@@ -3111,6 +3122,13 @@ private struct BranchPickerToolbarView: View {
         controlActive == .inactive ? Color(nsColor: .disabledControlTextColor) : .secondary
     }
 
+    /// The folder the git capsule follows: the selected checkout, on this Mac only —
+    /// they read this Mac's git. `nil` with them switched off,
+    /// which is what stops its model from running anything.
+    private var gitSyncFolder: String? {
+        settings.gitToolbarControls ? store.inspectorCheckout?.localRoot : nil
+    }
+
     var body: some View {
         HStack(alignment: .center, spacing: 7) {
             VStack(alignment: .leading, spacing: 0) {
@@ -3129,15 +3147,24 @@ private struct BranchPickerToolbarView: View {
                         .help(branch)
                 }
             }
+            // Keep short names at the established 80pt toolbar width and propose the same hard ceiling
+            // that AppKit applies to the hosting view. Do not use negative padding here: it shrinks the
+            // measured view without shrinking or moving the Text glyphs, allowing them to paint past the
+            // toolbar item's trailing edge. Leading, not centered: a name shorter than the 80pt floor
+            // would otherwise be centered inside it and a longer one drawn flush left, so the title's
+            // left edge moved with every session switch. Pinned, it starts where the terminal text
+            // below it does and only ever grows to the right. On the title alone, so the git capsule
+            // after it keeps its own fixed width — and without the floor while that capsule is there,
+            // which would otherwise sit an empty gap away from a short name.
+            .frame(minWidth: settings.gitToolbarControls ? nil : Self.titleWidthFloor,
+                   maxWidth: Self.titleWidthCeiling, alignment: .leading)
+            if settings.gitToolbarControls {
+                GitToolbarControls(model: store.gitSync)
+            }
         }
-        // Keep short names at the established 80pt toolbar width and propose the same hard ceiling
-        // that AppKit applies to the hosting view. Do not use negative padding here: it shrinks the
-        // measured view without shrinking or moving the Text glyphs, allowing them to paint past the
-        // toolbar item's trailing edge. Leading, not centered: a name shorter than the 80pt floor
-        // would otherwise be centered inside it and a longer one drawn flush left, so the title's
-        // left edge moved with every session switch. Pinned, it starts where the terminal text
-        // below it does and only ever grows to the right.
-        .frame(minWidth: Self.titleWidthFloor, maxWidth: Self.titleWidthCeiling, alignment: .leading)
+        // Here rather than in the glyphs' view: it draws nothing until the first status
+        // read lands, and a view with no body never runs its task.
+        .task(id: gitSyncFolder) { store.gitSync.track(gitSyncFolder) }
     }
 }
 

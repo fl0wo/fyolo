@@ -92,7 +92,7 @@ final class GitPanelModel: ObservableObject {
     /// watched roots. The roots' own ancestry is deliberately not inspected.
     /// `nonisolated` because the FSEvents handler calls it on the watcher's own queue —
     /// it is pure string work over its arguments and touches no actor state.
-    private nonisolated static func isBuildProductEvent(_ path: String, underAny roots: [String]) -> Bool {
+    nonisolated static func isBuildProductEvent(_ path: String, underAny roots: [String]) -> Bool {
         for root in roots where path == root || path.hasPrefix(root + "/") {
             return path.dropFirst(root.count).split(separator: "/")
                 .contains { ignoredEventComponents.contains(String($0)) }

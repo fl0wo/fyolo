@@ -70,18 +70,31 @@ struct GitChangesView: View {
 
     private var chrome: ChromeTheme? { settings.chromeTheme(for: colorScheme) }
 
+    /// Inspect belongs to the toolbar's git controls: it reads the same model, so it is
+    /// there exactly when they are — on this Mac, with the setting on.
+    private var inspectAvailable: Bool {
+        settings.gitToolbarControls && device == nil
+    }
+
+    /// The mode on screen: a remembered Inspect falls back to Changes once the
+    /// controls are switched off.
+    private var shownMode: GitPaneMode {
+        mode == .inspect && !inspectAvailable ? .changes : mode
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             if model.isRepository {
                 topBar
-                switch mode {
+                switch shownMode {
+                case .inspect: GitInspectView(model: store.gitSync, panel: model, paneRoot: repoRoot)
                 case .changes: changesBody
                 case .compare: GitCompareView(model: model, repoRoot: repoRoot, device: device, chrome: chrome, font: settings.interfaceFont)
                 case .history: GitHistoryView(model: model, repoRoot: repoRoot, device: device, chrome: chrome, font: settings.interfaceFont)
                 }
                 // Only Changes has a real total to report ("N files +A −D"). History's
                 // count would just echo the fetch limit — meaningless, so no bar.
-                if mode == .changes { bottomBar }
+                if shownMode == .changes { bottomBar }
             } else {
                 notARepository
             }
@@ -95,7 +108,7 @@ struct GitChangesView: View {
             // working-tree row is the mount-time half of the `openDiff` follow below,
             // which only fires on change and so misses a diff that was already open.
             if let remembered = store.gitPaneModes[repoRoot] { mode = remembered }
-            if let request = store.openDiff, request.repoRoot == repoRoot {
+            if mode != .inspect, let request = store.openDiff, request.repoRoot == repoRoot {
                 if request.range != nil {
                     mode = .compare
                 } else if request.commit != nil {
@@ -106,7 +119,12 @@ struct GitChangesView: View {
                     lastOpenedPath = request.change.path
                 }
             }
+            // The toolbar asked for Inspect before this pane was mounted.
+            if inspectAvailable, store.gitSync.hasPendingInspect { mode = .inspect }
             await model.load()
+        }
+        .onReceive(store.gitSync.inspectRequests) { _ in
+            if inspectAvailable { mode = .inspect }
         }
         .task(id: mode) { if mode == .history { await model.loadHistory() } }
         .onChange(of: mode) { _, mode in store.gitPaneModes[repoRoot] = mode }
@@ -216,6 +234,7 @@ struct GitChangesView: View {
             segment(localized("Changes"), .changes)
             segment(localized("Compare"), .compare)
             segment(localized("History"), .history)
+            if inspectAvailable { segment(localized("Inspect"), .inspect) }
         }
         // The selection pill rides behind the active segment and slides across on switch.
         .background { selectionPill }
@@ -223,11 +242,11 @@ struct GitChangesView: View {
         .background { trackBackground }
         // Scope the slide to this control so switching modes doesn't animate the pane
         // content swap below (same reasoning as `InspectorTabsToolbar`).
-        .animation(.snappy(duration: 0.28), value: mode)
+        .animation(.snappy(duration: 0.28), value: shownMode)
     }
 
     private func segment(_ title: String, _ value: GitPaneMode) -> some View {
-        let active = mode == value
+        let active = shownMode == value
         // Constant weight: a semibold-on-select would re-measure the segment and make
         // the track jitter as the pill lands. Selection reads via .primary + the pill.
         return Text(title)
@@ -246,7 +265,7 @@ struct GitChangesView: View {
     private var selectionPill: some View {
         Capsule(style: .continuous)
             .fill(Color(nsColor: .controlColor))
-            .matchedGeometryEffect(id: mode, in: pillNamespace, isSource: false)
+            .matchedGeometryEffect(id: shownMode, in: pillNamespace, isSource: false)
     }
 
     private var trackBackground: some View {
