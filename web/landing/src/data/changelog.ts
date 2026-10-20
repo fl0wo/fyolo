@@ -17,6 +17,22 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.18.0",
+    date: "2026-10-20",
+    title: "Every Vitest run, in the inspector",
+    changes: {
+      new: [
+        "Tests: run Vitest in any fyolo terminal and a Vitest pane appears in the inspector, with how many tests failed and passed, each failure's message and diff, and a link to the line. It works with any Vitest config and custom logging, and your terminal output stays exactly as it was.",
+        "Test history: pick any of the last six runs from the pane's menu. A dot on the Vitest icon shows a run in progress, or that the latest one failed.",
+        "Paths in files: ⌘-click a path like hack/test.sh in a Makefile or script to open that file, at the line if one follows.",
+        "Git status: the branch name in the toolbar shows how many files are uncommitted, and Changes gains an Inspect tab listing what's in flight against the upstream.",
+      ],
+      fixed: [
+        "The titlebar has room for its controls again on macOS 15.",
+      ],
+    },
+  },
+  {
     version: "0.17.1",
     date: "2026-10-19",
     title: "Go to definition, and back again",
