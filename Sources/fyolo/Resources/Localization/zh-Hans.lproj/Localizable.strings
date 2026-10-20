@@ -202,6 +202,8 @@
 	<string>在 Makefile 的每个目标旁显示运行按钮。</string>
 	<key>A runner switched off stops being recorded at once, and new terminals no longer load it.</key>
 	<string>关闭的运行器会立即停止记录，新终端也不再加载它。</string>
+	<key>A session started here opens in a new worktree on %@.</key>
+	<string>在此启动的会话会在 %@ 的新工作树中打开。</string>
 	<key>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</key>
 	<string>工作区把侧栏限定在归入它的项目和会话上，都在它所属的那台机器上。</string>
 	<key>API key</key>
@@ -336,6 +338,8 @@
 	<string>分支</string>
 	<key>Branch %@</key>
 	<string>分支 %@</string>
+	<key>Branches</key>
+	<string>分支</string>
 	<key>Bring All to Front</key>
 	<string>前置全部窗口</string>
 	<key>Built In</key>
@@ -392,6 +396,8 @@
 	<string>检查更新…</string>
 	<key>Checked %@</key>
 	<string>%@核对过</string>
+	<key>Checked out in %@</key>
+	<string>已在 %@ 中检出</string>
 	<key>Checked out on %@</key>
 	<string>检出在 %@</string>
 	<key>Checking for new commits…</key>
@@ -630,6 +636,8 @@
 	<string>无法打开 Pull Request 页面</string>
 	<key>Couldn’t open the Linear sign-in.</key>
 	<string>无法打开 Linear 登录。</string>
+	<key>Couldn’t pull %@</key>
+	<string>无法拉取 %@</string>
 	<key>Couldn’t reach %@.</key>
 	<string>无法连接到 %@。</string>
 	<key>Couldn’t reach New Relic: %@</key>
@@ -658,8 +666,8 @@
 	<string>无法写入 ~/.ssh/config：%@</string>
 	<key>Count</key>
 	<string>数量</string>
-	<key>Counts uncommitted files beside the branch name, and adds an Inspect tab to the git pane.</key>
-	<string>在分支名称旁统计未提交的文件，并在 Git 面板中添加“检查”标签页。</string>
+	<key>Counts uncommitted files beside the branch name, offers to pull when the remote is ahead, and adds an Inspect tab to the git pane.</key>
+	<string>在分支名称旁统计未提交的文件，远程有新提交时提供拉取，并在 Git 面板中添加“检查”标签页。</string>
 	<key>Create</key>
 	<string>创建</string>
 	<key>Create a Key…</key>
@@ -1712,6 +1720,8 @@
 	<string>发布并结束它们</string>
 	<key>Publishing restarts fyolod on %@</key>
 	<string>发布会重启 %@ 上的 fyolod</string>
+	<key>Pull %lld commits from %@</key>
+	<string>从 %2$@ 拉取 %1$lld 个提交</string>
 	<key>Pull Requests</key>
 	<string>PR</string>
 	<key>Pull request #%lld from %@</key>
@@ -2634,6 +2644,8 @@ Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks
 	<string>git 无法移除“%@”。</string>
 	<key>git no longer tracks “%@”, and its folder still holds files. Delete the folder to remove the worktree.</key>
 	<string>git 已不再跟踪“%@”，且其文件夹中仍有文件。请删除该文件夹后再移除 worktree。</string>
+	<key>git pull did not complete.</key>
+	<string>git pull 未完成。</string>
 	<key>git still lists “%@”, so it was not removed.</key>
 	<string>git 仍列出“%@”，因此未移除。</string>
 	<key>issue.state.open</key>

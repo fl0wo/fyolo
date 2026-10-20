@@ -12925,16 +12925,6 @@
         }
       }
     },
-    "Counts uncommitted files beside the branch name, and adds an Inspect tab to the git pane.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在分支名称旁统计未提交的文件，并在 Git 面板中添加“检查”标签页。"
-          }
-        }
-      }
-    },
     "%lld new": {
       "localizations": {
         "zh-Hans": {
@@ -13321,6 +13311,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "关闭的运行器会立即停止记录，新终端也不再加载它。"
+          }
+        }
+      }
+    },
+    "Counts uncommitted files beside the branch name, offers to pull when the remote is ahead, and adds an Inspect tab to the git pane.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在分支名称旁统计未提交的文件，远程有新提交时提供拉取，并在 Git 面板中添加“检查”标签页。"
+          }
+        }
+      }
+    },
+    "Branches": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分支"
+          }
+        }
+      }
+    },
+    "Checked out in %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在 %@ 中检出"
+          }
+        }
+      }
+    },
+    "A session started here opens in a new worktree on %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在此启动的会话会在 %@ 的新工作树中打开。"
+          }
+        }
+      }
+    },
+    "git pull did not complete.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "git pull 未完成。"
+          }
+        }
+      }
+    },
+    "Couldn’t pull %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法拉取 %@"
+          }
+        }
+      }
+    },
+    "Pull %lld commits from %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从 %2$@ 拉取 %1$lld 个提交"
           }
         }
       }

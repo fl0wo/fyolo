@@ -202,6 +202,8 @@
 	<string>A run button beside each target in a Makefile.</string>
 	<key>A runner switched off stops being recorded at once, and new terminals no longer load it.</key>
 	<string>A runner switched off stops being recorded at once, and new terminals no longer load it.</string>
+	<key>A session started here opens in a new worktree on %@.</key>
+	<string>A session started here opens in a new worktree on %@.</string>
 	<key>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</key>
 	<string>A workspace scopes the sidebar to the projects and sessions filed under it, on the machine it belongs to.</string>
 	<key>API key</key>
@@ -336,6 +338,8 @@
 	<string>Branch</string>
 	<key>Branch %@</key>
 	<string>Branch %@</string>
+	<key>Branches</key>
+	<string>Branches</string>
 	<key>Bring All to Front</key>
 	<string>Bring All to Front</string>
 	<key>Built In</key>
@@ -392,6 +396,8 @@
 	<string>Check for Updates…</string>
 	<key>Checked %@</key>
 	<string>Checked %@</string>
+	<key>Checked out in %@</key>
+	<string>Checked out in %@</string>
 	<key>Checked out on %@</key>
 	<string>Checked out on %@</string>
 	<key>Checking for new commits…</key>
@@ -630,6 +636,8 @@
 	<string>Couldn’t open a pull request page</string>
 	<key>Couldn’t open the Linear sign-in.</key>
 	<string>Couldn’t open the Linear sign-in.</string>
+	<key>Couldn’t pull %@</key>
+	<string>Couldn’t pull %@</string>
 	<key>Couldn’t reach %@.</key>
 	<string>Couldn’t reach %@.</string>
 	<key>Couldn’t reach New Relic: %@</key>
@@ -658,8 +666,8 @@
 	<string>Couldn’t write ~/.ssh/config: %@</string>
 	<key>Count</key>
 	<string>Count</string>
-	<key>Counts uncommitted files beside the branch name, and adds an Inspect tab to the git pane.</key>
-	<string>Counts uncommitted files beside the branch name, and adds an Inspect tab to the git pane.</string>
+	<key>Counts uncommitted files beside the branch name, offers to pull when the remote is ahead, and adds an Inspect tab to the git pane.</key>
+	<string>Counts uncommitted files beside the branch name, offers to pull when the remote is ahead, and adds an Inspect tab to the git pane.</string>
 	<key>Create</key>
 	<string>Create</string>
 	<key>Create a Key…</key>
@@ -1712,6 +1720,8 @@
 	<string>Publish and End Them</string>
 	<key>Publishing restarts fyolod on %@</key>
 	<string>Publishing restarts fyolod on %@</string>
+	<key>Pull %lld commits from %@</key>
+	<string>Pull %lld commits from %@</string>
 	<key>Pull Requests</key>
 	<string>Pull Requests</string>
 	<key>Pull request #%lld from %@</key>
@@ -2634,6 +2644,8 @@ Enabling adds a short note to your ~/.claude/CLAUDE.md and installs status hooks
 	<string>git couldn’t remove “%@”.</string>
 	<key>git no longer tracks “%@”, and its folder still holds files. Delete the folder to remove the worktree.</key>
 	<string>git no longer tracks “%@”, and its folder still holds files. Delete the folder to remove the worktree.</string>
+	<key>git pull did not complete.</key>
+	<string>git pull did not complete.</string>
 	<key>git still lists “%@”, so it was not removed.</key>
 	<string>git still lists “%@”, so it was not removed.</string>
 	<key>issue.state.open</key>
