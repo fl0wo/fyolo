@@ -17,6 +17,21 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.20.0",
+    date: "2026-10-20",
+    title: "Every branch, one click from a session",
+    changes: {
+      new: [
+        "Branches: each project lists its local branches in a folded Branches row. Start a terminal or agent on any of them; a branch that isn't checked out opens in its own worktree, so the sessions already running stay where they are.",
+        "Pull from the toolbar: when the remote has commits your branch lacks, a count appears beside the branch name. Click it to bring them in.",
+        "Playwright and pytest: their runs now show in the Tests pane beside Vitest, each marked with its runner. Settings ▸ Plugins can switch any runner off.",
+      ],
+      improved: [
+        "A session that ended reads as one dimmed row; hover it to see why it ended.",
+      ],
+    },
+  },
+  {
     version: "0.19.0",
     date: "2026-10-20",
     title: "Pull requests, in the order you act on them",
