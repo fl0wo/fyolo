@@ -1110,8 +1110,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// system sidebar tracking separator, the custom branch-picker title, an inner tracking
     /// separator aligned to the inspector divider, and a trailing inspector toggle. The delegate
     /// holds the split controller (to bind the inner separator to divider 1) and the store +
-    /// settings (to host the branch picker). Toolbar style is version-branched the way CodeEdit
-    /// does it: `.automatic` on macOS 26, `.unifiedCompact` before. The baseline separator is
+    /// settings (to host the branch picker). Toolbar style is version-branched: `.automatic` on
+    /// macOS 26, `.unified` before. Not `.unifiedCompact`, CodeEdit's choice: its 38pt band left
+    /// the two-line title and the 36pt toolbar controls about 2pt from the window's top edge,
+    /// where macOS 26's band gives them room. The baseline separator is
     /// dropped so only the per-split-item separators decide where a hairline shows.
     private func installToolbar() {
         guard let window else { return }
@@ -1130,7 +1132,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if #available(macOS 26, *) {
             window.toolbarStyle = .automatic
         } else {
-            window.toolbarStyle = .unifiedCompact
+            window.toolbarStyle = .unified
         }
         window.toolbar = toolbar
     }
