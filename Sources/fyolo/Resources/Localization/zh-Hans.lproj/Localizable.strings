@@ -28,6 +28,8 @@
 	<string>%@ 的响应不像 GitHub 服务器。</string>
 	<key>%@ exited — shell</key>
 	<string>%@ 已退出——已回到 shell</string>
+	<key>%@ from %@</key>
+	<string>%1$@，来自 %2$@</string>
 	<key>%@ has nothing open right now.</key>
 	<string>%@ 目前没有未完成的工单。</string>
 	<key>%@ has nothing to pair against</key>
@@ -76,12 +78,16 @@
 %3$@</string>
 	<key>%@ stays published only until you log out of it. Fyolo couldn’t set it to keep services running after that.</key>
 	<string>%@ 只在你登录期间保持发布。Fyolo 无法让它在登出后继续运行服务。</string>
+	<key>%@ to %@</key>
+	<string>%1$@，推送到 %2$@</string>
 	<key>%@ tokens</key>
 	<string>%@ token</string>
 	<key>%@ · %@ on %@ · %@ ago</key>
 	<string>%1$@ · %3$@ 上%2$@ · %4$@前</string>
 	<key>%@ · %@ tokens</key>
 	<string>%@ · %@ token</string>
+	<key>%@ · %@. Click to inspect.</key>
+	<string>%1$@ · %2$@。点按以检查。</string>
 	<key>%@ — %@.</key>
 	<string>%@ — %@。</string>
 	<key>%@ — %@. Couldn’t update %@.</key>
@@ -92,10 +98,16 @@
 	<string>%1$@、%2$@ 和 %3$@</string>
 	<key>%lld %@</key>
 	<string>%lld %@</string>
+	<key>%lld commits</key>
+	<string>%lld 个提交</string>
+	<key>%lld edited</key>
+	<string>%lld 个已修改</string>
 	<key>%lld file</key>
 	<string>%lld 个文件</string>
 	<key>%lld files</key>
 	<string>%lld 个文件</string>
+	<key>%lld files also changed here. Pulling may conflict.</key>
+	<string>有 %lld 个文件在此处也有更改。拉取可能会产生冲突。</string>
 	<key>%lld hidden by rules</key>
 	<string>%lld 项被规则隐藏</string>
 	<key>%lld hidden panels</key>
@@ -104,16 +116,22 @@
 	<string>主题文件夹里有 %lld 个</string>
 	<key>%lld installed</key>
 	<string>已安装 %lld 个</string>
+	<key>%lld new</key>
+	<string>%lld 个新增</string>
 	<key>%lld not installed</key>
 	<string>%lld 个未安装</string>
 	<key>%lld of %lld</key>
 	<string>第 %lld 项（共 %lld 项）</string>
 	<key>%lld pt</key>
 	<string>%lld 点</string>
+	<key>%lld removed</key>
+	<string>%lld 个已删除</string>
 	<key>%lld results</key>
 	<string>%lld 个结果</string>
 	<key>%lld rows</key>
 	<string>%lld 行</string>
+	<key>%lld uncommitted files</key>
+	<string>%lld 个未提交的文件</string>
 	<key>%lld%@ matches in %lld files</key>
 	<string>在 %3$lld 个文件中找到 %1$lld%2$@ 个匹配项</string>
 	<key>%lldd</key>
@@ -134,6 +152,12 @@
 	<string>%1$lld× %2$@</string>
 	<key>(no message)</key>
 	<string>（无消息）</string>
+	<key>1 commit</key>
+	<string>1 个提交</string>
+	<key>1 file</key>
+	<string>1 个文件</string>
+	<key>1 file also changed here. Pulling may conflict.</key>
+	<string>有 1 个文件在此处也有更改。拉取可能会产生冲突。</string>
 	<key>1 result</key>
 	<string>1 个结果</string>
 	<key>A box can only be paired with once its fyolod is running and reachable from outside — a tunnel, or a proxy in front of it.</key>
@@ -236,6 +260,10 @@
 	<string>允许访问用量</string>
 	<key>Almost the same text</key>
 	<string>几乎相同的文本</string>
+	<key>Also changed here. Pulling may conflict.</key>
+	<string>此处也有更改。拉取可能会产生冲突。</string>
+	<key>Also changed upstream. Pulling may conflict.</key>
+	<string>上游也有更改。拉取可能会产生冲突。</string>
 	<key>An older install points at %@. Update it to this version of Fyolo.</key>
 	<string>旧的安装指向 %@。请将其更新到此版本的 Fyolo。</string>
 	<key>App language</key>
@@ -338,8 +366,12 @@
 	<string>重新检查</string>
 	<key>Check for Updates…</key>
 	<string>检查更新…</string>
+	<key>Checked %@</key>
+	<string>%@核对过</string>
 	<key>Checked out on %@</key>
 	<string>检出在 %@</string>
+	<key>Checking for new commits…</key>
+	<string>正在检查新提交…</string>
 	<key>Checking that %@ answers…</key>
 	<string>正在确认 %@ 有回应…</string>
 	<key>Checking the machine…</key>
@@ -600,6 +632,8 @@
 	<string>无法写入 ~/.ssh/config：%@</string>
 	<key>Count</key>
 	<string>数量</string>
+	<key>Counts uncommitted files beside the branch name, and adds an Inspect tab to the git pane.</key>
+	<string>在分支名称旁统计未提交的文件，并在 Git 面板中添加“检查”标签页。</string>
 	<key>Create</key>
 	<string>创建</string>
 	<key>Create a Key…</key>
@@ -862,6 +896,8 @@
 	<string>获取 %@</string>
 	<key>Git ignore patterns cannot represent a filename containing a line break.</key>
 	<string>Git 忽略模式无法表示包含换行符的文件名。</string>
+	<key>Git status</key>
+	<string>Git 状态</string>
 	<key>Git worktree</key>
 	<string>Git worktree</string>
 	<key>GitHub</key>
@@ -904,6 +940,8 @@
 	<string>分组名称</string>
 	<key>Group with</key>
 	<string>编组到</string>
+	<key>HEAD is detached, so there is nothing to sync.</key>
+	<string>HEAD 处于分离状态，因此没有可同步的内容。</string>
 	<key>Health</key>
 	<string>健康状况</string>
 	<key>Hidden Panels</key>
@@ -980,10 +1018,14 @@
 	<string>事件</string>
 	<key>Includes a session moved here by hand</key>
 	<string>包含手动移入的会话</string>
+	<key>Incoming</key>
+	<string>传入</string>
 	<key>Increase Font Size</key>
 	<string>增大字体</string>
 	<key>Info</key>
 	<string>信息</string>
+	<key>Inspect</key>
+	<string>检查</string>
 	<key>Inspector</key>
 	<string>检查器</string>
 	<key>Inspector Pane</key>
@@ -1358,6 +1400,8 @@
 	<string>不是 Git 仓库</string>
 	<key>Not a valid regular expression</key>
 	<string>不是有效的正则表达式</string>
+	<key>Not checked against the remote yet.</key>
+	<string>尚未与远程核对。</string>
 	<key>Not checked yet</key>
 	<string>尚未检查</string>
 	<key>Not installed</key>
@@ -1382,8 +1426,14 @@
 	<string>没有符合这些过滤条件的条目。</string>
 	<key>Nothing to Compare</key>
 	<string>没有可对比的分支</string>
+	<key>Nothing to commit</key>
+	<string>没有要提交的内容</string>
 	<key>Nothing to install.</key>
 	<string>没有可安装的内容。</string>
+	<key>Nothing to pull.</key>
+	<string>没有要拉取的内容。</string>
+	<key>Nothing to push.</key>
+	<string>没有要推送的内容。</string>
 	<key>Nothing to reach — this is the machine you’re on.</key>
 	<string>无需连接 — 这就是你正在使用的设备。</string>
 	<key>Notifications</key>
@@ -1488,6 +1538,8 @@
 	<string>可以开启或关闭的可选功能</string>
 	<key>Other machines</key>
 	<string>其他设备</string>
+	<key>Outgoing</key>
+	<string>传出</string>
 	<key>Overwrite</key>
 	<string>覆盖</string>
 	<key>Padding: %lld pt</key>
@@ -1894,10 +1946,14 @@
 	<string>在此差异中显示另一个文件</string>
 	<key>Show in Finder</key>
 	<string>在访达中显示</string>
+	<key>Show new, removed, and edited files</key>
+	<string>显示新增、删除和修改的文件</string>
 	<key>Show one column (inline diff)</key>
 	<string>显示单栏（行内差异）</string>
 	<key>Show or hide notes for this project</key>
 	<string>显示或隐藏此项目的笔记</string>
+	<key>Show the total only</key>
+	<string>仅显示总数</string>
 	<key>Show two columns (side-by-side diff)</key>
 	<string>显示双栏（并排差异）</string>
 	<key>Showing everything. Right-click anything that isn’t yours and choose Hide Similar.</key>
@@ -1908,8 +1964,12 @@
 	<string>以较淡的颜色显示 Git 忽略的文件和文件夹。</string>
 	<key>Shows logs, metrics and incidents from New Relic in the inspector, filtered down to what you care about.</key>
 	<string>在检查器中显示 New Relic 的日志、指标和事件，只保留你关心的内容。</string>
+	<key>Shows new, removed, and edited files</key>
+	<string>显示新增、删除和修改的文件</string>
 	<key>Shows the Issues pane in the inspector for projects whose remote is on GitHub.</key>
 	<string>为远程仓库位于 GitHub 的项目在检查器中显示 Issues 窗格。</string>
+	<key>Shows the total only</key>
+	<string>仅显示总数</string>
 	<key>Shows this project’s Linear tickets in the inspector, with the pull requests that name them.</key>
 	<string>在检查器中显示此项目的 Linear 工单，以及标题中提到它们的 PR。</string>
 	<key>Shows when an agent is working or waiting on you — the sidebar spinner and menu-bar pulse.</key>
@@ -2140,6 +2200,8 @@
 	<string>这个分支和基础分支没有共同的提交。</string>
 	<key>This branch has no commits yet.</key>
 	<string>此分支还没有提交。</string>
+	<key>This branch has no upstream yet.</key>
+	<string>此分支还没有上游。</string>
 	<key>This branch has nothing the base branch doesn’t already have.</key>
 	<string>这个分支没有基础分支尚未包含的内容。</string>
 	<key>This build doesn’t check for updates.</key>
@@ -2214,6 +2276,8 @@
 	<string>这个中转没有有效的 URL 正则，它的地址永远读不回来。</string>
 	<key>This repository has no active GitHub Actions workflows.</key>
 	<string>此仓库没有启用的 GitHub Actions 工作流。</string>
+	<key>This repository has no remote.</key>
+	<string>此仓库没有远程。</string>
 	<key>This run hasn’t started any jobs yet.</key>
 	<string>此运行尚未开始任何作业。</string>
 	<key>This session couldn’t be started.</key>
@@ -2266,6 +2330,10 @@
 	<string>URL 模式</string>
 	<key>Unassigned</key>
 	<string>未指派</string>
+	<key>Uncommitted</key>
+	<string>未提交</string>
+	<key>Uncommitted: %@</key>
+	<string>未提交：%@</string>
 	<key>Underline</key>
 	<string>下划线</string>
 	<key>Ungroup</key>

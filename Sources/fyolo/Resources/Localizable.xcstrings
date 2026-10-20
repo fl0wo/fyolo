@@ -12524,6 +12524,346 @@
           }
         }
       }
+    },
+    "Incoming": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传入"
+          }
+        }
+      }
+    },
+    "Outgoing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传出"
+          }
+        }
+      }
+    },
+    "Uncommitted": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未提交"
+          }
+        }
+      }
+    },
+    "Inspect": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查"
+          }
+        }
+      }
+    },
+    "Not checked against the remote yet.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未与远程核对。"
+          }
+        }
+      }
+    },
+    "Nothing to commit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有要提交的内容"
+          }
+        }
+      }
+    },
+    "Nothing to pull.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有要拉取的内容。"
+          }
+        }
+      }
+    },
+    "Nothing to push.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有要推送的内容。"
+          }
+        }
+      }
+    },
+    "Show new, removed, and edited files": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示新增、删除和修改的文件"
+          }
+        }
+      }
+    },
+    "Show the total only": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示总数"
+          }
+        }
+      }
+    },
+    "Shows new, removed, and edited files": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示新增、删除和修改的文件"
+          }
+        }
+      }
+    },
+    "Shows the total only": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示总数"
+          }
+        }
+      }
+    },
+    "This branch has no upstream yet.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此分支还没有上游。"
+          }
+        }
+      }
+    },
+    "This repository has no remote.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此仓库没有远程。"
+          }
+        }
+      }
+    },
+    "HEAD is detached, so there is nothing to sync.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HEAD 处于分离状态，因此没有可同步的内容。"
+          }
+        }
+      }
+    },
+    "Checking for new commits…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查新提交…"
+          }
+        }
+      }
+    },
+    "Also changed here. Pulling may conflict.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处也有更改。拉取可能会产生冲突。"
+          }
+        }
+      }
+    },
+    "Also changed upstream. Pulling may conflict.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上游也有更改。拉取可能会产生冲突。"
+          }
+        }
+      }
+    },
+    "1 file also changed here. Pulling may conflict.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有 1 个文件在此处也有更改。拉取可能会产生冲突。"
+          }
+        }
+      }
+    },
+    "1 commit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 个提交"
+          }
+        }
+      }
+    },
+    "1 file": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 个文件"
+          }
+        }
+      }
+    },
+    "Git status": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git 状态"
+          }
+        }
+      }
+    },
+    "Counts uncommitted files beside the branch name, and adds an Inspect tab to the git pane.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在分支名称旁统计未提交的文件，并在 Git 面板中添加“检查”标签页。"
+          }
+        }
+      }
+    },
+    "%lld new": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个新增"
+          }
+        }
+      }
+    },
+    "%lld removed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个已删除"
+          }
+        }
+      }
+    },
+    "%lld edited": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个已修改"
+          }
+        }
+      }
+    },
+    "%lld uncommitted files": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个未提交的文件"
+          }
+        }
+      }
+    },
+    "%lld commits": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个提交"
+          }
+        }
+      }
+    },
+    "%lld files also changed here. Pulling may conflict.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有 %lld 个文件在此处也有更改。拉取可能会产生冲突。"
+          }
+        }
+      }
+    },
+    "%@ from %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@，来自 %2$@"
+          }
+        }
+      }
+    },
+    "%@ to %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@，推送到 %2$@"
+          }
+        }
+      }
+    },
+    "%@ · %@. Click to inspect.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@。点按以检查。"
+          }
+        }
+      }
+    },
+    "Checked %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@核对过"
+          }
+        }
+      }
+    },
+    "Uncommitted: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未提交：%@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
